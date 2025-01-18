@@ -1,6 +1,0 @@
-@FCSP.WebAPI_HostAddress = http://localhost:5279
-
-GET {{FCSP.WebAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
