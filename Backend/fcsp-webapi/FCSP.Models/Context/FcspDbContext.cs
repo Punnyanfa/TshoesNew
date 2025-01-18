@@ -46,10 +46,10 @@ public class FcspDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         EnumConfig.Configure(modelBuilder);
         RelationshipConfig.Configure(modelBuilder);
-
-        base.OnModelCreating(modelBuilder);
     }
     #endregion
 
