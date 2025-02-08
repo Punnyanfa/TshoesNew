@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCSP.Models.Migrations
 {
     [DbContext(typeof(FcspDbContext))]
-    [Migration("20250118021531_initial")]
+    [Migration("20250208125527_initial")]
     partial class initial
     {
         /// <inheritdoc />

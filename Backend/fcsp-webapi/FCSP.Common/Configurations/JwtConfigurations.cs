@@ -1,6 +1,6 @@
-﻿namespace FCSP.Common.Options;
+﻿namespace FCSP.Common.Configurations;
 
-public class JwtOptions
+public class JwtConfigurations
 {
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;

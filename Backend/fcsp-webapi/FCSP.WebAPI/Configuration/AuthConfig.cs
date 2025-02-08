@@ -2,17 +2,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-using FCSP.Common.Options;
 using FCSP.Common;
+using FCSP.Common.Configurations;
 
 namespace FCSP.WebAPI.Configuration;
 
 internal static class AuthConfig
 {
-    #region Fields
-    private static JwtOptions? jwtOptions;
-    #endregion
-
     #region Public methods
     public static void Configure(IServiceCollection services, IConfiguration config)
     {
@@ -23,22 +19,24 @@ internal static class AuthConfig
     #region Private methods
     private static void ConfigureJwtBearer(IServiceCollection services, IConfiguration config)
     {
-        jwtOptions = config.GetSection(Constants.JwtConfig).Get<JwtOptions>();
-        if (jwtOptions == null)
+        JwtConfigurations? jwtConfigs = 
+            config.GetSection(Constants.JwtConfig).Get<JwtConfigurations>();
+
+        if (jwtConfigs == null)
         {
             return;
         }
 
-        services.AddSingleton(jwtOptions);
-
+        services.AddSingleton(jwtConfigs);
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(options =>
         {
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtOptions.Key)
+                Encoding.UTF8.GetBytes(jwtConfigs.Key)
             );
 
             options.TokenValidationParameters = new TokenValidationParameters
@@ -47,8 +45,8 @@ internal static class AuthConfig
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
+                ValidIssuer = jwtConfigs.Issuer,
+                ValidAudience = jwtConfigs.Audience,
                 IssuerSigningKey = key,
             };
         });

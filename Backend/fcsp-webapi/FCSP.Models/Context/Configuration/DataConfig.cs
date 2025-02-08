@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace FCSP.Models.Context;
+namespace FCSP.Models.Context.Configuration;
 
-internal static class DataSeeder
+internal static class DataConfig
 {
     public static void Configure(ModelBuilder modelBuilder)
     {
-
     }
 }

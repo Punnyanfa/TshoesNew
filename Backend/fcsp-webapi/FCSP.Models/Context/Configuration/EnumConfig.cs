@@ -2,7 +2,7 @@
 
 using FCSP.Models.Entities;
 
-namespace FCSP.Models.Context;
+namespace FCSP.Models.Context.Configuration;
 
 internal static class EnumConfig
 {

@@ -1,23 +1,21 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-using FCSP.Common;
-using FCSP.Common.Options;
+using FCSP.Common.Configurations;
 
-namespace FCSP.Services.Authentication;
+namespace FCSP.Services.Authentication.Token;
 
 public class JwtService : ITokenService
 {
     #region Fields
-    private readonly JwtOptions jwtOptions;
+    private readonly JwtConfigurations _config;
     #endregion
 
     #region Constructors
-    public JwtService(JwtOptions jwtOptions)
+    public JwtService(JwtConfigurations config)
     {
-        this.jwtOptions = jwtOptions;
+        this._config = config;
     }
     #endregion
 
@@ -31,13 +29,13 @@ public class JwtService : ITokenService
     #region Private methods
     private string GetJwt()
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry = DateTime.Now.AddMinutes(jwtOptions.ExpiryMinutes);
+        var expiry = DateTime.Now.AddMinutes(_config.ExpiryMinutes);
 
         var token = new JwtSecurityToken(
-            jwtOptions.Issuer,
-            jwtOptions.Audience,
+            _config.Issuer,
+            _config.Audience,
             null,
             null,
             expiry,
