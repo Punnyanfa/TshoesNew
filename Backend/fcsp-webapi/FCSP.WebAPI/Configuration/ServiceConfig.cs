@@ -1,24 +1,25 @@
-﻿using FCSP.Services.Authentication;
-using FCSP.Services.User;
+﻿using FCSP.Services.Auth;
+using FCSP.Services.Auth.Hash;
+using FCSP.Services.Authentication;
+using FCSP.Services.Authentication.Token;
+using Microsoft.AspNet.Identity;
 
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
 {
-    #region Public methods
     public static void Configure(IServiceCollection services)
     {
         RegisterServices(services);
     }
-    #endregion
 
-    #region Private methods
     private static void RegisterServices(IServiceCollection services)
     {
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IPasswordHashingService, PasswordHashingService>();
         services.AddScoped<ITokenService, JwtService>();
 
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
     }
-    #endregion
 }

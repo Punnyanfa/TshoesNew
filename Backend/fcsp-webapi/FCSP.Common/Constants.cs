@@ -7,4 +7,5 @@ public class Constants
     public const string AdminRole = "Admin";
 
     public const string JwtConfig = "Jwt";
+    public const string GoogleAuthConfig = "GoogleAuth";
 }

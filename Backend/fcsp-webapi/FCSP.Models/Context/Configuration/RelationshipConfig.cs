@@ -1,7 +1,7 @@
 ﻿using FCSP.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace FCSP.Models.Context;
+namespace FCSP.Models.Context.Configuration;
 
 internal static class RelationshipConfig
 {

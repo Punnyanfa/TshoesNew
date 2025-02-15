@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 
 using FCSP.Models.Entities;
+using FCSP.Models.Context.Configuration;
 
 namespace FCSP.Models.Context;
 
@@ -36,6 +37,13 @@ public class FcspDbContext : DbContext
 
         return config.GetConnectionString("FCSP_DB");
     }
+
+    private static void ConfigureModel(ModelBuilder modelBuilder)
+    {
+        EnumConfig.Configure(modelBuilder);
+        RelationshipConfig.Configure(modelBuilder);
+        DataConfig.Configure(modelBuilder);
+    }
     #endregion
 
     #region Protected Methods
@@ -48,8 +56,7 @@ public class FcspDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        EnumConfig.Configure(modelBuilder);
-        RelationshipConfig.Configure(modelBuilder);
+        ConfigureModel(modelBuilder);
     }
     #endregion
 
