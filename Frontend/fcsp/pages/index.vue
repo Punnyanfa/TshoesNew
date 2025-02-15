@@ -4,7 +4,7 @@
     <p class="lead">Design your own unique shoes with our AI-powered tool.</p>
 
     <div class="mt-4">
-      <NuxtLink to="/custom" class="btn btn-primary">Start Customizing</NuxtLink>
+      <NuxtLink to="/homePage" class="btn btn-primary">Start Customizing</NuxtLink>
     </div>
   </div>
 </template>

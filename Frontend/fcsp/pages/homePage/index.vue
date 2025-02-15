@@ -1,31 +1,33 @@
 <template>
-  <div class="container mt-5 text-center">
-    <h1 class="text-primary">Welcome to Shoe Customizer</h1>
-    <p class="lead">Design your own shoes with our AI-powered 3D customizer.</p>
+  <div>
+    <!-- Header Component -->
+    <Header />
 
-    <NuxtLink to="/custom" class="btn btn-primary mt-3">Start Designing</NuxtLink>
+    <!-- Main Content Section -->
+    <main class="container mt-5 text-center">
+      <h1 class="text-primary fw-bold display-4">Welcome to Home Page</h1>
+      <p class="lead mt-3">
+        Explore our latest shoe designs with AI-powered customization.
+      </p>
+    </main>
 
-    <div class="row mt-5">
-      <div class="col-md-4" v-for="shoe in shoes" :key="shoe.id">
-        <div class="card">
-          <img :src="shoe.image" class="card-img-top" alt="Shoe" />
-          <div class="card-body">
-            <h5 class="card-title">{{ shoe.name }}</h5>
-            <p class="card-text">${{ shoe.price }}</p>
-            <NuxtLink :to="`/products/${shoe.id}`" class="btn btn-outline-primary">View Details</NuxtLink>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Footer Component -->
+    <Footer />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
-const shoes = ref([
-  { id: 1, name: "Air Max Custom", price: 120, image: "/images/shoe1.jpg" },
-  { id: 2, name: "Classic Sneakers", price: 95, image: "/images/shoe2.jpg" },
-  { id: 3, name: "High-Top Design", price: 110, image: "/images/shoe3.jpg" }
-]);
+import Header from '@/components/site-header.vue';
+import Footer from '@/components/site-footer.vue';
 </script>
+
+<style scoped>
+.text-primary {
+  color: #0d6efd; /* Bootstrap primary blue */
+}
+
+.lead {
+  font-size: 1.25rem;
+  color: #495057; /* Bootstrap gray-700 */
+}
+</style>
