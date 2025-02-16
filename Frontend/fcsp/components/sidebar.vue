@@ -2,38 +2,18 @@
   <div class="card p-3 shadow-sm">
     <!-- Search -->
     <div class="mb-3">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Tìm kiếm sản phẩm..."
-        v-model="searchTerm"
-        @input="applyFilters"
-      />
+      <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." v-model="searchTerm" @input="applyFilters" />
     </div>
 
     <!-- Reset Filters -->
-    <button class="btn btn-danger w-100 mb-3" @click="resetFilters">
-      Reset Filters
-    </button>
+    <button class="btn btn-danger w-100 mb-3" @click="resetFilters">Reset Filters</button>
 
     <!-- Price Range -->
     <div class="mb-3">
-      <h5>Price Range (USD)</h5>
+      <h5>Price Range (VND)</h5>
       <div class="d-flex">
-        <input
-          type="number"
-          class="form-control me-2"
-          placeholder="Min"
-          v-model.number="priceRange.min"
-          @input="applyFilters"
-        />
-        <input
-          type="number"
-          class="form-control"
-          placeholder="Max"
-          v-model.number="priceRange.max"
-          @input="applyFilters"
-        />
+        <input type="number" class="form-control me-2" placeholder="Min" v-model.number="priceRange.min" @input="applyFilters" />
+        <input type="number" class="form-control" placeholder="Max" v-model.number="priceRange.max" @input="applyFilters" />
       </div>
     </div>
 
@@ -41,14 +21,7 @@
     <div v-for="(options, type) in filterOptions" :key="type" class="mb-3">
       <h5>{{ options.label }}</h5>
       <div class="form-check" v-for="option in options.items" :key="option">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          :id="option"
-          :value="option"
-          v-model="selectedFilters[type]"
-          @change="applyFilters"
-        />
+        <input class="form-check-input" type="checkbox" :id="option" :value="option" v-model="selectedFilters[type]" @change="applyFilters" />
         <label class="form-check-label" :for="option">{{ option }}</label>
       </div>
     </div>
@@ -66,17 +39,17 @@ export default {
     const searchTerm = ref("");
     const priceRange = reactive({ min: "", max: "" });
     const selectedFilters = reactive({
-      brands: [],
       categories: [],
-      skinTypes: [],
-      volumes: [],
+      brand: [],
+      color: [],
+      size: [],
     });
 
     const filterOptions = {
-      brands: { label: "Brands", items: ["La Roche-Posay", "L'Oréal", "Innisfree", "Laneige"] },
-      categories: { label: "Categories", items: ["Skincare", "Makeup", "Cleansers", "Moisturizers"] },
-      skinTypes: { label: "Skin Types", items: ["Normal", "Oily", "Dry", "Combination", "Sensitive"] },
-      volumes: { label: "Volume", items: ["30mL", "50mL", "60mL", "100mL"] },
+      categories: { label: "Categories", items: ["Mens", "Womens", "Kids", "Sports"] },
+      brand: { label: "Brand", items: ["Studio", "Hastech", "Quickiin", "Graphic Corner", "DevItems"] },
+      color: { label: "Color", items: ["Green", "Black", "Red", "Blue", "Pink"] },
+      size: { label: "Size", items: ["S", "M", "L", "XL"] },
     };
 
     const applyFilters = () => {
@@ -97,7 +70,5 @@ export default {
 </script>
 
 <style scoped>
-.card {
-  max-width: 300px;
-}
+.card { max-width: 300px; }
 </style>
