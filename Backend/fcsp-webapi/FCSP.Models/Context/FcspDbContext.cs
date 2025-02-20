@@ -25,6 +25,8 @@ public class FcspDbContext : DbContext
     public DbSet<ShippingInfo> ShippingInfos { get; set; }
     public DbSet<Texture> Textures { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<Post> Posts { get; set; }
+    public DbSet<PostComment> PostComments { get; set; }
     #endregion
 
     #region Private Methods

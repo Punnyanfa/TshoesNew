@@ -4,6 +4,7 @@ using FCSP.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCSP.Models.Migrations
 {
     [DbContext(typeof(FcspDbContext))]
-    partial class FcspDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250220155624_UpdateDB")]
+    partial class UpdateDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,68 +265,6 @@ namespace FCSP.Models.Migrations
                     b.ToTable("PaymentGateways");
                 });
 
-            modelBuilder.Entity("FCSP.Models.Entities.Post", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.PostComment", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("PostId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PostComments");
-                });
-
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>
                 {
                     b.Property<long>("Id")
@@ -523,30 +464,6 @@ namespace FCSP.Models.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FCSP.Models.Entities.Post", b =>
-                {
-                    b.HasOne("FCSP.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.PostComment", b =>
-                {
-                    b.HasOne("FCSP.Models.Entities.Post", "Post")
-                        .WithMany("PostComments")
-                        .HasForeignKey("PostId");
-
-                    b.HasOne("FCSP.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.User", "User")
@@ -589,11 +506,6 @@ namespace FCSP.Models.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Payments");
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.Post", b =>
-                {
-                    b.Navigation("PostComments");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Texture", b =>

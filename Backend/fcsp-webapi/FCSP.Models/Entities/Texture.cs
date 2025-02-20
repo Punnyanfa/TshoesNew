@@ -3,6 +3,7 @@
 public class Texture : BaseEntity
 {
     public long? UserId { get; set; }
+    public int? Price { get; set; }
 
     public virtual User User { get; set; } = null!;
 
