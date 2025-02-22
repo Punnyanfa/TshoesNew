@@ -1,5 +1,5 @@
 ﻿using FCSP.DTOs.Authentication;
-using FCSP.Services.Authentication;
+using FCSP.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

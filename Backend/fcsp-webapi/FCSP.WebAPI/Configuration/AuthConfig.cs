@@ -1,9 +1,8 @@
-﻿using System.Text;
+﻿using FCSP.Common;
+using FCSP.Common.Configurations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-
-using FCSP.Common;
-using FCSP.Common.Configurations;
+using System.Text;
 
 namespace FCSP.WebAPI.Configuration;
 
@@ -19,7 +18,7 @@ internal static class AuthConfig
     #region Private methods
     private static void ConfigureJwtBearer(IServiceCollection services, IConfiguration config)
     {
-        JwtConfigurations? jwtConfigs = 
+        JwtConfigurations? jwtConfigs =
             config.GetSection(Constants.JwtConfig).Get<JwtConfigurations>();
 
         if (jwtConfigs == null)
@@ -50,7 +49,7 @@ internal static class AuthConfig
                 IssuerSigningKey = key,
             };
         });
-        
+
         services.AddAuthorization();
     }
     #endregion

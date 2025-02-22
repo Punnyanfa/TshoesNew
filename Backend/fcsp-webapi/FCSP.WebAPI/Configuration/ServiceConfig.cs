@@ -1,7 +1,6 @@
 ﻿using FCSP.Services.Auth;
 using FCSP.Services.Auth.Hash;
-using FCSP.Services.Authentication;
-using FCSP.Services.Authentication.Token;
+using FCSP.Services.Auth.Token;
 using Microsoft.AspNet.Identity;
 
 namespace FCSP.WebAPI.Configuration;

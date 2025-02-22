@@ -1,10 +1,9 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Text;
+﻿using FCSP.Common.Configurations;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
-using FCSP.Common.Configurations;
-
-namespace FCSP.Services.Authentication.Token;
+namespace FCSP.Services.Auth.Token;
 
 public class JwtService : ITokenService
 {
@@ -15,7 +14,7 @@ public class JwtService : ITokenService
     #region Constructors
     public JwtService(JwtConfigurations config)
     {
-        this._config = config;
+        _config = config;
     }
     #endregion
 

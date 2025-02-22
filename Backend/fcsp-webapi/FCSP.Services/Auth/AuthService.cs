@@ -2,9 +2,9 @@
 using FCSP.Models.Entities;
 using FCSP.Repositories;
 using FCSP.Services.Auth.Hash;
-using FCSP.Services.Authentication.Token;
+using FCSP.Services.Auth.Token;
 
-namespace FCSP.Services.Authentication;
+namespace FCSP.Services.Auth;
 
 public class AuthService : IAuthService
 {

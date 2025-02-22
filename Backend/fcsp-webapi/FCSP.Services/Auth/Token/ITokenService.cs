@@ -1,4 +1,4 @@
-﻿namespace FCSP.Services.Authentication.Token;
+﻿namespace FCSP.Services.Auth.Token;
 
 public interface ITokenService
 {

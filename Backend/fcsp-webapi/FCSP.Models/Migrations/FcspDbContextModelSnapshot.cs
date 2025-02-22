@@ -383,6 +383,9 @@ namespace FCSP.Models.Migrations
                     b.Property<int?>("Price")
                         .HasColumnType("int");
 
+                    b.Property<string>("Prompt")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 

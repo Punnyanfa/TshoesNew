@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace FCSP.Models.Entities;
+﻿namespace FCSP.Models.Entities;
 
 public class CustomShoeDesign : BaseEntity
 {

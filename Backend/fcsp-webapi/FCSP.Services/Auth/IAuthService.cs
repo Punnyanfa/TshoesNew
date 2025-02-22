@@ -1,6 +1,6 @@
 ﻿using FCSP.DTOs.Authentication;
 
-namespace FCSP.Services.Authentication;
+namespace FCSP.Services.Auth;
 
 public interface IAuthService
 {

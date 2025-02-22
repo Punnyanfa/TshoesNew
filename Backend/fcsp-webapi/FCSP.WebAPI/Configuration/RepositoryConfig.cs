@@ -1,5 +1,5 @@
-﻿using FCSP.Repositories;
-using FCSP.Models.Context;
+﻿using FCSP.Models.Context;
+using FCSP.Repositories;
 
 namespace FCSP.WebAPI.Configuration;
 

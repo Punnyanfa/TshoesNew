@@ -1,6 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-using FCSP.Common.Enums;
+﻿using FCSP.Common.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace FCSP.Models.Entities;
 
@@ -24,4 +23,4 @@ public class User : BaseEntity
     public virtual ICollection<ShippingInfo> ShippingInfos { get; } = [];
 
     public virtual ICollection<PaymentGateway> PaymentGateways { get; } = [];
-} 
+}

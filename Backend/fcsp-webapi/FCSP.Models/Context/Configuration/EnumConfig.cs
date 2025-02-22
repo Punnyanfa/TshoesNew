@@ -1,6 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-using FCSP.Models.Entities;
+﻿using FCSP.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Models.Context.Configuration;
 

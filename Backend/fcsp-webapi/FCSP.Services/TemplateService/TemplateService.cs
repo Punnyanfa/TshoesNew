@@ -1,15 +1,8 @@
-﻿using Azure.Core;
-using FCSP.DTOs;
-using FCSP.DTOs.CustomShoeDesignTemplate;
+﻿using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
 using FCSP.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace FCSP.Services.Template
+namespace FCSP.Services.TemplateService
 {
     public class TemplateService : ITemplateService
     {
@@ -104,7 +97,6 @@ namespace FCSP.Services.Template
             }
             return template;
         }
-
 
     }
 }

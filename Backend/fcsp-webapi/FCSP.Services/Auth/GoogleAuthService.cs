@@ -1,7 +1,6 @@
 ﻿using FCSP.DTOs.Authentication;
-using FCSP.Services.Auth;
 
-namespace FCSP.Services.Authentication;
+namespace FCSP.Services.Auth;
 
 public class GoogleAuthService : IGoogleAuthService
 {

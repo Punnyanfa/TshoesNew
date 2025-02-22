@@ -12,7 +12,7 @@ internal static class DocumentationConfig
     #endregion
 
     #region Private methods
-    private static void GenerateSwagger(IServiceCollection services) 
+    private static void GenerateSwagger(IServiceCollection services)
     {
         services.AddSwaggerGen(c =>
         {
