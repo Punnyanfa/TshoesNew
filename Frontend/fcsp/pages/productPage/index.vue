@@ -35,28 +35,60 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import Sidebar from "@/components/Sidebar.vue";
-import Header from "@/components/site-header.vue";
-import Footer from "@/components/site-footer.vue";
+import Sidebar from "@/components/SideBar.vue";
 
 const router = useRouter();
-const products = ref([]);
-const filteredProducts = ref([]);
-const loading = ref(true);
-
-onMounted(async () => {
-  try {
-    loading.value = true;
-    const response = await fetch("https://67b187cc3fc4eef538ea01f6.mockapi.io/api/shoe/shoes");
-    products.value = await response.json();
-    filteredProducts.value = products.value;
-  } catch (error) {
-    console.error("Fetch error:", error);
-  } finally {
-    loading.value = false;
+const products = ref([
+  {
+    id: 1,
+    name: "Classic Leather Sneakers",
+    description: "Comfortable and stylish leather sneakers for everyday wear.",
+    price: 59.99,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+  },
+  {
+    id: 2,
+    name: "Running Shoes X3000",
+    description: "High-performance running shoes with advanced cushioning.",
+    price: 99.99,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+  },
+  {
+    id: 3,
+    name: "Casual Canvas Shoes",
+    description: "Light and breathable canvas shoes perfect for casual outings.",
+    price: 39.99,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+  },
+  {
+    id: 4,
+    name: "Sports Sandals",
+    description: "Durable sandals designed for outdoor sports and adventures.",
+    price: 49.99,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+  },
+  {
+    id: 5,
+    name: "Winter Boots",
+    description: "Keep your feet warm and dry with these insulated winter boots.",
+    price: 129.99,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+  }, {
+    id: 5,
+    name: "Winter Boots",
+    description: "Keep your feet warm and dry with these insulated winter boots.",
+    price: 129.99,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
   }
-});
+]);
+const filteredProducts = ref(products.value);
+const loading = ref(false);
+
+const getCurrentProducts = () => {
+  return filteredProducts.value;
+};
 
 const goToDetailPage = (productId) => router.push(`/product/${productId}`);
+
 const formatPrice = (price) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
 </script>
