@@ -31,8 +31,6 @@
 
 <script setup>
 import { ref } from 'vue';
-import Header from '@/components/site-header.vue';
-import Footer from '@/components/site-footer.vue';
 
 const form = ref({ name: '', email: '', message: '' });
 
