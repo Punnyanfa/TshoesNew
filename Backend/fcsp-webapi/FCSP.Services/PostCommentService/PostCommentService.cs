@@ -1,6 +1,6 @@
 using FCSP.DTOs.PostComment;
 using FCSP.Models.Entities;
-using FCSP.Repositories.PostComment;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.PostCommentService
 {

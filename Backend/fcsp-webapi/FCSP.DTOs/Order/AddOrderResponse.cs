@@ -1,6 +1,6 @@
 namespace FCSP.DTOs.Order
 {
-    public class AddOrderResponse : BaseResponse
+    public class AddOrderResponse
     {
         public long OrderId { get; set; }
     }

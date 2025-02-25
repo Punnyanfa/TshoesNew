@@ -1,6 +1,6 @@
 using FCSP.DTOs.UserTexture;
 using FCSP.Models.Entities;
-using FCSP.Repositories.UserTexture;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.UserTextureService
 {

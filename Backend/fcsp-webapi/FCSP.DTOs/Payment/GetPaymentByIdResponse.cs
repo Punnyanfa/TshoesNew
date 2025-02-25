@@ -2,7 +2,7 @@ using FCSP.Common.Enums;
 
 namespace FCSP.DTOs.Payment
 {
-    public class GetPaymentByIdResponse : BaseResponse
+    public class GetPaymentByIdResponse
     {
         public long? OrderId { get; set; }
         public decimal Amount { get; set; }

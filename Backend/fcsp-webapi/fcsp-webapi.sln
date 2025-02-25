@@ -14,6 +14,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCSP.Common", "FCSP.Common\FCSP.Common.csproj", "{318A71B4-5738-4004-9058-95E855A040E1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCSP.DTOs", "FCSP.DTOs\FCSP.DTOs.csproj", "{00DE19D0-B032-4AC4-AB3C-CB6AFBEAFC13}"
+	ProjectSection(ProjectDependencies) = postProject
+		{318A71B4-5738-4004-9058-95E855A040E1} = {318A71B4-5738-4004-9058-95E855A040E1}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

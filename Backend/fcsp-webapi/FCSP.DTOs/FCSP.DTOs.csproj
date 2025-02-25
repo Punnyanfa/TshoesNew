@@ -10,4 +10,8 @@
     <Folder Include="User\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FCSP.Common\FCSP.Common.csproj" />
+  </ItemGroup>
+
 </Project>

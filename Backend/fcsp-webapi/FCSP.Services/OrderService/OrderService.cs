@@ -1,8 +1,7 @@
 using FCSP.DTOs.Order;
 using FCSP.DTOs.OrderDetail;
 using FCSP.Models.Entities;
-using FCSP.Repositories.Order;
-using FCSP.Repositories.OrderDetail;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.OrderService
 {

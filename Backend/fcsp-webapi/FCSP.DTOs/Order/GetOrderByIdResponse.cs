@@ -3,7 +3,7 @@ using FCSP.DTOs.OrderDetail;
 
 namespace FCSP.DTOs.Order
 {
-    public class GetOrderByIdResponse : BaseResponse
+    public class GetOrderByIdResponse
     {
         public long? UserId { get; set; }
         public long? ShippingInfoId { get; set; }

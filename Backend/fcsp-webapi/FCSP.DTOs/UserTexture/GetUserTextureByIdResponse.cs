@@ -1,6 +1,6 @@
 namespace FCSP.DTOs.UserTexture
 {
-    public class GetUserTextureByIdResponse : BaseResponse
+    public class GetUserTextureByIdResponse
     {
         public long Id { get; set; }
         public long OwnerId { get; set; }

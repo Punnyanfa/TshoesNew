@@ -1,6 +1,6 @@
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
-using FCSP.Repositories.Payment;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.PaymentService
 {

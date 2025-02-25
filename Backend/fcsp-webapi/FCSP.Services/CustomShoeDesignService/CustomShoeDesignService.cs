@@ -1,8 +1,7 @@
 using FCSP.DTOs.CustomShoeDesign;
 using FCSP.DTOs.CustomShoeDesignTexture;
 using FCSP.Models.Entities;
-using FCSP.Repositories.CustomShoeDesign;
-using FCSP.Repositories.CustomShoeDesignTexture;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.CustomShoeDesignService
 {

@@ -1,6 +1,6 @@
 using FCSP.DTOs.Post;
 using FCSP.Models.Entities;
-using FCSP.Repositories.Post;
+using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.PostService

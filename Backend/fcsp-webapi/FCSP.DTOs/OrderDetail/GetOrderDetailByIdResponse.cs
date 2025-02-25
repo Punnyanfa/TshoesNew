@@ -1,6 +1,6 @@
 namespace FCSP.DTOs.OrderDetail
 {
-    public class GetOrderDetailByIdResponse : BaseResponse
+    public class GetOrderDetailByIdResponse
     {
         public long? OrderId { get; set; }
         public long? CustomShoeDesignId { get; set; }

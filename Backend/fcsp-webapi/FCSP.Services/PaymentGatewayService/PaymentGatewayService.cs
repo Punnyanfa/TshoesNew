@@ -1,6 +1,6 @@
 using FCSP.DTOs.PaymentGateway;
 using FCSP.Models.Entities;
-using FCSP.Repositories.PaymentGateway;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.PaymentGatewayService
 {

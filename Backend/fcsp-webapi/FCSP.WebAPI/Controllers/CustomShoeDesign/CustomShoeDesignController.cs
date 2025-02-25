@@ -25,7 +25,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCustomShoeDesignById(int id)
     {
-        var result = await _customShoeDesignService.GetCustomShoeDesignById(id);
+        var request = new GetCustomShoeDesignByIdRequest { Id = id };
+        var result = await _customShoeDesignService.GetCustomShoeDesignById(request);
         if (result == null)
         {
             return NotFound();
@@ -34,16 +35,17 @@ public class CustomShoeDesignController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateCustomShoeDesign([FromBody] CustomShoeDesignCreateDto designDto)
+    public async Task<IActionResult> CreateCustomShoeDesign([FromBody] AddCustomShoeDesignRequest designDto)
     {
-        var result = await _customShoeDesignService.CreateCustomShoeDesign(designDto);
+        var result = await _customShoeDesignService.AddCustomShoeDesign(designDto);
         return CreatedAtAction(nameof(GetCustomShoeDesignById), new { id = result.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCustomShoeDesign(int id, [FromBody] CustomShoeDesignUpdateDto designDto)
+    public async Task<IActionResult> UpdateCustomShoeDesign(int id, [FromBody] UpdateCustomShoeDesignRequest designDto)
     {
-        var result = await _customShoeDesignService.UpdateCustomShoeDesign(id, designDto);
+        designDto.Id = id;
+        var result = await _customShoeDesignService.UpdateCustomShoeDesign(designDto);
         if (result == null)
         {
             return NotFound();
@@ -54,8 +56,9 @@ public class CustomShoeDesignController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCustomShoeDesign(int id)
     {
-        var result = await _customShoeDesignService.DeleteCustomShoeDesign(id);
-        if (!result)
+        var request = new DeleteCustomShoeDesignRequest { Id = id };
+        var result = await _customShoeDesignService.DeleteCustomShoeDesign(request);
+        if (result == null)
         {
             return NotFound();
         }

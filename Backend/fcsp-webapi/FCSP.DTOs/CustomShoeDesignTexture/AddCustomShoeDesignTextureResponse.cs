@@ -1,6 +1,6 @@
 namespace FCSP.DTOs.CustomShoeDesignTexture
 {
-    public class AddCustomShoeDesignTextureResponse : BaseResponse
+    public class AddCustomShoeDesignTextureResponse
     {
         public long CustomShoeDesignTextureId { get; set; }
     }
