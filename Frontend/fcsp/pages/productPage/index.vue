@@ -218,7 +218,7 @@ const handleFilterChange = (filters) => {
 }
 
 .sneaker-img {
-  height: 250px;
+  height: 200px;
   object-fit: cover;
   cursor: pointer;
   transition: transform 0.3s ease;
