@@ -301,7 +301,7 @@ const toggleDescription = () => {
   right: 20px;
   width: 40px;
   height: 40px;
-  background-color: #28a745;
+  background-color: #8bc34a;
   border: none;
   border-radius: 50%;
   color: #ffffff;
@@ -316,7 +316,7 @@ const toggleDescription = () => {
 }
 
 .expand-btn:hover:not(:disabled) {
-  background-color: #218838;
+  background-color: #8bc34a;
   transform: scale(1.1);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
@@ -362,7 +362,7 @@ const toggleDescription = () => {
   font-size: 1.1rem;
   font-weight: 700;
   color: #ffffff;
-  background-color: #28a745;
+  background-color: #8bc34a;
   border: none;
   border-radius: 25px;
   cursor: pointer;
@@ -371,7 +371,7 @@ const toggleDescription = () => {
 }
 
 .customize-btn:hover:not(:disabled) {
-  background-color: #218838;
+  background-color: #8bc34a;
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
 }

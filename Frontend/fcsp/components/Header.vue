@@ -61,7 +61,7 @@
   gap: 0.5rem;
 }
 .nav-link:hover {
-  color: #f8d49d;
+  color: #8bc34a;
   transform: translateY(-2px);
   background-color: rgba(248, 212, 157, 0.1);
   border-radius: 5px;
@@ -73,7 +73,7 @@
   transition: all 0.3s;
 }
 .btn-outline-light:hover {
-  background-color: #f8d49d;
+  background-color: #8bc34a;
   color: #000;
   transform: translateY(-1px);
 }
@@ -89,7 +89,7 @@
 
 header {
   background-color: #343a40;
-  border-bottom: 3px solid #f8d49d;
+  border-bottom: 3px solid #8bc34a;
   padding: 1rem 2rem;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
   transition: box-shadow 0.3s ease-in-out;
