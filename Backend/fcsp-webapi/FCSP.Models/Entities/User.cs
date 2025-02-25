@@ -23,4 +23,8 @@ public class User : BaseEntity
     public virtual ICollection<ShippingInfo> ShippingInfos { get; } = [];
 
     public virtual ICollection<PaymentGateway> PaymentGateways { get; } = [];
+    
+    // New navigation properties for UserTexture
+    public virtual ICollection<UserTexture> OwnedTextures { get; } = [];
+    public virtual ICollection<UserTexture> PurchasedTextures { get; } = [];
 }

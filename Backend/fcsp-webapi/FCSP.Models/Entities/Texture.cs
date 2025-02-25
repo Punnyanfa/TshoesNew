@@ -11,4 +11,7 @@ public class Texture : BaseEntity
     public string? Prompt { get; set; }
 
     public virtual ICollection<CustomShoeDesignTexture> CustomShoeDesignTextures { get; } = [];
+    
+    // New navigation property
+    public virtual ICollection<UserTexture> UserTextures { get; } = [];
 }

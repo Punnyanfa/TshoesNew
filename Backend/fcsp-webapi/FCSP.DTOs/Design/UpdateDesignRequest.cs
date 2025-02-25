@@ -11,5 +11,8 @@
         public string? Preview3DFileUrl { get; set; }
 
         public decimal? Price { get; set; }
+
+        // New property for textures
+        public List<long>? TextureIds { get; set; }
     }
 }
