@@ -13,13 +13,13 @@ namespace FCSP.Services.TextureService
             _textureRepository = textureRepository;
         }
 
-        public async Task<IEnumerable<Texture>> GetAllTemplate()
+        public async Task<IEnumerable<Texture>> GetAllTexture()
         {
             var response = await _textureRepository.GetAllAsync();
             return response;
         }
 
-        public async Task<GetTextureByIdResponse> GetTemplateById(GetTextureByIdRequest request)
+        public async Task<GetTextureByIdResponse> GetTextureById(GetTextureByIdRequest request)
         {
             Texture texture = GetEntityFromGetByIdRequest(request);
             return new GetTextureByIdResponse
@@ -31,21 +31,21 @@ namespace FCSP.Services.TextureService
             };
         }
 
-        public async Task<GetTextureByIdResponse> AddTemplate(AddTextureRequest request)
+        public async Task<GetTextureByIdResponse> AddTexture(AddTextureRequest request)
         {
             Texture customShoeDesignTemplate = GetEntityFromAddRequest(request);
             await _textureRepository.AddAsync(customShoeDesignTemplate);
             return new GetTextureByIdResponse();
         }
 
-        public async Task<GetTextureByIdResponse> UpdateTemplate(UpdateTextureRequest request)
+        public async Task<GetTextureByIdResponse> UpdateTexture(UpdateTextureRequest request)
         {
             Texture customShoeDesignTemplate = GetEntityFromUpdateRequest(request);
             await _textureRepository.UpdateAsync(customShoeDesignTemplate);
             return new GetTextureByIdResponse();
         }
 
-        public async Task<GetTextureByIdResponse> DeleteTemplate(DeleteTextureRequest request)
+        public async Task<GetTextureByIdResponse> DeleteTexture(DeleteTextureRequest request)
         {
             Texture customShoeDesignTemplate = GetEntityFromDeleteRequest(request);
             await _textureRepository.DeleteAsync(customShoeDesignTemplate.Id);

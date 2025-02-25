@@ -13,13 +13,13 @@ namespace FCSP.Services.DesignService
             _designRepository = designRepository;
         }
 
-        public async Task<IEnumerable<CustomShoeDesign>> GetAllTemplate()
+        public async Task<IEnumerable<CustomShoeDesign>> GetAllDesign()
         {
             var response = await _designRepository.GetAllAsync();
             return response;
         }
 
-        public async Task<GetDesignByIdResponse> GetTemplateById(GetDesignByIdRequest request)
+        public async Task<GetDesignByIdResponse> GetDesignById(GetDesignByIdRequest request)
         {
             CustomShoeDesign customShoeDesign = GetEntityFromGetByIdRequest(request);
             return new GetDesignByIdResponse
@@ -31,6 +31,7 @@ namespace FCSP.Services.DesignService
                 Price = customShoeDesign.Price,
             };
         }
+
 
         public async Task<GetDesignByIdResponse> AddDesign(AddDesignRequest request)
         {

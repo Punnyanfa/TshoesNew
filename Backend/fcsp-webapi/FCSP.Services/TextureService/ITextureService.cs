@@ -5,10 +5,10 @@ namespace FCSP.Services.TextureService
 {
     public interface ITextureService
     {
-        Task<IEnumerable<Texture>> GetAllTemplate();
-        Task<GetTextureByIdResponse> GetTemplateById(GetTextureByIdRequest request);
-        Task<GetTextureByIdResponse> AddTemplate(AddTextureRequest request);
-        Task<GetTextureByIdResponse> UpdateTemplate(UpdateTextureRequest request);
-        Task<GetTextureByIdResponse> DeleteTemplate(DeleteTextureRequest request);
+        Task<IEnumerable<Texture>> GetAllTexture();
+        Task<GetTextureByIdResponse> GetTextureById(GetTextureByIdRequest request);
+        Task<GetTextureByIdResponse> AddTexture(AddTextureRequest request);
+        Task<GetTextureByIdResponse> UpdateTexture(UpdateTextureRequest request);
+        Task<GetTextureByIdResponse> DeleteTexture(DeleteTextureRequest request);
     }
 }

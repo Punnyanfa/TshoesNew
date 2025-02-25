@@ -18,7 +18,7 @@ public class DesignController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllDesigns()
     {
-        var result = await _designService.GetAllTemplate();
+        var result = await _designService.GetAllDesign();
         return Ok(result);
     }
 
@@ -26,7 +26,7 @@ public class DesignController : ControllerBase
     public async Task<IActionResult> GetDesignById(int id)
     {
         var request = new GetDesignByIdRequest { Id = id };
-        var result = await _designService.GetTemplateById(request);
+        var result = await _designService.GetDesignById(request);
         return Ok(result);
     }
 
