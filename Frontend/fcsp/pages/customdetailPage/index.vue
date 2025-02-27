@@ -3,6 +3,9 @@
     <!-- Header Component -->
     <Header />
 
+    <!-- Sidebar Custom Component -->
+    <SidebarCustom :scene="scene" :model="model" @texture-applied="handleTextureApplied" />
+
     <!-- Main Content Section -->
     <main class="main-content">
       <div class="customizer-grid">
@@ -16,11 +19,11 @@
               <div v-if="!isModelLoaded" class="loading-overlay">
                 <span class="loading-text">Loading 3D Model...</span>
               </div>
+              <!-- Nút điều khiển animation -->
+              <button v-if="isModelLoaded" class="animation-toggle-btn" @click="toggleAnimation">
+                {{ isAnimating ? 'Pause Animation' : 'Play Animation' }}
+              </button>
             </div>
-            <!-- Nút dấu cộng -->
-            <button class="expand-btn" @click="toggle3DAnimation" :disabled="isAnimating || !isModelLoaded">
-              <span>+</span>
-            </button>
           </div>
         </div>
 
@@ -66,52 +69,73 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import SidebarCustom from '@/components/SidebarCustom.vue';
 
 // Refs cho Three.js container và states
 const container = ref(null);
 const isModelLoaded = ref(false);
 const showDescription = ref(false);
 const isAnimating = ref(false);
-const show3D = ref(false); // Trạng thái hiển thị 3D
-let mixer = null;
+const show3D = ref(true);
 
-onMounted(() => {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(3, 3, 6);
+// Khai báo các biến Three.js
+let scene, camera, renderer, controls, mixer, model;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+const initThreeJS = () => {
+  // Khởi tạo scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff);
+
+  // Khởi tạo camera
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth * 0.5 / (window.innerHeight * 0.8), 0.1, 1000);
+  camera.position.set(0, 2, 5);
+
+  // Khởi tạo renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.8);
+  if (container.value && show3D.value) {
+    container.value.appendChild(renderer.domElement);
+  }
 
-  const light = new THREE.AmbientLight(0xffffff, 0.9);
-  scene.add(light);
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-  directionalLight.position.set(5, 10, 5);
+  // Thêm ánh sáng
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(5, 5, 5);
   scene.add(directionalLight);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
+  // Khởi tạo controls
+  controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.minDistance = 2;
-  controls.maxDistance = 10;
+  controls.dampingFactor = 0.05;
 
+  // Tải model 3D
   const loader = new GLTFLoader();
   loader.load(
     '/Nike jordan4.glb',
     (gltf) => {
       console.log('✅ Model loaded successfully:', gltf);
-      scene.add(gltf.scene);
+      model = gltf.scene;
+      scene.add(model);
 
-      // Khởi tạo AnimationMixer nếu model có animation
+      // Điều chỉnh vị trí và tỉ lệ của model
+      model.scale.set(1, 1, 1);
+      model.position.set(-1, 0, 0);
+
+      // Khởi tạo AnimationMixer nếu có animation
       if (gltf.animations && gltf.animations.length > 0) {
-        mixer = new THREE.AnimationMixer(gltf.scene);
+        mixer = new THREE.AnimationMixer(model);
         const action = mixer.clipAction(gltf.animations[0]);
-        action.setLoop(THREE.LoopOnce);
-        action.clampWhenFinished = true;
+        action.setLoop(THREE.LoopRepeat); // Lặp lại animation
+        action.play(); // Chạy ngay khi tải xong
+        isAnimating.value = true;
+      } else {
+        // Nếu không có animation, xoay mặc định
+        isAnimating.value = true;
       }
 
       isModelLoaded.value = true;
@@ -124,60 +148,67 @@ onMounted(() => {
       isModelLoaded.value = false;
     }
   );
+};
 
-  const clock = new THREE.Clock();
-  const animate = () => {
-    requestAnimationFrame(animate);
-    controls.update();
+// Animation loop
+const clock = new THREE.Clock();
+const animate = () => {
+  requestAnimationFrame(animate);
+  controls.update();
 
-    if (mixer && isAnimating.value) {
+  if (isAnimating.value) {
+    if (mixer) {
       mixer.update(clock.getDelta());
+    } else if (model) {
+      // Animation mặc định: xoay model
+      model.rotation.y += 0.01;
     }
+  }
 
-    renderer.render(scene, camera);
-  };
+  renderer.render(scene, camera);
+};
+
+// Khi mounted
+onMounted(() => {
+  initThreeJS();
   animate();
-
-  // Gắn renderer khi chuyển sang 3D
-  watch(show3D, (newVal) => {
-    if (newVal && container.value) {
-      container.value.appendChild(renderer.domElement);
-    }
-  });
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth * 0.5 / (window.innerHeight * 0.8);
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.8);
-  });
 });
 
-// Chuyển sang 3D và chạy animation
-const toggle3DAnimation = () => {
-  if (isModelLoaded.value) {
-    show3D.value = true;
-    isAnimating.value = true;
-    if (mixer) {
-      const action = mixer.getRoot().animations[0] ? mixer.clipAction(mixer.getRoot().animations[0]) : null;
-      if (action) {
-        action.reset().play();
-        action.getClip().duration && setTimeout(() => {
-          isAnimating.value = false;
-        }, action.getClip().duration * 1000);
-      }
+// Cleanup khi unmounted
+onUnmounted(() => {
+  if (renderer) {
+    renderer.dispose();
+    scene.clear();
+  }
+  window.removeEventListener('resize', resizeHandler);
+});
+
+// Xử lý resize
+const resizeHandler = () => {
+  camera.aspect = window.innerWidth * 0.5 / (window.innerHeight * 0.8);
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.8);
+};
+window.addEventListener('resize', resizeHandler);
+
+// Theo dõi show3D
+watch(show3D, (newVal) => {
+  if (newVal && container.value && renderer) {
+    container.value.appendChild(renderer.domElement);
+  }
+});
+
+// Điều khiển animation
+const toggleAnimation = () => {
+  if (!isModelLoaded.value) return;
+  isAnimating.value = !isAnimating.value;
+
+  if (mixer) {
+    const action = mixer.clipAction(mixer.getRoot().animations[0]);
+    if (isAnimating.value) {
+      action.play();
     } else {
-      // Animation mặc định nếu không có animation trong GLB
-      const model = container.value.querySelector('canvas')?.parentElement.__vue__.$parent.scene.children.find(child => child.isGroup);
-      if (model) {
-        const animateModel = () => {
-          if (isAnimating.value) {
-            model.rotation.y += 0.02;
-            requestAnimationFrame(animateModel);
-          }
-        };
-        animateModel();
-        setTimeout(() => isAnimating.value = false, 3000); // Dừng sau 3 giây
-      }
+      action.stop();
     }
   }
 };
@@ -187,6 +218,12 @@ const handleCustomize = () => {
   if (isModelLoaded.value && show3D.value) {
     alert('Customize functionality will open here! (Implement your customization logic.)');
   }
+};
+
+// Handle texture applied event from SidebarCustom
+const handleTextureApplied = (texture) => {
+  console.log('Texture applied to model:', texture);
+  // Additional logic if needed after texture is applied
 };
 
 // Toggle description visibility
@@ -205,19 +242,28 @@ const toggleDescription = () => {
 /* Main Content */
 .main-content {
   padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1400px; /* Increased max-width for better spacing */
+  margin: 0 0 0 500px;
 }
 
 /* Customizer Grid */
 .customizer-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
+  grid-template-columns: 1fr 2fr 1fr; /* Sidebar | Product Area | Details */
+  gap: 2rem;
   align-items: start;
 }
 
-/* Product Area (Left) */
+/* Sidebar Section (Left) */
+.sidebar-section {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  max-width: 300px; /* Limit sidebar width */
+}
+
+/* Product Area (Center) */
 .product-area {
   display: flex;
   flex-direction: column;
@@ -244,27 +290,7 @@ const toggleDescription = () => {
 .three-canvas-inner {
   width: 100%;
   height: 100%;
-}
-
-/* Preview Block */
-.preview-block {
-  width: 100%;
-  height: 100%;
-  background-image: url('data:image/jpeg;base64,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');
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
-  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.preview-block::before {
-  content: "Preview";
-  font-size: 1.5rem;
-  color: #666;
-  font-weight: 600;
+  position: relative;
 }
 
 /* Loading Overlay */
@@ -294,40 +320,28 @@ const toggleDescription = () => {
   100% { opacity: 1; }
 }
 
-/* Nút dấu cộng */
-.expand-btn {
+/* Animation Toggle Button */
+.animation-toggle-btn {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
-  background-color: #8bc34a;
-  border: none;
-  border-radius: 50%;
+  bottom: 10px;
+  left: 10px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: #1a3c6c;
+  border: none;
+  border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.expand-btn:hover:not(:disabled) {
-  background-color: #8bc34a;
-  transform: scale(1.1);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+.animation-toggle-btn:hover {
+  background-color: #2858a0;
+  transform: scale(1.05);
 }
 
-.expand-btn:disabled {
-  background-color: #a0d9b4;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.expand-btn:active:not(:disabled) {
+.animation-toggle-btn:active {
   transform: scale(0.95);
 }
 
@@ -341,6 +355,7 @@ const toggleDescription = () => {
   border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  max-width: 400px; /* Limit details section width */
 }
 
 .details-section:hover {
@@ -480,19 +495,35 @@ const toggleDescription = () => {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .customizer-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack vertically on smaller screens */
     gap: 1.5rem;
+  }
+
+  .sidebar-section,
+  .product-area,
+  .details-section {
+    max-width: 100%; /* Full width on smaller screens */
   }
 
   .three-canvas {
     max-width: 100%;
-    height: 300px;
+    height: 350px;
   }
 
   .details-section {
     padding: 1.5rem;
+  }
+
+  .product-title {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .three-canvas {
+    height: 300px;
   }
 
   .product-title {
@@ -510,6 +541,11 @@ const toggleDescription = () => {
 
   .detail-row {
     font-size: 0.9rem;
+  }
+
+  .animation-toggle-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
   }
 }
 </style>
