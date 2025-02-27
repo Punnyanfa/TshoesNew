@@ -1,4 +1,3 @@
-<!-- Product Page Template with Pagination - Custom Sneaker Theme -->
 <template>
   <div class="product-wrapper">
     <Header />
@@ -19,34 +18,37 @@
             </div>
           </div>
           <div v-else>
-            <h2 class="fw-bold text-sneaker-orange mb-4 animate__animated animate__fadeIn">Customize Your Kicks</h2>
             <div class="row g-4">
               <div v-for="product in paginatedProducts" :key="product.id" class="col-md-4">
                 <div class="card sneaker-card h-100 shadow-lg rounded overflow-hidden">
                   <div class="position-relative">
-                    <img 
-                      :src="product.image" 
-                      class="card-img-top sneaker-img" 
-                      :alt="product.name" 
-                      @click="goToDetailPage(product.id)" 
+                    <img
+                      :src="product.image"
+                      class="card-img-top sneaker-img"
+                      :alt="product.name"
+                      @click="goToDetailPage(product.id)"
                     />
                     <span class="custom-badge">Customizable</span>
                   </div>
                   <div class="card-body d-flex flex-column">
-                    <h5 
-                      class="card-title text-dark fw-bold" 
-                      @click="goToDetailPage(product.id)" 
+                    <h5
+                      class="card-title text-dark fw-bold"
+                      @click="goToDetailPage(product.id)"
                       style="cursor: pointer"
                     >
                       {{ product.name }}
                     </h5>
                     <p class="text-muted flex-grow-1">{{ product.description }}</p>
+                    <div class="rating mb-2">
+                      <span class="star-rating">{{ Array(product.rating + 1).join('★') }}</span>
+                      <span class="rating-value"> ({{ product.rating }})</span>
+                    </div>
                     <h5 class="text-sneaker-orange mb-3">{{ formatPrice(product.price) }}</h5>
-                    <button 
-                      class="btn btn-sneaker w-100 py-2 fw-bold text-uppercase" 
+                    <button
+                      class="btn btn-sneaker w-100 py-3 fw-bold text-uppercase"
                       @click="goToDetailPage(product.id)"
                     >
-                      Design Now
+                      Add to cart
                     </button>
                   </div>
                 </div>
@@ -59,10 +61,10 @@
                 <li class="page-item" :class="{ disabled: currentPage === 1 }">
                   <button class="page-link" @click="changePage(currentPage - 1)">Previous</button>
                 </li>
-                <li 
-                  v-for="page in totalPages" 
-                  :key="page" 
-                  class="page-item" 
+                <li
+                  v-for="page in totalPages"
+                  :key="page"
+                  class="page-item"
                   :class="{ active: page === currentPage }"
                 >
                   <button class="page-link" @click="changePage(page)">{{ page }}</button>
@@ -92,92 +94,175 @@ const products = ref([
     id: 1,
     name: "Classic Leather Sneakers",
     description: "Your perfect everyday kicks, tailored to your style.",
-    price: 59.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 1399000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nam",
+    brand: "Studio",
+    color: "Black",
+    size: "M",
+    rating: 4, // Thêm rating
   },
   {
     id: 2,
     name: "Running Shoes X3000",
     description: "Speed and comfort, designed just for you.",
-    price: 99.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 2399000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nữ",
+    brand: "Hastech",
+    color: "Red",
+    size: "L",
+    rating: 5,
   },
   {
     id: 3,
     name: "Casual Canvas Shoes",
     description: "Light, breathable, and uniquely yours.",
-    price: 39.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 949000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nữ",
+    brand: "Quickiin",
+    color: "Blue",
+    size: "S",
+    rating: 3,
   },
   {
     id: 4,
     name: "Sports Sandals",
     description: "Adventure-ready sandals, customized for your feet.",
-    price: 49.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 1199000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Thể thao",
+    brand: "Graphic Corner",
+    color: "Green",
+    size: "XL",
+    rating: 4,
   },
   {
     id: 5,
     name: "Winter Boots",
     description: "Warmth and style, crafted to your specs.",
-    price: 129.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 3099000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Trẻ em",
+    brand: "DevItems",
+    color: "Black",
+    size: "L",
+    rating: 2,
   },
-    {
+  {
     id: 6,
     name: "Winter Boots",
     description: "Warmth and style, crafted to your specs.",
-    price: 129.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 1199000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nam",
+    brand: "DevItems",
+    color: "Black",
+    size: "S",
+    rating: 3,
   },
-    {
+  {
     id: 7,
-    name: "Winter Boots",
+    name: "Sports Sandals",
     description: "Warmth and style, crafted to your specs.",
-    price: 129.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 2399000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Trẻ em",
+    brand: "DevItems",
+    color: "Black",
+    size: "M",
+    rating: 5,
   },
-    {
+  {
     id: 8,
-    name: "Winter Boots",
+    name: "Sports Sandals",
     description: "Warmth and style, crafted to your specs.",
-    price: 129.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 3099000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nam",
+    brand: "DevItems",
+    color: "Black",
+    size: "S",
+    rating: 4,
   },
-    {
+  {
     id: 9,
-    name: "Winter Boots",
+    name: "Sports Sandals",
     description: "Warmth and style, crafted to your specs.",
-    price: 129.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 2399000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Thể thao",
+    brand: "DevItems",
+    color: "Black",
+    size: "M",
+    rating: 3,
+  },
+  {
+    id: 10,
+    name: "Sports Sandals",
+    description: "Warmth and style, crafted to your specs.",
+    price: 2399000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nữ",
+    brand: "DevItems",
+    color: "Black",
+    size: "L",
+    rating: 2,
+  },
+  {
+    id: 11,
+    name: "Sports Sandals",
+    description: "Warmth and style, crafted to your specs.",
+    price: 3099000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nam",
+    brand: "DevItems",
+    color: "Black",
+    size: "M",
+    rating: 5,
   },
     {
-    id: 10,
-    name: "Winter Boots",
+    id: 12,
+    name: "Sports Sandals",
     description: "Warmth and style, crafted to your specs.",
-    price: 129.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    price: 3099000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nam",
+    brand: "DevItems",
+    color: "Black",
+    size: "M",
+    rating: 2,
+  },
+    {
+    id: 11,
+    name: "Sports Sandals",
+    description: "Warmth and style, crafted to your specs.",
+    price: 3099000,
+    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain",
+    category: "Nữ",
+    brand: "DevItems",
+    color: "Black",
+    size: "S",
+    rating: 1,
   },
 ]);
 
 const filteredProducts = ref(products.value);
 const loading = ref(false);
 const currentPage = ref(1);
-const itemsPerPage = 6; // Số sản phẩm mỗi trang
+const itemsPerPage = 12;
 
-// Tính toán sản phẩm hiển thị trên trang hiện tại
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
   return filteredProducts.value.slice(start, end);
 });
 
-// Tổng số trang
 const totalPages = computed(() => {
   return Math.ceil(filteredProducts.value.length / itemsPerPage);
 });
 
-// Chuyển trang
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
@@ -186,13 +271,22 @@ const changePage = (page) => {
 
 const goToDetailPage = (productId) => router.push(`/product/${productId}`);
 
-const formatPrice = (price) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
+const formatPrice = (price) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 const handleFilterChange = (filters) => {
-  filteredProducts.value = products.value.filter(product => 
-    (!filters.price || product.price <= filters.price) &&
-    (!filters.category || product.name.includes(filters.category))
-  );
+  filteredProducts.value = products.value.filter((product) => {
+    const matchesSearch = !filters.searchTerm || product.name.toLowerCase().includes(filters.searchTerm.toLowerCase());
+    const matchesPrice = product.price <= filters.priceRange.max;
+    const matchesCategory =
+      filters.categories.length === 0 || filters.categories.includes(product.category);
+    const matchesBrand = filters.brand.length === 0 || filters.brand.includes(product.brand);
+    const matchesColor = filters.color.length === 0 || filters.color.includes(product.color);
+    const matchesSize = filters.size.length === 0 || filters.size.includes(product.size);
+    const matchesRating = filters.rating.length === 0 || filters.rating.includes(product.rating);
+
+    return matchesSearch && matchesPrice && matchesCategory && matchesBrand && matchesColor && matchesSize && matchesRating;
+  });
   currentPage.value = 1; // Reset về trang 1 khi lọc
 };
 </script>
@@ -205,6 +299,7 @@ const handleFilterChange = (filters) => {
 
 .text-sneaker-orange {
   color: #8bc34a;
+  height: 36px;
 }
 
 .sneaker-card {
@@ -240,6 +335,22 @@ const handleFilterChange = (filters) => {
   font-weight: bold;
 }
 
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.star-rating {
+  color: #f1c40f; /* Màu vàng cho ngôi sao */
+  font-size: 1rem;
+}
+
+.rating-value {
+  color: #555;
+  font-size: 0.9rem;
+}
+
 .btn-sneaker {
   background: #8bc34a;
   color: #fff;
@@ -249,7 +360,7 @@ const handleFilterChange = (filters) => {
 }
 
 .btn-sneaker:hover {
-  background: #8bc34a;
+  background: #7cb342;
   transform: scale(1.05);
 }
 
