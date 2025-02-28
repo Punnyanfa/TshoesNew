@@ -26,10 +26,11 @@
           style="display: none;"
         />
         <div v-if="uploadedImage" class="uploaded-file-info">
-          <p class="uploaded-file-name">
-            {{ uploadedImage.name }}
-            <button class="remove-btn" @click="removeUploadedImage">✖</button>
-          </p>
+          <!-- Bỏ uploadedImage.name -->
+          <!-- Giữ lại hình ảnh xem trước -->
+          <div class="image-preview">
+            <img :src="imagePreviewUrl" alt="Uploaded Image Preview" />
+          </div>
           <button
             class="apply-btn"
             @click="applyTextureToModel"
@@ -89,6 +90,7 @@ const emit = defineEmits(['textureApplied', 'textApplied', 'backgroundColorAppli
 
 const activeTab = ref('upload');
 const uploadedImage = ref(null);
+const imagePreviewUrl = ref(''); // Giữ lại để hiển thị hình ảnh xem trước
 const isApplying = ref(false);
 const uploadError = ref('');
 const customText = ref('');
@@ -113,14 +115,14 @@ const handleImageUpload = (event) => {
       return;
     }
     uploadedImage.value = file;
-  }
-};
 
-// Remove uploaded image
-const removeUploadedImage = () => {
-  uploadedImage.value = null;
-  uploadError.value = '';
-  document.getElementById('image-upload').value = '';
+    // Tạo URL xem trước hình ảnh
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreviewUrl.value = e.target.result; // Lưu URL để hiển thị hình ảnh
+    };
+    reader.readAsDataURL(file);
+  }
 };
 
 // Apply texture to model
@@ -245,6 +247,7 @@ const resetModel = () => {
     }
   });
   uploadedImage.value = null;
+  imagePreviewUrl.value = ''; // Xóa URL xem trước khi reset
   customText.value = '';
   selectedBackgroundColor.value = '#ffffff';
   document.getElementById('image-upload').value = '';
@@ -323,25 +326,20 @@ watch(() => props.model, (newModel) => {
 }
 
 .uploaded-file-name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 0.9rem;
 }
 
-.remove-btn {
-  background: #ff4444;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.3s ease;
+.image-preview {
+  margin-top: 0.5rem;
+  text-align: center;
 }
 
-.remove-btn:hover {
-  background: #cc0000;
+.image-preview img {
+  max-width: 100%;
+  max-height: 150px; /* Giới hạn chiều cao để không làm tràn giao diện */
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid #ffffff;
 }
 
 .error-text {
