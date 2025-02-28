@@ -1,27 +1,14 @@
-<!-- SidebarCustom.vue -->
 <template>
   <div class="sidebar-custom">
-    <!-- Tabs for different customization options -->
+    <!-- Tabs -->
     <div class="tabs">
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'text' }" 
-        @click="activeTab = 'text'"
-      >
+      <button class="tab-btn" :class="{ active: activeTab === 'text' }" @click="activeTab = 'text'">
         <i class="icon-text">T</i> Text
       </button>
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'background' }" 
-        @click="activeTab = 'background'"
-      >
+      <button class="tab-btn" :class="{ active: activeTab === 'background' }" @click="activeTab = 'background'">
         <i class="icon-background">□</i> Background
       </button>
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'upload' }" 
-        @click="activeTab = 'upload'"
-      >
+      <button class="tab-btn" :class="{ active: activeTab === 'upload' }" @click="activeTab = 'upload'">
         <i class="icon-upload">☁</i> My Files
       </button>
     </div>
@@ -30,52 +17,61 @@
     <div class="tab-content">
       <!-- Upload Image Tab -->
       <div v-if="activeTab === 'upload'" class="upload-section">
-        <label for="image-upload" class="upload-btn">
-          Upload
-        </label>
-        <input 
-          id="image-upload" 
-          type="file" 
-          accept="image/*" 
-          @change="handleImageUpload" 
+        <label for="image-upload" class="upload-btn">Upload Image</label>
+        <input
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          @change="handleImageUpload"
           style="display: none;"
         />
-        <p v-if="uploadedImage" class="uploaded-file-name">
-          Uploaded: {{ uploadedImage.name }}
-        </p>
-        <button 
-          v-if="uploadedImage" 
-          class="apply-btn" 
-          @click="applyTextureToModel"
-          :disabled="isApplying"
-        >
-          {{ isApplying ? 'Applying...' : 'Apply Texture' }}
-        </button>
+        <div v-if="uploadedImage" class="uploaded-file-info">
+          <!-- Bỏ uploadedImage.name -->
+          <!-- Giữ lại hình ảnh xem trước -->
+          <div class="image-preview">
+            <img :src="imagePreviewUrl" alt="Uploaded Image Preview" />
+          </div>
+          <button
+            class="apply-btn"
+            @click="applyTextureToModel"
+            :disabled="isApplying"
+          >
+            {{ isApplying ? 'Applying...' : 'Apply Texture' }}
+          </button>
+        </div>
+        <p v-if="uploadError" class="error-text">{{ uploadError }}</p>
       </div>
 
       <!-- Text Tab -->
       <div v-if="activeTab === 'text'" class="text-section">
-        <input 
-          v-model="customText" 
-          type="text" 
-          placeholder="Enter your text here" 
+        <input
+          v-model="customText"
+          type="text"
+          placeholder="Enter your text here"
           class="text-input"
-          @input="applyText"
+          @input="previewText"
         />
+        <button class="apply-btn" @click="applyTextToModel" :disabled="!customText || isApplyingText">
+          {{ isApplyingText ? 'Applying...' : 'Apply Text' }}
+        </button>
       </div>
 
       <!-- Background Tab -->
       <div v-if="activeTab === 'background'" class="background-section">
         <div class="color-options">
-          <div 
-            v-for="color in backgroundColors" 
-            :key="color" 
-            class="color-swatch" 
+          <div
+            v-for="color in backgroundColors"
+            :key="color"
+            class="color-swatch"
             :style="{ backgroundColor: color }"
             @click="applyBackgroundColor(color)"
           ></div>
         </div>
+        <p class="selected-color">Selected: {{ selectedBackgroundColor }}</p>
       </div>
+
+      <!-- Reset Button -->
+      <button class="reset-btn" @click="resetModel">Reset</button>
     </div>
   </div>
 </template>
@@ -85,38 +81,51 @@ import { ref, watch } from 'vue';
 import * as THREE from 'three';
 
 const props = defineProps({
-  scene: {
-    type: Object,
-    required: true,
-  },
-  model: {
-    type: Object,
-    default: null,
-  },
+  scene: { type: Object, required: true },
+  model: { type: Object, default: null },
+  originalMaterials: { type: Map, default: () => new Map() },
 });
 
 const emit = defineEmits(['textureApplied', 'textApplied', 'backgroundColorApplied']);
 
 const activeTab = ref('upload');
 const uploadedImage = ref(null);
+const imagePreviewUrl = ref(''); // Giữ lại để hiển thị hình ảnh xem trước
 const isApplying = ref(false);
-const customText = ref(''); // Text input value
+const uploadError = ref('');
+const customText = ref('');
+const isApplyingText = ref(false);
 const backgroundColors = ref([
-  '#ffffff', '#ff6b6b', '#4ecdc4', '#45b7d1', 
-  '#96c93d', '#ffe66d', '#6b7280', '#000000'
+  '#ffffff', '#ff6b6b', '#4ecdc4', '#45b7d1',
+  '#96c93d', '#ffe66d', '#6b7280', '#000000',
 ]);
+const selectedBackgroundColor = ref('#ffffff');
 
 // Handle image upload
 const handleImageUpload = (event) => {
   const file = event.target.files[0];
-  if (file && file.type.startsWith('image/')) {
+  uploadError.value = '';
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      uploadError.value = 'Please upload a valid image file.';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      uploadError.value = 'File size exceeds 5MB limit.';
+      return;
+    }
     uploadedImage.value = file;
-  } else {
-    alert('Please upload a valid image file.');
+
+    // Tạo URL xem trước hình ảnh
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreviewUrl.value = e.target.result; // Lưu URL để hiển thị hình ảnh
+    };
+    reader.readAsDataURL(file);
   }
 };
 
-// Apply uploaded image as texture
+// Apply texture to model
 const applyTextureToModel = () => {
   if (!uploadedImage.value || !props.model) return;
 
@@ -127,6 +136,7 @@ const applyTextureToModel = () => {
     textureLoader.load(
       e.target.result,
       (texture) => {
+        texture.flipY = false;
         props.model.traverse((child) => {
           if (child.isMesh) {
             const newMaterial = new THREE.MeshStandardMaterial({
@@ -134,6 +144,7 @@ const applyTextureToModel = () => {
               metalness: 0.2,
               roughness: 0.8,
             });
+            child.material.dispose();
             child.material = newMaterial;
             child.material.needsUpdate = true;
           }
@@ -146,32 +157,106 @@ const applyTextureToModel = () => {
       (error) => {
         console.error('Error loading texture:', error);
         isApplying.value = false;
-        alert('Failed to apply texture. Please try again.');
+        uploadError.value = 'Failed to apply texture. Please try again.';
       }
     );
   };
   reader.readAsDataURL(uploadedImage.value);
 };
 
-// Apply text (you might want to implement this based on your needs)
-const applyText = () => {
-  if (customText.value && props.scene) {
-    emit('textApplied', customText.value);
-    // Add your text implementation here (e.g., adding text to scene)
-  }
+// Create text texture using Canvas
+const createTextTexture = (text) => {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = 512;
+  canvas.height = 256;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.font = 'Bold 60px Arial';
+  context.fillStyle = '#ffffff';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
 };
 
-// Apply background color
+// Apply text directly to the model
+const applyTextToModel = () => {
+  if (!customText.value || !props.model) return;
+
+  isApplyingText.value = true;
+
+  const textTexture = createTextTexture(customText.value);
+  props.model.traverse((child) => {
+    if (child.isMesh) {
+      const newMaterial = new THREE.MeshStandardMaterial({
+        map: textTexture,
+        transparent: true,
+        metalness: 0.2,
+        roughness: 0.8,
+      });
+      child.material.dispose();
+      child.material = newMaterial;
+      child.material.needsUpdate = true;
+    }
+  });
+
+  isApplyingText.value = false;
+  emit('textApplied', customText.value);
+  alert(`Text "${customText.value}" applied in the model!`);
+};
+
+// Preview text (optional)
+const previewText = () => {
+  // Có thể thêm logic xem trước nếu cần
+};
+
+// Apply background color to the model
 const applyBackgroundColor = (color) => {
-  if (props.scene) {
-    props.scene.background = new THREE.Color(color);
-    emit('backgroundColorApplied', color);
-  }
+  if (!props.model) return;
+
+  props.model.traverse((child) => {
+    if (child.isMesh) {
+      const newMaterial = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(color),
+        metalness: 0.2,
+        roughness: 0.8,
+      });
+      child.material.dispose();
+      child.material = newMaterial;
+      child.material.needsUpdate = true;
+    }
+  });
+
+  selectedBackgroundColor.value = color;
+  emit('backgroundColorApplied', color);
+  alert(`Color "${color}" applied in the model!`);
+};
+
+// Reset model to original state
+const resetModel = () => {
+  if (!props.model) return;
+  props.model.traverse((child) => {
+    if (child.isMesh && props.originalMaterials.has(child)) {
+      child.material.dispose();
+      child.material = props.originalMaterials.get(child).clone();
+      child.material.needsUpdate = true;
+    }
+  });
+  uploadedImage.value = null;
+  imagePreviewUrl.value = ''; // Xóa URL xem trước khi reset
+  customText.value = '';
+  selectedBackgroundColor.value = '#ffffff';
+  document.getElementById('image-upload').value = '';
+  alert('Model reset to original state!');
 };
 
 watch(() => props.model, (newModel) => {
   if (newModel) {
-    console.log('Model ready for texture application:', newModel);
+    console.log('Model ready for customization:', newModel);
   }
 });
 </script>
@@ -183,7 +268,6 @@ watch(() => props.model, (newModel) => {
   background: #2a3b5a;
   color: #ffffff;
   padding: 1.5rem;
-  margin: 50px 0 0 0;
   border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
   position: fixed;
@@ -194,7 +278,6 @@ watch(() => props.model, (newModel) => {
   transition: all 0.3s ease;
 }
 
-/* Tabs */
 .tabs {
   display: flex;
   flex-direction: column;
@@ -226,7 +309,6 @@ watch(() => props.model, (newModel) => {
   color: #ffffff;
 }
 
-/* Tab Content */
 .tab-content {
   padding: 1rem 0;
 }
@@ -237,7 +319,35 @@ watch(() => props.model, (newModel) => {
   gap: 1rem;
 }
 
-/* Text Section */
+.uploaded-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.uploaded-file-name {
+  font-size: 0.9rem;
+}
+
+.image-preview {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 150px; /* Giới hạn chiều cao để không làm tràn giao diện */
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid #ffffff;
+}
+
+.error-text {
+  color: #ff4444;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .text-section {
   display: flex;
   flex-direction: column;
@@ -262,7 +372,6 @@ watch(() => props.model, (newModel) => {
   box-shadow: 0 0 5px rgba(139, 195, 74, 0.5);
 }
 
-/* Background Section */
 .background-section {
   display: flex;
   flex-direction: column;
@@ -289,7 +398,11 @@ watch(() => props.model, (newModel) => {
   transform: scale(1.1);
 }
 
-/* Existing button styles */
+.selected-color {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .upload-btn {
   display: inline-block;
   padding: 0.8rem 2rem;
@@ -318,7 +431,31 @@ watch(() => props.model, (newModel) => {
   transition: all 0.3s ease;
 }
 
-/* Responsive Design */
+.apply-btn:hover {
+  background: #218838;
+}
+
+.apply-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.reset-btn {
+  padding: 0.6rem 1.5rem;
+  background: #ff4444;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.reset-btn:hover {
+  background: #cc0000;
+}
+
 @media (max-width: 768px) {
   .sidebar-custom {
     width: 200px;
