@@ -4,7 +4,7 @@
     <Header />
 
     <!-- Sidebar Custom Component -->
-    <SidebarCustom :scene="scene" :model="model" @texture-applied="handleTextureApplied" />
+    <SidebarCustom :scene="scene" :model="model" :original-materials="originalMaterials" @texture-applied="handleTextureApplied" @text-applied="handleTextApplied" @background-color-applied="handleBackgroundColorApplied" />
 
     <!-- Main Content Section -->
     <main class="main-content">
@@ -84,6 +84,7 @@ const show3D = ref(true);
 
 // Khai báo các biến Three.js
 let scene, camera, renderer, controls, mixer, model;
+let originalMaterials = new Map();
 
 const initThreeJS = () => {
   // Khởi tạo scene
@@ -120,6 +121,9 @@ const initThreeJS = () => {
     (gltf) => {
       console.log('✅ Model loaded successfully:', gltf);
       model = gltf.scene;
+      model.traverse((child) => {
+        if (child.isMesh) originalMaterials.set(child, child.material.clone());
+      });
       scene.add(model);
 
       // Điều chỉnh vị trí và tỉ lệ của model
@@ -223,7 +227,16 @@ const handleCustomize = () => {
 // Handle texture applied event from SidebarCustom
 const handleTextureApplied = (texture) => {
   console.log('Texture applied to model:', texture);
-  // Additional logic if needed after texture is applied
+};
+
+// Handle text applied event from SidebarCustom
+const handleTextApplied = (text) => {
+  console.log('Text applied to model:', text);
+};
+
+// Handle background color applied event from SidebarCustom
+const handleBackgroundColorApplied = (color) => {
+  console.log('Background color applied to model:', color);
 };
 
 // Toggle description visibility
@@ -252,15 +265,6 @@ const toggleDescription = () => {
   grid-template-columns: 1fr 2fr 1fr; /* Sidebar | Product Area | Details */
   gap: 2rem;
   align-items: start;
-}
-
-/* Sidebar Section (Left) */
-.sidebar-section {
-  background: #ffffff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  max-width: 300px; /* Limit sidebar width */
 }
 
 /* Product Area (Center) */
