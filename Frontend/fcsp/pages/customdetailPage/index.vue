@@ -117,7 +117,7 @@ const initThreeJS = () => {
   // Tải model 3D
   const loader = new GLTFLoader();
   loader.load(
-    '/Nike jordan4.glb',
+    '/Nike jordan.glb',
     (gltf) => {
       console.log('✅ Model loaded successfully:', gltf);
       model = gltf.scene;

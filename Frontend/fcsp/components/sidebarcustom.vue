@@ -26,8 +26,6 @@
           style="display: none;"
         />
         <div v-if="uploadedImage" class="uploaded-file-info">
-          <!-- Bỏ uploadedImage.name -->
-          <!-- Giữ lại hình ảnh xem trước -->
           <div class="image-preview">
             <img :src="imagePreviewUrl" alt="Uploaded Image Preview" />
           </div>
@@ -90,7 +88,7 @@ const emit = defineEmits(['textureApplied', 'textApplied', 'backgroundColorAppli
 
 const activeTab = ref('upload');
 const uploadedImage = ref(null);
-const imagePreviewUrl = ref(''); // Giữ lại để hiển thị hình ảnh xem trước
+const imagePreviewUrl = ref('');
 const isApplying = ref(false);
 const uploadError = ref('');
 const customText = ref('');
@@ -116,16 +114,16 @@ const handleImageUpload = (event) => {
     }
     uploadedImage.value = file;
 
-    // Tạo URL xem trước hình ảnh
+    // Create preview URL for the image
     const reader = new FileReader();
     reader.onload = (e) => {
-      imagePreviewUrl.value = e.target.result; // Lưu URL để hiển thị hình ảnh
+      imagePreviewUrl.value = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 };
 
-// Apply texture to model
+// Apply texture to purple parts of the model
 const applyTextureToModel = () => {
   if (!uploadedImage.value || !props.model) return;
 
@@ -137,21 +135,43 @@ const applyTextureToModel = () => {
       e.target.result,
       (texture) => {
         texture.flipY = false;
+
+        // Traverse the model to find meshes
         props.model.traverse((child) => {
           if (child.isMesh) {
-            const newMaterial = new THREE.MeshStandardMaterial({
-              map: texture,
-              metalness: 0.2,
-              roughness: 0.8,
-            });
-            child.material.dispose();
-            child.material = newMaterial;
-            child.material.needsUpdate = true;
+            // Check if the material's color is purple
+            const material = child.material;
+            let isPurple = false;
+
+            if (material.color) {
+              const color = material.color; // THREE.Color object
+              const r = color.r * 255;
+              const g = color.g * 255;
+              const b = color.b * 255;
+
+              // Define a range for purple (adjust as needed)
+              if (r > 100 && g < 50 && b > 100) {
+                isPurple = true;
+              }
+            }
+
+            // Apply texture only to purple parts
+            if (isPurple) {
+              const newMaterial = new THREE.MeshStandardMaterial({
+                map: texture,
+                metalness: 0.2,
+                roughness: 0.8,
+              });
+              child.material.dispose();
+              child.material = newMaterial;
+              child.material.needsUpdate = true;
+            }
           }
         });
+
         isApplying.value = false;
         emit('textureApplied', texture);
-        alert('Texture applied successfully!');
+        alert('Texture applied to purple parts successfully!');
       },
       undefined,
       (error) => {
@@ -183,7 +203,7 @@ const createTextTexture = (text) => {
   return texture;
 };
 
-// Apply text directly to the model
+// Apply text to purple parts of the model
 const applyTextToModel = () => {
   if (!customText.value || !props.model) return;
 
@@ -192,26 +212,45 @@ const applyTextToModel = () => {
   const textTexture = createTextTexture(customText.value);
   props.model.traverse((child) => {
     if (child.isMesh) {
-      const newMaterial = new THREE.MeshStandardMaterial({
-        map: textTexture,
-        transparent: true,
-        metalness: 0.2,
-        roughness: 0.8,
-      });
-      child.material.dispose();
-      child.material = newMaterial;
-      child.material.needsUpdate = true;
+      // Check if the material's color is purple
+      const material = child.material;
+      let isPurple = false;
+
+      if (material.color) {
+        const color = material.color; // THREE.Color object
+        const r = color.r * 255;
+        const g = color.g * 255;
+        const b = color.b * 255;
+
+        // Define a range for purple (adjust as needed)
+        if (r > 100 && g < 50 && b > 100) {
+          isPurple = true;
+        }
+      }
+
+      // Apply text texture only to purple parts
+      if (isPurple) {
+        const newMaterial = new THREE.MeshStandardMaterial({
+          map: textTexture,
+          transparent: true,
+          metalness: 0.2,
+          roughness: 0.8,
+        });
+        child.material.dispose();
+        child.material = newMaterial;
+        child.material.needsUpdate = true;
+      }
     }
   });
 
   isApplyingText.value = false;
   emit('textApplied', customText.value);
-  alert(`Text "${customText.value}" applied in the model!`);
+  alert(`Text "${customText.value}" applied to purple parts of the model!`);
 };
 
 // Preview text (optional)
 const previewText = () => {
-  // Có thể thêm logic xem trước nếu cần
+  // Add preview logic if needed
 };
 
 // Apply background color to the model
@@ -247,7 +286,7 @@ const resetModel = () => {
     }
   });
   uploadedImage.value = null;
-  imagePreviewUrl.value = ''; // Xóa URL xem trước khi reset
+  imagePreviewUrl.value = '';
   customText.value = '';
   selectedBackgroundColor.value = '#ffffff';
   document.getElementById('image-upload').value = '';
@@ -325,10 +364,6 @@ watch(() => props.model, (newModel) => {
   gap: 0.5rem;
 }
 
-.uploaded-file-name {
-  font-size: 0.9rem;
-}
-
 .image-preview {
   margin-top: 0.5rem;
   text-align: center;
@@ -336,7 +371,7 @@ watch(() => props.model, (newModel) => {
 
 .image-preview img {
   max-width: 100%;
-  max-height: 150px; /* Giới hạn chiều cao để không làm tràn giao diện */
+  max-height: 150px;
   border-radius: 8px;
   object-fit: contain;
   border: 1px solid #ffffff;
