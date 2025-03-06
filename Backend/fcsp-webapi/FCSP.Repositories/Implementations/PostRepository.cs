@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Repositories.Implementations
 {
-    public class PostRepository : GenericRepository<Models.Entities.Post>, IPostRepository
+    public class PostRepository : GenericRepository<Posts>, IPostRepository
     {
         public PostRepository(FcspDbContext context) : base(context)
         {
         }
 
-        public async Task<IEnumerable<Models.Entities.Post>> GetPostsByUserIdAsync(long userId)
+        public async Task<IEnumerable<Posts>> GetPostsByUserIdAsync(long userId)
         {
             return await Entities
                 .Where(p => p.UserId == userId)

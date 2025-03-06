@@ -1,5 +1,7 @@
 using FCSP.DTOs.Order;
 using FCSP.Models.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.OrderService
 {
@@ -8,7 +10,7 @@ namespace FCSP.Services.OrderService
         Task<IEnumerable<Order>> GetAllOrders();
         Task<GetOrderByIdResponse> GetOrderById(GetOrderByIdRequest request);
         Task<AddOrderResponse> AddOrder(AddOrderRequest request);
-        Task<AddOrderResponse> UpdateOrder(UpdateOrderRequest request);
-        Task<AddOrderResponse> DeleteOrder(DeleteOrderRequest request);
+        Task<UpdateOrderResponse> UpdateOrder(UpdateOrderRequest request);
+        Task<DeleteOrderResponse> DeleteOrder(DeleteOrderRequest request);
     }
 } 

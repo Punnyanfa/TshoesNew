@@ -2,6 +2,10 @@ using FCSP.DTOs.Post;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.PostService
 {
@@ -17,107 +21,100 @@ namespace FCSP.Services.PostService
         public async Task<IEnumerable<GetPostByIdResponse>> GetAllPosts()
         {
             var posts = await _postRepository.GetAllAsync();
-            return posts.Select(MapToDetailedResponse);
+            return posts.Select(p => MapToDetailedResponse(p));
         }
 
         public async Task<GetPostByIdResponse> GetPostById(GetPostByIdRequest request)
         {
-            Post post = GetEntityFromGetByIdRequest(request);
+            var post = await GetEntityFromGetByIdRequest(request);
             return MapToDetailedResponse(post);
         }
 
         public async Task<IEnumerable<GetPostByIdResponse>> GetPostsByUser(GetPostsByUserRequest request)
         {
             var posts = await _postRepository.GetPostsByUserIdAsync(request.UserId);
-            return posts.Select(MapToDetailedResponse);
+            return posts.Select(p => MapToDetailedResponse(p));
         }
 
         public async Task<AddPostResponse> AddPost(AddPostRequest request)
         {
-            Post post = GetEntityFromAddRequest(request);
+            var post = new Posts
+            {
+                UserId = request.UserId,
+                Title = request.Title,
+                Content = request.Content,
+                IsDeleted = 0,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
             var addedPost = await _postRepository.AddAsync(post);
             
             return new AddPostResponse
             {
                 Id = addedPost.Id,
-                UserId = addedPost.UserId,
                 Title = addedPost.Title,
-                Description = addedPost.Description,
+                Content = addedPost.Content,
                 CreatedAt = addedPost.CreatedAt
             };
         }
 
         public async Task<GetPostByIdResponse> UpdatePost(UpdatePostRequest request)
         {
-            Post post = GetEntityFromUpdateRequest(request);
+            var post = await GetEntityFromUpdateRequest(request);
+            
+            post.Title = request.Title;
+            post.Content = request.Content;
+            post.UpdatedAt = DateTime.UtcNow;
+            
             await _postRepository.UpdateAsync(post);
+            
             return MapToDetailedResponse(post);
         }
 
         public async Task<GetPostByIdResponse> DeletePost(DeletePostRequest request)
         {
-            Post post = GetEntityFromDeleteRequest(request);
-            var response = MapToDetailedResponse(post);
-            await _postRepository.DeleteAsync(post.Id);
-            return response;
+            var post = await GetEntityFromGetByIdRequest(new GetPostByIdRequest { Id = request.Id });
+            
+            post.IsDeleted = 1;
+            post.UpdatedAt = DateTime.UtcNow;
+            await _postRepository.UpdateAsync(post);
+            
+            return MapToDetailedResponse(post);
         }
 
-        private GetPostByIdResponse MapToDetailedResponse(Post post)
+        private GetPostByIdResponse MapToDetailedResponse(Posts post)
         {
             return new GetPostByIdResponse
             {
                 Id = post.Id,
                 UserId = post.UserId,
                 Title = post.Title,
-                Description = post.Description,
-                UserName = post.User?.Name,
+                Content = post.Content,
+                ImageUrl = null,
+                Status = post.IsDeleted,
+                UserName = post.User?.Name ?? string.Empty,
                 CreatedAt = post.CreatedAt,
-                UpdatedAt = post.UpdatedAt,
-                CommentCount = post.PostComments?.Count() ?? 0
+                UpdatedAt = post.UpdatedAt
             };
         }
 
-        private Post GetEntityFromGetByIdRequest(GetPostByIdRequest request)
+        private async Task<Posts> GetEntityFromGetByIdRequest(GetPostByIdRequest request)
         {
-            Post post = _postRepository.Find(request.Id);
+            var post = await _postRepository.FindAsync(request.Id);
             if (post == null)
             {
-                throw new InvalidOperationException("Post not found");
+                throw new InvalidOperationException($"Post with ID {request.Id} not found");
             }
             return post;
         }
 
-        private Post GetEntityFromAddRequest(AddPostRequest request)
+        private async Task<Posts> GetEntityFromUpdateRequest(UpdatePostRequest request)
         {
-            return new Post
-            {
-                UserId = request.UserId,
-                Title = request.Title,
-                Description = request.Description
-            };
-        }
-
-        private Post GetEntityFromUpdateRequest(UpdatePostRequest request)
-        {
-            Post post = _postRepository.Find(request.Id);
+            var post = await _postRepository.FindAsync(request.Id);
             if (post == null)
             {
-                throw new InvalidOperationException("Post not found");
-            }
-            
-            post.Title = request.Title ?? post.Title;
-            post.Description = request.Description ?? post.Description;
-            post.UpdatedAt = DateTime.Now;
-            
-            return post;
-        }
-
-        private Post GetEntityFromDeleteRequest(DeletePostRequest request)
-        {
-            Post post = _postRepository.Find(request.Id);
-            if (post == null)
-            {
-                throw new InvalidOperationException("Post not found");
+                throw new InvalidOperationException($"Post with ID {request.Id} not found");
             }
             return post;
         }

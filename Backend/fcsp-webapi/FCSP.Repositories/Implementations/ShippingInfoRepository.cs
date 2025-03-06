@@ -1,8 +1,8 @@
 ﻿using FCSP.Models.Context;
 using FCSP.Models.Entities;
-using FCSP.Repositories.Implementations;
+using FCSP.Repositories.Interfaces;
 
-namespace FCSP.Repositories
+namespace FCSP.Repositories.Implementations
 {
     public class ShippingInfoRepository : GenericRepository<ShippingInfo>, IShippingInfoRepository
     {

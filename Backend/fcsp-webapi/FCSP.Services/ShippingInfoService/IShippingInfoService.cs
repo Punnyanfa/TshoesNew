@@ -1,5 +1,7 @@
 ﻿using FCSP.DTOs.ShippingInfo;
 using FCSP.Models.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.ShippingInfoService
 {
@@ -7,8 +9,8 @@ namespace FCSP.Services.ShippingInfoService
     {
         Task<IEnumerable<ShippingInfo>> GetAllShippingInfo();
         Task<GetShippingInfoByIdResponse> GetShippingInfoById(GetShippingInfoByIdRequest request);
-        Task<GetShippingInfoByIdResponse> AddShippingInfo(AddShippingInfoRequest request);
-        Task<GetShippingInfoByIdResponse> UpdateShippingInfo(UpdateShippingInfoRequest request);
-        Task<GetShippingInfoByIdResponse> DeleteShippingInfo(DeleteShippingInfoRequest request);
+        Task<AddShippingInfoResponse> AddShippingInfo(AddShippingInfoRequest request);
+        Task<UpdateShippingInfoResponse> UpdateShippingInfo(UpdateShippingInfoRequest request);
+        Task<DeleteShippingInfoResponse> DeleteShippingInfo(DeleteShippingInfoRequest request);
     }
 }

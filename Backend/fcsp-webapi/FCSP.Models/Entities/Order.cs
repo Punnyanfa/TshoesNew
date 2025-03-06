@@ -4,23 +4,18 @@ namespace FCSP.Models.Entities;
 
 public class Order : BaseEntity
 {
-    public long? UserId { get; set; }
+    public long UserId { get; set; }
+    public long? VoucherId { get; set; }
+    public long ShippingInfoId { get; set; }
+    public float TotalPrice { get; set; }
+    public float AmountPaid { get; set; }
+    public int Status { get; set; }
+    public int ShippingStatus { get; set; }
 
+    // Navigation properties
     public virtual User User { get; set; } = null!;
-
-    public long? ShippingInfoId { get; set; }
-
+    public virtual Voucher? Voucher { get; set; }
     public virtual ShippingInfo ShippingInfo { get; set; } = null!;
-
-    public decimal? TotalPrice { get; set; }
-
-    public decimal? AmountPaid { get; set; }
-
-    public OrderStatus Status { get; set; }
-
-    public OrderShippingStatus? ShippingStatus { get; set; }
-
-    public virtual IEnumerable<OrderDetail> OrderDetails { get; } = [];
-
-    public virtual IEnumerable<Payment> Payments { get; } = [];
+    public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
+    public virtual ICollection<Payment> Payments { get; } = [];
 }

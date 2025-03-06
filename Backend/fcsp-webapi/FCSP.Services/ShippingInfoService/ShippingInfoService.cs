@@ -1,6 +1,9 @@
 ﻿using FCSP.DTOs.ShippingInfo;
 using FCSP.Models.Entities;
 using FCSP.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.ShippingInfoService
 {
@@ -21,46 +24,62 @@ namespace FCSP.Services.ShippingInfoService
 
         public async Task<GetShippingInfoByIdResponse> GetShippingInfoById(GetShippingInfoByIdRequest request)
         {
-            ShippingInfo shippingInfo = GetEntityFromGetByIdRequest(request);
+            ShippingInfo shippingInfo = await GetEntityFromGetByIdRequest(request);
             return new GetShippingInfoByIdResponse
             {
+                Id = shippingInfo.Id,
                 UserId = shippingInfo.UserId,
-                StreetAddress = shippingInfo.StreetAddress,
-                Ward = shippingInfo.Ward,
-                District = shippingInfo.District,
-                City = shippingInfo.City,
-                Country = shippingInfo.Country,
-                PhoneNumber = shippingInfo.PhoneNumber,
+                ReceiverName = "N/A", // Set appropriate value if available
+                PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
+                Address = shippingInfo.StreetAddress ?? string.Empty,
+                City = shippingInfo.City ?? string.Empty,
+                District = shippingInfo.District ?? string.Empty,
+                Ward = shippingInfo.Ward ?? string.Empty,
+                IsDefault = false, // Set appropriate value if available
+                CreatedAt = shippingInfo.CreatedAt,
+                UpdatedAt = shippingInfo.UpdatedAt
             };
         }
 
-        public async Task<GetShippingInfoByIdResponse> AddShippingInfo(AddShippingInfoRequest request)
+        public async Task<AddShippingInfoResponse> AddShippingInfo(AddShippingInfoRequest request)
         {
             ShippingInfo shippingInfo = GetEntityFromAddRequest(request);
-            await _shippingInfoRepository.AddAsync(shippingInfo);
-            return new GetShippingInfoByIdResponse();
+            var addedShippingInfo = await _shippingInfoRepository.AddAsync(shippingInfo);
+            return new AddShippingInfoResponse
+            {
+                Id = addedShippingInfo.Id,
+                ReceiverName = "N/A", // Set appropriate value if available
+                Address = addedShippingInfo.StreetAddress ?? string.Empty,
+                IsDefault = false // Set appropriate value if available
+            };
         }
 
-        public async Task<GetShippingInfoByIdResponse> UpdateShippingInfo(UpdateShippingInfoRequest request)
+        public async Task<UpdateShippingInfoResponse> UpdateShippingInfo(UpdateShippingInfoRequest request)
         {
-            ShippingInfo shippingInfo = GetEntityFromUpdateRequest(request);
+            ShippingInfo shippingInfo = await GetEntityFromUpdateRequest(request);
             await _shippingInfoRepository.UpdateAsync(shippingInfo);
-            return new GetShippingInfoByIdResponse();
+            return new UpdateShippingInfoResponse
+            {
+                Id = shippingInfo.Id,
+                ReceiverName = "N/A", // Set appropriate value if available
+                Address = shippingInfo.StreetAddress ?? string.Empty,
+                IsDefault = false // Set appropriate value if available
+            };
         }
 
-        public async Task<GetShippingInfoByIdResponse> DeleteShippingInfo(DeleteShippingInfoRequest request)
+        public async Task<DeleteShippingInfoResponse> DeleteShippingInfo(DeleteShippingInfoRequest request)
         {
-            ShippingInfo shippingInfo = GetEntityFromDeleteRequest(request);
+            ShippingInfo shippingInfo = await GetEntityFromDeleteRequest(request);
             await _shippingInfoRepository.DeleteAsync(shippingInfo.Id);
-            return new GetShippingInfoByIdResponse();
+            return new DeleteShippingInfoResponse { Success = true };
         }
 
-        private ShippingInfo GetEntityFromGetByIdRequest(GetShippingInfoByIdRequest request)
+        private async Task<ShippingInfo> GetEntityFromGetByIdRequest(GetShippingInfoByIdRequest request)
         {
-            ShippingInfo shippingInfo = _shippingInfoRepository.Find(request.Id);
+            ShippingInfo shippingInfo = await _shippingInfoRepository.FindAsync(request.Id);
             if (shippingInfo == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("ShippingInfo not found");
             }
             return shippingInfo;
         }
@@ -70,41 +89,43 @@ namespace FCSP.Services.ShippingInfoService
             return new ShippingInfo
             {
                 UserId = request.UserId,
-                StreetAddress = request.StreetAddress,
+                StreetAddress = request.Address,
                 Ward = request.Ward,
                 District = request.District,
                 City = request.City,
-                Country = request.Country,
+                Country = "Vietnam", // Set appropriate default or get from request
                 PhoneNumber = request.PhoneNumber,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
-        private ShippingInfo GetEntityFromUpdateRequest(UpdateShippingInfoRequest request)
+        private async Task<ShippingInfo> GetEntityFromUpdateRequest(UpdateShippingInfoRequest request)
         {
-            ShippingInfo shippingInfo = _shippingInfoRepository.Find(request.Id);
+            ShippingInfo shippingInfo = await _shippingInfoRepository.FindAsync(request.Id);
             if (shippingInfo == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("ShippingInfo not found");
             }
-            shippingInfo.StreetAddress = request.StreetAddress ?? shippingInfo.StreetAddress;
-            shippingInfo.Ward = request.Ward ?? shippingInfo.Ward;
-            shippingInfo.District = request.District ?? shippingInfo.District;
-            shippingInfo.City = request.City ?? shippingInfo.City;
-            shippingInfo.Country = request.Country ?? shippingInfo.Country;
-            shippingInfo.PhoneNumber = request.PhoneNumber ?? shippingInfo.PhoneNumber;
-            shippingInfo.UpdatedAt = DateTime.Now;
+            
+            shippingInfo.StreetAddress = request.Address;
+            shippingInfo.Ward = request.Ward;
+            shippingInfo.District = request.District;
+            shippingInfo.City = request.City;
+            shippingInfo.PhoneNumber = request.PhoneNumber;
+            shippingInfo.UpdatedAt = DateTime.UtcNow;
+            
             return shippingInfo;
         }
 
-        private ShippingInfo GetEntityFromDeleteRequest(DeleteShippingInfoRequest request)
+        private async Task<ShippingInfo> GetEntityFromDeleteRequest(DeleteShippingInfoRequest request)
         {
-            ShippingInfo shippingInfo = _shippingInfoRepository.Find(request.Id);
+            ShippingInfo shippingInfo = await _shippingInfoRepository.FindAsync(request.Id);
             if (shippingInfo == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("ShippingInfo not found");
             }
             return shippingInfo;
-
         }
     }
 }

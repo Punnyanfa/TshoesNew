@@ -9,8 +9,9 @@ namespace FCSP.Services.TextureService
         Task<IEnumerable<GetTextureByIdResponse>> GetAvailableTextures();
         Task<GetTextureByIdResponse> GetTextureById(GetTextureByIdRequest request);
         Task<IEnumerable<GetTextureByIdResponse>> GetTexturesByUser(GetTexturesByUserRequest request);
+        Task<GenerateImageResponse> GenerateAndSaveImage(GenerateImageRequest request);
         Task<AddTextureResponse> AddTexture(AddTextureRequest request);
-        Task<GetTextureByIdResponse> UpdateTexture(UpdateTextureRequest request);
-        Task<GetTextureByIdResponse> DeleteTexture(DeleteTextureRequest request);
+        Task<UpdateTextureResponse> UpdateTexture(UpdateTextureRequest request);
+        Task<DeleteTextureResponse> DeleteTexture(DeleteTextureRequest request);
     }
 }

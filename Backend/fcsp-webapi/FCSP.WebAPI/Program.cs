@@ -9,6 +9,7 @@ config.AddUserSecrets<Program>();
 var services = builder.Services;
 
 services.AddControllers();
+services.AddHttpClient();
 services.AddEndpointsApiExplorer();
 
 ServiceConfig.Configure(services);

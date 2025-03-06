@@ -2,16 +2,13 @@
 
 public class Texture : BaseEntity
 {
-    public long? UserId { get; set; }
-    public int? Price { get; set; }
-
-    public virtual User User { get; set; } = null!;
-
-    public string? ImageUrl { get; set; }
+    public long UserId { get; set; }
     public string? Prompt { get; set; }
+    public int Status { get; set; }
+    public int IsDeleted { get; set; }
+    public string ImageUrl { get; set; } = null!;
 
+    // Navigation properties
+    public virtual User User { get; set; } = null!;
     public virtual ICollection<CustomShoeDesignTexture> CustomShoeDesignTextures { get; } = [];
-    
-    // New navigation property
-    public virtual ICollection<UserTexture> UserTextures { get; } = [];
 }

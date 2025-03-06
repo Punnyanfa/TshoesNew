@@ -2,8 +2,8 @@ using FCSP.Models.Entities;
 
 namespace FCSP.Repositories.Interfaces
 {
-    public interface IPostRepository : IGenericRepository<Models.Entities.Post>
+    public interface IPostRepository : IGenericRepository<Posts>
     {
-        Task<IEnumerable<Models.Entities.Post>> GetPostsByUserIdAsync(long userId);
+        Task<IEnumerable<Posts>> GetPostsByUserIdAsync(long userId);
     }
 } 

@@ -9,6 +9,6 @@ namespace FCSP.Services.TemplateService
         Task<GetTemplateByIdResponse> GetTemplateById(GetTemplateByIdRequest request);
         Task<AddTemplateResponse> AddTemplate(AddTemplateRequest request);
         Task<AddTemplateResponse> UpdateTemplate(UpdateTemplateRequest request);
-        Task<AddTemplateResponse> DeleteTemplate(DeleteTemplateRequest request);
+        Task<DeleteTemplateResponse> DeleteTemplate(DeleteTemplateRequest request);
     }
 }

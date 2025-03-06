@@ -1,5 +1,7 @@
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.PaymentService
 {
@@ -8,7 +10,7 @@ namespace FCSP.Services.PaymentService
         Task<IEnumerable<Payment>> GetAllPayments();
         Task<GetPaymentByIdResponse> GetPaymentById(GetPaymentByIdRequest request);
         Task<AddPaymentResponse> AddPayment(AddPaymentRequest request);
-        Task<AddPaymentResponse> UpdatePayment(UpdatePaymentRequest request);
-        Task<AddPaymentResponse> DeletePayment(DeletePaymentRequest request);
+        Task<UpdatePaymentResponse> UpdatePayment(UpdatePaymentRequest request);
+        Task<DeletePaymentResponse> DeletePayment(DeletePaymentRequest request);
     }
 } 

@@ -2,6 +2,11 @@ using FCSP.DTOs.Order;
 using FCSP.DTOs.OrderDetail;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using FCSP.Common.Enums;
 
 namespace FCSP.Services.OrderService
 {
@@ -24,25 +29,27 @@ namespace FCSP.Services.OrderService
 
         public async Task<GetOrderByIdResponse> GetOrderById(GetOrderByIdRequest request)
         {
-            Order order = GetEntityFromGetByIdRequest(request);
+            Order order = await GetEntityFromGetByIdRequest(request);
             var orderDetails = await _orderDetailRepository.GetAllAsync();
             var filteredOrderDetails = orderDetails.Where(od => od.OrderId == order.Id).ToList();
             
             return new GetOrderByIdResponse
             {
+                Id = order.Id,
                 UserId = order.UserId,
                 ShippingInfoId = order.ShippingInfoId,
+                VoucherId = order.VoucherId,
                 TotalPrice = order.TotalPrice,
-                AmountPaid = order.AmountPaid,
                 Status = order.Status,
-                ShippingStatus = order.ShippingStatus,
+                Note = null, // Set appropriate value if available
+                CreatedAt = order.CreatedAt,
+                UpdatedAt = order.UpdatedAt,
                 OrderDetails = filteredOrderDetails.Select(od => new OrderDetailDto
                 {
-                    Id = od.Id,
-                    OrderId = od.OrderId,
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     Quantity = od.Quantity,
-                    Price = od.Price
+                    UnitPrice = od.Price,
+                    Size = null // Set to null since the entity doesn't have this property
                 }).ToList()
             };
         }
@@ -60,24 +67,36 @@ namespace FCSP.Services.OrderService
                     OrderId = addedOrder.Id,
                     CustomShoeDesignId = orderDetailDto.CustomShoeDesignId,
                     Quantity = orderDetailDto.Quantity,
-                    Price = orderDetailDto.Price
+                    Price = orderDetailDto.UnitPrice,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 await _orderDetailRepository.AddAsync(orderDetail);
             }
             
-            return new AddOrderResponse { OrderId = addedOrder.Id };
+            return new AddOrderResponse 
+            { 
+                Id = addedOrder.Id,
+                TotalPrice = addedOrder.TotalPrice,
+                Status = addedOrder.Status
+            };
         }
 
-        public async Task<AddOrderResponse> UpdateOrder(UpdateOrderRequest request)
+        public async Task<UpdateOrderResponse> UpdateOrder(UpdateOrderRequest request)
         {
-            Order order = GetEntityFromUpdateRequest(request);
+            Order order = await GetEntityFromUpdateRequest(request);
             await _orderRepository.UpdateAsync(order);
-            return new AddOrderResponse { OrderId = order.Id };
+            return new UpdateOrderResponse 
+            { 
+                Id = order.Id,
+                TotalPrice = order.TotalPrice,
+                Status = order.Status
+            };
         }
 
-        public async Task<AddOrderResponse> DeleteOrder(DeleteOrderRequest request)
+        public async Task<DeleteOrderResponse> DeleteOrder(DeleteOrderRequest request)
         {
-            Order order = GetEntityFromDeleteRequest(request);
+            Order order = await GetEntityFromDeleteRequest(request);
             
             // Delete related order details first
             var orderDetails = await _orderDetailRepository.GetAllAsync();
@@ -89,12 +108,12 @@ namespace FCSP.Services.OrderService
             }
             
             await _orderRepository.DeleteAsync(order.Id);
-            return new AddOrderResponse { OrderId = order.Id };
+            return new DeleteOrderResponse { Success = true };
         }
 
-        private Order GetEntityFromGetByIdRequest(GetOrderByIdRequest request)
+        private async Task<Order> GetEntityFromGetByIdRequest(GetOrderByIdRequest request)
         {
-            Order order = _orderRepository.Find(request.Id);
+            Order order = await _orderRepository.FindAsync(request.Id);
             if (order == null)
             {
                 throw new InvalidOperationException("Order not found");
@@ -108,34 +127,36 @@ namespace FCSP.Services.OrderService
             {
                 UserId = request.UserId,
                 ShippingInfoId = request.ShippingInfoId,
+                VoucherId = request.VoucherId,
                 TotalPrice = request.TotalPrice,
-                AmountPaid = request.AmountPaid,
-                Status = request.Status,
-                ShippingStatus = request.ShippingStatus
+                AmountPaid = 0, // Set appropriate default or get from request
+                Status = (int)OrderStatus.Pending,
+                ShippingStatus = (int)OrderShippingStatus.Preparing,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
-        private Order GetEntityFromUpdateRequest(UpdateOrderRequest request)
+        private async Task<Order> GetEntityFromUpdateRequest(UpdateOrderRequest request)
         {
-            Order order = _orderRepository.Find(request.Id);
+            Order order = await _orderRepository.FindAsync(request.Id);
             if (order == null)
             {
                 throw new InvalidOperationException("Order not found");
             }
             
-            order.ShippingInfoId = request.ShippingInfoId ?? order.ShippingInfoId;
-            order.TotalPrice = request.TotalPrice ?? order.TotalPrice;
-            order.AmountPaid = request.AmountPaid ?? order.AmountPaid;
-            order.Status = request.Status ?? order.Status;
-            order.ShippingStatus = request.ShippingStatus ?? order.ShippingStatus;
-            order.UpdatedAt = DateTime.Now;
+            order.ShippingInfoId = request.ShippingInfoId;
+            order.VoucherId = request.VoucherId;
+            order.TotalPrice = request.TotalPrice;
+            order.Status = (int)Enum.Parse<OrderStatus>(request.Status.ToString());
+            order.UpdatedAt = DateTime.UtcNow;
             
             return order;
         }
 
-        private Order GetEntityFromDeleteRequest(DeleteOrderRequest request)
+        private async Task<Order> GetEntityFromDeleteRequest(DeleteOrderRequest request)
         {
-            Order order = _orderRepository.Find(request.Id);
+            Order order = await _orderRepository.FindAsync(request.Id);
             if (order == null)
             {
                 throw new InvalidOperationException("Order not found");

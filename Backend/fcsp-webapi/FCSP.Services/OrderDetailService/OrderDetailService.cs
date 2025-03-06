@@ -1,6 +1,9 @@
 using FCSP.DTOs.OrderDetail;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.OrderDetailService
 {
@@ -21,13 +24,17 @@ namespace FCSP.Services.OrderDetailService
 
         public async Task<GetOrderDetailByIdResponse> GetOrderDetailById(GetOrderDetailByIdRequest request)
         {
-            OrderDetail orderDetail = GetEntityFromGetByIdRequest(request);
+            OrderDetail orderDetail = await GetEntityFromGetByIdRequest(request);
             return new GetOrderDetailByIdResponse
             {
+                Id = orderDetail.Id,
                 OrderId = orderDetail.OrderId,
                 CustomShoeDesignId = orderDetail.CustomShoeDesignId,
                 Quantity = orderDetail.Quantity,
-                Price = orderDetail.Price
+                UnitPrice = orderDetail.Price,
+                Size = null, // Set appropriate value if available
+                CreatedAt = orderDetail.CreatedAt,
+                UpdatedAt = orderDetail.UpdatedAt
             };
         }
 
@@ -35,26 +42,34 @@ namespace FCSP.Services.OrderDetailService
         {
             OrderDetail orderDetail = GetEntityFromAddRequest(request);
             var addedOrderDetail = await _orderDetailRepository.AddAsync(orderDetail);
-            return new AddOrderDetailResponse { OrderDetailId = addedOrderDetail.Id };
+            return new AddOrderDetailResponse 
+            { 
+                Id = addedOrderDetail.Id,
+                UnitPrice = addedOrderDetail.Price
+            };
         }
 
-        public async Task<AddOrderDetailResponse> UpdateOrderDetail(UpdateOrderDetailRequest request)
+        public async Task<UpdateOrderDetailResponse> UpdateOrderDetail(UpdateOrderDetailRequest request)
         {
-            OrderDetail orderDetail = GetEntityFromUpdateRequest(request);
+            OrderDetail orderDetail = await GetEntityFromUpdateRequest(request);
             await _orderDetailRepository.UpdateAsync(orderDetail);
-            return new AddOrderDetailResponse { OrderDetailId = orderDetail.Id };
+            return new UpdateOrderDetailResponse 
+            { 
+                Id = orderDetail.Id,
+                UnitPrice = orderDetail.Price
+            };
         }
 
-        public async Task<AddOrderDetailResponse> DeleteOrderDetail(DeleteOrderDetailRequest request)
+        public async Task<DeleteOrderDetailResponse> DeleteOrderDetail(DeleteOrderDetailRequest request)
         {
-            OrderDetail orderDetail = GetEntityFromDeleteRequest(request);
+            OrderDetail orderDetail = await GetEntityFromDeleteRequest(request);
             await _orderDetailRepository.DeleteAsync(orderDetail.Id);
-            return new AddOrderDetailResponse { OrderDetailId = orderDetail.Id };
+            return new DeleteOrderDetailResponse { Success = true };
         }
 
-        private OrderDetail GetEntityFromGetByIdRequest(GetOrderDetailByIdRequest request)
+        private async Task<OrderDetail> GetEntityFromGetByIdRequest(GetOrderDetailByIdRequest request)
         {
-            OrderDetail orderDetail = _orderDetailRepository.Find(request.Id);
+            OrderDetail orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
                 throw new InvalidOperationException("OrderDetail not found");
@@ -69,30 +84,30 @@ namespace FCSP.Services.OrderDetailService
                 OrderId = request.OrderId,
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 Quantity = request.Quantity,
-                Price = request.Price
+                Price = request.UnitPrice,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
-        private OrderDetail GetEntityFromUpdateRequest(UpdateOrderDetailRequest request)
+        private async Task<OrderDetail> GetEntityFromUpdateRequest(UpdateOrderDetailRequest request)
         {
-            OrderDetail orderDetail = _orderDetailRepository.Find(request.Id);
+            OrderDetail orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
                 throw new InvalidOperationException("OrderDetail not found");
             }
             
-            orderDetail.OrderId = request.OrderId ?? orderDetail.OrderId;
-            orderDetail.CustomShoeDesignId = request.CustomShoeDesignId ?? orderDetail.CustomShoeDesignId;
-            orderDetail.Quantity = request.Quantity ?? orderDetail.Quantity;
-            orderDetail.Price = request.Price ?? orderDetail.Price;
-            orderDetail.UpdatedAt = DateTime.Now;
+            orderDetail.Quantity = request.Quantity;
+            orderDetail.Price = request.UnitPrice;
+            orderDetail.UpdatedAt = DateTime.UtcNow;
             
             return orderDetail;
         }
 
-        private OrderDetail GetEntityFromDeleteRequest(DeleteOrderDetailRequest request)
+        private async Task<OrderDetail> GetEntityFromDeleteRequest(DeleteOrderDetailRequest request)
         {
-            OrderDetail orderDetail = _orderDetailRepository.Find(request.Id);
+            OrderDetail orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
                 throw new InvalidOperationException("OrderDetail not found");

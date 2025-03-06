@@ -1,6 +1,9 @@
 using FCSP.DTOs.CustomShoeDesignTexture;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.CustomShoeDesignTextureService
 {
@@ -33,21 +36,21 @@ namespace FCSP.Services.CustomShoeDesignTextureService
         {
             CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromAddRequest(request);
             var addedCustomShoeDesignTexture = await _customShoeDesignTextureRepository.AddAsync(customShoeDesignTexture);
-            return new AddCustomShoeDesignTextureResponse { CustomShoeDesignTextureId = addedCustomShoeDesignTexture.Id };
+            return new AddCustomShoeDesignTextureResponse { Id = addedCustomShoeDesignTexture.Id };
         }
 
         public async Task<AddCustomShoeDesignTextureResponse> UpdateCustomShoeDesignTexture(UpdateCustomShoeDesignTextureRequest request)
         {
             CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromUpdateRequest(request);
             await _customShoeDesignTextureRepository.UpdateAsync(customShoeDesignTexture);
-            return new AddCustomShoeDesignTextureResponse { CustomShoeDesignTextureId = customShoeDesignTexture.Id };
+            return new AddCustomShoeDesignTextureResponse { Id = customShoeDesignTexture.Id };
         }
 
         public async Task<AddCustomShoeDesignTextureResponse> DeleteCustomShoeDesignTexture(DeleteCustomShoeDesignTextureRequest request)
         {
             CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromDeleteRequest(request);
             await _customShoeDesignTextureRepository.DeleteAsync(customShoeDesignTexture.Id);
-            return new AddCustomShoeDesignTextureResponse { CustomShoeDesignTextureId = customShoeDesignTexture.Id };
+            return new AddCustomShoeDesignTextureResponse { Id = customShoeDesignTexture.Id };
         }
 
         private CustomShoeDesignTexture GetEntityFromGetByIdRequest(GetCustomShoeDesignTextureByIdRequest request)
@@ -65,7 +68,9 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             return new CustomShoeDesignTexture
             {
                 CustomShoeDesignId = request.CustomShoeDesignId,
-                TextureId = request.TextureId
+                TextureId = request.TextureId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
@@ -77,9 +82,8 @@ namespace FCSP.Services.CustomShoeDesignTextureService
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");
             }
             
-            customShoeDesignTexture.CustomShoeDesignId = request.CustomShoeDesignId ?? customShoeDesignTexture.CustomShoeDesignId;
-            customShoeDesignTexture.TextureId = request.TextureId ?? customShoeDesignTexture.TextureId;
-            customShoeDesignTexture.UpdatedAt = DateTime.Now;
+            customShoeDesignTexture.TextureId = request.TextureId;
+            customShoeDesignTexture.UpdatedAt = DateTime.UtcNow;
             
             return customShoeDesignTexture;
         }

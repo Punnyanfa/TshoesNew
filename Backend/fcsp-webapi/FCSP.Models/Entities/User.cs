@@ -5,26 +5,39 @@ namespace FCSP.Models.Entities;
 
 public class User : BaseEntity
 {
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = null!;
 
     [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = null!;
 
-    public UserRole UserRole { get; set; } = UserRole.Customer;
+    public string? Dob { get; set; }
+
+    public string? Gender { get; set; }
+
+    public int UserRole { get; set; }
+
+    public float? Balance { get; set; }
 
     public long? DefaultAddressId { get; set; }
-
-    public ShippingInfo? DefaultAddress { get; set; }
-
-    public virtual ICollection<CustomShoeDesignTemplate> ShoeDisplays { get; } = [];
-
-    public virtual ICollection<ShippingInfo> ShippingInfos { get; } = [];
-
-    public virtual ICollection<PaymentGateway> PaymentGateways { get; } = [];
     
-    // New navigation properties for UserTexture
-    public virtual ICollection<UserTexture> OwnedTextures { get; } = [];
-    public virtual ICollection<UserTexture> PurchasedTextures { get; } = [];
+    public int Status { get; set; }
+    
+    public int IsDeleted { get; set; }
+
+    // Navigation properties
+    public virtual ShippingInfo? DefaultAddress { get; set; }
+    public virtual ICollection<CustomShoeDesign> CustomShoeDesigns { get; } = [];
+    public virtual ICollection<CustomShoeDesignTemplate> Templates { get; } = [];
+    public virtual ICollection<Order> Orders { get; } = [];
+    public virtual ICollection<PaymentGateway> PaymentGateways { get; } = [];
+    public virtual ICollection<ShippingInfo> ShippingInfos { get; } = [];
+    public virtual ICollection<Posts> Posts { get; } = [];
+    public virtual ICollection<PostsComments> PostsComments { get; } = [];
+    public virtual ICollection<Notification> Notifications { get; } = [];
+    public virtual ICollection<UserActivity> Activities { get; } = [];
+    public virtual ICollection<UserRecommendation> Recommendations { get; } = [];
+    public virtual ICollection<Rating> Ratings { get; } = [];
+    public virtual ICollection<Texture> Textures { get; } = [];
 }

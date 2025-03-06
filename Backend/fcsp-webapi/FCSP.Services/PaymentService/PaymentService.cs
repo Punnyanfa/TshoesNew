@@ -1,6 +1,10 @@
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using FCSP.Common.Enums;
 
 namespace FCSP.Services.PaymentService
 {
@@ -21,13 +25,15 @@ namespace FCSP.Services.PaymentService
 
         public async Task<GetPaymentByIdResponse> GetPaymentById(GetPaymentByIdRequest request)
         {
-            Payment payment = GetEntityFromGetByIdRequest(request);
+            Payment payment = await GetEntityFromGetByIdRequest(request);
             return new GetPaymentByIdResponse
             {
+                Id = payment.Id,
                 OrderId = payment.OrderId,
                 Amount = payment.Amount,
-                PaymentMethod = payment.PaymentMethod,
-                PaymentStatus = payment.PaymentStatus
+                Status = (int)payment.PaymentStatus,
+                CreatedAt = payment.CreatedAt,
+                UpdatedAt = payment.UpdatedAt
             };
         }
 
@@ -35,26 +41,34 @@ namespace FCSP.Services.PaymentService
         {
             Payment payment = GetEntityFromAddRequest(request);
             var addedPayment = await _paymentRepository.AddAsync(payment);
-            return new AddPaymentResponse { PaymentId = addedPayment.Id };
+            return new AddPaymentResponse {
+                Id = addedPayment.Id,
+                Amount = addedPayment.Amount,
+                Status = (int)addedPayment.PaymentStatus
+            };
         }
 
-        public async Task<AddPaymentResponse> UpdatePayment(UpdatePaymentRequest request)
+        public async Task<UpdatePaymentResponse> UpdatePayment(UpdatePaymentRequest request)
         {
-            Payment payment = GetEntityFromUpdateRequest(request);
+            Payment payment = await GetEntityFromUpdateRequest(request);
             await _paymentRepository.UpdateAsync(payment);
-            return new AddPaymentResponse { PaymentId = payment.Id };
+            return new UpdatePaymentResponse {
+                Id = payment.Id,
+                Amount = payment.Amount,
+                Status = (int)payment.PaymentStatus
+            };
         }
 
-        public async Task<AddPaymentResponse> DeletePayment(DeletePaymentRequest request)
+        public async Task<DeletePaymentResponse> DeletePayment(DeletePaymentRequest request)
         {
-            Payment payment = GetEntityFromDeleteRequest(request);
+            Payment payment = await GetEntityFromDeleteRequest(request);
             await _paymentRepository.DeleteAsync(payment.Id);
-            return new AddPaymentResponse { PaymentId = payment.Id };
+            return new DeletePaymentResponse { Success = true };
         }
 
-        private Payment GetEntityFromGetByIdRequest(GetPaymentByIdRequest request)
+        private async Task<Payment> GetEntityFromGetByIdRequest(GetPaymentByIdRequest request)
         {
-            Payment payment = _paymentRepository.Find(request.Id);
+            Payment payment = await _paymentRepository.FindAsync(request.Id);
             if (payment == null)
             {
                 throw new InvalidOperationException("Payment not found");
@@ -68,31 +82,31 @@ namespace FCSP.Services.PaymentService
             {
                 OrderId = request.OrderId,
                 Amount = request.Amount,
-                PaymentMethod = request.PaymentMethod,
-                PaymentStatus = request.PaymentStatus
+                PaymentMethod = (int)PaymentMethod.Card,
+                PaymentStatus = (int)PaymentStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
-        private Payment GetEntityFromUpdateRequest(UpdatePaymentRequest request)
+        private async Task<Payment> GetEntityFromUpdateRequest(UpdatePaymentRequest request)
         {
-            Payment payment = _paymentRepository.Find(request.Id);
+            Payment payment = await _paymentRepository.FindAsync(request.Id);
             if (payment == null)
             {
                 throw new InvalidOperationException("Payment not found");
             }
-            
-            payment.OrderId = request.OrderId ?? payment.OrderId;
-            payment.Amount = request.Amount ?? payment.Amount;
-            payment.PaymentMethod = request.PaymentMethod ?? payment.PaymentMethod;
-            payment.PaymentStatus = request.PaymentStatus ?? payment.PaymentStatus;
-            payment.UpdatedAt = DateTime.Now;
-            
+
+            payment.Amount = request.Amount;
+            payment.PaymentStatus = (int)PaymentStatus.Received;
+            payment.UpdatedAt = DateTime.UtcNow;
+
             return payment;
         }
 
-        private Payment GetEntityFromDeleteRequest(DeletePaymentRequest request)
+        private async Task<Payment> GetEntityFromDeleteRequest(DeletePaymentRequest request)
         {
-            Payment payment = _paymentRepository.Find(request.Id);
+            Payment payment = await _paymentRepository.FindAsync(request.Id);
             if (payment == null)
             {
                 throw new InvalidOperationException("Payment not found");

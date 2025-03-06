@@ -22,26 +22,37 @@ internal static class RepositoryConfig
         
         // Post & Comment repositories
         services.AddScoped<IPostRepository, PostRepository>();
-        services.AddScoped<IPostCommentRepository, PostCommentRepository>();
-        
-        // Texture repositories
-        services.AddScoped<ITextureRepository, TextureRepository>();
-        services.AddScoped<IUserTextureRepository, UserTextureRepository>();
+        services.AddScoped<IPostsCommentsRepository, PostsCommentsRepository>();
         
         // Design repositories
         services.AddScoped<ICustomShoeDesignRepository, CustomShoeDesignRepository>();
         services.AddScoped<ICustomShoeDesignTextureRepository, CustomShoeDesignTextureRepository>();
         services.AddScoped<ITemplateRepository, TemplateRepository>();
+        services.AddScoped<IDesignPreviewRepository, DesignPreviewRepository>();
+        services.AddScoped<IDesignServiceRepository, DesignServiceRepository>();
         
-        // Order repositories
+        // Order & Payment repositories
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
-        
-        // Payment repositories
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IPaymentGatewayRepository, PaymentGatewayRepository>();
+        services.AddScoped<IVoucherRepository, VoucherRepository>();
         
-        // Shipping repositories
+        // Service repositories
+        services.AddScoped<IServiceRepository, ServiceRepository>();
+        
+        // Texture & Rating repositories
+        services.AddScoped<ITextureRepository, TextureRepository>();
+        services.AddScoped<IRatingRepository, RatingRepository>();
+        
+        // User Activity & Recommendation repositories
+        services.AddScoped<IUserActivityRepository, UserActivityRepository>();
+        services.AddScoped<IUserRecommendationRepository, UserRecommendationRepository>();
+        
+        // Notification repository
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        
+        // Shipping repository
         services.AddScoped<IShippingInfoRepository, ShippingInfoRepository>();
     }
 }

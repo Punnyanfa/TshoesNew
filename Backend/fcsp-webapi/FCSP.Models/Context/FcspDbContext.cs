@@ -11,6 +11,13 @@ public class FcspDbContext : DbContext
     #endregion
 
     #region Constructors
+    public FcspDbContext(DbContextOptions<FcspDbContext> options) : base(options)
+    {
+    }
+
+    public FcspDbContext()
+    {
+    }
     #endregion
 
     #region Properties
@@ -24,8 +31,16 @@ public class FcspDbContext : DbContext
     public DbSet<ShippingInfo> ShippingInfos { get; set; }
     public DbSet<Texture> Textures { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<Post> Posts { get; set; }
-    public DbSet<PostComment> PostComments { get; set; }
+    public DbSet<Posts> Posts { get; set; }
+    public DbSet<PostsComments> PostsComments { get; set; }
+    public DbSet<Service> Services { get; set; }
+    public DbSet<DesignService> DesignServices { get; set; }
+    public DbSet<DesignPreview> DesignPreviews { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<UserActivity> UserActivities { get; set; }
+    public DbSet<UserRecommendation> UserRecommendations { get; set; }
+    public DbSet<Voucher> Vouchers { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
     #endregion
 
     #region Private Methods
@@ -50,12 +65,18 @@ public class FcspDbContext : DbContext
     #region Protected Methods
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(GetConnectionString());
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer(GetConnectionString());
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Special table name configurations
+        modelBuilder.Entity<DesignPreview>().ToTable("DesignPreview"); // Note: singular table name
 
         ConfigureModel(modelBuilder);
     }

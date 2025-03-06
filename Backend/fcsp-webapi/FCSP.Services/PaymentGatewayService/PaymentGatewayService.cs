@@ -1,6 +1,10 @@
 using FCSP.DTOs.PaymentGateway;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using FCSP.Common.Enums;
 
 namespace FCSP.Services.PaymentGatewayService
 {
@@ -21,11 +25,17 @@ namespace FCSP.Services.PaymentGatewayService
 
         public async Task<GetPaymentGatewayByIdResponse> GetPaymentGatewayById(GetPaymentGatewayByIdRequest request)
         {
-            PaymentGateway paymentGateway = GetEntityFromGetByIdRequest(request);
+            PaymentGateway paymentGateway = await GetEntityFromGetByIdRequest(request);
             return new GetPaymentGatewayByIdResponse
             {
+                Id = paymentGateway.Id,
                 UserId = paymentGateway.UserId,
-                PaymentMethod = paymentGateway.PaymentMethod
+                Name = paymentGateway.PaymentMethod.ToString(),
+                Provider = paymentGateway.PaymentMethod.ToString(),
+                AccountNumber = "N/A", // Set appropriate value if available
+                IsDefault = false, // Set appropriate value if available
+                CreatedAt = paymentGateway.CreatedAt,
+                UpdatedAt = paymentGateway.UpdatedAt
             };
         }
 
@@ -33,26 +43,36 @@ namespace FCSP.Services.PaymentGatewayService
         {
             PaymentGateway paymentGateway = GetEntityFromAddRequest(request);
             var addedPaymentGateway = await _paymentGatewayRepository.AddAsync(paymentGateway);
-            return new AddPaymentGatewayResponse { PaymentGatewayId = addedPaymentGateway.Id };
+            return new AddPaymentGatewayResponse 
+            { 
+                Id = addedPaymentGateway.Id,
+                Name = addedPaymentGateway.PaymentMethod.ToString(),
+                IsDefault = false // Set appropriate value if available
+            };
         }
 
-        public async Task<AddPaymentGatewayResponse> UpdatePaymentGateway(UpdatePaymentGatewayRequest request)
+        public async Task<UpdatePaymentGatewayResponse> UpdatePaymentGateway(UpdatePaymentGatewayRequest request)
         {
-            PaymentGateway paymentGateway = GetEntityFromUpdateRequest(request);
+            PaymentGateway paymentGateway = await GetEntityFromUpdateRequest(request);
             await _paymentGatewayRepository.UpdateAsync(paymentGateway);
-            return new AddPaymentGatewayResponse { PaymentGatewayId = paymentGateway.Id };
+            return new UpdatePaymentGatewayResponse 
+            { 
+                Id = paymentGateway.Id,
+                Name = paymentGateway.PaymentMethod.ToString(),
+                IsDefault = false // Set appropriate value if available
+            };
         }
 
-        public async Task<AddPaymentGatewayResponse> DeletePaymentGateway(DeletePaymentGatewayRequest request)
+        public async Task<DeletePaymentGatewayResponse> DeletePaymentGateway(DeletePaymentGatewayRequest request)
         {
-            PaymentGateway paymentGateway = GetEntityFromDeleteRequest(request);
+            PaymentGateway paymentGateway = await GetEntityFromDeleteRequest(request);
             await _paymentGatewayRepository.DeleteAsync(paymentGateway.Id);
-            return new AddPaymentGatewayResponse { PaymentGatewayId = paymentGateway.Id };
+            return new DeletePaymentGatewayResponse { Success = true };
         }
 
-        private PaymentGateway GetEntityFromGetByIdRequest(GetPaymentGatewayByIdRequest request)
+        private async Task<PaymentGateway> GetEntityFromGetByIdRequest(GetPaymentGatewayByIdRequest request)
         {
-            PaymentGateway paymentGateway = _paymentGatewayRepository.Find(request.Id);
+            PaymentGateway paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
             if (paymentGateway == null)
             {
                 throw new InvalidOperationException("PaymentGateway not found");
@@ -65,28 +85,33 @@ namespace FCSP.Services.PaymentGatewayService
             return new PaymentGateway
             {
                 UserId = request.UserId,
-                PaymentMethod = request.PaymentMethod
+                PaymentMethod = (int)PaymentMethod.Card,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
-        private PaymentGateway GetEntityFromUpdateRequest(UpdatePaymentGatewayRequest request)
+        private async Task<PaymentGateway> GetEntityFromUpdateRequest(UpdatePaymentGatewayRequest request)
         {
-            PaymentGateway paymentGateway = _paymentGatewayRepository.Find(request.Id);
+            PaymentGateway paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
             if (paymentGateway == null)
             {
                 throw new InvalidOperationException("PaymentGateway not found");
             }
             
-            paymentGateway.UserId = request.UserId ?? paymentGateway.UserId;
-            paymentGateway.PaymentMethod = request.PaymentMethod ?? paymentGateway.PaymentMethod;
-            paymentGateway.UpdatedAt = DateTime.Now;
+            // Parse payment method from request.Provider if needed
+            if (Enum.TryParse<PaymentMethod>(request.Provider, true, out PaymentMethod method))
+            {
+                paymentGateway.PaymentMethod = (int)method;
+            }
+            paymentGateway.UpdatedAt = DateTime.UtcNow;
             
             return paymentGateway;
         }
 
-        private PaymentGateway GetEntityFromDeleteRequest(DeletePaymentGatewayRequest request)
+        private async Task<PaymentGateway> GetEntityFromDeleteRequest(DeletePaymentGatewayRequest request)
         {
-            PaymentGateway paymentGateway = _paymentGatewayRepository.Find(request.Id);
+            PaymentGateway paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
             if (paymentGateway == null)
             {
                 throw new InvalidOperationException("PaymentGateway not found");

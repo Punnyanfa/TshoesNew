@@ -22,12 +22,18 @@ namespace FCSP.Services.TemplateService
         public async Task<GetTemplateByIdResponse> GetTemplateById(GetTemplateByIdRequest request)
         {
             CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromGetByIdRequest(request);
+
             return new GetTemplateByIdResponse
             {
+                Id = customShoeDesignTemplate.Id,
                 Name = customShoeDesignTemplate.Name,
-                Description = customShoeDesignTemplate.Description,
-                Price = customShoeDesignTemplate.Price,
-                ImageUrl = customShoeDesignTemplate.ImageUrl,
+                Description = customShoeDesignTemplate.Description ?? string.Empty,
+                PreviewImageUrl = customShoeDesignTemplate.TwoDImageUrl ?? string.Empty,
+                Model3DUrl = customShoeDesignTemplate.ThreeDFileUrl ?? string.Empty,
+                BasePrice = (decimal)customShoeDesignTemplate.Price,
+                IsAvailable = true,
+                CreatedAt = customShoeDesignTemplate.CreatedAt,
+                UpdatedAt = customShoeDesignTemplate.UpdatedAt
             };
         }
 
@@ -35,21 +41,36 @@ namespace FCSP.Services.TemplateService
         {
             CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromAddRequest(request);
             await _templateRepository.AddAsync(customShoeDesignTemplate);
-            return new AddTemplateResponse();
+            return new AddTemplateResponse
+            {
+                Id = customShoeDesignTemplate.Id,
+                Name = customShoeDesignTemplate.Name,
+                PreviewImageUrl = customShoeDesignTemplate.TwoDImageUrl ?? string.Empty
+            };
         }
 
         public async Task<AddTemplateResponse> UpdateTemplate(UpdateTemplateRequest request)
         {
             CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromUpdateRequest(request);
+
             await _templateRepository.UpdateAsync(customShoeDesignTemplate);
-            return new AddTemplateResponse();
+            return new AddTemplateResponse
+            {
+                Id = customShoeDesignTemplate.Id,
+                Name = customShoeDesignTemplate.Name,
+                PreviewImageUrl = customShoeDesignTemplate.TwoDImageUrl ?? string.Empty
+            };
         }
 
-        public async Task<AddTemplateResponse> DeleteTemplate(DeleteTemplateRequest request)
+        public async Task<DeleteTemplateResponse> DeleteTemplate(DeleteTemplateRequest request)
         {
             CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromDeleteRequest(request);
+
             await _templateRepository.DeleteAsync(customShoeDesignTemplate.Id);
-            return new AddTemplateResponse();
+            return new DeleteTemplateResponse
+            {
+                Success = true
+            };
         }
 
         private CustomShoeDesignTemplate GetEntityFromGetByIdRequest(GetTemplateByIdRequest request)
@@ -68,22 +89,27 @@ namespace FCSP.Services.TemplateService
             {
                 Name = request.Name,
                 Description = request.Description,
-                Price = request.Price,
-                ImageUrl = request.ImageUrl,
+                Price = (float)request.BasePrice,
+                TwoDImageUrl = request.PreviewImageUrl,
+                ThreeDFileUrl = request.Model3DUrl,
+                UserId = 1 // Default user ID, should be replaced with actual user ID
             };
         }
 
         private CustomShoeDesignTemplate GetEntityFromUpdateRequest(UpdateTemplateRequest request)
         {
             CustomShoeDesignTemplate customShoeDesignTemplate = _templateRepository.Find(request.Id);
+
             if (customShoeDesignTemplate == null)
             {
                 throw new InvalidOperationException();
             }
-            customShoeDesignTemplate.Name = request.Name ?? customShoeDesignTemplate.Name;
-            customShoeDesignTemplate.Description = request.Description ?? customShoeDesignTemplate.Description;
-            customShoeDesignTemplate.Price = request.Price ?? customShoeDesignTemplate.Price;
-            customShoeDesignTemplate.ImageUrl = request.ImageUrl ?? customShoeDesignTemplate.ImageUrl;
+            customShoeDesignTemplate.Name = request.Name;
+            customShoeDesignTemplate.Description = request.Description;
+            customShoeDesignTemplate.Price = (float)request.BasePrice;
+            customShoeDesignTemplate.TwoDImageUrl = request.PreviewImageUrl;
+            customShoeDesignTemplate.ThreeDFileUrl = request.Model3DUrl;
+
             customShoeDesignTemplate.UpdatedAt = DateTime.Now;
             return customShoeDesignTemplate;
         }
@@ -97,6 +123,5 @@ namespace FCSP.Services.TemplateService
             }
             return template;
         }
-
     }
 }
