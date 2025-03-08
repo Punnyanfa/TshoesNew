@@ -1,4 +1,5 @@
 ﻿using FCSP.Common.Configurations;
+using FCSP.Models.Entities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -20,24 +21,22 @@ public class JwtService : ITokenService
     #endregion
 
     #region Public methods
-    public string GetToken()
+    public string GetToken(User user)
     {
-        return GetJwt();
+        return GetJwt(user);
     }
     #endregion
 
     #region Private methods
-    private string GetJwt()
+    private string GetJwt(User user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expiry = DateTime.Now.AddMinutes(_config.ExpiryMinutes);
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, "user_id"), // Replace with actual user ID
-            new Claim(JwtRegisteredClaimNames.Email, "user@example.com"), // Replace with actual email
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Role, "User") // Add roles as needed
+            new Claim(ClaimTypes.Role, user.UserRole.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
         };
 
         var token = new JwtSecurityToken(

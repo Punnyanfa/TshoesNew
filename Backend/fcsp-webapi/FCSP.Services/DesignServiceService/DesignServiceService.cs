@@ -49,7 +49,6 @@ namespace FCSP.Services.DesignServiceService
                 Id = designService.Id,
                 DesignId = designService.DesignId,
                 ServiceId = designService.ServiceId,
-                CustomShoeDesignId = designService.CustomShoeDesignIdNavigation,
                 CustomShoeDesignName = customShoeDesignName,
                 ServiceName = serviceName
             };
@@ -60,8 +59,7 @@ namespace FCSP.Services.DesignServiceService
             var designService = new DesignService
             {
                 DesignId = request.DesignId,
-                ServiceId = request.ServiceId,
-                CustomShoeDesignIdNavigation = request.CustomShoeDesignId
+                ServiceId = request.ServiceId
             };
 
             var addedDesignService = await _designServiceRepository.AddAsync(designService);
@@ -76,7 +74,6 @@ namespace FCSP.Services.DesignServiceService
 
             designService.DesignId = request.DesignId;
             designService.ServiceId = request.ServiceId;
-            designService.CustomShoeDesignIdNavigation = request.CustomShoeDesignId;
 
             await _designServiceRepository.UpdateAsync(designService);
             return new UpdateDesignServiceResponse { DesignServiceId = designService.Id };

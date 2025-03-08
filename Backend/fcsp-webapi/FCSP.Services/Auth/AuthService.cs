@@ -1,8 +1,9 @@
-﻿using FCSP.DTOs.Authentication;
+using FCSP.DTOs.Authentication;
+using FCSP.DTOs;
 using FCSP.Models.Entities;
-using FCSP.Repositories;
 using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
+using FCSP.Repositories;
 
 namespace FCSP.Services.Auth;
 
@@ -23,24 +24,45 @@ public class AuthService : IAuthService
         _userRepository = userRepository;
     }
 
-    public async Task<UserLoginResponse> Login(UserLoginRequest request)
+    public async Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request)
     {
-        var response = new UserLoginResponse();
-        response.Token = _tokenService.GetToken();
+        
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("Invalid email or password");
+        }
 
-        return response;
+        if (string.IsNullOrEmpty(request.Password) || request.Password.Length < 8)
+        {
+            throw new UnauthorizedAccessException("Password must be at least 8 characters long");
+        }
+        var token = _tokenService.GetToken(user);
+
+        return new BaseResponseModel<UserLoginResponse>
+        {
+            Code = 200,
+            Message = "Login successful",
+            Data = new UserLoginResponse
+            {
+                Token = token,
+            },
+        };
     }
 
-    public async Task<UserRegisterResponse> Register(UserRegisterRequest request)
+    public async Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request)
     {
         User user = GetUserEntityFromUserRegisterRequest(request);
 
         await _userRepository.AddAsync(user);
 
-        return new UserRegisterResponse
+        return new BaseResponseModel<UserRegisterResponse>
         {
-            Id = user.Id,
-            Token = _tokenService.GetToken(),
+            Data = new UserRegisterResponse
+            {
+                Token = _tokenService.GetToken(user),
+            },
         };
     }
 
@@ -54,3 +76,4 @@ public class AuthService : IAuthService
         };
     }
 }
+

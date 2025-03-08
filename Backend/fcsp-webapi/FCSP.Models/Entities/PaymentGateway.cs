@@ -8,7 +8,7 @@ public class PaymentGateway : BaseEntity
 
     public virtual User User { get; set; } = null!;
 
-    public int PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; }
     
     public int Status { get; set; }
 }

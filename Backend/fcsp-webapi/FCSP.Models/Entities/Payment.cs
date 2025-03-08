@@ -10,7 +10,7 @@ public class Payment : BaseEntity
 
     public float Amount { get; set; }
 
-    public int PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; }
 
-    public int PaymentStatus { get; set; }
+    public PaymentStatus PaymentStatus { get; set; }
 }

@@ -85,7 +85,7 @@ namespace FCSP.Services.PaymentGatewayService
             return new PaymentGateway
             {
                 UserId = request.UserId,
-                PaymentMethod = (int)PaymentMethod.Card,
+                PaymentMethod = PaymentMethod.Card,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -102,7 +102,7 @@ namespace FCSP.Services.PaymentGatewayService
             // Parse payment method from request.Provider if needed
             if (Enum.TryParse<PaymentMethod>(request.Provider, true, out PaymentMethod method))
             {
-                paymentGateway.PaymentMethod = (int)method;
+                paymentGateway.PaymentMethod = method;
             }
             paymentGateway.UpdatedAt = DateTime.UtcNow;
             

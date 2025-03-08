@@ -16,7 +16,7 @@ public class User : BaseEntity
 
     public string? Gender { get; set; }
 
-    public int UserRole { get; set; }
+    public UserRole UserRole { get; set; } = UserRole.Customer;
 
     public float? Balance { get; set; }
 

@@ -82,8 +82,8 @@ namespace FCSP.Services.PaymentService
             {
                 OrderId = request.OrderId,
                 Amount = request.Amount,
-                PaymentMethod = (int)PaymentMethod.Card,
-                PaymentStatus = (int)PaymentStatus.Pending,
+                PaymentMethod = PaymentMethod.Card,
+                PaymentStatus = PaymentStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -98,7 +98,7 @@ namespace FCSP.Services.PaymentService
             }
 
             payment.Amount = request.Amount;
-            payment.PaymentStatus = (int)PaymentStatus.Received;
+            payment.PaymentStatus = PaymentStatus.Received;
             payment.UpdatedAt = DateTime.UtcNow;
 
             return payment;

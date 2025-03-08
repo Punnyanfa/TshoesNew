@@ -1,3 +1,5 @@
+using FCSP.Common.Enums;
+
 namespace FCSP.DTOs.Order
 {
     public class GetOrderByIdRequest
@@ -12,7 +14,7 @@ namespace FCSP.DTOs.Order
         public long ShippingInfoId { get; set; }
         public long? VoucherId { get; set; }
         public float TotalPrice { get; set; }
-        public int Status { get; set; }
+        public OrderStatus Status { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
@@ -25,7 +27,7 @@ namespace FCSP.DTOs.Order
         public long ShippingInfoId { get; set; }
         public long? VoucherId { get; set; }
         public float TotalPrice { get; set; }
-        public int Status { get; set; }
+        public OrderStatus Status { get; set; }
         public string? Note { get; set; }
         public List<OrderDetailDto> OrderDetails { get; set; } = [];
     }
@@ -43,7 +45,7 @@ namespace FCSP.DTOs.Order
         public long ShippingInfoId { get; set; }
         public long? VoucherId { get; set; }
         public float TotalPrice { get; set; }
-        public int Status { get; set; }
+        public OrderStatus Status { get; set; }
         public string? Note { get; set; }
     }
 
@@ -51,7 +53,7 @@ namespace FCSP.DTOs.Order
     {
         public long Id { get; set; }
         public float TotalPrice { get; set; }
-        public int Status { get; set; }
+        public OrderStatus Status { get; set; }
     }
 
     public class DeleteOrderRequest

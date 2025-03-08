@@ -9,8 +9,8 @@ public class Order : BaseEntity
     public long ShippingInfoId { get; set; }
     public float TotalPrice { get; set; }
     public float AmountPaid { get; set; }
-    public int Status { get; set; }
-    public int ShippingStatus { get; set; }
+    public OrderStatus Status { get; set; }
+    public OrderShippingStatus ShippingStatus { get; set; }
 
     // Navigation properties
     public virtual User User { get; set; } = null!;

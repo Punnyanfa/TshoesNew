@@ -51,7 +51,7 @@ public class FcspDbContext : DbContext
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", false)
             .Build();
 
-        return config.GetConnectionString("FCSP_DB");
+        return config.GetConnectionString("FCSP_DB_SOMEE");
     }
 
     private static void ConfigureModel(ModelBuilder modelBuilder)
@@ -74,9 +74,6 @@ public class FcspDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Special table name configurations
-        modelBuilder.Entity<DesignPreview>().ToTable("DesignPreview"); // Note: singular table name
 
         ConfigureModel(modelBuilder);
     }

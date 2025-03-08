@@ -41,7 +41,7 @@ namespace FCSP.Services.OrderService
                 VoucherId = order.VoucherId,
                 TotalPrice = order.TotalPrice,
                 Status = order.Status,
-                Note = null, // Set appropriate value if available
+                Note = null, 
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 OrderDetails = filteredOrderDetails.Select(od => new OrderDetailDto
@@ -49,7 +49,7 @@ namespace FCSP.Services.OrderService
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     Quantity = od.Quantity,
                     UnitPrice = od.Price,
-                    Size = null // Set to null since the entity doesn't have this property
+                    Size = null 
                 }).ToList()
             };
         }
@@ -78,7 +78,7 @@ namespace FCSP.Services.OrderService
             { 
                 Id = addedOrder.Id,
                 TotalPrice = addedOrder.TotalPrice,
-                Status = addedOrder.Status
+                Status = (int)addedOrder.Status
             };
         }
 
@@ -130,8 +130,8 @@ namespace FCSP.Services.OrderService
                 VoucherId = request.VoucherId,
                 TotalPrice = request.TotalPrice,
                 AmountPaid = 0, // Set appropriate default or get from request
-                Status = (int)OrderStatus.Pending,
-                ShippingStatus = (int)OrderShippingStatus.Preparing,
+                Status = OrderStatus.Pending,
+                ShippingStatus = OrderShippingStatus.Preparing,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -148,7 +148,7 @@ namespace FCSP.Services.OrderService
             order.ShippingInfoId = request.ShippingInfoId;
             order.VoucherId = request.VoucherId;
             order.TotalPrice = request.TotalPrice;
-            order.Status = (int)Enum.Parse<OrderStatus>(request.Status.ToString());
+            order.Status = request.Status;
             order.UpdatedAt = DateTime.UtcNow;
             
             return order;
