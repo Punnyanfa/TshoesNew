@@ -17,27 +17,26 @@
       <div class="row mb-6 intro-section">
         <div class="col-12">
           <div class="intro-content text-center">
-            <h2 class="intro-title">Introduction to Our Premier Digital Agency</h2>
+            <h2 class="intro-title">Introduction to Our Custom Shoe Innovation</h2>
             <p class="intro-text">
-              At our core, we are a forward-thinking digital agency dedicated to delivering innovative solutions. With a
-              commitment to excellence, we craft strategies that empower brands to thrive in a competitive landscape.
+              At our core, we specialize in crafting personalized footwear experiences. Combining innovation, AI-driven customization, and expert craftsmanship, we empower you to design unique shoes that reflect your style and personality.
             </p>
           </div>
           <div class="intro-features d-flex justify-content-center flex-wrap gap-4">
             <div class="feature-card">
               <div class="feature-icon"><i class="fas fa-dollar-sign" aria-hidden="true"></i></div>
-              <h3>Competitive Pricing</h3>
-              <p>Ensuring top value with tailored pricing models.</p>
+              <h3>Custom Shoe Innovation</h3>
+              <p>Personalized pricing models for unique designs.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
-              <h3>Expert Analysis</h3>
-              <p>Data-driven insights to optimize your success.</p>
+              <h3>AI-Driven Insights</h3>
+              <p>Data-powered customization to match your style.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
-              <h3>Elite Team</h3>
-              <p>A seasoned team delivering unparalleled expertise.</p>
+              <h3>Expert Craftsmanship</h3>
+              <p>A skilled team ensuring top-tier quality and precision.</p>
             </div>
           </div>
         </div>
@@ -68,25 +67,25 @@
       <!-- Team Members Section -->
       <div class="row mb-6 team-section">
         <div class="col-12 text-center">
-          <h2 class="section-title">Meet Our Team</h2>
+          <h2 class="section-title">Meet Our Craftsmanship Team</h2>
           <p class="section-subtitle">
-            Discover the talented individuals driving our success with dedication and innovation.
+            Discover the skilled artisans and innovators bringing your custom shoe designs to life with precision and creativity.
           </p>
         </div>
         <div class="col-12">
           <div class="team-members d-flex justify-content-center flex-wrap gap-4">
             <div class="team-card">
               <img
-                src="https://via.placeholder.com/200x200?text=Sony+Madison"
-                alt="Sony Madison, CEO & Founder"
+                src="https://th.bing.com/th/id/OIP.8zxb_q87POL2XN03FhvQ1gHaHa?w=187&h=187&c=7&r=0&o=5&dpr=1.3&pid=1.7"
+                alt="Ba Tung, FE & Leader"
                 class="team-photo"
               />
-              <h4>Sony Madison</h4>
-              <p class="team-role">CEO & Founder</p>
+              <h4>Ba Tung</h4>
+              <p class="team-role">FE & Leader</p>
               <div class="social-icons">
-                <a href="#" class="social-icon" aria-label="Sony Madison's LinkedIn"><i class="fab fa-linkedin"></i></a>
-                <a href="#" class="social-icon" aria-label="Sony Madison's Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="social-icon" aria-label="Sony Madison's Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="Ba Tung's LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="social-icon" aria-label="Ba Tung's Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Ba Tung's Instagram"><i class="fab fa-instagram"></i></a>
               </div>
             </div>
             <div class="team-card">
@@ -218,10 +217,10 @@ const currentYear = new Date().getFullYear();
   padding: 20px;
   text-shadow: 3px 3px 15px rgba(0, 0, 0, 0.5);
   border-radius: 8px;
-  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thêm gradient */
-  -webkit-background-clip: text; /* Cho text hiển thị gradient */
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  -webkit-background-clip: text;
   background-clip: text;
-  color: transparent; /* Để gradient hiện lên thay màu trắng */
+  color: transparent; 
 }
 
 /* Introduction Section */
@@ -240,7 +239,7 @@ const currentYear = new Date().getFullYear();
 .intro-title {
   font-size: 2.5rem;
   font-weight: 600;
-  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay đổi màu */
+  background: linear-gradient(45deg, #2c3e50, #3498db);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -347,7 +346,7 @@ const currentYear = new Date().getFullYear();
 .section-title {
   font-size: 2.5rem;
   font-weight: 600;
-  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay đổi màu */
+  background: linear-gradient(45deg, #2c3e50, #3498db);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -387,8 +386,7 @@ const currentYear = new Date().getFullYear();
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 15px;
-  border: 4px solid transparent; /* Thay đổi border */
-  background: linear-gradient(45deg, #2c3e50, #3498db); /* Gradient cho border */
+  border: 4px solid transparent;
   background-clip: border-box;
 }
 
