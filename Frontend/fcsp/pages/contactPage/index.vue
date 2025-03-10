@@ -2,19 +2,29 @@
   <div class="contact-wrapper">
     <Header />
     
+    <!-- Breadcrumb -->
+    <nav class="container py-3" aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Contact</li>
+      </ol>
+    </nav>
+
     <!-- Main Section -->
     <section class="container mt-5 py-5">
       <div class="row g-3 align-items-center">
         <!-- Left Column: Contact Info and Map -->
         <div class="col-lg-6 mb-0">
           <h1 class="title mb-4">Say Hello.</h1>
-            <p class="subtitle mb-4">
-              If there are any mistakes or questions, please contact us, and we will assist you.
-            </p>
-            <p class="contact-info mb-4">
-              290 Nơ Trang Long, P12, Quận Bình Thạnh, Thành phố Hồ Chí Minh<br />
-              <a href="mailto:tunghoang5161997@gmail.com">tunghoang5161997@gmail.com</a>
-            </p>
+          <p class="subtitle mb-4">
+            If there are any mistakes or questions, please contact us, and we will assist you.
+          </p>
+          <p class="contact-info mb-4">
+            290 Nơ Trang Long, P12, Quận Bình Thạnh, Thành phố Hồ Chí Minh<br />
+            <a href="mailto:tunghoang5161997@gmail.com">tunghoang5161997@gmail.com</a>
+          </p>
           <div class="map-container">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.447979917851!2d106.7043!3d10.7998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f38f9a4d8e5%3A0x6c91b7b3d7f0b8e!2s290%20N%C3%B4%20Trang%20Long%2C%20P12%2C%20Qu%E1%BA%ADn%20B%C3%ADnh%20Th%E1%BA%A1nh%2C%20Th%C3%A0nh%20ph%E1%BB%91%20H%E1%BB%93%20Ch%C3%AD%20Minh!5e0!3m2!1sen!2sus!4v1697041234567!5m2!1sen!2sus"
@@ -32,7 +42,6 @@
         <div class="col-lg-6">
           <div class="form-wrapper">
             <h2 class="form-title mb-4">Send Us A Message</h2>
-
             <form @submit.prevent="sendMessage" class="contact-form">
               <div class="row mb-4">
                 <div class="col-md-6">
@@ -83,10 +92,7 @@
                   required
                 ></textarea>
               </div>
-              <button
-                type="submit"
-                class="btn btn-primary w-100"
-              >
+              <button type="submit" class="btn btn-primary w-100">
                 Send Message
                 <i class="fas fa-arrow-right ms-2"></i>
               </button>
@@ -138,12 +144,41 @@ const sendMessage = () => {
 </script>
 
 <style scoped>
+/* Các style hiện có giữ nguyên, thêm style cho breadcrumb */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.breadcrumb-item a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: #34495e;
+  font-weight: 500;
+}
+
 .contact-wrapper {
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
   position: relative;
-  overflow: hidden;
+}
+
+.contact-wrapper {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
 }
 
 .contact-wrapper::before {

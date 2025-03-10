@@ -3,6 +3,16 @@
     <!-- Header Component (Assumed Imported) -->
     <Header />
 
+    <!-- Breadcrumb -->
+    <nav class="container py-3" aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">About Us</li>
+      </ol>
+    </nav>
+
     <!-- Main Content Section -->
     <section class="container py-6">
       <!-- Hero Section with Full-Width Background Image -->
@@ -42,17 +52,20 @@
         </div>
       </div>
 
-      <!-- Image Gallery Section with Autoplay Video -->
-      <div class="row mb-6 image-gallery">
-        <div class="col-12 position-relative">
-          <div class="gallery-container">
-            <img
-              src="https://th.bing.com/th/id/OIP.DcH1ZzFxnyIPGVfcYF1SMQHaE7?w=306&h=202&c=7&r=0&o=5&dpr=1.3&pid=1.7"
-              alt="Team collaborating in a modern office"
-              class="gallery-image main-image"
-            />
+      <!-- Image Gallery Section with Text and Video Side by Side -->
+      <div class="row mb-6 image-gallery align-items-center">
+        <div class="col-md-6">
+          <div class="gallery-text">
+            <h3 class="gallery-title">Our Journey in Custom Shoe Innovation</h3>
+            <p class="gallery-description">
+              Explore how we merge AI-powered customization with expert craftsmanship to create one-of-a-kind footwear tailored to your style. Watch our video to see the magic unfold!
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="gallery-video">
             <iframe
-              class="gallery-iframe sub-image top-right"
+              class="gallery-iframe w-100"
               src="https://www.youtube.com/embed/LRgpZpW7raU?si=hfu1SnE2Lyu7c0Jy&autoplay=1&mute=1"
               title="Our Team Introduction Video"
               frameborder="0"
@@ -160,10 +173,10 @@ const currentYear = new Date().getFullYear();
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 .about-wrapper {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+  min-height: 100vh;
   font-family: 'Poppins', sans-serif;
   position: relative;
-  overflow: hidden;
 }
 
 .container {
@@ -172,6 +185,29 @@ const currentYear = new Date().getFullYear();
   color: #1e293b;
   max-width: 1300px;
   margin: 0 auto;
+}
+
+/* Breadcrumb Styles */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.breadcrumb-item a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: #2c3e50;
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: #1e293b;
+  font-weight: 500;
 }
 
 /* Hero Section with Full-Width Background Image */
@@ -200,7 +236,6 @@ const currentYear = new Date().getFullYear();
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-rdOm9Yea2nfWcFHxGyQLDbPJSyyOr885rA&s') no-repeat center;
   background-size: cover;
   filter: brightness(70%) contrast(110%);
   z-index: 0;
@@ -276,7 +311,7 @@ const currentYear = new Date().getFullYear();
 
 .feature-icon {
   font-size: 2.5rem;
-  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay đổi màu */
+  background: linear-gradient(45deg, #2c3e50, #3498db);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -301,38 +336,42 @@ const currentYear = new Date().getFullYear();
   padding: 60px 0;
 }
 
-.gallery-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: 15px;
+.gallery-text {
+  padding: 20px;
 }
 
-.gallery-image {
+.gallery-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 15px;
+}
+
+.gallery-description {
+  font-size: 1.1rem;
+  color: #64748b;
+  line-height: 1.8;
+}
+
+.gallery-video {
+  position: relative;
+  padding-bottom: 56.25%; /* Tỷ lệ 16:9 */
+  height: 0;
+  overflow: hidden;
   border-radius: 10px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.main-image {
-  width: 100%;
-  height: auto;
 }
 
 .gallery-iframe {
   position: absolute;
-  width: 300px;
-  height: 200px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-
-.top-right {
-  top: 20px;
-  right: 20px;
-}
-
-.gallery-image:hover {
-  transform: scale(1.02);
 }
 
 /* Team Members Section */
@@ -411,20 +450,19 @@ const currentYear = new Date().getFullYear();
 
 .social-icon {
   font-size: 1.2rem;
-  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay đổi màu */
+  background: linear-gradient(45deg, #2c3e50, #3498db);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  transition: transform 0.3s ease; /* Thay đổi từ color sang transform */
+  transition: transform 0.3s ease;
 }
 
 .social-icon:hover {
-  transform: scale(1.2); /* Hiệu ứng phóng to khi hover */
+  transform: scale(1.2);
 }
 
 /* Footer Note */
 .footer-note {
-  background: #f8fafc;
   border-top: 1px solid #e2e8f0;
 }
 
@@ -454,11 +492,12 @@ const currentYear = new Date().getFullYear();
     margin-bottom: 20px;
   }
 
-  .gallery-iframe {
-    position: static;
-    width: 100%;
-    height: 200px;
-    margin-top: 20px;
+  .image-gallery .col-md-6 {
+    margin-bottom: 20px;
+  }
+
+  .gallery-video {
+    padding-bottom: 56.25%; /* Giữ tỷ lệ 16:9 */
   }
 
   .section-title {

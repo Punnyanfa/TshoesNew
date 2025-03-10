@@ -2,6 +2,16 @@
   <div class="product-wrapper">
     <Header />
 
+    <!-- Breadcrumb -->
+    <nav class="container py-3" aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Products</li>
+      </ol>
+    </nav>
+
     <!-- Main Content Section -->
     <section class="container my-5">
       <div class="row g-5">
@@ -13,7 +23,7 @@
         <!-- Product Grid -->
         <div class="col-md-9">
           <div v-if="loading" class="text-center py-5">
-            <div class="spinner-border text-sneaker-orange" role="status">
+            <div class="spinner-border text-sneaker-blue" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
@@ -43,7 +53,7 @@
                       <span class="star-rating">{{ Array(product.rating + 1).join('★') }}</span>
                       <span class="rating-value"> ({{ product.rating }})</span>
                     </div>
-                    <h5 class="text-sneaker-orange mb-3">{{ formatPrice(product.price) }}</h5>
+                    <h5 class="text-sneaker-blue mb-3">{{ formatPrice(product.price) }}</h5>
                     <button
                       class="btn btn-sneaker w-100 py-3 fw-bold text-uppercase"
                       @click="goToDetailPage(product.id)"
@@ -100,7 +110,7 @@ const products = ref([
     brand: "Studio",
     color: "Black",
     size: "M",
-    rating: 4, // Thêm rating
+    rating: 4,
   },
   {
     id: 2,
@@ -222,7 +232,7 @@ const products = ref([
     size: "M",
     rating: 5,
   },
-    {
+  {
     id: 12,
     name: "Sports Sandals",
     description: "Warmth and style, crafted to your specs.",
@@ -234,8 +244,8 @@ const products = ref([
     size: "M",
     rating: 2,
   },
-    {
-    id: 11,
+  {
+    id: 13,
     name: "Sports Sandals",
     description: "Warmth and style, crafted to your specs.",
     price: 3099000,
@@ -293,12 +303,38 @@ const handleFilterChange = (filters) => {
 
 <style scoped>
 .product-wrapper {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
 }
 
-.text-sneaker-orange {
-  color: #8bc34a;
+/* Breadcrumb Styles */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.breadcrumb-item a {
+  color: #3498db; /* Thay từ #8bc34a */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: #2c3e50; /* Thay từ #7cb342 */
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: #1e293b; /* Đồng bộ với About Page */
+  font-weight: 500;
+}
+
+/* Các style hiện có chỉnh sửa màu */
+.text-sneaker-blue {
+  color: #3498db; /* Thay từ #8bc34a */
   height: 36px;
 }
 
@@ -327,7 +363,7 @@ const handleFilterChange = (filters) => {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
   padding: 5px 10px;
   border-radius: 20px;
@@ -342,7 +378,7 @@ const handleFilterChange = (filters) => {
 }
 
 .star-rating {
-  color: #f1c40f; /* Màu vàng cho ngôi sao */
+  color: #f1c40f;
   font-size: 1rem;
 }
 
@@ -352,7 +388,7 @@ const handleFilterChange = (filters) => {
 }
 
 .btn-sneaker {
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -360,26 +396,26 @@ const handleFilterChange = (filters) => {
 }
 
 .btn-sneaker:hover {
-  background: #7cb342;
+  background: linear-gradient(45deg, #2c3e50 20%, #2980b9); /* Tối hơn một chút từ #3498db */
   transform: scale(1.05);
 }
 
 /* Pagination Styling */
 .pagination .page-link {
-  color: #8bc34a;
+  color: #3498db; /* Thay từ #8bc34a */
   border: none;
   padding: 10px 15px;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
 .pagination .page-item.active .page-link {
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
   border-radius: 5px;
 }
 
 .pagination .page-link:hover {
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
 }
 

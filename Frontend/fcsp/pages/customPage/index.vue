@@ -2,6 +2,15 @@
   <div class="product-wrapper">
     <Header />
 
+    <!-- Breadcrumb -->
+    <nav class="container py-3" aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Products</li>
+      </ol>
+    </nav>
 
     <!-- Main Content Section -->
     <main class="container my-5">
@@ -18,10 +27,9 @@
         </div>
       </div>
 
-
       <!-- Product Grid -->
       <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-sneaker-orange" role="status">
+        <div class="spinner-border text-sneaker-blue" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -47,15 +55,14 @@
                   {{ product.name }}
                 </h5>
                 <p class="text-muted flex-grow-1">{{ product.description }}</p>
-                <h5 class="text-sneaker-orange mb-3">{{ formatPrice(product.price) }}</h5>
-                  <NuxtLink to="/customdetailPage" class="btn btn-sneaker w-100 px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn">
-                    Customize Now
-                  </NuxtLink>
+                <h5 class="text-sneaker-blue mb-3">{{ formatPrice(product.price) }}</h5>
+                <NuxtLink to="/customdetailPage" class="btn btn-sneaker w-100 px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn">
+                  Customize Now
+                </NuxtLink>
               </div>
             </div>
           </div>
         </div>
-
 
         <!-- Pagination -->
         <nav class="mt-5 d-flex justify-content-center" aria-label="Product pagination">
@@ -79,16 +86,13 @@
       </div>
     </main>
 
-
     <Footer />
   </div>
 </template>
 
-
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-
 
 const router = useRouter();
 const products = ref([
@@ -185,12 +189,10 @@ const products = ref([
   },
 ]);
 
-
 const loading = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 12; // Adjusted to 8 (2 rows of 4 cards)
 const sortOption = ref("featured");
-
 
 // Computed property for sorted products
 const sortedProducts = computed(() => {
@@ -201,7 +203,6 @@ const sortedProducts = computed(() => {
   });
 });
 
-
 // Computed property for paginated products
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
@@ -209,12 +210,10 @@ const paginatedProducts = computed(() => {
   return sortedProducts.value.slice(start, end);
 });
 
-
 // Total pages
 const totalPages = computed(() => {
   return Math.ceil(sortedProducts.value.length / itemsPerPage);
 });
-
 
 // Change page
 const changePage = (page) => {
@@ -223,39 +222,58 @@ const changePage = (page) => {
   }
 };
 
-
 const goToDetailPage = (productId) => router.push(`/product/${productId}`);
-
 
 const formatPrice = (price) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
 </script>
 
-
 <style scoped>
 .product-wrapper {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
 }
 
+/* Breadcrumb Styles */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+}
 
-.text-sneaker-orange {
-  color: #8bc34a;
+.breadcrumb-item a {
+  color: #3498db; /* Thay từ #8bc34a */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: #2c3e50; /* Thay từ #7cb342 */
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: #1e293b; /* Đồng bộ với About Page */
+  font-weight: 500;
+}
+
+/* Các style hiện có chỉnh sửa màu */
+.text-sneaker-blue {
+  color: #3498db; /* Thay từ #8bc34a */
   height: auto;
 }
-
 
 .sneaker-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: none;
 }
 
-
 .sneaker-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
 }
-
 
 .sneaker-img {
   height: 200px;
@@ -264,17 +282,15 @@ const formatPrice = (price) =>
   transition: transform 0.3s ease;
 }
 
-
 .sneaker-img:hover {
   transform: scale(1.05);
 }
-
 
 .custom-badge {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
   padding: 5px 10px;
   border-radius: 20px;
@@ -282,58 +298,47 @@ const formatPrice = (price) =>
   font-weight: bold;
 }
 
-
 .btn-sneaker {
-  display: inline-block; /* Để đảm bảo NuxtLink hoạt động giống như một nút */
+  display: inline-block;
   text-align: center;
-  text-decoration: none; /* Loại bỏ gạch chân của liên kết */
-  background: #8bc34a;
+  text-decoration: none;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
   border: none;
   border-radius: 10px;
-  padding: 12px 24px; /* Điều chỉnh padding cho phù hợp */
+  padding: 12px 24px;
   font-weight: bold;
   text-transform: uppercase;
   transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .btn-sneaker:hover {
-  background: #7cb342; /* Darkened shade for hover effect */
+  background: linear-gradient(45deg, #2c3e50 20%, #2980b9); /* Tối hơn một chút từ #3498db */
   transform: scale(1.05);
 }
 
 .btn-sneaker:active {
-  transform: scale(0.95); /* Hiệu ứng nhấn xuống */
+  transform: scale(0.95);
 }
-
 
 /* Pagination */
 .pagination .page-link {
-  color: #8bc34a;
+  color: #3498db; /* Thay từ #8bc34a */
   border: none;
   padding: 10px 15px;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-
 .pagination .page-item.active .page-link {
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
   border-radius: 5px;
 }
 
-
 .pagination .page-link:hover {
-  background: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db); /* Thay từ #8bc34a */
   color: #fff;
 }
-
-
-.pagination .page-item.disabled .page-link {
-  color: #ccc;
-  cursor: not-allowed;
-}
-
 
 /* Controls (Filters and Sort) */
 .controls {
@@ -347,19 +352,16 @@ const formatPrice = (price) =>
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-
 .filters {
   font-weight: 600;
-  color: #333;
+  color: #1e293b; /* Đồng bộ với About Page */
   cursor: pointer;
 }
-
 
 .sort {
   font-size: 0.9rem;
   color: #666;
 }
-
 
 .sort-select {
   padding: 0.5rem;
@@ -369,13 +371,11 @@ const formatPrice = (price) =>
   font-size: 0.9rem;
 }
 
-
 .sort-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  border-color: #3498db; /* Thay từ #007bff */
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); /* Thay từ rgba(0, 123, 255, 0.3) */
 }
-
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
