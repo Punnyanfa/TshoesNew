@@ -108,11 +108,12 @@ const currentYear = new Date().getFullYear();
 }
 .newsletter-group .btn {
   border-radius: 0 20px 20px 0;
-  background-color: #8bc34a;
+  background: linear-gradient(45deg, #2c3e50, #3498db);
   color: white;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s ease;
 }
+
 .newsletter-group .btn:hover {
-  background-color: #7cb342;
+  background: linear-gradient(45deg, #1f2d3d, #2980b9);
 }
 </style>

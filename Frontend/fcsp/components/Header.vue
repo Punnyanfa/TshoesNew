@@ -4,69 +4,85 @@
     <div class="header-container">
       <!-- Logo Section -->
       <router-link to="/homePage" class="logo-wrapper">
-        <img src="data:image/jpeg;base64,/9j/..." 
-             alt="Sneaker Logo" 
-             class="logo-img" 
-             @mouseover="animateLogo"
-             @mouseleave="resetLogo" />
+        <img 
+          src="https://th.bing.com/th/id/OIP.EL5hPJ7k0B7W_D7EbZoexgHaEd?w=338&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7" 
+          alt="Sneaker Logo" 
+          class="logo-img" 
+          @mouseover="animateLogo"
+          @mouseleave="resetLogo" 
+        />
         <span class="brand-text">SneakerVibe</span>
       </router-link>
 
       <!-- Navigation -->
       <nav class="navbar-nav" :class="{ 'nav-open': isNavOpen }">
-        <router-link v-for="item in navItems" 
-                    :key="item.path" 
-                    :to="item.path" 
-                    class="nav-link"
-                    :class="{ 'highlight-link': item.highlight }"
-                    @click="toggleNav">
+        <router-link 
+          v-for="item in navItems" 
+          :key="item.path" 
+          :to="item.path" 
+          class="nav-link"
+          :class="{ 'highlight-link': item.highlight }"
+          @click="toggleNav"
+        >
           <a-icon :type="item.icon" /> {{ item.label }}
         </router-link>
       </nav>
 
       <!-- User Actions -->
       <div class="user-actions">
+        <!-- Search Bar -->
         <div class="search-wrapper" :class="{ 'expanded': isSearchOpen }">
-          <a-input-search v-if="isSearchOpen"
-                         v-model="searchQuery"
-                         placeholder="Search sneakers..."
-                         @search="onSearch"
-                         class="search-input" />
-          <a-button class="sneaker-btn-icon search-btn"
-                   shape="circle"
-                   @click="toggleSearch">
+          <a-input-search 
+            v-if="isSearchOpen"
+            v-model="searchQuery"
+            placeholder="Search sneakers..."
+            @search="onSearch"
+            class="search-input" 
+          />
+          <a-button 
+            class="sneaker-btn-icon search-btn"
+            shape="circle"
+            @click="toggleSearch"
+          >
             <a-icon type="search" />
           </a-button>
         </div>
 
+        <!-- Cart Button -->
         <router-link to="/cartPage" class="sneaker-btn-icon cart-btn">
-          <a-icon type="shopping-cart" />
+          <ShoppingCartOutlined />
           <span class="sneaker-badge">{{ cartCount }}</span>
         </router-link>
 
+        <!-- User Dropdown (Authenticated) -->
         <a-dropdown v-if="isAuthenticated" class="user-dropdown">
           <a-button class="sneaker-btn user-btn">
-            <a-icon type="user" /> {{ userName }}
-            <a-icon type="down" />
+            <UserOutlined /> {{ userName }}
+            <DownOutlined />
           </a-button>
           <a-dropdown-menu slot="overlay">
-            <a-dropdown-item><a-icon type="profile" /> Profile</a-dropdown-item>
-            <a-dropdown-item><a-icon type="setting" /> Settings</a-dropdown-item>
-            <a-dropdown-item @click="logout"><a-icon type="logout" /> Logout</a-dropdown-item>
+            <a-dropdown-item><ProfileOutlined /> Profile</a-dropdown-item>
+            <a-dropdown-item><SettingOutlined /> Settings</a-dropdown-item>
+            <a-dropdown-item @click="logout"><LogoutOutlined /> Logout</a-dropdown-item>
           </a-dropdown-menu>
         </a-dropdown>
+
+        <!-- Login Link (Non-Authenticated) -->
         <router-link v-else to="/loginPage" class="sneaker-btn">
-          <a-icon type="user" /> Login
+          <UserOutlined /> Login
         </router-link>
 
-        <a-button class="sneaker-btn-icon theme-btn"
-                 shape="circle"
-                 @click="toggleTheme">
+        <!-- Theme Toggle Button -->
+        <a-button 
+          class="sneaker-btn-icon theme-btn"
+          shape="circle"
+          @click="toggleTheme"
+        >
           <a-icon :type="isDarkTheme ? 'sun' : 'moon'" />
         </a-button>
       </div>
 
-      <!-- Mobile Toggle -->
+      <!-- Mobile Toggle Button -->
       <button class="navbar-toggler" @click="toggleNav">
         <span class="toggler-icon"></span>
       </button>
@@ -76,6 +92,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { ShoppingCartOutlined, UserOutlined, DownOutlined, ProfileOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+
 
 const isAuthenticated = ref(false);
 const userName = ref('SneakerFan');
@@ -148,22 +166,22 @@ const resetLogo = (e) => {
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: all 0.3s ease; /* Thêm transition mượt mà */
+  transition: all 0.3s ease;
 }
 
 .sneaker-header.scrolled {
-  padding: 0.5rem 0; /* Thu nhỏ padding khi scroll */
-  background: rgba(26, 26, 26, 0.9); /* Đổi màu nền nhẹ trong suốt */
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5); /* Tăng bóng */
+  padding: 0.5rem 0;
+  background: rgba(26, 26, 26, 0.9);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
 }
 
 .sneaker-header.scrolled .logo-img {
-  width: 35px; /* Thu nhỏ logo */
+  width: 35px;
   height: 35px;
 }
 
 .sneaker-header.scrolled .brand-text {
-  font-size: 1.5rem; /* Thu nhỏ chữ */
+  font-size: 1.5rem;
 }
 
 .header-container {
@@ -176,7 +194,6 @@ const resetLogo = (e) => {
   padding: 0 1rem;
 }
 
-/* Các style khác giữ nguyên */
 .logo-wrapper {
   display: flex;
   align-items: center;
@@ -186,7 +203,7 @@ const resetLogo = (e) => {
 .logo-img {
   width: 45px;
   height: 45px;
-  transition: transform 0.5s ease, width 0.3s ease, height 0.3s ease; /* Thêm transition cho logo */
+  transition: transform 0.5s ease, width 0.3s ease, height 0.3s ease;
   margin-right: 12px;
 }
 
@@ -195,11 +212,11 @@ const resetLogo = (e) => {
   font-weight: 700;
   color: #8bc34a;
   letter-spacing: 1px;
-  background: linear-gradient(45deg, #8bc34a, #ff6200);
+  background: #fff;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  transition: font-size 0.3s ease; /* Thêm transition cho chữ */
+  transition: font-size 0.3s ease;
 }
 
 /* Các style khác giữ nguyên */
@@ -219,10 +236,17 @@ const resetLogo = (e) => {
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-/* Các style khác giữ nguyên */
+.nav-link:hover {
+  transform: scale(1.05);
+  color: transparent;
+}
+
 @media (max-width: 991px) {
   .header-container {
     flex-direction: row;
@@ -239,14 +263,13 @@ const resetLogo = (e) => {
   }
 
   .sneaker-header.scrolled .navbar-nav {
-    background: rgba(26, 26, 26, 0.9); /* Đảm bảo đồng bộ màu khi scroll */
+    background: rgba(26, 26, 26, 0.9);
   }
 
   .nav-open {
     display: flex;
   }
 
-  /* Các style khác giữ nguyên */
 }
 
 body.light-theme .sneaker-header {
@@ -255,7 +278,8 @@ body.light-theme .sneaker-header {
 }
 
 body.light-theme .sneaker-header.scrolled {
-  background: rgba(255, 255, 255, 0.9); /* Đổi màu nền khi scroll ở light theme */
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
 }
+
 </style>
