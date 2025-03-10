@@ -48,7 +48,7 @@
         <div class="col-md-4">
           <div class="feature-box p-4 rounded">
             <i class="bi bi-truck feature-icon"></i>
-            <h2 class="mt-3 fw-bold">Swift Shipping</h2>
+            <h4 class="mt-3 fw-bold">Swift Shipping</h4>
             <p class="text-muted">Get your custom sneakers delivered in record time.</p>
           </div>
         </div>
@@ -119,7 +119,7 @@
         </div>
       </div>
       <div class="text-center mt-4">
-        <NuxtLink to="/gallery" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
+        <NuxtLink to="/productPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
           See More Designs
         </NuxtLink>
       </div>
@@ -231,7 +231,7 @@
         </div>
       </div>
       <div class="text-center mt-4">
-        <NuxtLink to="/blog" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
+        <NuxtLink to="/aboutPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
           View All Blogs
         </NuxtLink>
       </div>
@@ -276,7 +276,7 @@
   }
 
   .text-sneaker-star {
-  background: linear-gradient(45deg, #f39c12, #f1c40f); /* yellow gradient */
+  background: linear-gradient(45deg, #f39c12, #f1c40f);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

@@ -28,59 +28,59 @@
         </router-link>
       </nav>
 
-      <!-- User Actions -->
-      <div class="user-actions">
-        <!-- Search Bar -->
-        <div class="search-wrapper" :class="{ 'expanded': isSearchOpen }">
-          <a-input-search 
-            v-if="isSearchOpen"
-            v-model="searchQuery"
-            placeholder="Search sneakers..."
-            @search="onSearch"
-            class="search-input" 
-          />
-          <a-button 
-            class="sneaker-btn-icon search-btn"
-            shape="circle"
-            @click="toggleSearch"
-          >
-            <a-icon type="search" />
-          </a-button>
-        </div>
+     <!-- User Actions -->
+<div class="user-actions">
+  <!-- Search Bar -->
+  <div class="search-wrapper" :class="{ 'expanded': isSearchOpen }">
+    <a-input-search 
+      v-if="isSearchOpen"
+      v-model="searchQuery"
+      placeholder="Search sneakers..."
+      @search="onSearch"
+      class="search-input" 
+    />
+    <a-button 
+      class="sneaker-btn-icon search-btn"
+      shape="circle"
+      @click="toggleSearch"
+    >
+      <a-icon type="search" />
+    </a-button>
+  </div>
 
-        <!-- Cart Button -->
-        <router-link to="/cartPage" class="sneaker-btn-icon cart-btn">
-          <ShoppingCartOutlined />
-          <span class="sneaker-badge">{{ cartCount }}</span>
-        </router-link>
+  <!-- Cart Button -->
+  <router-link to="/cartPage" class="sneaker-btn-icon cart-btn">
+    <ShoppingCartOutlined />
+    <span class="sneaker-badge">{{ cartCount }}</span>
+  </router-link>
 
-        <!-- User Dropdown (Authenticated) -->
-        <a-dropdown v-if="isAuthenticated" class="user-dropdown">
-          <a-button class="sneaker-btn user-btn">
-            <UserOutlined /> {{ userName }}
-            <DownOutlined />
-          </a-button>
-          <a-dropdown-menu slot="overlay">
-            <a-dropdown-item><ProfileOutlined /> Profile</a-dropdown-item>
-            <a-dropdown-item><SettingOutlined /> Settings</a-dropdown-item>
-            <a-dropdown-item @click="logout"><LogoutOutlined /> Logout</a-dropdown-item>
-          </a-dropdown-menu>
-        </a-dropdown>
+  <!-- User Dropdown (Authenticated) -->
+  <a-dropdown v-if="isAuthenticated" class="user-dropdown">
+    <a-button class="sneaker-btn user-btn">
+      <UserOutlined /> {{ userName }}
+      <DownOutlined />
+    </a-button>
+    <a-dropdown-menu slot="overlay">
+      <a-dropdown-item><ProfileOutlined /> Profile</a-dropdown-item>
+      <a-dropdown-item><SettingOutlined /> Settings</a-dropdown-item>
+      <a-dropdown-item @click="logout"><LogoutOutlined /> Logout</a-dropdown-item>
+    </a-dropdown-menu>
+  </a-dropdown>
 
-        <!-- Login Link (Non-Authenticated) -->
-        <router-link v-else to="/loginPage" class="sneaker-btn">
-          <UserOutlined /> Login
-        </router-link>
+  <!-- Login Link (Non-Authenticated) -->
+  <router-link v-else to="/loginPage" class="sneaker-btn">
+    <UserOutlined /> Login
+  </router-link>
 
-        <!-- Theme Toggle Button -->
-        <a-button 
-          class="sneaker-btn-icon theme-btn"
-          shape="circle"
-          @click="toggleTheme"
-        >
-          <a-icon :type="isDarkTheme ? 'sun' : 'moon'" />
-        </a-button>
-      </div>
+  <!-- Theme Toggle Button -->
+  <a-button 
+    class="sneaker-btn-icon theme-btn"
+    shape="circle"
+    @click="toggleTheme"
+  >
+    <a-icon :type="isDarkTheme ? 'sun' : 'moon'" />
+  </a-button>
+</div>
 
       <!-- Mobile Toggle Button -->
       <button class="navbar-toggler" @click="toggleNav">
@@ -280,6 +280,135 @@ body.light-theme .sneaker-header {
 body.light-theme .sneaker-header.scrolled {
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem; 
+}
+
+/* Search Wrapper */
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  transition: width 0.3s ease;
+}
+
+.search-wrapper.expanded {
+  width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  margin-right: 0.5rem;
+}
+
+.sneaker-btn-icon.search-btn {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.sneaker-btn-icon.search-btn:hover {
+  background: #2980b9;
+}
+
+/* Cart Button */
+.sneaker-btn-icon.cart-btn {
+  position: relative;
+  background: linear-gradient(45deg, #2c3e50, #3498db);;
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.sneaker-btn-icon.cart-btn:hover {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+}
+
+.sneaker-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #8bc34a;
+  color: #fff;
+  border-radius: 50%;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* User Dropdown & Login Button */
+.user-dropdown .sneaker-btn.user-btn,
+.sneaker-btn {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.user-dropdown .sneaker-btn.user-btn:hover,
+.sneaker-btn:hover {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+}
+
+/* Theme Toggle Button */
+.sneaker-btn-icon.theme-btn {
+  background: #f1c40f;
+  color: #fff;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.sneaker-btn-icon.theme-btn:hover {
+  background: #d4ac0d;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+  .user-actions {
+    gap: 0.75rem; 
+  }
+
+  .search-wrapper.expanded {
+    width: 150px; 
+  }
+
+  .sneaker-btn-icon {
+    padding: 0.4rem;
+  }
+}
+
+body.light-theme .sneaker-btn-icon.search-btn {
+  background: #2980b9;
+}
+
+body.light-theme .sneaker-btn-icon.cart-btn {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+}
+
+body.light-theme .user-dropdown .sneaker-btn.user-btn,
+body.light-theme .sneaker-btn {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+}
+
+body.light-theme .sneaker-btn-icon.theme-btn {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
 </style>
