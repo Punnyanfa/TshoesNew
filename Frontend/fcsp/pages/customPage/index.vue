@@ -6,23 +6,36 @@
     <nav class="container py-3" aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
-          <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
+          <NuxtLink to="/homePage" class="text-decoration-none">Trang Chủ</NuxtLink>
         </li>
-        <li class="breadcrumb-item active" aria-current="page">Products</li>
+        <li class="breadcrumb-item active" aria-current="page">Tùy Chỉnh Giày</li>
       </ol>
     </nav>
 
     <!-- Main Content Section -->
     <main class="container my-5">
       <!-- Filters and Sort -->
-      <div class="controls">
-        <div class="filters">Filters</div>
+      <div class="controls mb-4">
+        <div class="filters d-flex gap-3">
+          <select v-model="selectedCategory" class="form-select">
+            <option value="">Tất Cả Danh Mục</option>
+            <option value="running">Giày Chạy Bộ</option>
+            <option value="casual">Giày Thời Trang</option>
+            <option value="sport">Giày Thể Thao</option>
+          </select>
+          <select v-model="priceRange" class="form-select">
+            <option value="">Tất Cả Giá</option>
+            <option value="0-50">Dưới 1.000.000₫</option>
+            <option value="50-100">1.000.000₫ - 2.000.000₫</option>
+            <option value="100+">Trên 2.000.000₫</option>
+          </select>
+        </div>
         <div class="sort">
-          Sort by:
-          <select v-model="sortOption" class="sort-select">
-            <option value="featured">Featured</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
+          <select v-model="sortOption" class="form-select">
+            <option value="featured">Nổi Bật</option>
+            <option value="price-low">Giá: Thấp đến Cao</option>
+            <option value="price-high">Giá: Cao đến Thấp</option>
+            <option value="newest">Mới Nhất</option>
           </select>
         </div>
       </div>
@@ -30,34 +43,50 @@
       <!-- Product Grid -->
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-sneaker-blue" role="status">
-          <span class="visually-hidden">Loading...</span>
+          <span class="visually-hidden">Đang tải...</span>
         </div>
       </div>
+      
+      <div v-else-if="filteredProducts.length === 0" class="text-center py-5">
+        <div class="no-results">
+          <i class="bi bi-search display-1 text-muted"></i>
+          <h3 class="mt-3">Không Tìm Thấy Sản Phẩm</h3>
+          <p class="text-muted">Vui lòng thử lại với bộ lọc khác</p>
+        </div>
+      </div>
+      
       <div v-else>
         <div class="row g-4">
           <div v-for="product in paginatedProducts" :key="product.id" class="col-md-3">
-            <div class="card sneaker-card h-100 shadow-lg rounded overflow-hidden">
+            <div class="card sneaker-card h-100">
               <div class="position-relative">
                 <img
                   :src="product.image"
                   class="card-img-top sneaker-img"
                   :alt="product.name"
-                  @click="goToDetailPage(product.id)"
+                  @load="handleImageLoad(product.id)"
+                  :class="{ 'image-loaded': imageLoaded[product.id] }"
                 />
-                <span class="custom-badge">Customizable</span>
+                <div class="image-skeleton" v-if="!imageLoaded[product.id]"></div>
+                <span class="custom-badge">
+                  <i class="bi bi-brush-fill me-1"></i>Tùy Chỉnh
+                </span>
               </div>
               <div class="card-body d-flex flex-column">
-                <h5
-                  class="card-title text-dark fw-bold"
-                  @click="goToDetailPage(product.id)"
-                  style="cursor: pointer"
-                >
-                  {{ product.name }}
-                </h5>
+                <h5 class="card-title fw-bold mb-2">{{ product.name }}</h5>
                 <p class="text-muted flex-grow-1">{{ product.description }}</p>
-                <h5 class="text-sneaker-blue mb-3">{{ formatPrice(product.price) }}</h5>
-                <NuxtLink to="/customdetailPage" class="btn btn-sneaker w-100 px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn">
-                  Customize Now
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="price">{{ formatPrice(product.price) }}</span>
+                  <span class="rating">
+                    <i class="bi bi-star-fill"></i>
+                    <span class="ms-1">{{ product.rating }} ({{ product.reviews }})</span>
+                  </span>
+                </div>
+                <NuxtLink 
+                  :to="`/customdetailPage/${product.id}`" 
+                  class="btn btn-sneaker w-100"
+                >
+                  Tùy Chỉnh Ngay
                 </NuxtLink>
               </div>
             </div>
@@ -65,10 +94,12 @@
         </div>
 
         <!-- Pagination -->
-        <nav class="mt-5 d-flex justify-content-center" aria-label="Product pagination">
-          <ul class="pagination">
+        <nav class="mt-5" aria-label="Product pagination">
+          <ul class="pagination justify-content-center">
             <li class="page-item" :class="{ disabled: currentPage === 1 }">
-              <button class="page-link" @click="changePage(currentPage - 1)">Previous</button>
+              <button class="page-link" @click="changePage(currentPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+              </button>
             </li>
             <li
               v-for="page in totalPages"
@@ -79,7 +110,9 @@
               <button class="page-link" @click="changePage(page)">{{ page }}</button>
             </li>
             <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-              <button class="page-link" @click="changePage(currentPage + 1)">Next</button>
+              <button class="page-link" @click="changePage(currentPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+              </button>
             </li>
           </ul>
         </nav>
@@ -92,140 +125,88 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
 
-const router = useRouter();
+// State
+const loading = ref(false);
+const currentPage = ref(1);
+const itemsPerPage = 12;
+const sortOption = ref("featured");
+const selectedCategory = ref("");
+const priceRange = ref("");
+const imageLoaded = ref({});
+
+// Products data
 const products = ref([
   {
     id: 1,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 59.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
+    name: "Nike Air Max Custom",
+    description: "Giày chạy bộ cao cấp với công nghệ Air Max",
+    price: 2999000,
+    rating: 4.8,
+    reviews: 120,
+    category: "running",
+    image: "https://example.com/image1.jpg"
   },
-  {
-    id: 2,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 99.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 3,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 9.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 4,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 49.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 5,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 69.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 6,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 79.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 7,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 19.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 8,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 29.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 9,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 39.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 10,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 89.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 11,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 15.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 12,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 25.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 13,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 55.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
+  // Thêm nhiều sản phẩm khác...
 ]);
 
-const loading = ref(false);
-const currentPage = ref(1);
-const itemsPerPage = 12; // Adjusted to 8 (2 rows of 4 cards)
-const sortOption = ref("featured");
+// Computed
+const filteredProducts = computed(() => {
+  let result = [...products.value];
 
-// Computed property for sorted products
-const sortedProducts = computed(() => {
-  return [...products.value].sort((a, b) => {
+  // Lọc theo danh mục
+  if (selectedCategory.value) {
+    result = result.filter(p => p.category === selectedCategory.value);
+  }
+
+  // Lọc theo giá
+  if (priceRange.value) {
+    const [min, max] = priceRange.value.split('-').map(Number);
+    result = result.filter(p => {
+      const price = p.price / 1000000; // Chuyển đổi sang triệu
+      if (max) {
+        return price >= min && price <= max;
+      }
+      return price >= min;
+    });
+  }
+
+  // Sắp xếp
+  return result.sort((a, b) => {
     if (sortOption.value === "price-low") return a.price - b.price;
     if (sortOption.value === "price-high") return b.price - a.price;
-    return 0; // Default to original order
+    if (sortOption.value === "newest") return b.id - a.id;
+    return 0;
   });
 });
 
-// Computed property for paginated products
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return sortedProducts.value.slice(start, end);
+  return filteredProducts.value.slice(start, end);
 });
 
-// Total pages
 const totalPages = computed(() => {
-  return Math.ceil(sortedProducts.value.length / itemsPerPage);
+  return Math.ceil(filteredProducts.value.length / itemsPerPage);
 });
 
-// Change page
+// Methods
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
   }
 };
 
-const goToDetailPage = (productId) => router.push(`/product/${productId}`);
+const handleImageLoad = (productId) => {
+  imageLoaded.value[productId] = true;
+};
 
-const formatPrice = (price) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price);
+};
 </script>
 
 <style scoped>
@@ -396,6 +377,58 @@ const formatPrice = (price) =>
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
+  }
+}
+
+/* Thêm styles mới */
+.form-select {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  background-color: white;
+  min-width: 180px;
+}
+
+.form-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.no-results {
+  padding: 40px;
+  color: #718096;
+}
+
+.image-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .filters {
+    flex-direction: column;
+  }
+  
+  .form-select {
+    width: 100%;
   }
 }
 </style>
