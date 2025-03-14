@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Backend/fcsp-webapi/FCSP.WebAPI/appsettings.json
+/Backend/fcsp-webapi/FCSP.WebAPI/appsettings.Development.json
+/Backend/fcsp-webapi/FCSP.Models/appsettings.Development.json

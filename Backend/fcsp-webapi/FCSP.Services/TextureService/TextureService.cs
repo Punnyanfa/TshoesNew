@@ -11,6 +11,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Http;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace FCSP.Services.TextureService
 {
@@ -20,6 +22,9 @@ namespace FCSP.Services.TextureService
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly string? _imageSavePath;
+        private readonly string? _azureConnectionString;
+        private readonly string? _azureContainerName;
+        private readonly string? _promptToImproveImage;
 
         public TextureService(
             ITextureRepository textureRepository,
@@ -30,6 +35,9 @@ namespace FCSP.Services.TextureService
             _configuration = configuration;
             _httpClient = httpClientFactory.CreateClient("TextureService");
             _imageSavePath = _configuration["ImageStorage:LocalPath"];
+            _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
+            _azureContainerName = _configuration["AzureStorage:ContainerName"];
+            _promptToImproveImage = _configuration["ImageStorage:PromptToImproveImage"];
         }
 
         public async Task<IEnumerable<GetTextureByIdResponse>> GetAllTextures()
@@ -136,7 +144,7 @@ namespace FCSP.Services.TextureService
                 {
                     var requestBody = new
                     {
-                        prompt = request.Prompt + " ,max resolution, no blur",
+                        prompt = request.Prompt + _promptToImproveImage,
                         model = currentModel,
                         width = 1024,
                         height = 768,
@@ -194,10 +202,45 @@ namespace FCSP.Services.TextureService
                     string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
                     string fileName = $"texture_{formattedDateTime}.png";
                     string filePath = Path.Combine(_imageSavePath ?? "images", fileName);
-
-                    Directory.CreateDirectory(_imageSavePath ?? "images");
-
                     byte[] imageBytes = Convert.FromBase64String(responseData.Data[0].B64Json);
+                    string azureImageUrl = string.Empty;
+
+                    // Try to upload to Azure Storage if configured
+                    if (!string.IsNullOrEmpty(_azureConnectionString) && !string.IsNullOrEmpty(_azureContainerName))
+                    {
+                        try
+                        {
+                            // Create BlobServiceClient
+                            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+                            
+                            // Get container client (creates container if it doesn't exist)
+                            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+                            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+                            
+                            // Get blob client
+                            var blobClient = containerClient.GetBlobClient(fileName);
+                            
+                            // Upload data
+                            using (var stream = new MemoryStream(imageBytes))
+                            {
+                                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                                {
+                                    ContentType = "image/png"
+                                });
+                            }
+                            
+                            // Get the public URL
+                            azureImageUrl = blobClient.Uri.ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log the Azure storage error but continue with local storage
+                            Console.WriteLine($"Azure Storage upload failed: {ex.Message}. Falling back to local storage.");
+                        }
+                    }
+
+                    // Always save locally as a backup
+                    Directory.CreateDirectory(_imageSavePath ?? "images");
                     await File.WriteAllBytesAsync(filePath, imageBytes);
 
                     // No more retries needed if we reached here
@@ -208,9 +251,9 @@ namespace FCSP.Services.TextureService
                         Success = true,
                         ImagePath = filePath,
                         FileName = fileName,
-                        ImageUrl = $"/images/{fileName}",
+                        ImageUrl = azureImageUrl,
                         Prompt = request.Prompt,
-                        ModelUsed = currentModel // Add the model used to the response
+                        ModelUsed = currentModel, // Add the model used to the response
                     };
                 }
                 catch (HttpRequestException ex)

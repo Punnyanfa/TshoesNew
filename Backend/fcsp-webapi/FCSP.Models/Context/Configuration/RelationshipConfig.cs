@@ -17,7 +17,8 @@ internal static class RelationshipConfig
         modelBuilder.Entity<ShippingInfo>()
             .HasOne(shippingInfo => shippingInfo.User)
             .WithMany(user => user.ShippingInfos)
-            .HasForeignKey(shippingInfo => shippingInfo.UserId);
+            .HasForeignKey(shippingInfo => shippingInfo.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
             
         // CustomShoeDesign relationships
         modelBuilder.Entity<CustomShoeDesign>()
@@ -118,6 +119,12 @@ internal static class RelationshipConfig
             .HasForeignKey(od => od.OrderId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<OrderDetail>()
+            .HasOne(od => od.CustomShoeDesign)
+            .WithMany(d => d.OrderDetails)
+            .HasForeignKey(od => od.CustomShoeDesignId)
+            .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+
         // Payment relationships
         modelBuilder.Entity<Payment>()
             .HasOne(p => p.Order)
@@ -146,6 +153,12 @@ internal static class RelationshipConfig
             .HasForeignKey(ua => ua.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<UserActivity>()
+            .HasOne(ua => ua.ViewedDesign)
+            .WithMany(d => d.ViewedActivities)
+            .HasForeignKey(ua => ua.ViewedDesignId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // UserRecommendation relationships
         modelBuilder.Entity<UserRecommendation>()
             .HasOne(ur => ur.User)
@@ -153,11 +166,23 @@ internal static class RelationshipConfig
             .HasForeignKey(ur => ur.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<UserRecommendation>()
+            .HasOne(ur => ur.RecommendDesign)
+            .WithMany(d => d.Recommendations)
+            .HasForeignKey(ur => ur.RecommendDesignId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Rating relationships
         modelBuilder.Entity<Rating>()
             .HasOne(r => r.User)
             .WithMany(u => u.Ratings)
             .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.CustomShoeDesign)
+            .WithMany(d => d.Ratings)
+            .HasForeignKey(r => r.CustomShoeDesignId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // DesignPreview relationships
@@ -229,11 +254,30 @@ internal static class RelationshipConfig
             .HasForeignKey(t => t.ReceiverId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.OrderDetail)
+            .WithMany()
+            .HasForeignKey(t => t.OrderDetailId)
+            .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.Payment)
+            .WithMany()
+            .HasForeignKey(t => t.PaymentId)
+            .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+
         // ReturnedCustomShoe relationships
         modelBuilder.Entity<ReturnedCustomShoe>()
             .HasOne(r => r.CustomShoeDesign)
             .WithMany(d => d.ReturnedCustomShoes)
             .HasForeignKey(r => r.CustomShoeDesignId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Voucher relationships
+        modelBuilder.Entity<Voucher>()
+            .HasMany<Order>()
+            .WithOne(o => o.Voucher)
+            .HasForeignKey(o => o.VoucherId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

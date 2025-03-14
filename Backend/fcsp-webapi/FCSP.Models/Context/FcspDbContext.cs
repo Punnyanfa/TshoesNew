@@ -60,7 +60,7 @@ public class FcspDbContext : DbContext
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", false)
             .Build();
 
-        return config.GetConnectionString("FCSP_DB_SOMEE");
+        return config.GetConnectionString("FCSP_DB_AZURE");
     }
 
     private static void ConfigureModel(ModelBuilder modelBuilder)
