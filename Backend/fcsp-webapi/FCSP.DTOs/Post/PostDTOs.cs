@@ -12,7 +12,7 @@ namespace FCSP.DTOs.Post
         public string Title { get; set; } = null!;
         public string Content { get; set; } = null!;
         public string? ImageUrl { get; set; }
-        public int Status { get; set; }
+        public bool IsDeleted { get; set; }
         public string UserName { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

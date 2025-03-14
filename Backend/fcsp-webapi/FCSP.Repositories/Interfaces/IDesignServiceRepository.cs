@@ -6,6 +6,6 @@ namespace FCSP.Repositories.Interfaces
     {
         // Add any custom repository methods here
         Task<IEnumerable<DesignService>> GetDesignServicesByCustomShoeDesignId(long customShoeDesignId);
-        Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(float serviceId);
+        Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId);
     }
 } 

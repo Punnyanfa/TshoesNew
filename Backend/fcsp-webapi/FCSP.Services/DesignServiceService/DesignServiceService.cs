@@ -47,8 +47,9 @@ namespace FCSP.Services.DesignServiceService
             return new GetDesignServiceByIdResponse
             {
                 Id = designService.Id,
-                DesignId = designService.DesignId,
+                DesignId = designService.CustomShoeDesignId,
                 ServiceId = designService.ServiceId,
+                Price = designService.Price,
                 CustomShoeDesignName = customShoeDesignName,
                 ServiceName = serviceName
             };
@@ -58,8 +59,9 @@ namespace FCSP.Services.DesignServiceService
         {
             var designService = new DesignService
             {
-                DesignId = request.DesignId,
-                ServiceId = request.ServiceId
+                CustomShoeDesignId = request.DesignId,
+                ServiceId = request.ServiceId,
+                Price = request.Price
             };
 
             var addedDesignService = await _designServiceRepository.AddAsync(designService);
@@ -72,8 +74,9 @@ namespace FCSP.Services.DesignServiceService
             if (designService == null)
                 throw new Exception("Design service not found");
 
-            designService.DesignId = request.DesignId;
+            designService.CustomShoeDesignId = request.DesignId;
             designService.ServiceId = request.ServiceId;
+            designService.Price = request.Price;
 
             await _designServiceRepository.UpdateAsync(designService);
             return new UpdateDesignServiceResponse { DesignServiceId = designService.Id };
@@ -90,7 +93,7 @@ namespace FCSP.Services.DesignServiceService
             return await _designServiceRepository.GetDesignServicesByCustomShoeDesignId(customShoeDesignId);
         }
 
-        public async Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(float serviceId)
+        public async Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId)
         {
             return await _designServiceRepository.GetDesignServicesByServiceId(serviceId);
         }

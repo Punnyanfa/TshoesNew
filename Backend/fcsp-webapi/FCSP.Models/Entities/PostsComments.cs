@@ -6,7 +6,7 @@ public class PostsComments : BaseEntity
     public long UserId { get; set; }
     public long PostsId { get; set; }  // Changed from PostId
     public string Comment { get; set; } = null!;
-    public int IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     // Navigation properties
     public virtual User User { get; set; } = null!;

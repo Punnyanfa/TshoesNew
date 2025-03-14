@@ -72,7 +72,7 @@ namespace FCSP.WebAPI.Controllers
         /// <returns>List of design services</returns>
         [HttpGet("service/{serviceId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetDesignServicesByServiceId(float serviceId)
+        public async Task<IActionResult> GetDesignServicesByServiceId(long serviceId)
         {
             var designServices = await _designServiceService.GetDesignServicesByServiceId(serviceId);
             return Ok(designServices);

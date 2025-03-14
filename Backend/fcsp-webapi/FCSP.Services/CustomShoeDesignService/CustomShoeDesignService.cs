@@ -55,7 +55,8 @@ namespace FCSP.Services.CustomShoeDesignService
                 Size = null, // Set appropriate default or get from request
                 Status = 0, // Set appropriate default status
                 DesignerMarkup = 0, // Set appropriate default or get from request
-                TotalPrice = request.Price ?? 0,
+                TotalAmount = request.Price ?? 0,
+                IsDeleted = false,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -79,7 +80,7 @@ namespace FCSP.Services.CustomShoeDesignService
             { 
                 Id = addedDesign.Id,
                 Preview3DFileUrl = null, // Set appropriate value if available
-                Price = addedDesign.TotalPrice
+                Price = addedDesign.TotalAmount
             };
         }
 
@@ -97,7 +98,7 @@ namespace FCSP.Services.CustomShoeDesignService
             }
             
             design.DesignData = request.DesignData ?? design.DesignData;
-            design.TotalPrice = request.Price ?? design.TotalPrice;
+            design.TotalAmount = request.Price ?? design.TotalAmount;
             design.UpdatedAt = DateTime.UtcNow;
 
             await _customShoeDesignRepository.UpdateAsync(design);
@@ -124,7 +125,7 @@ namespace FCSP.Services.CustomShoeDesignService
             { 
                 Id = design.Id,
                 Preview3DFileUrl = null, // Set appropriate value if available
-                Price = design.TotalPrice
+                Price = design.TotalAmount
             };
         }
 
@@ -187,8 +188,8 @@ namespace FCSP.Services.CustomShoeDesignService
                 CustomShoeDesignTemplateId = design.CustomShoeDesignTemplateId,
                 DesignData = design.DesignData,
                 Preview3DFileUrl = null, // Set appropriate value if available
-                Price = design.TotalPrice,
-                TextureIds = design.CustomShoeDesignTextures?.Select(t => t.TextureId).ToList() ?? [],
+                Price = design.TotalAmount,
+                TextureIds = design.CustomShoeDesignTextures?.Select(t => t.TextureId).ToList() ?? new List<long>(),
                 CreatedAt = design.CreatedAt,
                 UpdatedAt = design.UpdatedAt
             };

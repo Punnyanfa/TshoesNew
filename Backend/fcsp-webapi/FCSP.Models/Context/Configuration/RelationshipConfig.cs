@@ -52,6 +52,19 @@ internal static class RelationshipConfig
             .HasForeignKey(dt => dt.TextureId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // CustomShoeDesignImage relationships
+        modelBuilder.Entity<CustomShoeDesignImage>()
+            .HasOne(di => di.CustomShoeDesign)
+            .WithMany(d => d.CustomShoeDesignImages)
+            .HasForeignKey(di => di.CustomShoeDesignId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CustomShoeDesignImage>()
+            .HasOne(di => di.Texture)
+            .WithMany()
+            .HasForeignKey(di => di.TextureId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Texture relationships
         modelBuilder.Entity<Texture>()
             .HasOne(t => t.User)
@@ -158,13 +171,69 @@ internal static class RelationshipConfig
         modelBuilder.Entity<DesignService>()
             .HasOne(ds => ds.CustomShoeDesign)
             .WithMany(d => d.DesignServices)
-            .HasForeignKey(ds => ds.DesignId)
+            .HasForeignKey(ds => ds.CustomShoeDesignId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<DesignService>()
             .HasOne(ds => ds.Service)
             .WithMany()
             .HasForeignKey(ds => ds.ServiceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Manufacturer relationships
+        modelBuilder.Entity<Manufacturer>()
+            .HasOne(m => m.User)
+            .WithMany(u => u.Manufacturers)
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Criteria relationships
+        modelBuilder.Entity<Criteria>()
+            .HasMany(c => c.ManufacturerCriterias)
+            .WithOne(mc => mc.Criteria)
+            .HasForeignKey(mc => mc.CriteriaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ManufacturerCriteria relationships
+        modelBuilder.Entity<ManufacturerCriteria>()
+            .HasOne(mc => mc.Manufacturer)
+            .WithMany(m => m.ManufacturerCriterias)
+            .HasForeignKey(mc => mc.ManufacturerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Service relationships
+        modelBuilder.Entity<Service>()
+            .HasOne(s => s.Manufacturer)
+            .WithMany(m => m.Services)
+            .HasForeignKey(s => s.ManufacturerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // SetServiceAmount relationships
+        modelBuilder.Entity<SetServiceAmount>()
+            .HasOne(ssa => ssa.Service)
+            .WithMany()
+            .HasForeignKey(ssa => ssa.ServiceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Designer relationships
+        modelBuilder.Entity<Designer>()
+            .HasOne(d => d.User)
+            .WithMany(u => u.Designers)
+            .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Transaction relationships
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.Receiver)
+            .WithMany(u => u.ReceivedTransactions)
+            .HasForeignKey(t => t.ReceiverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ReturnedCustomShoe relationships
+        modelBuilder.Entity<ReturnedCustomShoe>()
+            .HasOne(r => r.CustomShoeDesign)
+            .WithMany(d => d.ReturnedCustomShoes)
+            .HasForeignKey(r => r.CustomShoeDesignId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

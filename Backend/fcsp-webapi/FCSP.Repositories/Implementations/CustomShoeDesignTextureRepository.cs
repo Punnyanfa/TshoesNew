@@ -10,29 +10,29 @@ namespace FCSP.Repositories.Implementations
 {
     public class CustomShoeDesignTextureRepository : GenericRepository<CustomShoeDesignTexture>, ICustomShoeDesignTextureRepository
     {
-        private readonly FcspDbContext _context;
+        private readonly FcspDbContext _dbContext;
         
         public CustomShoeDesignTextureRepository(FcspDbContext context) : base(context)
         {
-            _context = context;
+            _dbContext = context;
         }
         
         public async Task AddRangeAsync(IEnumerable<CustomShoeDesignTexture> entities)
         {
-            await _context.CustomShoeDesignTextures.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
+            await _dbContext.CustomShoeDesignTextures.AddRangeAsync(entities);
+            await _dbContext.SaveChangesAsync();
         }
         
         public async Task DeleteByDesignIdAsync(long designId)
         {
-            var texturesToDelete = await _context.CustomShoeDesignTextures
+            var texturesToDelete = await Entities
                 .Where(t => t.CustomShoeDesignId == designId)
                 .ToListAsync();
                 
             if (texturesToDelete.Any())
             {
-                _context.CustomShoeDesignTextures.RemoveRange(texturesToDelete);
-                await _context.SaveChangesAsync();
+                _dbContext.CustomShoeDesignTextures.RemoveRange(texturesToDelete);
+                await _dbContext.SaveChangesAsync();
             }
         }
 

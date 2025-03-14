@@ -1,0 +1,8 @@
+namespace FCSP.Common.Enums;
+
+public enum ServiceAmountStatus
+{
+    Inactive = 0,
+    Active = 1,
+    Expired = 2
+} 

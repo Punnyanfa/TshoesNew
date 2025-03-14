@@ -20,7 +20,7 @@ namespace FCSP.Repositories.Implementations
                 .ToListAsync();
         }
         
-        public async Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(float serviceId)
+        public async Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId)
         {
             return await Entities
                 .Where(ds => ds.ServiceId == serviceId)

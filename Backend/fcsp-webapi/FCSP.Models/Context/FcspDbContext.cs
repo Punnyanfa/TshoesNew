@@ -21,9 +21,11 @@ public class FcspDbContext : DbContext
     #endregion
 
     #region Properties
+    public DbSet<BaseEntity> BaseEntities { get; set; }
     public DbSet<CustomShoeDesign> CustomShoeDesigns { get; set; }
     public DbSet<CustomShoeDesignTemplate> CustomShoeDesignTemplates { get; set; }
     public DbSet<CustomShoeDesignTexture> CustomShoeDesignTextures { get; set; }
+    public DbSet<CustomShoeDesignImage> CustomShoeDesignImages { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Payment> Payments { get; set; }
@@ -41,6 +43,13 @@ public class FcspDbContext : DbContext
     public DbSet<UserRecommendation> UserRecommendations { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<Rating> Ratings { get; set; }
+    public DbSet<Manufacturer> Manufacturers { get; set; }
+    public DbSet<Criteria> Criterias { get; set; }
+    public DbSet<ManufacturerCriteria> ManufacturerCriterias { get; set; }
+    public DbSet<SetServiceAmount> SetServiceAmounts { get; set; }
+    public DbSet<Designer> Designers { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<ReturnedCustomShoe> ReturnedCustomShoes { get; set; }
     #endregion
 
     #region Private Methods

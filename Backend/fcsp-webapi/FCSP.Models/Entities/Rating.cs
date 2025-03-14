@@ -8,7 +8,7 @@ public class Rating : BaseEntity
     public long UserId { get; set; }
     public int UserRating { get; set; } // Named UserRating to avoid conflict with class name
     public string? Comment { get; set; }
-    public int IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     // Navigation properties
     public virtual CustomShoeDesign CustomShoeDesign { get; set; } = null!;

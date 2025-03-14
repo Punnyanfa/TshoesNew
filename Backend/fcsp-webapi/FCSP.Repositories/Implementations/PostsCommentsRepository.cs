@@ -17,14 +17,14 @@ public class PostsCommentsRepository : GenericRepository<PostsComments>, IPostsC
     public async Task<IEnumerable<PostsComments>> GetCommentsByPostIdAsync(long postId)
     {
         return await _context.Set<PostsComments>()
-            .Where(pc => pc.PostsId == postId && pc.IsDeleted == 0)
+            .Where(pc => pc.PostsId == postId && !pc.IsDeleted)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<PostsComments>> GetCommentsByUserIdAsync(long userId)
     {
         return await _context.Set<PostsComments>()
-            .Where(pc => pc.UserId == userId && pc.IsDeleted == 0)
+            .Where(pc => pc.UserId == userId && !pc.IsDeleted)
             .ToListAsync();
     }
 } 

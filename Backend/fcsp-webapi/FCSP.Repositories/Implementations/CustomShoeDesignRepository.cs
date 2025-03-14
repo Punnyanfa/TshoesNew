@@ -8,18 +8,15 @@ using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Implementations
 {
-    public class CustomShoeDesignRepository : GenericRepository<Models.Entities.CustomShoeDesign>, ICustomShoeDesignRepository
+    public class CustomShoeDesignRepository : GenericRepository<CustomShoeDesign>, ICustomShoeDesignRepository
     {
-        private readonly FcspDbContext _context;
-        
         public CustomShoeDesignRepository(FcspDbContext context) : base(context)
         {
-            _context = context;
         }
         
         public async Task<IList<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId)
         {
-            return await _context.CustomShoeDesigns
+            return await Entities
                 .Where(d => d.UserId == userId)
                 .Include(d => d.CustomShoeDesignTextures)
                 .ToListAsync();

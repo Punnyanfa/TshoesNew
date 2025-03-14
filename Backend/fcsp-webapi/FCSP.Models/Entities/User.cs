@@ -24,7 +24,7 @@ public class User : BaseEntity
     
     public int Status { get; set; }
     
-    public int IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     // Navigation properties
     public virtual ShippingInfo? DefaultAddress { get; set; }
@@ -40,4 +40,7 @@ public class User : BaseEntity
     public virtual ICollection<UserRecommendation> Recommendations { get; } = [];
     public virtual ICollection<Rating> Ratings { get; } = [];
     public virtual ICollection<Texture> Textures { get; } = [];
+    public virtual ICollection<Transaction> ReceivedTransactions { get; } = [];
+    public virtual ICollection<Manufacturer> Manufacturers { get; } = [];
+    public virtual ICollection<Designer> Designers { get; } = [];
 }

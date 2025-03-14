@@ -28,8 +28,8 @@ namespace FCSP.Services.ServiceService
             {
                 Id = service.Id,
                 Name = service.ServiceName,
-                Price = service.ServiceFee,
-                IsDeleted = service.IsDeleted == 1
+                Price = service.SetServiceAmounts.FirstOrDefault()?.Amount ?? 0,
+                IsDeleted = service.IsDeleted
             };
         }
 
@@ -38,8 +38,8 @@ namespace FCSP.Services.ServiceService
             var service = new Service
             {
                 ServiceName = request.Name,
-                ServiceFee = request.Price,
-                IsDeleted = 0
+
+                IsDeleted = false
             };
 
             var addedService = await _serviceRepository.AddAsync(service);
@@ -53,7 +53,6 @@ namespace FCSP.Services.ServiceService
                 throw new Exception("Service not found");
 
             service.ServiceName = request.Name;
-            service.ServiceFee = request.Price;
 
             await _serviceRepository.UpdateAsync(service);
             return new UpdateServiceResponse { ServiceId = service.Id };
@@ -65,7 +64,7 @@ namespace FCSP.Services.ServiceService
             if (service == null)
                 throw new Exception("Service not found");
                 
-            service.IsDeleted = 1;
+            service.IsDeleted = true;
             await _serviceRepository.UpdateAsync(service);
             
             return new DeleteServiceResponse { Success = true };

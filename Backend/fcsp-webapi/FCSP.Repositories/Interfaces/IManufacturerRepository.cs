@@ -1,0 +1,10 @@
+using FCSP.Models.Entities;
+
+namespace FCSP.Repositories.Interfaces
+{
+    public interface IManufacturerRepository : IGenericRepository<Manufacturer>
+    {
+        Task<IEnumerable<Manufacturer>> GetManufacturersByStatusAsync(int status);
+        Task<Manufacturer?> GetManufacturerByUserIdAsync(long userId);
+    }
+} 

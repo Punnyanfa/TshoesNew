@@ -11,6 +11,6 @@ namespace FCSP.Services.DesignServiceService
         Task<UpdateDesignServiceResponse> UpdateDesignService(UpdateDesignServiceRequest request);
         Task<DeleteDesignServiceResponse> DeleteDesignService(DeleteDesignServiceRequest request);
         Task<IEnumerable<DesignService>> GetDesignServicesByCustomShoeDesignId(long customShoeDesignId);
-        Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(float serviceId);
+        Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId);
     }
 } 

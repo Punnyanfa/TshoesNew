@@ -43,7 +43,7 @@ namespace FCSP.Services.PostService
                 UserId = request.UserId,
                 Title = request.Title,
                 Content = request.Content,
-                IsDeleted = 0,
+                IsDeleted = false,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -76,7 +76,7 @@ namespace FCSP.Services.PostService
         {
             var post = await GetEntityFromGetByIdRequest(new GetPostByIdRequest { Id = request.Id });
             
-            post.IsDeleted = 1;
+            post.IsDeleted = true;
             post.UpdatedAt = DateTime.UtcNow;
             await _postRepository.UpdateAsync(post);
             
@@ -92,7 +92,7 @@ namespace FCSP.Services.PostService
                 Title = post.Title,
                 Content = post.Content,
                 ImageUrl = null,
-                Status = post.IsDeleted,
+                IsDeleted = post.IsDeleted,
                 UserName = post.User?.Name ?? string.Empty,
                 CreatedAt = post.CreatedAt,
                 UpdatedAt = post.UpdatedAt

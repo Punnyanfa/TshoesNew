@@ -32,14 +32,20 @@ namespace FCSP.Repositories.Implementations
         public async Task DeleteAsync(long id)
         {
             var entity = await Entities.FindAsync(id);
-            Entities.Remove(entity);
-            await _context.SaveChangesAsync();
+            if (entity != null)
+            {
+                Entities.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<IList<T>> GetAllAsync()
         {
             return await Entities.ToListAsync();
         }
+
+        public IQueryable<T> GetAll()
+            => Entities.Where(x => true).AsQueryable();
 
         public T Find(params object[] keyValues)
         {
