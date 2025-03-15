@@ -6,4 +6,4 @@ namespace FCSP.Repositories.Interfaces
     {
         Task<IEnumerable<Notification>> GetNotificationsByUserIdAsync(long userId);
     }
-} 
+}

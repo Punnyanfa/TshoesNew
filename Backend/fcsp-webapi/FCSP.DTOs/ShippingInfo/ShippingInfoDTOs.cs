@@ -23,12 +23,12 @@ namespace FCSP.DTOs.ShippingInfo
     public class AddShippingInfoRequest
     {
         public long UserId { get; set; }
-        public string ReceiverName { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
         public string Address { get; set; } = null!;
         public string City { get; set; } = null!;
         public string District { get; set; } = null!;
         public string Ward { get; set; } = null!;
+        public string Country { get; set; } = null!;
         public bool IsDefault { get; set; }
     }
 

@@ -57,7 +57,7 @@ public class FcspDbContext : DbContext
     {
         IConfiguration config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", false)
+            .AddJsonFile($"appsettings.json", false)
             .Build();
 
         return config.GetConnectionString("FCSP_DB_AZURE");

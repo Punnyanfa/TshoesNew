@@ -2,9 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -13,7 +11,7 @@ namespace FCSP.Repositories.Implementations
         public CustomShoeDesignRepository(FcspDbContext context) : base(context)
         {
         }
-        
+
         public async Task<IList<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId)
         {
             return await Entities

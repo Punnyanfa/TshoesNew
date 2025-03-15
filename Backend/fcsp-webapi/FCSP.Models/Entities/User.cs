@@ -16,13 +16,11 @@ public class User : BaseEntity
 
     public string? Gender { get; set; }
 
-    public UserRole UserRole { get; set; } = UserRole.Customer;
+    public UserRole UserRole { get; set; }
 
     public float? Balance { get; set; }
 
     public long? DefaultAddressId { get; set; }
-    
-    public int Status { get; set; }
     
     public bool IsDeleted { get; set; }
 

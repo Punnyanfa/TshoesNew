@@ -25,7 +25,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FCSP.DTOs.Texture;
 using Microsoft.Extensions.Options;
-
+using FCSP.Common.Configurations;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig

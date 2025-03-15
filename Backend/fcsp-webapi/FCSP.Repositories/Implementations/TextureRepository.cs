@@ -1,3 +1,4 @@
+using FCSP.Common.Enums;
 using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -14,17 +15,16 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Texture>> GetTexturesByUserIdAsync(long userId)
         {
             return await Entities
-                .Where(t => t.UserId == userId && t.IsDeleted == 0)
+                .Where(t => t.UserId == userId && !t.IsDeleted)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Texture>> GetAvailableTexturesAsync()
         {
-            // Return active textures (Status = 1 means active, IsDeleted = 0 means not deleted)
             return await Entities
-                .Where(t => t.Status == 1 && t.IsDeleted == 0)
-                .OrderBy(t => t.Id) // Order by Id as there's no Price property
+                .Where(t => t.Status == TextureStatus.Public && !t.IsDeleted)
+                .OrderBy(t => t.Id)
                 .ToListAsync();
         }
     }
-} 
+}

@@ -11,4 +11,4 @@ namespace FCSP.Repositories.Interfaces
         public T Find(params object[] keyValues);
         public Task<T> FindAsync(params object[] keyValues);
     }
-} 
+}

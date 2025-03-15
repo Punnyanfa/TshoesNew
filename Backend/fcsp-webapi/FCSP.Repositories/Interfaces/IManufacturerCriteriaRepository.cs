@@ -7,4 +7,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<ManufacturerCriteria>> GetByManufacturerIdAsync(long manufacturerId);
         Task<IEnumerable<ManufacturerCriteria>> GetByCriteriaIdAsync(long criteriaId);
     }
-} 
+}

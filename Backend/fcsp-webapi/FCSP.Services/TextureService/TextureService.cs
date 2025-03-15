@@ -1,331 +1,385 @@
-﻿using FCSP.DTOs.Texture;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using FCSP.DTOs;
+using FCSP.DTOs.Texture;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Http;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 
-namespace FCSP.Services.TextureService
+namespace FCSP.Services.TextureService;
+
+public class TextureService : ITextureService
 {
-    public class TextureService : ITextureService
+    private readonly ITextureRepository _textureRepository;
+    private readonly IConfiguration _configuration;
+    private readonly HttpClient _httpClient;
+    private readonly string? _azureConnectionString;
+    private readonly string? _azureContainerName;
+    private readonly string? _promptToImproveImage;
+
+    public TextureService(
+        ITextureRepository textureRepository,
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
-        private readonly ITextureRepository _textureRepository;
-        private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
-        private readonly string? _imageSavePath;
-        private readonly string? _azureConnectionString;
-        private readonly string? _azureContainerName;
-        private readonly string? _promptToImproveImage;
-
-        public TextureService(
-            ITextureRepository textureRepository,
-            IConfiguration configuration,
-            IHttpClientFactory httpClientFactory)
-        { 
-            _textureRepository = textureRepository;
-            _configuration = configuration;
-            _httpClient = httpClientFactory.CreateClient("TextureService");
-            _imageSavePath = _configuration["ImageStorage:LocalPath"];
-            _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
-            _azureContainerName = _configuration["AzureStorage:ContainerName"];
-            _promptToImproveImage = _configuration["ImageStorage:PromptToImproveImage"];
-        }
-
-        public async Task<IEnumerable<GetTextureByIdResponse>> GetAllTextures()
+        _textureRepository = textureRepository;
+        _configuration = configuration;
+        _httpClient = httpClientFactory.CreateClient("TextureService");
+        _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
+        _azureContainerName = _configuration["AzureStorage:ContainerName"];
+        _promptToImproveImage = _configuration["ImageStorage:PromptToImproveImage"];
+    }
+    #region Public Methods
+    public async Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetAllTextures()
+    {
+        try
         {
             var textures = await _textureRepository.GetAllAsync();
-            return textures.Select(t => MapToDetailedResponse(t));
-        }
-
-        public async Task<IEnumerable<GetTextureByIdResponse>> GetAvailableTextures()
-        {
-            var textures = await _textureRepository.GetAvailableTexturesAsync();
-            return textures.Select(t => MapToDetailedResponse(t));
-        }
-
-        public async Task<GetTextureByIdResponse> GetTextureById(GetTextureByIdRequest request)
-        {
-            var texture = await _textureRepository.FindAsync(request.Id);
-            if (texture == null)
+            var response = textures.Select(t => MapToDetailedResponse(t));
+            
+            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
             {
-                throw new InvalidOperationException($"Texture with ID {request.Id} not found");
-            }
-
-            return MapToDetailedResponse(texture);
-        }
-
-        public async Task<IEnumerable<GetTextureByIdResponse>> GetTexturesByUser(GetTexturesByUserRequest request)
-        {
-            var textures = await _textureRepository.GetTexturesByUserIdAsync(request.UserId);
-            return textures.Select(t => MapToDetailedResponse(t));
-        }
-
-        public async Task<AddTextureResponse> AddTexture(AddTextureRequest request)
-        {
-            var texture = new Texture
-            {
-                UserId = request.OwnerId,
-                ImageUrl = request.ImageUrl,
-                Prompt = request.Description,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            var addedTexture = await _textureRepository.AddAsync(texture);
-            return new AddTextureResponse 
-            { 
-                Id = addedTexture.Id,
-                Name = request.Name,
-                ImageUrl = addedTexture.ImageUrl ?? string.Empty
+                Code = 200,
+                Message = "Textures retrieved successfully",
+                Data = response
             };
         }
-
-        public async Task<UpdateTextureResponse> UpdateTexture(UpdateTextureRequest request)
+        catch (Exception ex)
         {
-            var texture = await _textureRepository.FindAsync(request.Id);
-            if (texture == null)
+            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
             {
-                throw new InvalidOperationException($"Texture with ID {request.Id} not found");
-            }
-            texture.ImageUrl = request.ImageUrl;
-            texture.Prompt = request.Description;
-            texture.UpdatedAt = DateTime.UtcNow;
-
-            await _textureRepository.UpdateAsync(texture);
-            return new UpdateTextureResponse 
-            { 
-                Id = texture.Id,
-                Name = request.Name,
-                ImageUrl = texture.ImageUrl ?? string.Empty
-            };
-        }
-
-        public async Task<DeleteTextureResponse> DeleteTexture(DeleteTextureRequest request)
-        {
-            var texture = await _textureRepository.FindAsync(request.Id);
-            if (texture == null)
-            {
-                throw new InvalidOperationException($"Texture with ID {request.Id} not found");
-            }
-
-            await _textureRepository.DeleteAsync(request.Id);
-            return new DeleteTextureResponse { Success = true };
-        }
-
-        public async Task<GenerateImageResponse> GenerateAndSaveImage(GenerateImageRequest request)
-        {
-            // Define available models for fallback
-            string[] availableModels = new string[] {
-             
-                "black-forest-labs/FLUX.1-schnell-Free"        };
-            
-            // Use preferred model from request if provided, otherwise use default
-            string currentModel = !string.IsNullOrEmpty(request.PreferredModel) 
-                ? request.PreferredModel 
-                : availableModels[0];
-                
-            int modelIndex = Array.IndexOf(availableModels, currentModel);
-            if (modelIndex < 0) modelIndex = 0; // Use default model if preferred model not in available list
-            
-            bool retryWithDifferentModel = true;
-            
-            while (retryWithDifferentModel)
-            {
-                try
-                {
-                    var requestBody = new
-                    {
-                        prompt = request.Prompt + _promptToImproveImage,
-                        model = currentModel,
-                        width = 1024,
-                        height = 768,
-                        steps = 4,
-                        n = 1,
-                        response_format = "b64_json"
-                    };
-
-                    var content = new StringContent(
-                        JsonSerializer.Serialize(requestBody),
-                        Encoding.UTF8,
-                        "application/json"
-                    );
-
-                    var response = await _httpClient.PostAsync("/v1/images/generations", content);
-                    
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        // Try next model if available
-                        modelIndex++;
-                        if (modelIndex < availableModels.Length)
-                        {
-                            currentModel = availableModels[modelIndex];
-                            continue;
-                        }
-                        else
-                        {
-                            // If all models failed, throw exception
-                            throw new HttpRequestException($"Failed to generate image with all available models. Last error: {response.StatusCode}");
-                        }
-                    }
-
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    
-                    var responseData = JsonSerializer.Deserialize<ImageGenerationResponse>(responseContent);
-                    
-                    if (responseData == null || responseData.Data == null || responseData.Data.Count == 0)
-                    {
-                        // Try next model if available
-                        modelIndex++;
-                        if (modelIndex < availableModels.Length)
-                        {
-                            currentModel = availableModels[modelIndex];
-                            continue;
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("No image data received from API after trying all available models");
-                        }
-                    }
-
-                    // Convert UTC to GMT+7 (UTC+7)
-                    DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
-                    // Format as day/month/years - hour:minute but make it filename-friendly
-                    string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
-                    string fileName = $"texture_{formattedDateTime}.png";
-                    string filePath = Path.Combine(_imageSavePath ?? "images", fileName);
-                    byte[] imageBytes = Convert.FromBase64String(responseData.Data[0].B64Json);
-                    string azureImageUrl = string.Empty;
-
-                    // Try to upload to Azure Storage if configured
-                    if (!string.IsNullOrEmpty(_azureConnectionString) && !string.IsNullOrEmpty(_azureContainerName))
-                    {
-                        try
-                        {
-                            // Create BlobServiceClient
-                            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
-                            
-                            // Get container client (creates container if it doesn't exist)
-                            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
-                            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
-                            
-                            // Get blob client
-                            var blobClient = containerClient.GetBlobClient(fileName);
-                            
-                            // Upload data
-                            using (var stream = new MemoryStream(imageBytes))
-                            {
-                                await blobClient.UploadAsync(stream, new BlobHttpHeaders
-                                {
-                                    ContentType = "image/png"
-                                });
-                            }
-                            
-                            // Get the public URL
-                            azureImageUrl = blobClient.Uri.ToString();
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log the Azure storage error but continue with local storage
-                            Console.WriteLine($"Azure Storage upload failed: {ex.Message}. Falling back to local storage.");
-                        }
-                    }
-
-                    // Always save locally as a backup
-                    Directory.CreateDirectory(_imageSavePath ?? "images");
-                    await File.WriteAllBytesAsync(filePath, imageBytes);
-
-                    // No more retries needed if we reached here
-                    retryWithDifferentModel = false;
-                    
-                    return new GenerateImageResponse
-                    {
-                        Success = true,
-                        ImagePath = filePath,
-                        FileName = fileName,
-                        ImageUrl = azureImageUrl,
-                        Prompt = request.Prompt,
-                        ModelUsed = currentModel, // Add the model used to the response
-                    };
-                }
-                catch (HttpRequestException ex)
-                {
-                    // Try next model if available
-                    modelIndex++;
-                    if (modelIndex < availableModels.Length)
-                    {
-                        currentModel = availableModels[modelIndex];
-                        continue;
-                    }
-                    
-                    // If all models failed, return error
-                    return new GenerateImageResponse
-                    {
-                        Success = false,
-                        ErrorMessage = $"API request failed with all available models. Last error: {ex.Message}",
-                        ModelUsed = currentModel
-                    };
-                }
-                catch (JsonException ex)
-                {
-                    // Try next model if available
-                    modelIndex++;
-                    if (modelIndex < availableModels.Length)
-                    {
-                        currentModel = availableModels[modelIndex];
-                        continue;
-                    }
-                    
-                    // If all models failed, return error
-                    return new GenerateImageResponse
-                    {
-                        Success = false,
-                        ErrorMessage = $"Failed to parse API response with all available models. Last error: {ex.Message}",
-                        ModelUsed = currentModel
-                    };
-                }
-                catch (Exception ex)
-                {
-                    // For other exceptions, don't retry but return with error
-                    return new GenerateImageResponse
-                    {
-                        Success = false,
-                        ErrorMessage = $"An unexpected error occurred: {ex.Message}",
-                        ModelUsed = currentModel
-                    };
-                }
-            }
-            
-            // This should not be reached, but is here for code completeness
-            return new GenerateImageResponse
-            {
-                Success = false,
-                ErrorMessage = "An unexpected error occurred in the image generation process",
-                ModelUsed = currentModel
-            };
-        }
-
-        private GetTextureByIdResponse MapToDetailedResponse(Texture texture)
-        {
-            return new GetTextureByIdResponse
-            {
-                Id = texture.Id,
-                Name = texture.Prompt ?? string.Empty,
-                Description = texture.Prompt ?? string.Empty,
-                ImageUrl = texture.ImageUrl ?? string.Empty,
-                IsAvailable = true,
-                OwnerId = texture.UserId,
-                CreatedAt = texture.CreatedAt,
-                UpdatedAt = texture.UpdatedAt
+                Code = 500,
+                Message = ex.Message,
+                Data = null
             };
         }
     }
+
+    public async Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetAvailableTextures()
+    {
+        try
+        {
+            var textures = await _textureRepository.GetAvailableTexturesAsync();
+            var response = textures.Select(t => MapToDetailedResponse(t));
+            
+            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            {
+                Code = 200,
+                Message = "Available textures retrieved successfully",
+                Data = response
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<GetTextureByIdResponse>> GetTextureById(GetTextureByIdRequest request)
+    {
+        try
+        {
+            var texture = await _textureRepository.FindAsync(request.Id);
+            if (texture == null)
+            {
+                return new BaseResponseModel<GetTextureByIdResponse>
+                {
+                    Code = 404,
+                    Message = $"Texture with ID {request.Id} not found",
+                    Data = null
+                };
+            }
+
+            return new BaseResponseModel<GetTextureByIdResponse>
+            {
+                Code = 200,
+                Message = "Texture retrieved successfully",
+                Data = MapToDetailedResponse(texture)
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<GetTextureByIdResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetTexturesByUser(GetTexturesByUserRequest request)
+    {
+        try
+        {
+            var textures = await _textureRepository.GetTexturesByUserIdAsync(request.UserId);
+            if (textures == null || !textures.Any())
+            {
+                return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+                {
+                    Code = 404,
+                    Message = "No textures found for the user",
+                    Data = new List<GetTextureByIdResponse>()
+                };
+            }
+
+            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            {
+                Code = 200,
+                Message = "User textures retrieved successfully",
+                Data = textures.Select(t => MapToDetailedResponse(t))
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<AddTextureResponse>> AddTexture(AddTextureRequest request)
+    {
+        try
+        {
+            var texture = await GetTextureFromAddTextureRequest(request);
+
+        await _textureRepository.AddAsync(texture);
+
+        return new BaseResponseModel<AddTextureResponse>
+        {
+            Code = 200,
+            Message = "Texture added successfully",
+            Data = new AddTextureResponse
+            {
+                    Id = texture.Id,
+                    ImageUrl = texture.ImageUrl
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<AddTextureResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<DeleteTextureResponse>> DeleteTexture(DeleteTextureRequest request)
+    {
+        try
+        {
+            var texture = await GetTextureFromDeleteTextureRequest(request);
+
+            await _textureRepository.UpdateAsync(texture);
+
+            return new BaseResponseModel<DeleteTextureResponse>
+            {
+                Code = 200,
+                Message = "Texture deleted successfully",
+                Data = new DeleteTextureResponse
+                {
+                    Success = true
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<DeleteTextureResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new DeleteTextureResponse
+                {
+                    Success = false
+                }
+            };
+        }
+    }
+    #endregion
+
+    #region Private Methods
+    private async Task<Texture> GetTextureFromAddTextureRequest(AddTextureRequest request)
+    {
+        if (request.ImageFile != null && request.ImageFile.Length > 0)
+        {
+            return await GetTextureFromUploadTexture(request);
+        }
+        else if (!string.IsNullOrEmpty(request.Prompt))
+        {
+            return await GetTextureFromGeneratedTextureRequest(request);
+        }
+        else
+        {
+            throw new InvalidOperationException("No image file or prompt provided");
+        }
+    }
+
+    private async Task<Texture> GetTextureFromGeneratedTextureRequest(AddTextureRequest request)
+    {
+        var generateRequest = new GenerateImageRequest
+        {
+            Prompt = request.Prompt
+        };
+
+        var generateResponse = await GenerateAndSaveImage(generateRequest);
+
+        if (generateResponse == null)
+        {
+            throw new InvalidOperationException($"Failed to generate image");
+        }
+
+        return new Texture
+        {
+            UserId = request.OwnerId,
+            ImageUrl = generateResponse.ImageUrl,
+            Prompt = request.Prompt,
+            Status = request.Status,
+            IsDeleted = false
+        };
+    }
+
+    private async Task<Texture> GetTextureFromUploadTexture(AddTextureRequest request)
+    {
+        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+        string fileName = $"texture_uploaded_{formattedDateTime}.png";
+        byte[] fileBytes;
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await request.ImageFile.CopyToAsync(memoryStream);
+            fileBytes = memoryStream.ToArray();
+        }
+
+        var imageUrl = await UploadToAzureStorage(fileName, fileBytes);
+        if (string.IsNullOrEmpty(imageUrl))
+        {
+            throw new InvalidOperationException("Failed to upload file to Azure Storage.");
+        }
+
+        return new Texture
+        {
+            UserId = request.OwnerId,
+            ImageUrl = imageUrl,
+            Prompt = request.Prompt,
+            Status = request.Status,
+            IsDeleted = false
+        };
+    }
+
+    private async Task<Texture> GetTextureFromDeleteTextureRequest(DeleteTextureRequest request)
+    {
+        var texture = await _textureRepository.FindAsync(request.Id);
+
+        if (texture == null)
+        {
+            throw new InvalidOperationException($"Texture with ID {request.Id} not found");
+        }
+
+        texture.IsDeleted = true;
+        texture.UpdatedAt = DateTime.Now;
+
+        return texture;
+    }
+
+    private async Task<GenerateImageResponse> GenerateAndSaveImage(GenerateImageRequest request)
+    {
+        string[] availableModels = {
+            "black-forest-labs/FLUX.1-schnell-Free",
+            "black-forest-labs/FLUX.1-Dev"
+        };
+
+        int modelIndex = 0;
+        string currentModel = availableModels[modelIndex];
+
+        var requestBody = new
+        {
+            prompt = request.Prompt + _promptToImproveImage,
+            model = currentModel,
+            width = 1024,
+            height = 768,
+            steps = 4,
+            n = 1,
+            response_format = "b64_json"
+        };
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        var response = await _httpClient.PostAsync("/v1/images/generations", content);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        var responseData = JsonSerializer.Deserialize<ImageGenerationResponse>(responseContent);
+
+        if (responseData == null || responseData.Data == null || responseData.Data.Count == 0)
+        {
+            throw new InvalidOperationException("No image data received from API");
+        }
+
+        string formattedDateTime = DateTime.Now.ToString("dd-MM-yyyy_HH-mm");
+        string fileName = $"texture_{formattedDateTime}.png";
+        byte[] imageBytes = Convert.FromBase64String(responseData.Data[0].B64Json);
+
+        var azureImageUrl = await UploadToAzureStorage(fileName, imageBytes);
+
+        return new GenerateImageResponse
+        {
+            ImageUrl = azureImageUrl,
+            Prompt = request.Prompt,
+        };
+    }
+
+    private GetTextureByIdResponse MapToDetailedResponse(Texture texture)
+    {
+        return new GetTextureByIdResponse
+        {
+            ImageUrl = texture.ImageUrl ?? string.Empty,
+        };
+    }
+
+    private async Task<string> UploadToAzureStorage(string fileName, byte[] fileBytes)
+    {
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+            var blobClient = containerClient.GetBlobClient(fileName);
+
+            using (var stream = new MemoryStream(fileBytes))
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = "image/png"
+                });
+            }
+
+            return blobClient.Uri.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+        }
+    }
+    #endregion
 }

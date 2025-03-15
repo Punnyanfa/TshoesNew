@@ -7,4 +7,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<Manufacturer>> GetManufacturersByStatusAsync(int status);
         Task<Manufacturer?> GetManufacturerByUserIdAsync(long userId);
     }
-} 
+}

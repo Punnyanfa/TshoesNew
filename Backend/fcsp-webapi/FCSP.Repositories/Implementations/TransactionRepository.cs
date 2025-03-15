@@ -2,9 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -13,7 +11,7 @@ namespace FCSP.Repositories.Implementations
         public TransactionRepository(FcspDbContext context) : base(context)
         {
         }
-        
+
         public async Task<IList<Transaction>> GetByReceiverIdAsync(long receiverId)
         {
             return await Entities
@@ -23,7 +21,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(t => t.Payment)
                 .ToListAsync();
         }
-        
+
         public async Task<IList<Transaction>> GetByOrderDetailIdAsync(long orderDetailId)
         {
             return await Entities
@@ -33,7 +31,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(t => t.Payment)
                 .ToListAsync();
         }
-        
+
         public async Task<IList<Transaction>> GetByPaymentIdAsync(long paymentId)
         {
             return await Entities
@@ -44,4 +42,4 @@ namespace FCSP.Repositories.Implementations
                 .ToListAsync();
         }
     }
-} 
+}

@@ -14,9 +14,7 @@ services.AddEndpointsApiExplorer();
 
 ServiceConfig.Configure(services);
 RepositoryConfig.Configure(services);
-
 AuthConfig.Configure(services, config);
-
 DocumentationConfig.Configure(services);
 
 var app = builder.Build();
@@ -24,10 +22,21 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-if (app.Environment.IsDevelopment())
+// Redirect to Swagger UI when accessing the root URL
+app.Use(async (context, next) =>
 {
+    if (context.Request.Path.Value == "/")
+    {
+        context.Response.Redirect("/swagger");
+        return;
+    }
+    await next();
+});
+
+// if (app.Environment.IsDevelopment())
+// {
     
-}
+// }
 
 app.UseHttpsRedirection();
 

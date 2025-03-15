@@ -1,4 +1,5 @@
-﻿using FCSP.DTOs.Authentication;
+﻿using FCSP.DTOs;
+using FCSP.DTOs.Authentication;
 using FCSP.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,10 @@ public class AuthController : ControllerBase
 
     [HttpPost("[action]")]
     [AllowAnonymous]
-    public IActionResult Login([FromBody] UserLoginRequest request)
+    public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
     {
-        var response = _authService.Login(request);
-        return Ok(response);
+        var response = await _authService.Login(request);
+        return StatusCode(response.Code, response);
     }
 
     [HttpPost("[action]")]
@@ -29,7 +30,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] UserRegisterRequest request)
     {
         var response = await _authService.Register(request);
-        return Ok(response);
+        return StatusCode(response.Code, response);
     }
 
     [HttpGet("test")]
@@ -37,5 +38,29 @@ public class AuthController : ControllerBase
     public IActionResult TestLogin()
     {
         return Ok("Authentication OK!");
+    }
+
+    [HttpPut("password")]
+    [Authorize]
+    public async Task<IActionResult> UpdateUserPassword([FromBody] UpdateUserPasswordRequest request)
+    {
+        var response = await _authService.UpdateUserPassword(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPut("information")]
+    [Authorize]
+    public async Task<IActionResult> UpdateUserInformation([FromBody] UpdateUserInformationRequest request)
+    {
+        var response = await _authService.UpdateUserInformation(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpDelete]
+    [Authorize]
+    public async Task<IActionResult> DeleteUser([FromBody] UserDeleteRequest request)
+    {
+        var response = await _authService.DeleteUser(request);
+        return StatusCode(response.Code, response);
     }
 }

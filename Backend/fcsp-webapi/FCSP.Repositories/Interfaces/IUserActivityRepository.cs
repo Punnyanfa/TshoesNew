@@ -7,4 +7,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<UserActivity>> GetActivitiesByUserIdAsync(long userId);
         Task<IEnumerable<UserActivity>> GetActivitiesByDesignIdAsync(long designId);
     }
-} 
+}

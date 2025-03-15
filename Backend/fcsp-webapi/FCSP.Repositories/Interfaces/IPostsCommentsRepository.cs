@@ -7,4 +7,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<PostsComments>> GetCommentsByPostIdAsync(long postId);
         Task<IEnumerable<PostsComments>> GetCommentsByUserIdAsync(long userId);
     }
-} 
+}

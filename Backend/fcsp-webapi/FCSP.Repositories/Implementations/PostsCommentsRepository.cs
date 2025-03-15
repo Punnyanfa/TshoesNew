@@ -2,9 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Implementations;
 
@@ -27,4 +25,4 @@ public class PostsCommentsRepository : GenericRepository<PostsComments>, IPostsC
             .Where(pc => pc.UserId == userId && !pc.IsDeleted)
             .ToListAsync();
     }
-} 
+}

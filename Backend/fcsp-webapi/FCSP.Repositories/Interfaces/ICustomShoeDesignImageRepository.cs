@@ -6,4 +6,4 @@ namespace FCSP.Repositories.Interfaces
     {
         Task<IEnumerable<CustomShoeDesignImage>> GetByCustomShoeDesignIdAsync(long customShoeDesignId);
     }
-} 
+}

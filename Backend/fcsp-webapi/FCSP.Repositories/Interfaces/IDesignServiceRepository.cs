@@ -8,4 +8,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<DesignService>> GetDesignServicesByCustomShoeDesignId(long customShoeDesignId);
         Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId);
     }
-} 
+}

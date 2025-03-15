@@ -18,74 +18,72 @@ namespace FCSP.WebAPI.Controllers.Texture
         [HttpGet]
         public async Task<IActionResult> GetAllTextures()
         {
-            var textures = await _textureService.GetAllTextures();
-            return Ok(textures);
+            var response = await _textureService.GetAllTextures();
+            return StatusCode(response.Code, response);
         }
 
         [HttpGet("available")]
         public async Task<IActionResult> GetAvailableTextures()
         {
-            var result = await _textureService.GetAvailableTextures();
-            return Ok(result);
+            var response = await _textureService.GetAvailableTextures();
+            return StatusCode(response.Code, response);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetTextureById(long id)
+        public async Task<IActionResult> GetTextureById(GetTextureByIdRequest request)
         {
-            var request = new GetTextureByIdRequest { Id = id };
-            var texture = await _textureService.GetTextureById(request);
-            return Ok(texture);
+            var response = await _textureService.GetTextureById(request);
+            return StatusCode(response.Code, response);
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetTexturesByUser(int userId)
+        public async Task<IActionResult> GetTexturesByUser(GetTexturesByUserRequest request)
         {
-            var request = new GetTexturesByUserRequest { UserId = userId };
-            var result = await _textureService.GetTexturesByUser(request);
-            return Ok(result);
+            var response = await _textureService.GetTexturesByUser(request);
+            return StatusCode(response.Code, response);
         }
 
-        [HttpPost("generate")]
-        public async Task<IActionResult> GenerateImage([FromBody] GenerateImageRequest request)
-        {
-            if (string.IsNullOrEmpty(request.Prompt))
-            {
-            return BadRequest("Prompt is required");
-            }
+        //[HttpPost("generate")]
+        //public async Task<IActionResult> GenerateImage([FromBody] GenerateImageRequest request)
+        //{
+        //    if (string.IsNullOrEmpty(request.Prompt))
+        //    {
+        //    return BadRequest("Prompt is required");
+        //    }
 
-            var result = await _textureService.GenerateAndSaveImage(request);
+        //    var result = await _textureService.GenerateAndSaveImage(request);
 
-            if (!result.Success)
-            {
-                return StatusCode(500, result.ErrorMessage);
-            }
+        //    if (!result.Success)
+        //    {
+        //        return StatusCode(500, result.ErrorMessage);
+        //    }
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         [HttpPost]
         public async Task<IActionResult> AddTexture([FromBody] AddTextureRequest request)
         {
             var response = await _textureService.AddTexture(request);
-            return CreatedAtAction(nameof(GetTextureById), new { id = response.Id }, response);
+            return StatusCode(response.Code, response);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTexture(long id, [FromBody] UpdateTextureRequest request)
-        {
-            if (id != request.Id)
-                return BadRequest();
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateTexture(long id, [FromBody] UpdateTextureRequest request)
+        //{
+        //    if (id != request.Id)
+        //        return BadRequest();
 
-            var response = await _textureService.UpdateTexture(request);
-            return Ok(response);
-        }
+        //    var response = await _textureService.UpdateTexture(request);
+        //    return Ok(response);
+        //}
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTexture(long id)
         {
             var request = new DeleteTextureRequest { Id = id };
             var response = await _textureService.DeleteTexture(request);
-            return Ok(response);
+            return StatusCode(response.Code, response);
         }
     }
 } 

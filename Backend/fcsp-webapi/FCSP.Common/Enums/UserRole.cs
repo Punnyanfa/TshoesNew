@@ -4,5 +4,6 @@ public enum UserRole
 {
     Customer = 0,
     Manufacturer = 1,
-    Admin = 2,
+    Designer = 2,
+    Admin = 3,
 }

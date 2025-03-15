@@ -2,9 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -13,7 +11,7 @@ namespace FCSP.Repositories.Implementations
         public ManufacturerCriteriaRepository(FcspDbContext context) : base(context)
         {
         }
-        
+
         public async Task<IEnumerable<ManufacturerCriteria>> GetByManufacturerIdAsync(long manufacturerId)
         {
             return await Entities
@@ -21,7 +19,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(mc => mc.Criteria)
                 .ToListAsync();
         }
-        
+
         public async Task<IEnumerable<ManufacturerCriteria>> GetByCriteriaIdAsync(long criteriaId)
         {
             return await Entities
@@ -30,4 +28,4 @@ namespace FCSP.Repositories.Implementations
                 .ToListAsync();
         }
     }
-} 
+}

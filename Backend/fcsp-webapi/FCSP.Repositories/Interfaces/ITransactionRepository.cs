@@ -8,4 +8,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IList<Transaction>> GetByOrderDetailIdAsync(long orderDetailId);
         Task<IList<Transaction>> GetByPaymentIdAsync(long paymentId);
     }
-} 
+}

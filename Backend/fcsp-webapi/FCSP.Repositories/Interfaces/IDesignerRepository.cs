@@ -7,4 +7,4 @@ namespace FCSP.Repositories.Interfaces
         Task<Designer?> GetDesignerByUserIdAsync(long userId);
         Task<IEnumerable<Designer>> GetActiveDesignersAsync();
     }
-} 
+}

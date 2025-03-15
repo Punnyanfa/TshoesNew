@@ -6,4 +6,4 @@ namespace FCSP.Repositories.Interfaces
     {
         // Add any custom repository methods here
     }
-} 
+}

@@ -10,7 +10,7 @@ namespace FCSP.Repositories.Implementations
         public DesignServiceRepository(FcspDbContext context) : base(context)
         {
         }
-        
+
         public async Task<IEnumerable<DesignService>> GetDesignServicesByCustomShoeDesignId(long customShoeDesignId)
         {
             return await Entities
@@ -19,7 +19,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(ds => ds.Service)
                 .ToListAsync();
         }
-        
+
         public async Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId)
         {
             return await Entities

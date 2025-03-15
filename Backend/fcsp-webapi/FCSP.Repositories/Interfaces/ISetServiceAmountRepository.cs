@@ -7,4 +7,4 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<SetServiceAmount>> GetCurrentAmountsByServiceIdAsync(long serviceId);
         Task<SetServiceAmount?> GetActiveAmountByServiceIdAsync(long serviceId);
     }
-} 
+}

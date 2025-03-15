@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using FCSP.Common.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace FCSP.DTOs.Texture
 {
@@ -7,22 +9,9 @@ namespace FCSP.DTOs.Texture
         public long Id { get; set; }
     }
 
-    public class TogetherAIConfig
-    {
-        public string BaseUrl { get; set; }
-        public string ApiKey { get; set; }
-    }
-
     public class GetTextureByIdResponse
     {
-        public long Id { get; set; }
-        public string Name { get; set; } = null!;
-        public string Description { get; set; } = null!;
         public string ImageUrl { get; set; } = null!;
-        public bool IsAvailable { get; set; }
-        public long OwnerId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 
     public class GetTexturesByUserRequest
@@ -32,31 +21,15 @@ namespace FCSP.DTOs.Texture
 
     public class AddTextureRequest
     {
-        public string Name { get; set; } = null!;
-        public string Description { get; set; } = null!;
-        public string ImageUrl { get; set; } = null!;
+        public IFormFile? ImageFile { get; set; } = null!;
+        public string? Prompt { get; set; } = null!;
         public long OwnerId { get; set; }
+        public TextureStatus Status { get; set; } = TextureStatus.Private;
     }
 
     public class AddTextureResponse
     {
         public long Id { get; set; }
-        public string Name { get; set; } = null!;
-        public string ImageUrl { get; set; } = null!;
-    }
-
-    public class UpdateTextureRequest
-    {
-        public long Id { get; set; }
-        public string Name { get; set; } = null!;
-        public string Description { get; set; } = null!;
-        public string ImageUrl { get; set; } = null!;
-    }
-
-    public class UpdateTextureResponse
-    {
-        public long Id { get; set; }
-        public string Name { get; set; } = null!;
         public string ImageUrl { get; set; } = null!;
     }
 
@@ -82,19 +55,13 @@ namespace FCSP.DTOs.Texture
 
     public class GenerateImageRequest
     {
-        public string Prompt { get; set; } = null!;
-        public string? PreferredModel { get; set; }
+        public string? Prompt { get; set; } = null!;
     }
 
     public class GenerateImageResponse
     {
-        public bool Success { get; set; }
-        public string? ImagePath { get; set; }
-        public string? FileName { get; set; }
         public string? ImageUrl { get; set; }
         public string? Prompt { get; set; }
-        public string? ModelUsed { get; set; }
-        public string? ErrorMessage { get; set; }
     }
 
     public class ImageGenerationResponse
