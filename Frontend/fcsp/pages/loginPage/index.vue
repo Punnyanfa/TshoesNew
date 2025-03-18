@@ -100,6 +100,7 @@ const login = () => {
   align-items: center;
   height: 100vh;
   background: #f5f5f5;
+  border-radius: none;
 }
 
 /* 📦 Login Box (Chia 2 cột) */
