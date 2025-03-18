@@ -90,48 +90,37 @@ const register = () => {
 </script>
 
 <style scoped>
+/* 🌟 Background */
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background: #f5f5f5;
+  border-radius: none;
 }
 
+/* 📦 Register Box (Chia 2 cột) */
 .register-box {
   display: flex;
-  width: 900px;
-  height: 600px;
+  width: 100%;
+  height: 100vh;
   background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
-}
-
-/* 🏀 Phần trái: Hình ảnh sneaker */
-.register-image {
-  width: 50%;
-  background: linear-gradient(135deg, #ff5722, #ff8a50);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.register-image img {
-  width: 90%;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* 🎨 Phần phải: Form đăng ký */
 .register-form {
   width: 50%;
-  padding: 2rem;
+  padding: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
+/* 🔥 Branding */
 .brand-name {
   font-size: 2rem;
   font-weight: bold;
@@ -147,6 +136,7 @@ const register = () => {
   text-align: center;
 }
 
+/* 🔑 Input Group */
 .input-group {
   display: flex;
   align-items: center;
@@ -164,15 +154,20 @@ const register = () => {
 input {
   width: 100%;
   padding-left: 40px;
-  border-radius: 5px;
+  border: none;
+  border-radius: 0;
   transition: 0.3s ease-in-out;
+  background-color: #f5f5f5;
 }
 
 input:focus {
-  border-color: #ff5722;
-  box-shadow: 0 0 8px rgba(255, 87, 34, 0.6);
+  border: none;
+  box-shadow: none;
+  background-color: #ebebeb;
+  outline: none;
 }
 
+/* 👁️ Toggle Password */
 .toggle-password {
   position: absolute;
   right: 10px;
@@ -182,6 +177,7 @@ input:focus {
   font-size: 20px;
 }
 
+/* ❌ Error Message */
 .error-message {
   color: red;
   font-size: 0.875rem;
@@ -189,13 +185,15 @@ input:focus {
   margin-top: 5px;
 }
 
+/* 🚀 Custom Button */
 .btn-custom {
   background: #ff5722;
   color: white;
   font-weight: bold;
   text-transform: uppercase;
   transition: 0.3s;
-  border-radius: 30px;
+  border: none;
+  border-radius: 0;
   padding: 12px;
 }
 
@@ -204,6 +202,7 @@ input:focus {
   transform: scale(1.05);
 }
 
+/* 📎 Sign Up Link */
 .link {
   color: #ff5722;
   text-decoration: none;
@@ -212,5 +211,37 @@ input:focus {
 
 .link:hover {
   text-decoration: underline;
+}
+
+/* 🏀 Phần trái: Hình ảnh sneaker */
+.register-image {
+  width: 50%;
+  height: 100vh;
+  background: linear-gradient(135deg, #ff5722, #ff8a50);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register-image img {
+  width: 90%;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Thêm media query cho responsive */
+@media (max-width: 768px) {
+  .register-box {
+    flex-direction: column;
+  }
+  
+  .register-form,
+  .register-image {
+    width: 100%;
+  }
+  
+  .register-image {
+    height: 40vh;
+  }
 }
 </style>
