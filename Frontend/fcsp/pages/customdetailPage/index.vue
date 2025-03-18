@@ -3,65 +3,81 @@
     <!-- Header Component -->
     <Header />
 
-    <!-- Sidebar Custom Component -->
-    <SidebarCustom :scene="scene" :model="model" :original-materials="originalMaterials" @texture-applied="handleTextureApplied" @text-applied="handleTextApplied" @background-color-applied="handleBackgroundColorApplied" />
+    <div class="content-wrapper">
+      <main class="main-content">
+        <div class="customizer-grid">
+          <!-- Sidebar Custom Component -->
+          <SidebarCustom 
+            class="sidebar-custom"
+            :scene="scene" 
+            :model="model" 
+            :original-materials="originalMaterials"
+            @texture-applied="handleTextureApplied"
+            @text-applied="handleTextApplied" 
+            @background-color-applied="handleBackgroundColorApplied"
+          />
 
-    <!-- Main Content Section -->
-    <main class="main-content">
-      <div class="customizer-grid">
-        <!-- Main Product Area (Left) -->
-        <div class="product-area">
-          <div class="three-canvas">
-            <!-- Khối 2D ban đầu -->
-            <div v-if="!show3D" class="preview-block"></div>
-            <!-- Canvas 3D chỉ hiển thị khi show3D = true -->
-            <div v-show="show3D" ref="container" class="three-canvas-inner">
-              <div v-if="!isModelLoaded" class="loading-overlay">
-                <span class="loading-text">Loading 3D Model...</span>
+          <!-- Main Product Area (Center) -->
+          <div class="product-area">
+            <div class="three-canvas" 
+                 @dragover.prevent="handleDragOver"
+                 @dragleave.prevent="handleDragLeave"
+                 @drop.prevent="handleDrop"
+                 :class="{ 'drag-active': isDragging }">
+              <!-- Khối 2D ban đầu -->
+              <div v-if="!show3D" class="preview-block"></div>
+              <!-- Canvas 3D chỉ hiển thị khi show3D = true -->
+              <div v-show="show3D" ref="container" class="three-canvas-inner">
+                <div v-if="!isModelLoaded" class="loading-overlay">
+                  <span class="loading-text">Loading 3D Model...</span>
+                </div>
+                <div v-if="isDragging" class="drag-overlay">
+                  <span>Thả ảnh vào đây để áp dụng texture</span>
+                </div>
+                <!-- Nút điều khiển animation -->
+                <button v-if="isModelLoaded" class="animation-toggle-btn" @click="toggleAnimation">
+                  {{ isAnimating ? 'Pause Animation' : 'Play Animation' }}
+                </button>
               </div>
-              <!-- Nút điều khiển animation -->
-              <button v-if="isModelLoaded" class="animation-toggle-btn" @click="toggleAnimation">
-                {{ isAnimating ? 'Pause Animation' : 'Play Animation' }}
-              </button>
+            </div>
+          </div>
+
+          <!-- Product Details and Controls (Right) -->
+          <div class="details-section">
+            <h1 class="product-title">Customizable Lightweight Breathable Running Sneakers</h1>
+            <button class="customize-btn" @click="handleCustomize" :disabled="!isModelLoaded || !show3D">
+              <span v-if="!isModelLoaded || !show3D">Loading...</span>
+              <span v-else>Customize Now</span>
+            </button>
+
+            <!-- Product Details -->
+            <div class="product-details">
+              <p class="price">2,587,000₫</p>
+              <div class="detail-row">
+                <span>Color:</span>
+                <span class="detail-value">White</span>
+              </div>
+              <div class="detail-row">
+                <span>Size:</span>
+                <select class="size-select">
+                  <option>Women US 5.5 (EU 36)</option>
+                  <option>Women US 6 (EU 37)</option>
+                  <option>Women US 6.5 (EU 38)</option>
+                  <option>Women US 7 (EU 39)</option>
+                </select>
+              </div>
+              <div class="detail-row description-toggle" @click="toggleDescription">
+                <span>Description</span>
+                <button class="toggle-btn">{{ showDescription ? '▲' : '▼' }}</button>
+              </div>
+              <div v-if="showDescription" class="description-content">
+                <p>Experience ultimate comfort and style with these lightweight, breathable running sneakers. Perfect for daily runs, workouts, or casual wear, featuring a durable sole and premium fabric for all-day support.</p>
+              </div>
             </div>
           </div>
         </div>
-
-        <!-- Product Details and Controls (Right) -->
-        <div class="details-section">
-          <h1 class="product-title">Customizable Lightweight Breathable Running Sneakers</h1>
-          <button class="customize-btn" @click="handleCustomize" :disabled="!isModelLoaded || !show3D">
-            <span v-if="!isModelLoaded || !show3D">Loading...</span>
-            <span v-else>Customize Now</span>
-          </button>
-
-          <!-- Product Details -->
-          <div class="product-details">
-            <p class="price">2,587,000₫</p>
-            <div class="detail-row">
-              <span>Color:</span>
-              <span class="detail-value">White</span>
-            </div>
-            <div class="detail-row">
-              <span>Size:</span>
-              <select class="size-select">
-                <option>Women US 5.5 (EU 36)</option>
-                <option>Women US 6 (EU 37)</option>
-                <option>Women US 6.5 (EU 38)</option>
-                <option>Women US 7 (EU 39)</option>
-              </select>
-            </div>
-            <div class="detail-row description-toggle" @click="toggleDescription">
-              <span>Description</span>
-              <button class="toggle-btn">{{ showDescription ? '▲' : '▼' }}</button>
-            </div>
-            <div v-if="showDescription" class="description-content">
-              <p>Experience ultimate comfort and style with these lightweight, breathable running sneakers. Perfect for daily runs, workouts, or casual wear, featuring a durable sole and premium fabric for all-day support.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+      </main>
+    </div>
 
     <!-- Footer Component -->
     <Footer />
@@ -81,72 +97,83 @@ const isModelLoaded = ref(false);
 const showDescription = ref(false);
 const isAnimating = ref(false);
 const show3D = ref(true);
+const isDragging = ref(false);
+const currentTexture = ref(null);
 
 // Khai báo các biến Three.js
 let scene, camera, renderer, controls, mixer, model;
 let originalMaterials = new Map();
 
 const initThreeJS = () => {
-  // Khởi tạo scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
 
-  // Khởi tạo camera
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth * 0.5 / (window.innerHeight * 0.8), 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth * 0.5 / (window.innerHeight * 0.8),
+    0.1,
+    1000
+  );
   camera.position.set(0, 2, 5);
 
-  // Khởi tạo renderer
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  // Cải thiện renderer
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: true
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Giới hạn pixel ratio để tối ưu hiệu suất
   renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.8);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2; // Tăng độ sáng
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
   if (container.value && show3D.value) {
     container.value.appendChild(renderer.domElement);
   }
 
-  // Thêm ánh sáng
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 5, 5);
-  scene.add(directionalLight);
+  // Thiết lập ánh sáng
+  setupLighting();
 
-  // Khởi tạo controls
+  // Cải thiện controls
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
+  controls.minDistance = 3;
+  controls.maxDistance = 10;
+  controls.maxPolarAngle = Math.PI / 1.5;
+  controls.enablePan = false;
 
-  // Tải model 3D
+  // Tải model với chất lượng cao hơn
   const loader = new GLTFLoader();
   loader.load(
     '/Nike jordan.glb',
     (gltf) => {
-      console.log('✅ Model loaded successfully:', gltf);
       model = gltf.scene;
+      
+      // Cải thiện chất lượng model
       model.traverse((child) => {
-        if (child.isMesh) originalMaterials.set(child, child.material.clone());
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // Lưu material gốc
+          originalMaterials.set(child, child.material.clone());
+          // Tối ưu geometry
+          if (child.geometry) {
+            child.geometry.computeVertexNormals();
+          }
+        }
       });
-      scene.add(model);
 
-      // Điều chỉnh vị trí và tỉ lệ của model
+      scene.add(model);
       model.scale.set(1, 1, 1);
       model.position.set(-1, 0, 0);
-
-      // Khởi tạo AnimationMixer nếu có animation
-      if (gltf.animations && gltf.animations.length > 0) {
-        mixer = new THREE.AnimationMixer(model);
-        const action = mixer.clipAction(gltf.animations[0]);
-        action.setLoop(THREE.LoopRepeat); // Lặp lại animation
-        action.play(); // Chạy ngay khi tải xong
-        isAnimating.value = true;
-      } else {
-        // Nếu không có animation, xoay mặc định
-        isAnimating.value = true;
-      }
-
+      
       isModelLoaded.value = true;
     },
-    (xhr) => {
-      console.log(`Loading progress: ${(xhr.loaded / xhr.total) * 100}%`);
-    },
+    undefined,
     (error) => {
       console.error('❌ Error loading model:', error);
       isModelLoaded.value = false;
@@ -154,22 +181,23 @@ const initThreeJS = () => {
   );
 };
 
-// Animation loop
-const clock = new THREE.Clock();
+// Cập nhật animation loop
 const animate = () => {
   requestAnimationFrame(animate);
-  controls.update();
+  
+  if (controls) controls.update();
 
-  if (isAnimating.value) {
+  if (isAnimating.value && model) {
     if (mixer) {
       mixer.update(clock.getDelta());
-    } else if (model) {
-      // Animation mặc định: xoay model
-      model.rotation.y += 0.01;
+    } else {
+      model.rotation.y += 0.005; // Giảm tốc độ xoay
     }
   }
 
-  renderer.render(scene, camera);
+  if (renderer && scene && camera) {
+    renderer.render(scene, camera);
+  }
 };
 
 // Khi mounted
@@ -225,8 +253,8 @@ const handleCustomize = () => {
 };
 
 // Handle texture applied event from SidebarCustom
-const handleTextureApplied = (texture) => {
-  console.log('Texture applied to model:', texture);
+const handleTextureApplied = (textureUrl) => {
+  currentTexture.value = textureUrl;
 };
 
 // Handle text applied event from SidebarCustom
@@ -243,6 +271,152 @@ const handleBackgroundColorApplied = (color) => {
 const toggleDescription = () => {
   showDescription.value = !showDescription.value;
 };
+
+// Thêm các hàm xử lý drag & drop
+const handleDragOver = (event) => {
+  event.preventDefault();
+  isDragging.value = true;
+};
+
+const handleDragLeave = () => {
+  isDragging.value = false;
+};
+
+// Cập nhật hàm applyTextureToObject
+const applyTextureToObject = (object, textureUrl) => {
+  if (!textureUrl) return;
+
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(textureUrl, (texture) => {
+    // Cải thiện chất lượng texture
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texture.encoding = THREE.sRGBEncoding;
+    texture.needsUpdate = true;
+
+    // Đảm bảo texture hiển thị đúng tỷ lệ và không bị lặp
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.repeat.set(1, 1);
+    texture.offset.set(0, 0);
+    
+    // Tối ưu filter cho texture rõ nét
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false; // Tắt mipmaps để tránh làm mờ texture
+
+    // Tạo material mới với các thuộc tính tối ưu
+    const newMaterial = new THREE.MeshStandardMaterial({
+      map: texture,
+      metalness: 0, // Giảm hoàn toàn độ kim loại
+      roughness: 0.5,
+      transparent: true,
+      opacity: 1,
+      side: THREE.DoubleSide,
+      envMapIntensity: 1,
+    });
+
+    // Áp dụng material
+    if (object.material) {
+      object.material.dispose();
+    }
+    object.material = newMaterial;
+
+    // Điều chỉnh UV mapping để texture hiển thị đúng
+    if (object.geometry) {
+      const uvAttribute = object.geometry.attributes.uv;
+      if (uvAttribute) {
+        // Reset UV coordinates về mặc định
+        for (let i = 0; i < uvAttribute.count; i++) {
+          uvAttribute.setXY(
+            i,
+            uvAttribute.getX(i),
+            uvAttribute.getY(i)
+          );
+        }
+        uvAttribute.needsUpdate = true;
+      }
+      object.geometry.computeVertexNormals();
+    }
+
+    // Đảm bảo cập nhật material
+    object.material.needsUpdate = true;
+  });
+};
+
+// Cập nhật lighting setup để texture hiển thị rõ hơn
+const setupLighting = () => {
+  // Xóa ánh sáng cũ
+  scene.children.forEach(child => {
+    if (child.isLight) scene.remove(child);
+  });
+
+  // Ánh sáng môi trường mạnh hơn
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+  scene.add(ambientLight);
+
+  // Ánh sáng chính từ phía trước
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  mainLight.position.set(0, 5, 10);
+  scene.add(mainLight);
+
+  // Ánh sáng phụ từ các hướng khác
+  const backLight = new THREE.DirectionalLight(0xffffff, 1);
+  backLight.position.set(0, 5, -10);
+  scene.add(backLight);
+
+  const leftLight = new THREE.DirectionalLight(0xffffff, 1);
+  leftLight.position.set(-10, 5, 0);
+  scene.add(leftLight);
+
+  const rightLight = new THREE.DirectionalLight(0xffffff, 1);
+  rightLight.position.set(10, 5, 0);
+  scene.add(rightLight);
+};
+
+// Thêm hàm xử lý khi texture được load
+const handleTextureLoaded = (texture) => {
+  texture.flipY = false; // Thử đảo ngược texture nếu bị lộn ngược
+};
+
+// Cập nhật hàm handleDrop
+const handleDrop = async (event) => {
+  isDragging.value = false;
+  
+  if (!model || !currentTexture.value) return;
+
+  const rect = event.target.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2(x, y);
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObject(model, true);
+  
+  if (intersects.length > 0) {
+    const intersectedObject = intersects[0].object;
+    
+    // Tạm dừng animation
+    const wasAnimating = isAnimating.value;
+    isAnimating.value = false;
+
+    try {
+      // Lưu trữ material gốc trước khi áp dụng texture mới
+      if (!originalMaterials.has(intersectedObject)) {
+        originalMaterials.set(intersectedObject, intersectedObject.material.clone());
+      }
+
+      await applyTextureToObject(intersectedObject, currentTexture.value);
+      
+      // Khôi phục animation
+      isAnimating.value = wasAnimating;
+    } catch (error) {
+      console.error('Lỗi khi áp dụng texture:', error);
+      alert('Có lỗi xảy ra khi áp dụng texture.');
+    }
+  }
+};
 </script>
 
 <style scoped>
@@ -254,24 +428,41 @@ const toggleDescription = () => {
 
 /* Main Content */
 .main-content {
+  flex: 1;
   padding: 2rem;
-  max-width: 1400px; /* Increased max-width for better spacing */
-  margin: 0 0 0 500px;
+  max-width: 1400px;
+  margin: 0 auto; /* Thêm margin auto để căn giữa */
 }
 
 /* Customizer Grid */
 .customizer-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr; /* Sidebar | Product Area | Details */
+  display: flex;
   gap: 2rem;
-  align-items: start;
+  align-items: flex-start;
+  width: 100%;
+  position: relative;
+}
+
+/* Sidebar Custom */
+.sidebar-custom {
+  flex: 1;
+  background: #ffffff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  height: fit-content; /* Chiều cao theo nội dung */
+  max-height: 650px; /* Giới hạn chiều cao tối đa */
+  overflow-y: auto; /* Cho phép scroll nếu nội dung dài */
 }
 
 /* Product Area (Center) */
 .product-area {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 500px; /* Đảm bảo khu vực hiển thị 3D có đủ chiều cao */
 }
 
 .three-canvas {
@@ -351,19 +542,12 @@ const toggleDescription = () => {
 
 /* Details Section (Right) */
 .details-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  flex: 1;
   background: #ffffff;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  max-width: 400px; /* Limit details section width */
-}
-
-.details-section:hover {
-  transform: translateY(-5px);
+  height: fit-content; /* Chiều cao theo nội dung */
 }
 
 .product-title {
@@ -499,16 +683,28 @@ const toggleDescription = () => {
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .customizer-grid {
+    flex-direction: column;
+  }
+
+  .sidebar-custom,
+  .product-area,
+  .details-section {
+    width: 100%;
+  }
+}
+
 @media (max-width: 1024px) {
   .customizer-grid {
-    grid-template-columns: 1fr; /* Stack vertically on smaller screens */
+    flex-direction: column; /* Stack vertically on smaller screens */
     gap: 1.5rem;
   }
 
-  .sidebar-section,
+  .sidebar-custom,
   .product-area,
   .details-section {
-    max-width: 100%; /* Full width on smaller screens */
+    width: 100%;
   }
 
   .three-canvas {
@@ -551,5 +747,90 @@ const toggleDescription = () => {
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
   }
+}
+
+/* Thêm styles mới */
+.content-wrapper {
+  min-height: calc(100vh - 120px); /* Điều chỉnh theo chiều cao của header và footer */
+}
+
+/* Thêm styles mới cho drag & drop */
+.three-canvas {
+  position: relative;
+}
+
+.drag-active {
+  border: 2px dashed #4CAF50;
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.drag-overlay span {
+  padding: 15px 25px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.three-canvas-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Thêm style cho loading message */
+.texture-loading-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  z-index: 1000;
+}
+
+/* Điều chỉnh style cho preview texture */
+.image-preview {
+  max-width: 150px; /* Giới hạn kích thước tối đa của preview */
+  max-height: 150px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Giữ tỷ lệ ảnh */
+  border-radius: 8px;
+}
+
+/* Animation cho texture loading */
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.texture-loading-message {
+  animation: fadeInOut 1.5s infinite;
 }
 </style>
