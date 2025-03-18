@@ -26,16 +26,12 @@
           style="display: none;"
         />
         <div v-if="uploadedImage" class="uploaded-file-info">
-          <div class="image-preview">
+          <div class="image-preview" 
+               draggable="true"
+               @dragstart="handleDragStart"
+               @dragend="handleDragEnd">
             <img :src="imagePreviewUrl" alt="Uploaded Image Preview" />
           </div>
-          <button
-            class="apply-btn"
-            @click="applyTextureToModel"
-            :disabled="isApplying"
-          >
-            {{ isApplying ? 'Applying...' : 'Apply Texture' }}
-          </button>
         </div>
         <p v-if="uploadError" class="error-text">{{ uploadError }}</p>
       </div>
@@ -105,83 +101,24 @@ const handleImageUpload = (event) => {
   uploadError.value = '';
   if (file) {
     if (!file.type.startsWith('image/')) {
-      uploadError.value = 'Please upload a valid image file.';
+      uploadError.value = 'Vui lòng tải lên một file ảnh hợp lệ.';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      uploadError.value = 'File size exceeds 5MB limit.';
+      uploadError.value = 'Kích thước file vượt quá giới hạn 5MB.';
       return;
     }
     uploadedImage.value = file;
 
-    // Create preview URL for the image
+    // Tạo preview URL và áp dụng texture ngay lập tức
     const reader = new FileReader();
     reader.onload = (e) => {
       imagePreviewUrl.value = e.target.result;
+      // Áp dụng texture ngay sau khi tải ảnh
+      emit('textureApplied', e.target.result);
     };
     reader.readAsDataURL(file);
   }
-};
-
-// Apply texture to purple parts of the model
-const applyTextureToModel = () => {
-  if (!uploadedImage.value || !props.model) return;
-
-  isApplying.value = true;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(
-      e.target.result,
-      (texture) => {
-        texture.flipY = false;
-
-        // Traverse the model to find meshes
-        props.model.traverse((child) => {
-          if (child.isMesh) {
-            // Check if the material's color is purple
-            const material = child.material;
-            let isPurple = false;
-
-            if (material.color) {
-              const color = material.color; // THREE.Color object
-              const r = color.r * 255;
-              const g = color.g * 255;
-              const b = color.b * 255;
-
-              // Define a range for purple (adjust as needed)
-              if (r > 100 && g < 50 && b > 100) {
-                isPurple = true;
-              }
-            }
-
-            // Apply texture only to purple parts
-            if (isPurple) {
-              const newMaterial = new THREE.MeshStandardMaterial({
-                map: texture,
-                metalness: 0.2,
-                roughness: 0.8,
-              });
-              child.material.dispose();
-              child.material = newMaterial;
-              child.material.needsUpdate = true;
-            }
-          }
-        });
-
-        isApplying.value = false;
-        emit('textureApplied', texture);
-        alert('Texture applied to purple parts successfully!');
-      },
-      undefined,
-      (error) => {
-        console.error('Error loading texture:', error);
-        isApplying.value = false;
-        uploadError.value = 'Failed to apply texture. Please try again.';
-      }
-    );
-  };
-  reader.readAsDataURL(uploadedImage.value);
 };
 
 // Create text texture using Canvas
@@ -293,6 +230,15 @@ const resetModel = () => {
   alert('Model reset to original state!');
 };
 
+const handleDragStart = (event) => {
+  event.dataTransfer.setData('text/plain', ''); // Cần thiết cho một số trình duyệt
+  emit('textureApplied', imagePreviewUrl.value);
+};
+
+const handleDragEnd = () => {
+  // Có thể thêm logic xử lý khi kết thúc drag nếu cần
+};
+
 watch(() => props.model, (newModel) => {
   if (newModel) {
     console.log('Model ready for customization:', newModel);
@@ -302,17 +248,17 @@ watch(() => props.model, (newModel) => {
 
 <style scoped>
 .sidebar-custom {
-  width: 250px;
-  height: 600px;
+  width: 300px;
+  height: 100vh;
   background: #2a3b5a;
   color: #ffffff;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
   position: fixed;
-  top: 50%;
-  left: 2rem;
-  transform: translateY(-50%);
+  top: 0;
+  left: 0;
+  transform: none;
   z-index: 10;
   transition: all 0.3s ease;
 }
@@ -365,16 +311,27 @@ watch(() => props.model, (newModel) => {
 }
 
 .image-preview {
-  margin-top: 0.5rem;
-  text-align: center;
+  width: 100%;
+  height: 250px;
+  margin: 10px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  cursor: grab;
 }
 
 .image-preview img {
-  max-width: 100%;
-  max-height: 150px;
-  border-radius: 8px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  border: 1px solid #ffffff;
+  pointer-events: none;
+}
+
+.image-preview:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .error-text {
@@ -493,13 +450,21 @@ watch(() => props.model, (newModel) => {
 
 @media (max-width: 768px) {
   .sidebar-custom {
-    width: 200px;
-    left: 1rem;
-    padding: 1rem;
+    width: 100%;
+    height: auto;
+    position: relative;
+    left: 0;
+    padding: 10px;
   }
-
-  .color-options {
-    grid-template-columns: repeat(3, 1fr);
+  
+  .tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .tab-btn {
+    flex: 1 1 auto;
+    min-width: 120px;
   }
 }
 </style>
