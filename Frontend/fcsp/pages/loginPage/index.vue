@@ -105,18 +105,18 @@ const login = () => {
 /* 📦 Login Box (Chia 2 cột) */
 .login-box {
   display: flex;
-  width: 900px;
-  height: 600px;
+  width: 100%;
+  height: 100vh;
   background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
 }
 
 /* 🎨 Phần trái: Form đăng nhập */
 .login-form {
   width: 50%;
-  padding: 2rem;
+  padding: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -156,13 +156,17 @@ const login = () => {
 input {
   width: 100%;
   padding-left: 40px;
-  border-radius: 5px;
+  border: none;
+  border-radius: 0;
   transition: 0.3s ease-in-out;
+  background-color: #f5f5f5;
 }
 
 input:focus {
-  border-color: #ff5722;
-  box-shadow: 0 0 8px rgba(255, 87, 34, 0.6);
+  border: none;
+  box-shadow: none;
+  background-color: #ebebeb;
+  outline: none;
 }
 
 /* 👁️ Toggle Password */
@@ -190,7 +194,8 @@ input:focus {
   font-weight: bold;
   text-transform: uppercase;
   transition: 0.3s;
-  border-radius: 30px;
+  border: none;
+  border-radius: 0;
   padding: 12px;
 }
 
@@ -213,6 +218,7 @@ input:focus {
 /* 🏀 Phần phải: Hình ảnh sneaker */
 .login-image {
   width: 50%;
+  height: 100vh;
   background: linear-gradient(135deg, #ff5722, #ff8a50);
   display: flex;
   justify-content: center;
@@ -223,5 +229,21 @@ input:focus {
   width: 90%;
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Thêm media query cho responsive */
+@media (max-width: 768px) {
+  .login-box {
+    flex-direction: column;
+  }
+  
+  .login-form,
+  .login-image {
+    width: 100%;
+  }
+  
+  .login-image {
+    height: 40vh;
+  }
 }
 </style>
