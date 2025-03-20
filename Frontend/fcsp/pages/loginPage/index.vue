@@ -27,6 +27,14 @@
             <label class="form-label">Password</label>
             <div class="input-group">
               <LockOutlined class="input-icon" />
+               <input
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-control"
+                :class="{ 'is-invalid': passwordError }"
+                placeholder="Enter your password"
+                required
+              />
 
               <button type="button" class="toggle-password" @click="togglePassword">
                 <EyeOutlined v-if="!showPassword" />
