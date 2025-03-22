@@ -4,6 +4,5 @@ public enum TextureStatus
 {
     Private = 0,
     Public = 1,
-    Restricted = 2,
-    Draft = 3
+    Archived = 2,
 } 

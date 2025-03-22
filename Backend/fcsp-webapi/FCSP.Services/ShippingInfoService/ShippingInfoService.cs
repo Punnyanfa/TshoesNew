@@ -1,6 +1,6 @@
 ﻿using FCSP.DTOs.ShippingInfo;
 using FCSP.Models.Entities;
-using FCSP.Repositories;
+using FCSP.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -6,13 +6,13 @@ using System.Linq;
 
 namespace FCSP.Repositories.Implementations
 {
-    public class CustomShoeDesignImageRepository : GenericRepository<CustomShoeDesignImage>, ICustomShoeDesignImageRepository
+    public class CustomShoeDesignTexturesRepository : GenericRepository<CustomShoeDesignTextures>, ICustomShoeDesignTexturesRepository
     {
-        public CustomShoeDesignImageRepository(FcspDbContext context) : base(context)
+        public CustomShoeDesignTexturesRepository(FcspDbContext context) : base(context)
         {
         }
 
-        public async Task<IEnumerable<CustomShoeDesignImage>> GetByCustomShoeDesignIdAsync(long customShoeDesignId)
+        public async Task<IEnumerable<CustomShoeDesignTextures>> GetByCustomShoeDesignIdAsync(long customShoeDesignId)
         {
             return await Entities
                 .Where(i => i.CustomShoeDesignId == customShoeDesignId)

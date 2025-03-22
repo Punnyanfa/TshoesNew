@@ -31,24 +31,27 @@ public class TextureService : ITextureService
         _azureContainerName = _configuration["AzureStorage:ContainerName"];
         _promptToImproveImage = _configuration["ImageStorage:PromptToImproveImage"];
     }
+
     #region Public Methods
-    public async Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetAllTextures()
+    public async Task<BaseResponseModel<GetAllTexturesResponse>> GetAllTextures()
     {
         try
         {
-            var textures = await _textureRepository.GetAllAsync();
-            var response = textures.Select(t => MapToDetailedResponse(t));
-            
-            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            var textures = await GetAllTexturesForResponse();
+
+            return new BaseResponseModel<GetAllTexturesResponse>
             {
                 Code = 200,
                 Message = "Textures retrieved successfully",
-                Data = response
+                Data = new GetAllTexturesResponse()
+                {
+                    ImageUrls = textures
+                }
             };
         }
         catch (Exception ex)
         {
-            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            return new BaseResponseModel<GetAllTexturesResponse>
             {
                 Code = 500,
                 Message = ex.Message,
@@ -57,23 +60,25 @@ public class TextureService : ITextureService
         }
     }
 
-    public async Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetAvailableTextures()
+    public async Task<BaseResponseModel<GetAvailableTexturesResponse>> GetAvailableTextures()
     {
         try
         {
-            var textures = await _textureRepository.GetAvailableTexturesAsync();
-            var response = textures.Select(t => MapToDetailedResponse(t));
-            
-            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            var textures = await GetAvailableTexturesForResponse();
+
+            return new BaseResponseModel<GetAvailableTexturesResponse>
             {
                 Code = 200,
                 Message = "Available textures retrieved successfully",
-                Data = response
+                Data = new GetAvailableTexturesResponse()
+                {
+                    ImageUrls = textures
+                }
             };
         }
         catch (Exception ex)
         {
-            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            return new BaseResponseModel<GetAvailableTexturesResponse>
             {
                 Code = 500,
                 Message = ex.Message,
@@ -86,22 +91,16 @@ public class TextureService : ITextureService
     {
         try
         {
-            var texture = await _textureRepository.FindAsync(request.Id);
-            if (texture == null)
-            {
-                return new BaseResponseModel<GetTextureByIdResponse>
-                {
-                    Code = 404,
-                    Message = $"Texture with ID {request.Id} not found",
-                    Data = null
-                };
-            }
+            var texture = await GetTextureFromId(request);
 
             return new BaseResponseModel<GetTextureByIdResponse>
             {
                 Code = 200,
                 Message = "Texture retrieved successfully",
-                Data = MapToDetailedResponse(texture)
+                Data = new GetTextureByIdResponse()
+                {
+                    ImageUrl = texture.ImageUrl
+                }
             };
         }
         catch (Exception ex)
@@ -115,31 +114,25 @@ public class TextureService : ITextureService
         }
     }
 
-    public async Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetTexturesByUser(GetTexturesByUserRequest request)
+    public async Task<BaseResponseModel<GetTexturesByUserIdResponse>> GetTexturesByUserId(GetTexturesByUserIdRequest request)
     {
         try
         {
-            var textures = await _textureRepository.GetTexturesByUserIdAsync(request.UserId);
-            if (textures == null || !textures.Any())
-            {
-                return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
-                {
-                    Code = 404,
-                    Message = "No textures found for the user",
-                    Data = new List<GetTextureByIdResponse>()
-                };
-            }
+            var textures = await GetTexturesFromUserId(request.UserId);
 
-            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            return new BaseResponseModel<GetTexturesByUserIdResponse>
             {
                 Code = 200,
                 Message = "User textures retrieved successfully",
-                Data = textures.Select(t => MapToDetailedResponse(t))
+                Data = new GetTexturesByUserIdResponse()
+                {
+                    ImageUrls = textures
+                }
             };
         }
         catch (Exception ex)
         {
-            return new BaseResponseModel<IEnumerable<GetTextureByIdResponse>>
+            return new BaseResponseModel<GetTexturesByUserIdResponse>
             {
                 Code = 500,
                 Message = ex.Message,
@@ -154,14 +147,14 @@ public class TextureService : ITextureService
         {
             var texture = await GetTextureFromAddTextureRequest(request);
 
-        await _textureRepository.AddAsync(texture);
+            await _textureRepository.AddAsync(texture);
 
-        return new BaseResponseModel<AddTextureResponse>
-        {
-            Code = 200,
-            Message = "Texture added successfully",
-            Data = new AddTextureResponse
+            return new BaseResponseModel<AddTextureResponse>
             {
+                Code = 200,
+                Message = "Texture added successfully",
+                Data = new AddTextureResponse
+                {
                     Id = texture.Id,
                     ImageUrl = texture.ImageUrl
                 }
@@ -212,6 +205,46 @@ public class TextureService : ITextureService
     #endregion
 
     #region Private Methods
+    private async Task<IEnumerable<string>> GetAllTexturesForResponse()
+    {
+        var textures = await _textureRepository.GetAllAsync();
+        if (textures == null || !textures.Any())
+        {
+            throw new InvalidOperationException("No available textures found");
+        }
+        return textures.Select(t => t.ImageUrl);
+    }
+
+    private async Task<IEnumerable<string>> GetAvailableTexturesForResponse()
+    {
+        var textures = await _textureRepository.GetAvailableTexturesAsync();
+        if (textures == null || !textures.Any())
+        {
+            throw new InvalidOperationException("No available textures found");
+        }
+        return textures.Select(t => t.ImageUrl);
+    }
+
+    private async Task<Texture> GetTextureFromId(GetTextureByIdRequest request)
+    {
+        var texture = await _textureRepository.FindAsync(request.Id);
+        if (texture == null)
+        {
+            throw new InvalidOperationException($"Texture with ID {request.Id} not found");
+        }
+        return texture;
+    }
+
+    private async Task<IEnumerable<string>> GetTexturesFromUserId(long userId)
+    {
+        var textures = await _textureRepository.GetTexturesByUserIdAsync(userId);
+        if (textures == null || !textures.Any())
+        {
+            throw new InvalidOperationException("No textures found for the user");
+        }
+        return textures.Select(t => t.ImageUrl);
+    }
+
     private async Task<Texture> GetTextureFromAddTextureRequest(AddTextureRequest request)
     {
         if (request.ImageFile != null && request.ImageFile.Length > 0)
@@ -344,14 +377,6 @@ public class TextureService : ITextureService
         {
             ImageUrl = azureImageUrl,
             Prompt = request.Prompt,
-        };
-    }
-
-    private GetTextureByIdResponse MapToDetailedResponse(Texture texture)
-    {
-        return new GetTextureByIdResponse
-        {
-            ImageUrl = texture.ImageUrl ?? string.Empty,
         };
     }
 

@@ -12,11 +12,27 @@ namespace FCSP.Repositories.Implementations
         {
         }
 
-        public async Task<IList<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId)
+        public async Task<IEnumerable<CustomShoeDesign>> GetAllPublicCustomShoeDesignsAsync()
+        {
+            return await Entities
+                .Include(d => d.CustomShoeDesignTextures)
+                .Include(d => d.DesignPreviews)
+                .Include(d => d.DesignServices)
+                .Where(d => d.IsDeleted == false)
+                .Where(d => d.Status == Common.Enums.CustomShoeDesignStatus.Public)
+                .ToListAsync();
+        }
+
+
+
+        public async Task<IEnumerable<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId)
         {
             return await Entities
                 .Where(d => d.UserId == userId)
                 .Include(d => d.CustomShoeDesignTextures)
+                .Include(d => d.DesignPreviews)
+                .Include(d => d.DesignServices)
+                .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }
     }

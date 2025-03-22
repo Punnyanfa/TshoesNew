@@ -21,17 +21,11 @@ namespace FCSP.Repositories.Implementations
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteByDesignIdAsync(long designId)
+        public async Task RemoveRangeAsync(IEnumerable<long> designIds)
         {
-            var texturesToDelete = await Entities
-                .Where(t => t.CustomShoeDesignId == designId)
-                .ToListAsync();
-
-            if (texturesToDelete.Any())
-            {
-                _dbContext.CustomShoeDesignTextures.RemoveRange(texturesToDelete);
-                await _dbContext.SaveChangesAsync();
-            }
+            var texturesToDelete = await _dbContext.CustomShoeDesignTextures.Where(t => designIds.Contains(t.CustomShoeDesignId)).ToListAsync();
+            _dbContext.CustomShoeDesignTextures.RemoveRange(texturesToDelete);
+            await _dbContext.SaveChangesAsync();
         }
 
         // Implement any custom repository methods here

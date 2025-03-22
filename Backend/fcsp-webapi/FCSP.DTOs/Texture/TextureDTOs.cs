@@ -4,6 +4,17 @@ using Microsoft.AspNetCore.Http;
 
 namespace FCSP.DTOs.Texture
 {
+
+    public class GetAllTexturesResponse
+    {
+        public IEnumerable<string> ImageUrls { get; set; } = [];
+    }
+
+    public class GetAvailableTexturesResponse
+    {
+        public IEnumerable<string> ImageUrls { get; set; } = [];
+    }
+
     public class GetTextureByIdRequest
     {
         public long Id { get; set; }
@@ -14,7 +25,12 @@ namespace FCSP.DTOs.Texture
         public string ImageUrl { get; set; } = null!;
     }
 
-    public class GetTexturesByUserRequest
+    public class GetTexturesByUserIdResponse
+    {
+        public IEnumerable<string> ImageUrls { get; set; } = [];
+    }
+
+    public class GetTexturesByUserIdRequest
     {
         public long UserId { get; set; }
     }
@@ -43,16 +59,6 @@ namespace FCSP.DTOs.Texture
         public bool Success { get; set; }
     }
 
-    public class GetTexturesByBuyerRequest
-    {
-        public long BuyerId { get; set; }
-    }
-
-    public class GetTexturesByOwnerRequest
-    {
-        public long OwnerId { get; set; }
-    }
-
     public class GenerateImageRequest
     {
         public string? Prompt { get; set; } = null!;
@@ -67,12 +73,12 @@ namespace FCSP.DTOs.Texture
     public class ImageGenerationResponse
     {
         [JsonPropertyName("data")]
-        public List<ImageData> Data { get; set; }
+        public List<ImageData> Data { get; set; } = new();
     }
 
     public class ImageData
     {
         [JsonPropertyName("b64_json")]
-        public string B64Json { get; set; }
+        public string? B64Json { get; set; }
     }
 } 

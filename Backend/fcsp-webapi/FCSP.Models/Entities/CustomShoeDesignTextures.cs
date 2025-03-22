@@ -1,6 +1,6 @@
 namespace FCSP.Models.Entities;
 
-public class CustomShoeDesignImage : BaseEntity
+public class CustomShoeDesignTextures : BaseEntity
 {
     public long CustomShoeDesignId { get; set; }
     public long TextureId { get; set; }

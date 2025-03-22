@@ -1,5 +1,4 @@
 ﻿using FCSP.Models.Context;
-using FCSP.Repositories;
 using FCSP.Repositories.Implementations;
 using FCSP.Repositories.Interfaces;
 
@@ -27,7 +26,7 @@ internal static class RepositoryConfig
         // Design repositories
         services.AddScoped<ICustomShoeDesignRepository, CustomShoeDesignRepository>();
         services.AddScoped<ICustomShoeDesignTextureRepository, CustomShoeDesignTextureRepository>();
-        services.AddScoped<ITemplateRepository, TemplateRepository>();
+        services.AddScoped<ICustomShoeDesignTemplateRepository, TemplateRepository>();
         services.AddScoped<IDesignPreviewRepository, DesignPreviewRepository>();
         services.AddScoped<IDesignServiceRepository, DesignServiceRepository>();
         

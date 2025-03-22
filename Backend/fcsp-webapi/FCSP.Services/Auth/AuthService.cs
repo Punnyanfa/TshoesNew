@@ -3,8 +3,8 @@ using FCSP.DTOs;
 using FCSP.Models.Entities;
 using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
-using FCSP.Repositories;
 using FCSP.DTOs.ShippingInfo;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.Auth;
 

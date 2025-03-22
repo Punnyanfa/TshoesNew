@@ -4,6 +4,7 @@ namespace FCSP.Repositories.Interfaces
 {
     public interface ICustomShoeDesignRepository : IGenericRepository<CustomShoeDesign>
     {
-        Task<IList<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId);
+        Task<IEnumerable<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId);
+        Task<IEnumerable<CustomShoeDesign>> GetAllPublicCustomShoeDesignsAsync();
     }
 }

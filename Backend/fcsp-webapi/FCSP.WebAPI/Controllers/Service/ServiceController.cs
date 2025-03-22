@@ -2,7 +2,7 @@ using FCSP.DTOs.Service;
 using FCSP.Services.ServiceService;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCSP.WebAPI.Controllers
+namespace FCSP.WebAPI.Controllers.Service
 {
     /// <summary>
     /// API Controller for managing services
@@ -121,4 +121,4 @@ namespace FCSP.WebAPI.Controllers
             }
         }
     }
-} 
+}

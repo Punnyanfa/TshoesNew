@@ -1,12 +1,14 @@
 ﻿namespace FCSP.Models.Entities;
 
+using FCSP.Common.Enums;
+
 public class CustomShoeDesign : BaseEntity
 {
     public long UserId { get; set; }
     public long CustomShoeDesignTemplateId { get; set; }
     public string? DesignData { get; set; }
     public string? Size { get; set; }
-    public int Status { get; set; }
+    public CustomShoeDesignStatus Status { get; set; }
     public float DesignerMarkup { get; set; }
     public float TotalAmount { get; set; }
     public bool IsDeleted { get; set; }
@@ -15,7 +17,6 @@ public class CustomShoeDesign : BaseEntity
     public virtual User User { get; set; } = null!;
     public virtual CustomShoeDesignTemplate CustomShoeDesignTemplate { get; set; } = null!;
     public virtual ICollection<CustomShoeDesignTexture> CustomShoeDesignTextures { get; } = [];
-    public virtual ICollection<CustomShoeDesignImage> CustomShoeDesignImages { get; } = [];
     public virtual ICollection<DesignPreview> DesignPreviews { get; } = [];
     public virtual ICollection<Rating> Ratings { get; } = [];
     public virtual ICollection<UserActivity> ViewedActivities { get; } = [];

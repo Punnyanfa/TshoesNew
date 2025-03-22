@@ -1,7 +1,6 @@
 ﻿using FCSP.Models.Entities;
-using FCSP.Repositories.Interfaces;
 
-namespace FCSP.Repositories;
+namespace FCSP.Repositories.Interfaces;
 
 public interface IUserRepository : IGenericRepository<User>
 {

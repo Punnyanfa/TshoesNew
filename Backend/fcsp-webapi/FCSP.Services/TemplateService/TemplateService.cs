@@ -1,14 +1,14 @@
 ﻿using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
-using FCSP.Repositories;
+using FCSP.Repositories.Interfaces;
 
 namespace FCSP.Services.TemplateService
 {
     public class TemplateService : ITemplateService
     {
-        private readonly ITemplateRepository _templateRepository;
+        private readonly ICustomShoeDesignTemplateRepository _templateRepository;
 
-        public TemplateService(ITemplateRepository templateRepository)
+        public TemplateService(ICustomShoeDesignTemplateRepository templateRepository)
         {
             _templateRepository = templateRepository;
         }

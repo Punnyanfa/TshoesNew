@@ -53,14 +53,7 @@ internal static class RelationshipConfig
             .HasForeignKey(dt => dt.TextureId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // CustomShoeDesignImage relationships
-        modelBuilder.Entity<CustomShoeDesignImage>()
-            .HasOne(di => di.CustomShoeDesign)
-            .WithMany(d => d.CustomShoeDesignImages)
-            .HasForeignKey(di => di.CustomShoeDesignId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<CustomShoeDesignImage>()
+        modelBuilder.Entity<CustomShoeDesignTextures>()
             .HasOne(di => di.Texture)
             .WithMany()
             .HasForeignKey(di => di.TextureId)

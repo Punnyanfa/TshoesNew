@@ -2,8 +2,8 @@ using FCSP.Models.Entities;
 
 namespace FCSP.Repositories.Interfaces
 {
-    public interface ICustomShoeDesignImageRepository : IGenericRepository<CustomShoeDesignImage>
+    public interface ICustomShoeDesignTexturesRepository : IGenericRepository<CustomShoeDesignTextures>
     {
-        Task<IEnumerable<CustomShoeDesignImage>> GetByCustomShoeDesignIdAsync(long customShoeDesignId);
+        Task<IEnumerable<CustomShoeDesignTextures>> GetByCustomShoeDesignIdAsync(long customShoeDesignId);
     }
 }

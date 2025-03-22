@@ -2,197 +2,349 @@ using FCSP.DTOs.CustomShoeDesign;
 using FCSP.DTOs.CustomShoeDesignTexture;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using FCSP.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FCSP.Services.CustomShoeDesignService
+namespace FCSP.Services.CustomShoeDesignService;
+
+public class CustomShoeDesignService : ICustomShoeDesignService
 {
-    public class CustomShoeDesignService : ICustomShoeDesignService
+    private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
+    private readonly ICustomShoeDesignTextureRepository _customShoeDesignTextureRepository;
+    private readonly IDesignPreviewRepository _designPreviewRepository;
+    private readonly ICustomShoeDesignTexturesRepository _customShoeDesignTexturesRepository;
+    private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
+
+    public CustomShoeDesignService(
+        ICustomShoeDesignRepository customShoeDesignRepository,
+        ICustomShoeDesignTextureRepository customShoeDesignTextureRepository,
+        IDesignPreviewRepository designPreviewRepository,
+        ICustomShoeDesignTexturesRepository customShoeDesignTexturesRepository,
+        ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository)
     {
-        private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
-        private readonly ICustomShoeDesignTextureRepository _customShoeDesignTextureRepository;
+        _customShoeDesignRepository = customShoeDesignRepository;
+        _customShoeDesignTextureRepository = customShoeDesignTextureRepository;
+        _designPreviewRepository = designPreviewRepository;
+        _customShoeDesignTexturesRepository = customShoeDesignTexturesRepository;
+        _customShoeDesignTemplateRepository = customShoeDesignTemplateRepository;
+    }
 
-        public CustomShoeDesignService(
-            ICustomShoeDesignRepository customShoeDesignRepository,
-            ICustomShoeDesignTextureRepository customShoeDesignTextureRepository)
-        {
-            _customShoeDesignRepository = customShoeDesignRepository;
-            _customShoeDesignTextureRepository = customShoeDesignTextureRepository;
-        }
-
-        public async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetAllCustomShoeDesigns()
-        {
-            var designs = await _customShoeDesignRepository.GetAllAsync();
-            return designs.Select(d => MapToDetailedResponse(d));
-        }
-
-        public async Task<GetCustomShoeDesignByIdResponse> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
-        {
-            var design = await _customShoeDesignRepository.FindAsync(request.Id);
-            if (design == null)
+    #region Public Methods
+    public async Task<BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>> GetAllPublicDesigns()
+    {
+        try{
+            var designs = await GetAllPublicCustomShoeDesigns();
+            return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
             {
-                throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
-            }
-
-            return MapToDetailedResponse(design);
-        }
-
-        public async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetDesignsByUser(GetDesignsByUserRequest request)
-        {
-            var designs = await _customShoeDesignRepository.GetDesignsByUserIdAsync(request.UserId);
-            return designs.Select(d => MapToDetailedResponse(d));
-        }
-
-        public async Task<AddCustomShoeDesignResponse> AddCustomShoeDesign(AddCustomShoeDesignRequest request)
-        {
-            var design = new CustomShoeDesign
-            {
-                UserId = request.UserId ?? 0,
-                CustomShoeDesignTemplateId = request.CustomShoeDesignTemplateId ?? 0,
-                DesignData = request.DesignData,
-                Size = null, // Set appropriate default or get from request
-                Status = 0, // Set appropriate default status
-                DesignerMarkup = 0, // Set appropriate default or get from request
-                TotalAmount = request.Price ?? 0,
-                IsDeleted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            var addedDesign = await _customShoeDesignRepository.AddAsync(design);
-
-            if (request.TextureIds != null && request.TextureIds.Any())
-            {
-                var designTextures = request.TextureIds.Select(textureId => new CustomShoeDesignTexture
+                Code = 200,
+                Message = "Custom shoe designs retrieved successfully",
+                Data = new GetAllPublicCustomShoeDesignsResponse
                 {
-                    CustomShoeDesignId = addedDesign.Id,
-                    TextureId = textureId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
-
-                await _customShoeDesignTextureRepository.AddRangeAsync(designTextures);
-            }
-
-            return new AddCustomShoeDesignResponse 
-            { 
-                Id = addedDesign.Id,
-                Preview3DFileUrl = null, // Set appropriate value if available
-                Price = addedDesign.TotalAmount
-            };
-        }
-
-        public async Task<UpdateCustomShoeDesignResponse> UpdateCustomShoeDesign(UpdateCustomShoeDesignRequest request)
-        { 
-            var design = await _customShoeDesignRepository.FindAsync(request.Id);
-            if (design == null)
-            {
-                throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
-            }
-
-            if (request.CustomShoeDesignTemplateId.HasValue)
-            {
-                design.CustomShoeDesignTemplateId = request.CustomShoeDesignTemplateId.Value;
-            }
-            
-            design.DesignData = request.DesignData ?? design.DesignData;
-            design.TotalAmount = request.Price ?? design.TotalAmount;
-            design.UpdatedAt = DateTime.UtcNow;
-
-            await _customShoeDesignRepository.UpdateAsync(design);
-
-            if (request.TextureIds != null)
-            {
-                await _customShoeDesignTextureRepository.DeleteByDesignIdAsync(design.Id);
-
-                if (request.TextureIds.Any())
-                {
-                    var designTextures = request.TextureIds.Select(textureId => new CustomShoeDesignTexture
-                    {
-                        CustomShoeDesignId = design.Id,
-                        TextureId = textureId,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    });
-
-                    await _customShoeDesignTextureRepository.AddRangeAsync(designTextures);
+                    Designs = designs
                 }
-            }
-
-            return new UpdateCustomShoeDesignResponse 
-            { 
-                Id = design.Id,
-                Preview3DFileUrl = null, // Set appropriate value if available
-                Price = design.TotalAmount
             };
         }
-
-        public async Task<DeleteCustomShoeDesignResponse> DeleteCustomShoeDesign(DeleteCustomShoeDesignRequest request)
+        catch(Exception ex)
         {
-            var design = await _customShoeDesignRepository.FindAsync(request.Id);
-            if (design == null)
+            return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
             {
-                throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
-            }
-
-            await _customShoeDesignTextureRepository.DeleteByDesignIdAsync(request.Id);
-            await _customShoeDesignRepository.DeleteAsync(request.Id);
-
-            return new DeleteCustomShoeDesignResponse { Success = true };
-        }
-
-        public async Task<IEnumerable<CustomShoeDesignTexture>> GetDesignTextures(long designId)
-        {
-            var allTextures = await _customShoeDesignTextureRepository.GetAllAsync();
-            return allTextures.Where(t => t.CustomShoeDesignId == designId);
-        }
-        
-        public async Task<CustomShoeDesignTexture> AddTextureToDesign(long designId, long textureId)
-        {
-            var texture = new CustomShoeDesignTexture
-            {
-                CustomShoeDesignId = designId,
-                TextureId = textureId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            
-            return await _customShoeDesignTextureRepository.AddAsync(texture);
-        }
-        
-        public async Task RemoveTextureFromDesign(long designId, long textureId)
-        {
-            var allTextures = await _customShoeDesignTextureRepository.GetAllAsync();
-            var textureToRemove = allTextures
-                .FirstOrDefault(t => t.CustomShoeDesignId == designId && t.TextureId == textureId);
-                
-            if (textureToRemove != null)
-            {
-                await _customShoeDesignTextureRepository.DeleteAsync(textureToRemove.Id);
-            }
-        }
-        
-        public async Task RemoveAllTexturesFromDesign(long designId)
-        {
-            await _customShoeDesignTextureRepository.DeleteByDesignIdAsync(designId);
-        }
-
-        private GetCustomShoeDesignByIdResponse MapToDetailedResponse(CustomShoeDesign design)
-        {
-            return new GetCustomShoeDesignByIdResponse
-            {
-                Id = design.Id,
-                UserId = design.UserId,
-                CustomShoeDesignTemplateId = design.CustomShoeDesignTemplateId,
-                DesignData = design.DesignData,
-                Preview3DFileUrl = null, // Set appropriate value if available
-                Price = design.TotalAmount,
-                TextureIds = design.CustomShoeDesignTextures?.Select(t => t.TextureId).ToList() ?? new List<long>(),
-                CreatedAt = design.CreatedAt,
-                UpdatedAt = design.UpdatedAt
+                Code = 500,
+                Message = ex.Message,
+                Data = null
             };
         }
     }
-} 
+
+    public async Task<BaseResponseModel<GetCustomShoeDesignByIdResponse>> GetDesignById(GetCustomShoeDesignByIdRequest request)
+    {
+        try{
+            var design = await GetCustomShoeDesignById(request);
+            return new BaseResponseModel<GetCustomShoeDesignByIdResponse>
+            {
+                Code = 200,
+                Message = "Custom shoe design retrieved successfully",
+                Data = new GetCustomShoeDesignByIdResponse
+                {
+                    Id = design.Id,
+                    PreviewImageUrls = design.DesignPreviews?.Select(p => p.PreviewImageUrl).ToList() ?? new List<string>(),
+                    Price = design.TotalAmount
+                }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<GetCustomShoeDesignByIdResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<GetCustomShoeDesignsByUserIdResponse>> GetDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
+    {
+        try{
+            var designs = await GetCustomShoeDesignsByUserId(request);
+            return new BaseResponseModel<GetCustomShoeDesignsByUserIdResponse>
+            {
+                Code = 200,
+                Message = "Custom shoe designs retrieved successfully",
+                Data = new GetCustomShoeDesignsByUserIdResponse
+                {
+                    Designs = designs
+                }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<GetCustomShoeDesignsByUserIdResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<AddCustomShoeDesignResponse>> AddCustomShoeDesign(AddCustomShoeDesignRequest request)
+    {
+        try{
+            var design = GetCustomShoeDesignFromAddDesignRequest(request);
+        
+            var addedDesign = await _customShoeDesignRepository.AddAsync(design);
+
+            var designTextures = GetDesignTexturesFromAddDesignRequest(request, addedDesign.Id);
+
+            if(designTextures.Any())
+            {
+                await _customShoeDesignTextureRepository.AddRangeAsync(designTextures);
+            }
+
+            return new BaseResponseModel<AddCustomShoeDesignResponse> 
+            { 
+                Code = 200,
+                Message = "Custom shoe design added successfully",
+                Data = new AddCustomShoeDesignResponse 
+                { 
+                    Success = true
+                }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<AddCustomShoeDesignResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new AddCustomShoeDesignResponse
+                {
+                    Success = false
+                }
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<UpdateCustomShoeDesignResponse>> UpdateCustomShoeDesign(UpdateCustomShoeDesignRequest request)
+    { 
+        try{
+            var design = await GetCustomShoeDesignFromUpdateDesignRequest(request);
+
+            await _customShoeDesignRepository.UpdateAsync(design);
+
+            await UpdateCustomShoeDesignTextures(request);
+
+            return new BaseResponseModel<UpdateCustomShoeDesignResponse> 
+            { 
+                Code = 200,
+                Message = "Custom shoe design updated successfully",
+                Data = new UpdateCustomShoeDesignResponse 
+                { 
+                    Success = true
+                }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<UpdateCustomShoeDesignResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new UpdateCustomShoeDesignResponse
+                {
+                    Success = false
+                }
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<DeleteCustomShoeDesignResponse>> DeleteCustomShoeDesign(DeleteCustomShoeDesignRequest request)
+    {
+        try{
+            var design = await GetCustomShoeDesignFromDeleteDesignRequest(request);
+
+        await _customShoeDesignRepository.UpdateAsync(design);
+
+        return new BaseResponseModel<DeleteCustomShoeDesignResponse>
+        {
+            Code = 200,
+            Message = "Custom shoe design deleted successfully",
+                Data = new DeleteCustomShoeDesignResponse { Success = true }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<DeleteCustomShoeDesignResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new DeleteCustomShoeDesignResponse { Success = false }
+            };
+        }
+    }
+    #endregion
+
+    #region Private Methods
+    private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetAllPublicCustomShoeDesigns()
+    {
+        var designs = await _customShoeDesignRepository.GetAllPublicCustomShoeDesignsAsync();
+        return designs.Select(d => new GetCustomShoeDesignByIdResponse
+        {
+            Id = d.Id,
+            PreviewImageUrls = d.DesignPreviews?.Select(p => p.PreviewImageUrl).ToList() ?? new List<string>(),
+            Price = d.TotalAmount
+        });
+    }
+
+    private async Task<CustomShoeDesign> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
+    {
+        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+        if (design == null)
+        {
+            throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
+        }
+        return design;
+    }
+    
+    private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
+    {
+        var designs = await _customShoeDesignRepository.GetDesignsByUserIdAsync(request.UserId);
+        if(designs == null || !designs.Any())
+        {
+            throw new InvalidOperationException($"No custom shoe designs found for user with ID {request.UserId}");
+        }
+        return designs.Select(d => new GetCustomShoeDesignByIdResponse
+        {
+            Id = d.Id,
+            PreviewImageUrls = d.DesignPreviews?.Select(p => p.PreviewImageUrl).ToList() ?? new List<string>(),
+            Price = d.TotalAmount
+        });
+    }
+
+    private CustomShoeDesign GetCustomShoeDesignFromAddDesignRequest(AddCustomShoeDesignRequest request)
+    {
+        var design = new CustomShoeDesign
+        {
+            UserId = request.UserId ?? 0,
+            CustomShoeDesignTemplateId = request.CustomShoeDesignTemplateId ?? 0,
+            DesignData = request.DesignData,
+            Size = request.Size,
+            Status = Common.Enums.CustomShoeDesignStatus.Private,
+            DesignerMarkup = request.DesignerMarkup ?? 0,
+            TotalAmount = request.TotalAmount ?? 0,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        return design;
+    }
+
+    private IEnumerable<CustomShoeDesignTexture> GetDesignTexturesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
+    {
+        if(request.TextureIds == null || !request.TextureIds.Any())
+        {
+            return new List<CustomShoeDesignTexture>();
+        }
+        return request.TextureIds.Select(textureId => new CustomShoeDesignTexture
+        {
+            CustomShoeDesignId = designId,
+            TextureId = textureId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+    }
+
+    private async Task<CustomShoeDesign> GetCustomShoeDesignFromUpdateDesignRequest(UpdateCustomShoeDesignRequest request)
+    {
+        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+        if (design == null)
+        {
+            throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
+        }
+
+        var template = await _customShoeDesignTemplateRepository.FindAsync(request.CustomShoeDesignTemplateId);
+        if (template == null)
+        {
+            throw new InvalidOperationException($"Custom shoe design template with ID {request.CustomShoeDesignTemplateId} not found");
+        }
+        
+        design.DesignData = request.DesignData ?? design.DesignData;
+        design.TotalAmount = request.TotalAmount ?? design.TotalAmount;
+        design.UpdatedAt = DateTime.UtcNow;
+        return design;
+    }
+    
+    private async Task UpdateCustomShoeDesignTextures(UpdateCustomShoeDesignRequest request)
+    {
+        var existingTextures = await _customShoeDesignTexturesRepository.GetByCustomShoeDesignIdAsync(request.Id);
+        var existingTextureIds = existingTextures.Select(t => t.TextureId).ToList();
+
+        if (request.TextureIds == null || !request.TextureIds.Any())
+        {
+            await _customShoeDesignTextureRepository.RemoveRangeAsync(existingTextures.Select(t => t.Id));
+            return;
+        }
+
+        var removeTextureIds = existingTextureIds.Except(request.TextureIds).ToList();
+        
+        if (removeTextureIds.Any())
+        {
+            await _customShoeDesignTextureRepository.RemoveRangeAsync(removeTextureIds);
+        }
+
+        var addTextureIds = request.TextureIds.Except(existingTextureIds).ToList();
+        
+        if (addTextureIds.Any())
+        {
+            var newTextures = addTextureIds.Select(textureId => new CustomShoeDesignTexture
+            {
+                CustomShoeDesignId = request.Id,
+                TextureId = textureId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+
+            await _customShoeDesignTextureRepository.AddRangeAsync(newTextures);
+        }
+    }
+    
+    private async Task<CustomShoeDesign> GetCustomShoeDesignFromDeleteDesignRequest(DeleteCustomShoeDesignRequest request)
+    {
+        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+
+        if (design == null)
+        {
+            throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
+        }
+
+        design.IsDeleted = true;
+        design.UpdatedAt = DateTime.UtcNow;
+        design.Status = Common.Enums.CustomShoeDesignStatus.Archived;
+        
+        return design;
+    }
+    #endregion
+}

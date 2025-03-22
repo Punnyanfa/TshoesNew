@@ -2,7 +2,7 @@ using FCSP.DTOs.DesignService;
 using FCSP.Services.DesignServiceService;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCSP.WebAPI.Controllers
+namespace FCSP.WebAPI.Controllers.DesignService
 {
     /// <summary>
     /// API Controller for managing design services
@@ -147,4 +147,4 @@ namespace FCSP.WebAPI.Controllers
             }
         }
     }
-} 
+}

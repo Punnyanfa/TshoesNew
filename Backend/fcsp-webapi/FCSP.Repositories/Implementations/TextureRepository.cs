@@ -22,7 +22,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Texture>> GetAvailableTexturesAsync()
         {
             return await Entities
-                .Where(t => t.Status == TextureStatus.Public && !t.IsDeleted)
+                .Where(t => t.Status != TextureStatus.Archived && !t.IsDeleted)
                 .OrderBy(t => t.Id)
                 .ToListAsync();
         }

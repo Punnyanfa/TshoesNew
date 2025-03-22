@@ -6,12 +6,11 @@ namespace FCSP.Services.TextureService
 {
     public interface ITextureService
     {
-        Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetAllTextures();
-        Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetAvailableTextures();
+        Task<BaseResponseModel<GetAllTexturesResponse>> GetAllTextures();
+        Task<BaseResponseModel<GetAvailableTexturesResponse>> GetAvailableTextures();
         Task<BaseResponseModel<GetTextureByIdResponse>> GetTextureById(GetTextureByIdRequest request);
-        Task<BaseResponseModel<IEnumerable<GetTextureByIdResponse>>> GetTexturesByUser(GetTexturesByUserRequest request);
+        Task<BaseResponseModel<GetTexturesByUserIdResponse>> GetTexturesByUserId(GetTexturesByUserIdRequest request);
         Task<BaseResponseModel<AddTextureResponse>> AddTexture(AddTextureRequest request);
-        //Task<UpdateTextureResponse> UpdateTexture(UpdateTextureRequest request);
         Task<BaseResponseModel<DeleteTextureResponse>> DeleteTexture(DeleteTextureRequest request);
     }
 }
