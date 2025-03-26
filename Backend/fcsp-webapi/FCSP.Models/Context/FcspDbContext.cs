@@ -60,7 +60,7 @@ public class FcspDbContext : DbContext
             .AddJsonFile($"appsettings.json", false)
             .Build();
 
-        return config.GetConnectionString("FCSP_DB_AZURE");
+        return config.GetConnectionString("FCSP_DB");
     }
 
     private static void ConfigureModel(ModelBuilder modelBuilder)

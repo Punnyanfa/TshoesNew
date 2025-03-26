@@ -30,8 +30,6 @@ namespace FCSP.Models.Migrations
                     DesignerMarkup = table.Column<float>(type: "real", nullable: true),
                     TotalAmount = table.Column<float>(type: "real", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: true),
-                    CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: true),
-                    TextureId = table.Column<long>(type: "bigint", nullable: true),
                     CustomShoeDesignTemplate_UserId = table.Column<long>(type: "bigint", nullable: true),
                     CustomShoeDesignTemplate_Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -40,9 +38,11 @@ namespace FCSP.Models.Migrations
                     Price = table.Column<float>(type: "real", nullable: true),
                     _2DImageUrl = table.Column<string>(name: "2DImageUrl", type: "nvarchar(max)", nullable: true),
                     _3DFileUrl = table.Column<string>(name: "3DFileUrl", type: "nvarchar(max)", nullable: true),
-                    CustomShoeDesignTemplate_IsDeleted = table.Column<int>(type: "int", nullable: true),
-                    CustomShoeDesignTexture_CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: true),
-                    CustomShoeDesignTexture_TextureId = table.Column<long>(type: "bigint", nullable: true),
+                    CustomShoeDesignTemplate_IsDeleted = table.Column<bool>(type: "bit", nullable: true),
+                    CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: true),
+                    TextureId = table.Column<long>(type: "bigint", nullable: true),
+                    CustomShoeDesignTextures_CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: true),
+                    CustomShoeDesignTextures_TextureId = table.Column<long>(type: "bigint", nullable: true),
                     DesignPreview_CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: true),
                     PreviewImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DesignService_CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: true),
@@ -64,7 +64,7 @@ namespace FCSP.Models.Migrations
                     Notification_UserId = table.Column<long>(type: "bigint", nullable: true),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Notification_IsDeleted = table.Column<int>(type: "int", nullable: true),
+                    Notification_IsDeleted = table.Column<bool>(type: "bit", nullable: true),
                     Order_UserId = table.Column<long>(type: "bigint", nullable: true),
                     VoucherId = table.Column<long>(type: "bigint", nullable: true),
                     ShippingInfoId = table.Column<long>(type: "bigint", nullable: true),
@@ -117,11 +117,13 @@ namespace FCSP.Models.Migrations
                     City = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ShippingInfo_IsDeleted = table.Column<int>(type: "int", nullable: true),
+                    ContactNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDefault = table.Column<bool>(type: "bit", nullable: true),
+                    ShippingInfo_IsDeleted = table.Column<bool>(type: "bit", nullable: true),
                     Texture_UserId = table.Column<long>(type: "bigint", nullable: true),
                     Prompt = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Texture_Status = table.Column<int>(type: "int", nullable: true),
-                    Texture_IsDeleted = table.Column<int>(type: "int", nullable: true),
+                    Texture_IsDeleted = table.Column<bool>(type: "bit", nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ReceiverId = table.Column<long>(type: "bigint", nullable: true),
                     OrderDetailId = table.Column<long>(type: "bigint", nullable: true),
@@ -135,7 +137,6 @@ namespace FCSP.Models.Migrations
                     UserRole = table.Column<int>(type: "int", nullable: true),
                     Balance = table.Column<float>(type: "real", nullable: true),
                     DefaultAddressId = table.Column<long>(type: "bigint", nullable: true),
-                    User_Status = table.Column<int>(type: "int", nullable: true),
                     User_IsDeleted = table.Column<bool>(type: "bit", nullable: true),
                     UserActivity_UserId = table.Column<long>(type: "bigint", nullable: true),
                     ViewedDesignId = table.Column<long>(type: "bigint", nullable: true),
@@ -177,14 +178,14 @@ namespace FCSP.Models.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_BaseEntities_BaseEntities_CustomShoeDesignTexture_CustomShoeDesignId",
-                        column: x => x.CustomShoeDesignTexture_CustomShoeDesignId,
+                        name: "FK_BaseEntities_BaseEntities_CustomShoeDesignTextures_CustomShoeDesignId",
+                        column: x => x.CustomShoeDesignTextures_CustomShoeDesignId,
                         principalTable: "BaseEntities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_BaseEntities_BaseEntities_CustomShoeDesignTexture_TextureId",
-                        column: x => x.CustomShoeDesignTexture_TextureId,
+                        name: "FK_BaseEntities_BaseEntities_CustomShoeDesignTextures_TextureId",
+                        column: x => x.CustomShoeDesignTextures_TextureId,
                         principalTable: "BaseEntities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -432,14 +433,14 @@ namespace FCSP.Models.Migrations
                 column: "CustomShoeDesignTemplateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BaseEntities_CustomShoeDesignTexture_CustomShoeDesignId",
+                name: "IX_BaseEntities_CustomShoeDesignTextures_CustomShoeDesignId",
                 table: "BaseEntities",
-                column: "CustomShoeDesignTexture_CustomShoeDesignId");
+                column: "CustomShoeDesignTextures_CustomShoeDesignId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BaseEntities_CustomShoeDesignTexture_TextureId",
+                name: "IX_BaseEntities_CustomShoeDesignTextures_TextureId",
                 table: "BaseEntities",
-                column: "CustomShoeDesignTexture_TextureId");
+                column: "CustomShoeDesignTextures_TextureId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BaseEntities_DefaultAddressId",

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCSP.Models.Migrations
 {
     [DbContext(typeof(FcspDbContext))]
-    [Migration("20250314172234_init")]
+    [Migration("20250326005241_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -108,23 +108,6 @@ namespace FCSP.Models.Migrations
                     b.HasDiscriminator().HasValue("CustomShoeDesign");
                 });
 
-            modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignImage", b =>
-                {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
-
-                    b.Property<long>("CustomShoeDesignId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TextureId")
-                        .HasColumnType("bigint");
-
-                    b.HasIndex("CustomShoeDesignId");
-
-                    b.HasIndex("TextureId");
-
-                    b.HasDiscriminator().HasValue("CustomShoeDesignImage");
-                });
-
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTemplate", b =>
                 {
                     b.HasBaseType("FCSP.Models.Entities.BaseEntity");
@@ -138,8 +121,8 @@ namespace FCSP.Models.Migrations
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("IsDeleted")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -156,7 +139,7 @@ namespace FCSP.Models.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("2DImageUrl");
 
-                    b.Property<long>("UserId")
+                    b.Property<long?>("UserId")
                         .HasColumnType("bigint");
 
                     b.HasIndex("UserId");
@@ -190,16 +173,33 @@ namespace FCSP.Models.Migrations
 
                     b.HasIndex("TextureId");
 
+                    b.HasDiscriminator().HasValue("CustomShoeDesignTexture");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTextures", b =>
+                {
+                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+
+                    b.Property<long>("CustomShoeDesignId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TextureId")
+                        .HasColumnType("bigint");
+
+                    b.HasIndex("CustomShoeDesignId");
+
+                    b.HasIndex("TextureId");
+
                     b.ToTable("BaseEntities", t =>
                         {
                             t.Property("CustomShoeDesignId")
-                                .HasColumnName("CustomShoeDesignTexture_CustomShoeDesignId");
+                                .HasColumnName("CustomShoeDesignTextures_CustomShoeDesignId");
 
                             t.Property("TextureId")
-                                .HasColumnName("CustomShoeDesignTexture_TextureId");
+                                .HasColumnName("CustomShoeDesignTextures_TextureId");
                         });
 
-                    b.HasDiscriminator().HasValue("CustomShoeDesignTexture");
+                    b.HasDiscriminator().HasValue("CustomShoeDesignTextures");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.DesignPreview", b =>
@@ -364,8 +364,8 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("IsDeleted")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -752,6 +752,10 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ContactNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -760,8 +764,11 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("IsDeleted")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -800,8 +807,8 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("IsDeleted")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Prompt")
                         .HasColumnType("nvarchar(max)");
@@ -891,9 +898,6 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<int>("UserRole")
                         .HasColumnType("int");
 
@@ -909,9 +913,6 @@ namespace FCSP.Models.Migrations
 
                             t.Property("Name")
                                 .HasColumnName("User_Name");
-
-                            t.Property("Status")
-                                .HasColumnName("User_Status");
                         });
 
                     b.HasDiscriminator().HasValue("User");
@@ -1020,32 +1021,12 @@ namespace FCSP.Models.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignImage", b =>
-                {
-                    b.HasOne("FCSP.Models.Entities.CustomShoeDesign", "CustomShoeDesign")
-                        .WithMany("CustomShoeDesignImages")
-                        .HasForeignKey("CustomShoeDesignId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FCSP.Models.Entities.Texture", "Texture")
-                        .WithMany()
-                        .HasForeignKey("TextureId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CustomShoeDesign");
-
-                    b.Navigation("Texture");
-                });
-
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTemplate", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.User", "User")
                         .WithMany("Templates")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("User");
                 });
@@ -1060,6 +1041,25 @@ namespace FCSP.Models.Migrations
 
                     b.HasOne("FCSP.Models.Entities.Texture", "Texture")
                         .WithMany("CustomShoeDesignTextures")
+                        .HasForeignKey("TextureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CustomShoeDesign");
+
+                    b.Navigation("Texture");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTextures", b =>
+                {
+                    b.HasOne("FCSP.Models.Entities.CustomShoeDesign", "CustomShoeDesign")
+                        .WithMany()
+                        .HasForeignKey("CustomShoeDesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FCSP.Models.Entities.Texture", "Texture")
+                        .WithMany()
                         .HasForeignKey("TextureId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1420,8 +1420,6 @@ namespace FCSP.Models.Migrations
 
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesign", b =>
                 {
-                    b.Navigation("CustomShoeDesignImages");
-
                     b.Navigation("CustomShoeDesignTextures");
 
                     b.Navigation("DesignPreviews");
