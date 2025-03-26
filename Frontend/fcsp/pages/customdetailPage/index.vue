@@ -75,6 +75,13 @@
               </div>
             </div>
           </div>
+
+          <!-- 2D PNG Frame (Separate Section) -->
+          <div class="sneaker-2d-section">
+            <div class="sneaker-2d-frame">
+              <img :src="sneaker2DImage" alt="2D Sneaker Layout" class="sneaker-2d-image" />
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -90,6 +97,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import SidebarCustom from '@/components/SidebarCustom.vue';
+import sneaker2DImage from '@/public/CoverToesPart Foxing-CoverHeeNikeJordan.png'; // Import the 2D PNG image
 
 // Refs cho Three.js container và states
 const container = ref(null);
@@ -436,7 +444,8 @@ const handleDrop = async (event) => {
 
 /* Customizer Grid */
 .customizer-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr; /* 4 columns for sidebar, product area, details, and 2D section */
   gap: 2rem;
   align-items: flex-start;
   width: 100%;
@@ -445,7 +454,7 @@ const handleDrop = async (event) => {
 
 /* Sidebar Custom */
 .sidebar-custom {
-  flex: 1;
+  grid-column: 1 / 2;
   background: #ffffff;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
@@ -458,7 +467,7 @@ const handleDrop = async (event) => {
 
 /* Product Area (Center) */
 .product-area {
-  flex: 1;
+  grid-column: 2 / 3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -542,7 +551,7 @@ const handleDrop = async (event) => {
 
 /* Details Section (Right) */
 .details-section {
-  flex: 1;
+  grid-column: 3 / 4;
   background: #ffffff;
   padding: 1.5rem;
   border-radius: 12px;
@@ -682,29 +691,96 @@ const handleDrop = async (event) => {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* 2D Sneaker Section */
+.sneaker-2d-section {
+  grid-column: 4 / 5;
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  height: fit-content; /* Chiều cao theo nội dung */
+}
+
+.sneaker-2d-frame {
+  text-align: center;
+}
+
+.frame-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1a3c6c;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sneaker-2d-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.sneaker-2d-image:hover {
+  transform: scale(1.05);
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .customizer-grid {
-    flex-direction: column;
+    grid-template-columns: 1fr; /* Stack vertically */
+    grid-template-rows: auto auto auto auto; /* 4 rows for each section */
   }
 
-  .sidebar-custom,
-  .product-area,
+  .sidebar-custom {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .product-area {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+  }
+
   .details-section {
-    width: 100%;
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+  }
+
+  .sneaker-2d-section {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
   }
 }
 
 @media (max-width: 1024px) {
   .customizer-grid {
-    flex-direction: column; /* Stack vertically on smaller screens */
-    gap: 1.5rem;
+    grid-template-columns: 1fr; /* Stack vertically */
+    grid-template-rows: auto auto auto auto; /* 4 rows for each section */
   }
 
   .sidebar-custom,
   .product-area,
+  .details-section,
+  .sneaker-2d-section {
+    grid-column: 1 / 2;
+  }
+
+  .sidebar-custom {
+    grid-row: 1 / 2;
+  }
+
+  .product-area {
+    grid-row: 2 / 3;
+  }
+
   .details-section {
-    width: 100%;
+    grid-row: 3 / 4;
+  }
+
+  .sneaker-2d-section {
+    grid-row: 4 / 5;
   }
 
   .three-canvas {
@@ -746,6 +822,19 @@ const handleDrop = async (event) => {
   .animation-toggle-btn {
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
+  }
+
+  /* Responsive adjustments for the 2D section */
+  .sneaker-2d-section {
+    padding: 1rem;
+  }
+
+  .frame-title {
+    font-size: 1rem;
+  }
+
+  .sneaker-2d-image {
+    max-width: 90%;
   }
 }
 
