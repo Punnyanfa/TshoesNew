@@ -2,18 +2,32 @@
   <div class="sidebar-custom">
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn" :class="{ active: activeTab === 'text' }" @click="activeTab = 'text'">
+      <button class="tab-btn" :class="{ active: activeTab === 'text' }" @click="setActiveTab('text')">
         <i class="icon-text">T</i> Text
       </button>
-      <button class="tab-btn" :class="{ active: activeTab === 'background' }" @click="activeTab = 'background'">
+      <button class="tab-btn" :class="{ active: showBackground }" @click="toggleBackground">
         <i class="icon-background">□</i> Background
       </button>
-      <button class="tab-btn" :class="{ active: activeTab === 'upload' }" @click="activeTab = 'upload'">
+      <button class="tab-btn" :class="{ active: activeTab === 'upload' }" @click="setActiveTab('upload')">
         <i class="icon-upload">☁</i> My Files
       </button>
     </div>
 
-    <!-- Tab Content -->
+    <!-- Hiển thị background-section khi click vào tab Background -->
+    <div v-if="showBackground" class="background-section">
+      <div class="color-picker">
+        <label for="color-picker">Select Color:</label>
+        <input
+          id="color-picker"
+          type="color"
+          v-model="customColor"
+          @input="applyBackgroundColor(customColor)"
+        />
+      </div>
+      <p class="selected-color">Selected: {{ selectedBackgroundColor }}</p>
+    </div>
+
+    <!-- Tab Content (chỉ giữ Text và Upload) -->
     <div class="tab-content">
       <!-- Upload Image Tab -->
       <div v-if="activeTab === 'upload'" class="upload-section">
@@ -45,23 +59,44 @@
           class="text-input"
           @input="previewText"
         />
-        <button class="apply-btn" @click="applyTextToModel" :disabled="!customText || isApplyingText">
+        <div class="text-options">
+          <label for="text-size">Text Size:</label>
+          <input
+            id="text-size"
+            type="range"
+            v-model="textSize"
+            min="20"
+            max="100"
+            step="1"
+            @input="updateTextSize"
+          />
+          <span>{{ textSize }}px</span>
+        </div>
+        <div class="text-options">
+          <label for="text-color">Text Color:</label>
+          <input
+            id="text-color"
+            type="color"
+            v-model="textColor"
+          />
+        </div>
+        <button class="apply-btn" @click="createDraggableText" :disabled="!customText || isApplyingText">
           {{ isApplyingText ? 'Applying...' : 'Apply Text' }}
         </button>
-      </div>
 
-      <!-- Background Tab -->
-      <div v-if="activeTab === 'background'" class="background-section">
-        <div class="color-options">
+        <!-- Hiển thị danh sách các văn bản có thể kéo thả -->
+        <div v-if="draggableTexts.length" class="draggable-texts">
           <div
-            v-for="color in backgroundColors"
-            :key="color"
-            class="color-swatch"
-            :style="{ backgroundColor: color }"
-            @click="applyBackgroundColor(color)"
-          ></div>
+            v-for="(textObj, index) in draggableTexts"
+            :key="index"
+            class="draggable-text"
+            draggable="true"
+            @dragstart="startTextDrag($event, textObj, index)"
+            @dragend="endTextDrag"
+          >
+            {{ textObj.text }}
+          </div>
         </div>
-        <p class="selected-color">Selected: {{ selectedBackgroundColor }}</p>
       </div>
 
       <!-- Reset Button -->
@@ -73,11 +108,14 @@
 <script setup>
 import { ref, watch } from 'vue';
 import * as THREE from 'three';
+import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js'; // Import DecalGeometry
 
 const props = defineProps({
   scene: { type: Object, required: true },
   model: { type: Object, default: null },
   originalMaterials: { type: Map, default: () => new Map() },
+  camera: { type: Object, required: true },
+  renderer: { type: Object, required: true },
 });
 
 const emit = defineEmits(['textureApplied', 'textApplied', 'backgroundColorApplied']);
@@ -85,15 +123,135 @@ const emit = defineEmits(['textureApplied', 'textApplied', 'backgroundColorAppli
 const activeTab = ref('upload');
 const uploadedImage = ref(null);
 const imagePreviewUrl = ref('');
-const isApplying = ref(false);
 const uploadError = ref('');
 const customText = ref('');
 const isApplyingText = ref(false);
-const backgroundColors = ref([
-  '#ffffff', '#ff6b6b', '#4ecdc4', '#45b7d1',
-  '#96c93d', '#ffe66d', '#6b7280', '#000000',
-]);
 const selectedBackgroundColor = ref('#ffffff');
+const customColor = ref('#ffffff');
+const showBackground = ref(false);
+const draggableTexts = ref([]); // Danh sách các văn bản có thể kéo thả (bao gồm text, size, color)
+const textSize = ref(60); // Kích thước văn bản mặc định
+const textColor = ref('#ffffff'); // Màu văn bản mặc định
+const appliedDecals = ref([]); // Lưu trữ các decal để reset
+
+// Hàm toggle hiển thị background-section
+const toggleBackground = () => {
+  showBackground.value = !showBackground.value;
+  if (showBackground.value) {
+    activeTab.value = ''; // Bỏ chọn tab khác khi hiển thị background
+  }
+};
+
+// Hàm set active tab và ẩn background-section
+const setActiveTab = (tab) => {
+  activeTab.value = tab;
+  showBackground.value = false; // Ẩn background-section khi click tab khác
+};
+
+// Cập nhật kích thước văn bản
+const updateTextSize = () => {
+  // Có thể thêm logic preview nếu cần
+};
+
+// Tạo văn bản có thể kéo thả
+const createDraggableText = () => {
+  if (!customText.value) return;
+  draggableTexts.value.push({
+    text: customText.value,
+    size: textSize.value,
+    color: textColor.value,
+  });
+  customText.value = ''; // Xóa input sau khi thêm
+};
+
+// Bắt đầu kéo văn bản
+const startTextDrag = (event, textObj, index) => {
+  event.dataTransfer.setData('text/plain', JSON.stringify(textObj));
+  event.dataTransfer.setData('text-index', index); // Lưu index để xóa sau khi thả
+};
+
+// Kết thúc kéo văn bản
+const endTextDrag = () => {
+  // Có thể thêm logic nếu cần
+};
+
+// Tạo texture từ văn bản
+const createTextTexture = (text, size, color) => {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = size * 10; // Điều chỉnh kích thước canvas dựa trên size
+  canvas.height = size * 5;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.font = `Bold ${size}px Arial`;
+  context.fillStyle = color;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+};
+
+// Xử lý sự kiện thả văn bản lên canvas
+const handleTextDrop = (event) => {
+  event.preventDefault();
+  const textObj = JSON.parse(event.dataTransfer.getData('text/plain'));
+  const textIndex = parseInt(event.dataTransfer.getData('text-index'), 10);
+
+  if (!props.model || !props.camera || !props.renderer) {
+    alert('Missing model, camera, or renderer. Please ensure all components are loaded.');
+    return;
+  }
+
+  // Lấy vị trí chuột trên canvas
+  const canvas = props.renderer.domElement;
+  const rect = canvas.getBoundingClientRect();
+  const mouse = new THREE.Vector2();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  // Sử dụng raycaster để tìm giao điểm với mô hình
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, props.camera);
+  const intersects = raycaster.intersectObject(props.model, true);
+
+  if (intersects.length > 0) {
+    const intersect = intersects[0];
+    const mesh = intersect.object; // Mesh mà người dùng thả văn bản lên
+    const position = intersect.point; // Vị trí giao điểm
+    const normal = intersect.face.normal.clone().applyMatrix4(mesh.matrixWorld).normalize(); // Pháp tuyến tại điểm giao
+
+    // Tạo texture từ văn bản
+    const textTexture = createTextTexture(textObj.text, textObj.size, textObj.color);
+
+    // Tạo decal
+    const decalMaterial = new THREE.MeshPhongMaterial({
+      map: textTexture,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+    });
+
+    const decalSize = new THREE.Vector3(textObj.size / 100, textObj.size / 100, 0.1); // Kích thước decal
+    const decalGeometry = new DecalGeometry(mesh, position, normal, decalSize);
+    const decal = new THREE.Mesh(decalGeometry, decalMaterial);
+
+    props.scene.add(decal);
+    appliedDecals.value.push(decal); // Lưu decal để reset
+
+    // Xóa văn bản khỏi danh sách draggable sau khi thả
+    draggableTexts.value.splice(textIndex, 1);
+
+    emit('textApplied', textObj.text);
+    alert(`Text "${textObj.text}" applied at the selected position!`);
+  } else {
+    alert('Please drop the text on the model.');
+  }
+};
 
 // Handle image upload
 const handleImageUpload = (event) => {
@@ -110,89 +268,21 @@ const handleImageUpload = (event) => {
     }
     uploadedImage.value = file;
 
-    // Tạo preview URL và áp dụng texture ngay lập tức
     const reader = new FileReader();
     reader.onload = (e) => {
       imagePreviewUrl.value = e.target.result;
-      // Áp dụng texture ngay sau khi tải ảnh
       emit('textureApplied', e.target.result);
     };
     reader.readAsDataURL(file);
   }
 };
 
-// Create text texture using Canvas
-const createTextTexture = (text) => {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 512;
-  canvas.height = 256;
-
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.font = 'Bold 60px Arial';
-  context.fillStyle = '#ffffff';
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillText(text, canvas.width / 2, canvas.height / 2);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
-};
-
-// Apply text to purple parts of the model
-const applyTextToModel = () => {
-  if (!customText.value || !props.model) return;
-
-  isApplyingText.value = true;
-
-  const textTexture = createTextTexture(customText.value);
-  props.model.traverse((child) => {
-    if (child.isMesh) {
-      // Check if the material's color is purple
-      const material = child.material;
-      let isPurple = false;
-
-      if (material.color) {
-        const color = material.color; // THREE.Color object
-        const r = color.r * 255;
-        const g = color.g * 255;
-        const b = color.b * 255;
-
-        // Define a range for purple (adjust as needed)
-        if (r > 100 && g < 50 && b > 100) {
-          isPurple = true;
-        }
-      }
-
-      // Apply text texture only to purple parts
-      if (isPurple) {
-        const newMaterial = new THREE.MeshStandardMaterial({
-          map: textTexture,
-          transparent: true,
-          metalness: 0.2,
-          roughness: 0.8,
-        });
-        child.material.dispose();
-        child.material = newMaterial;
-        child.material.needsUpdate = true;
-      }
-    }
-  });
-
-  isApplyingText.value = false;
-  emit('textApplied', customText.value);
-  alert(`Text "${customText.value}" applied to purple parts of the model!`);
-};
-
-// Preview text (optional)
-const previewText = () => {
-  // Add preview logic if needed
-};
-
 // Apply background color to the model
 const applyBackgroundColor = (color) => {
-  if (!props.model) return;
+  if (!props.model) {
+    alert('No model loaded. Please load a model first.');
+    return;
+  }
 
   props.model.traverse((child) => {
     if (child.isMesh) {
@@ -214,7 +304,11 @@ const applyBackgroundColor = (color) => {
 
 // Reset model to original state
 const resetModel = () => {
-  if (!props.model) return;
+  if (!props.model) {
+    alert('No model loaded. Nothing to reset.');
+    return;
+  }
+
   props.model.traverse((child) => {
     if (child.isMesh && props.originalMaterials.has(child)) {
       child.material.dispose();
@@ -222,26 +316,64 @@ const resetModel = () => {
       child.material.needsUpdate = true;
     }
   });
+
+  // Xóa tất cả các decal
+  appliedDecals.value.forEach((decal) => {
+    props.scene.remove(decal);
+    decal.material.dispose();
+    decal.geometry.dispose();
+  });
+  appliedDecals.value = [];
+
   uploadedImage.value = null;
   imagePreviewUrl.value = '';
   customText.value = '';
+  draggableTexts.value = [];
   selectedBackgroundColor.value = '#ffffff';
-  document.getElementById('image-upload').value = '';
+  customColor.value = '#ffffff';
+  showBackground.value = false;
+  textSize.value = 60; // Reset kích thước văn bản
+  textColor.value = '#ffffff'; // Reset màu văn bản
+
+  const imageUploadInput = document.getElementById('image-upload');
+  if (imageUploadInput) {
+    imageUploadInput.value = '';
+  }
+
   alert('Model reset to original state!');
 };
 
 const handleDragStart = (event) => {
-  event.dataTransfer.setData('text/plain', ''); // Cần thiết cho một số trình duyệt
+  event.dataTransfer.setData('text/plain', '');
   emit('textureApplied', imagePreviewUrl.value);
 };
 
 const handleDragEnd = () => {
-  // Có thể thêm logic xử lý khi kết thúc drag nếu cần
+  // Có thể thêm logic nếu cần
 };
+
+// Preview text (optional)
+const previewText = () => {
+  // Add preview logic if needed
+};
+
+// Theo dõi customColor để áp dụng màu ngay khi thay đổi
+watch(customColor, (newColor) => {
+  applyBackgroundColor(newColor);
+});
 
 watch(() => props.model, (newModel) => {
   if (newModel) {
     console.log('Model ready for customization:', newModel);
+  }
+});
+
+// Thêm sự kiện drop cho canvas
+watch(() => props.renderer, (newRenderer) => {
+  if (newRenderer) {
+    const canvas = newRenderer.domElement;
+    canvas.addEventListener('dragover', (event) => event.preventDefault());
+    canvas.addEventListener('drop', handleTextDrop);
   }
 });
 </script>
@@ -364,35 +496,128 @@ watch(() => props.model, (newModel) => {
   box-shadow: 0 0 5px rgba(139, 195, 74, 0.5);
 }
 
-.background-section {
+.text-options {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.color-options {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
   gap: 0.5rem;
 }
 
-.color-swatch {
-  width: 100%;
-  height: 30px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
+.text-options label {
+  font-size: 0.9rem;
+  color: #b0b8cc;
 }
 
-.color-swatch:hover {
+.text-options input[type="range"] {
+  width: 100px;
+}
+
+.text-options input[type="color"] {
+  width: 40px;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.text-options input[type="color"]::-webkit-color-swatch {
   border: 2px solid #ffffff;
+  border-radius: 5px;
+}
+
+.draggable-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.draggable-text {
+  padding: 0.5rem 1rem;
+  background: #1a263d;
+  border-radius: 8px;
+  cursor: grab;
+  transition: all 0.3s ease;
+}
+
+.draggable-text:hover {
+  background: #222f4e;
+  transform: scale(1.02);
+}
+
+.background-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: linear-gradient(145deg, #1a263d, #2a3b5a);
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-title {
+  font-size: 1.1rem;
+  margin: 0;
+  color: #ffffff;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.color-picker label {
+  font-size: 0.9rem;
+  color: #b0b8cc;
+}
+
+.color-picker input[type="color"] {
+  width: 50px;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.color-picker input[type="color"]::-webkit-color-swatch {
+  border: 2px solid #ffffff;
+  border-radius: 5px;
+}
+
+.color-picker input[type="color"]:hover {
   transform: scale(1.1);
+  transition: all 0.3s ease;
 }
 
 .selected-color {
   font-size: 0.9rem;
   margin: 0;
+  color: #ffffff;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 5px;
 }
 
 .upload-btn {
