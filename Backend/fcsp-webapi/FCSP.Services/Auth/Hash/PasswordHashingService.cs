@@ -18,7 +18,7 @@ public class PasswordHashingService : IPasswordHashingService
 
     public bool VerifyHashedPassword(string password, string hashedPassword)
     {
-        var result = _passwordHasher.VerifyHashedPassword(password, hashedPassword);
+        var result = _passwordHasher.VerifyHashedPassword(hashedPassword, password);
 
         return result == PasswordVerificationResult.Success;
     }
