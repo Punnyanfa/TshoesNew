@@ -5,7 +5,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
 {
     public interface ICustomShoeDesignTextureService
     {
-        Task<IEnumerable<CustomShoeDesignTexture>> GetAllCustomShoeDesignTextures();
+        Task<IEnumerable<CustomShoeDesignTextures>> GetAllCustomShoeDesignTextures();
         Task<GetCustomShoeDesignTextureByIdResponse> GetCustomShoeDesignTextureById(GetCustomShoeDesignTextureByIdRequest request);
         Task<AddCustomShoeDesignTextureResponse> AddCustomShoeDesignTexture(AddCustomShoeDesignTextureRequest request);
         Task<AddCustomShoeDesignTextureResponse> UpdateCustomShoeDesignTexture(UpdateCustomShoeDesignTextureRequest request);

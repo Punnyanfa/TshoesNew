@@ -262,13 +262,13 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return design;
     }
 
-    private IEnumerable<CustomShoeDesignTexture> GetDesignTexturesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
+    private IEnumerable<CustomShoeDesignTextures> GetDesignTexturesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
     {
         if(request.TextureIds == null || !request.TextureIds.Any())
         {
-            return new List<CustomShoeDesignTexture>();
+            return new List<CustomShoeDesignTextures>();
         }
-        return request.TextureIds.Select(textureId => new CustomShoeDesignTexture
+        return request.TextureIds.Select(textureId => new CustomShoeDesignTextures
         {
             CustomShoeDesignId = designId,
             TextureId = textureId,
@@ -319,7 +319,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         
         if (addTextureIds.Any())
         {
-            var newTextures = addTextureIds.Select(textureId => new CustomShoeDesignTexture
+            var newTextures = addTextureIds.Select(textureId => new CustomShoeDesignTextures
             {
                 CustomShoeDesignId = request.Id,
                 TextureId = textureId,

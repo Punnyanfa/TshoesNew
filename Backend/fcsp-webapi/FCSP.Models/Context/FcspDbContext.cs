@@ -21,11 +21,9 @@ public class FcspDbContext : DbContext
     #endregion
 
     #region Properties
-    public DbSet<BaseEntity> BaseEntities { get; set; }
     public DbSet<CustomShoeDesign> CustomShoeDesigns { get; set; }
     public DbSet<CustomShoeDesignTemplate> CustomShoeDesignTemplates { get; set; }
-    public DbSet<CustomShoeDesignTexture> CustomShoeDesignTextures { get; set; }
-    public DbSet<CustomShoeDesignTextures> CustomShoeDesignImages { get; set; }
+    public DbSet<CustomShoeDesignTextures> CustomShoeDesignTextures { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Payment> Payments { get; set; }

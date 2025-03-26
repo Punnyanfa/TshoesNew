@@ -41,22 +41,16 @@ internal static class RelationshipConfig
             .OnDelete(DeleteBehavior.Restrict);
 
         // CustomShoeDesignTexture relationships
-        modelBuilder.Entity<CustomShoeDesignTexture>()
+        modelBuilder.Entity<CustomShoeDesignTextures>()
             .HasOne(dt => dt.CustomShoeDesign)
             .WithMany(d => d.CustomShoeDesignTextures)
             .HasForeignKey(dt => dt.CustomShoeDesignId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<CustomShoeDesignTexture>()
+        modelBuilder.Entity<CustomShoeDesignTextures>()
             .HasOne(dt => dt.Texture)
             .WithMany(t => t.CustomShoeDesignTextures)
             .HasForeignKey(dt => dt.TextureId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<CustomShoeDesignTextures>()
-            .HasOne(di => di.Texture)
-            .WithMany()
-            .HasForeignKey(di => di.TextureId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Texture relationships
@@ -264,13 +258,6 @@ internal static class RelationshipConfig
             .HasOne(r => r.CustomShoeDesign)
             .WithMany(d => d.ReturnedCustomShoes)
             .HasForeignKey(r => r.CustomShoeDesignId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Voucher relationships
-        modelBuilder.Entity<Voucher>()
-            .HasMany<Order>()
-            .WithOne(o => o.Voucher)
-            .HasForeignKey(o => o.VoucherId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

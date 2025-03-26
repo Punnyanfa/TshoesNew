@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCSP.Models.Migrations
 {
     [DbContext(typeof(FcspDbContext))]
-    [Migration("20250326005241_init")]
+    [Migration("20250326034224_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace FCSP.Models.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("FCSP.Models.Entities.BaseEntity", b =>
+            modelBuilder.Entity("FCSP.Models.Entities.Criteria", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -36,27 +36,6 @@ namespace FCSP.Models.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("BaseEntities");
-
-                    b.HasDiscriminator().HasValue("BaseEntity");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.Criteria", b =>
-                {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -64,12 +43,24 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.HasDiscriminator().HasValue("Criteria");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Criterias");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesign", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignTemplateId")
                         .HasColumnType("bigint");
@@ -92,28 +83,34 @@ namespace FCSP.Models.Migrations
                     b.Property<float>("TotalAmount")
                         .HasColumnType("real");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("CustomShoeDesignTemplateId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Status")
-                                .HasColumnName("CustomShoeDesign_Status");
-                        });
-
-                    b.HasDiscriminator().HasValue("CustomShoeDesign");
+                    b.ToTable("CustomShoeDesigns");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTemplate", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Color")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -139,46 +136,29 @@ namespace FCSP.Models.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("2DImageUrl");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long?>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("IsDeleted")
-                                .HasColumnName("CustomShoeDesignTemplate_IsDeleted");
-
-                            t.Property("Name")
-                                .HasColumnName("CustomShoeDesignTemplate_Name");
-
-                            t.Property("UserId")
-                                .HasColumnName("CustomShoeDesignTemplate_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("CustomShoeDesignTemplate");
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTexture", b =>
-                {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
-
-                    b.Property<long>("CustomShoeDesignId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TextureId")
-                        .HasColumnType("bigint");
-
-                    b.HasIndex("CustomShoeDesignId");
-
-                    b.HasIndex("TextureId");
-
-                    b.HasDiscriminator().HasValue("CustomShoeDesignTexture");
+                    b.ToTable("CustomShoeDesignTemplates");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTextures", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignId")
                         .HasColumnType("bigint");
@@ -186,25 +166,28 @@ namespace FCSP.Models.Migrations
                     b.Property<long>("TextureId")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("CustomShoeDesignId");
 
                     b.HasIndex("TextureId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("CustomShoeDesignId")
-                                .HasColumnName("CustomShoeDesignTextures_CustomShoeDesignId");
-
-                            t.Property("TextureId")
-                                .HasColumnName("CustomShoeDesignTextures_TextureId");
-                        });
-
-                    b.HasDiscriminator().HasValue("CustomShoeDesignTextures");
+                    b.ToTable("CustomShoeDesignTextures");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.DesignPreview", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignId")
                         .HasColumnType("bigint");
@@ -212,20 +195,26 @@ namespace FCSP.Models.Migrations
                     b.Property<string>("PreviewImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("CustomShoeDesignId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("CustomShoeDesignId")
-                                .HasColumnName("DesignPreview_CustomShoeDesignId");
-                        });
-
-                    b.HasDiscriminator().HasValue("DesignPreview");
+                    b.ToTable("DesignPreviews");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.DesignService", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignId")
                         .HasColumnType("bigint");
@@ -239,30 +228,33 @@ namespace FCSP.Models.Migrations
                     b.Property<long?>("ServiceId1")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("CustomShoeDesignId");
 
                     b.HasIndex("ServiceId");
 
                     b.HasIndex("ServiceId1");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("CustomShoeDesignId")
-                                .HasColumnName("DesignService_CustomShoeDesignId");
-
-                            t.Property("Price")
-                                .HasColumnName("DesignService_Price");
-                        });
-
-                    b.HasDiscriminator().HasValue("DesignService");
+                    b.ToTable("DesignServices");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Designer", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float>("CommissionRate")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -273,32 +265,32 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Description")
-                                .HasColumnName("Designer_Description");
-
-                            t.Property("Status")
-                                .HasColumnName("Designer_Status");
-
-                            t.Property("UserId")
-                                .HasColumnName("Designer_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Designer");
+                    b.ToTable("Designers");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Manufacturer", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float>("CommissionRate")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -307,32 +299,29 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("CommissionRate")
-                                .HasColumnName("Manufacturer_CommissionRate");
-
-                            t.Property("Name")
-                                .HasColumnName("Manufacturer_Name");
-
-                            t.Property("Status")
-                                .HasColumnName("Manufacturer_Status");
-
-                            t.Property("UserId")
-                                .HasColumnName("Manufacturer_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Manufacturer");
+                    b.ToTable("Manufacturers");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.ManufacturerCriteria", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CriteriaId")
                         .HasColumnType("bigint");
@@ -343,26 +332,32 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("CriteriaId");
 
                     b.HasIndex("ManufacturerId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Status")
-                                .HasColumnName("ManufacturerCriteria_Status");
-                        });
-
-                    b.HasDiscriminator().HasValue("ManufacturerCriteria");
+                    b.ToTable("ManufacturerCriterias");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Notification", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -371,29 +366,32 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("IsDeleted")
-                                .HasColumnName("Notification_IsDeleted");
-
-                            t.Property("UserId")
-                                .HasColumnName("Notification_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Notification");
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Order", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float>("AmountPaid")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("ShippingInfoId")
                         .HasColumnType("bigint");
@@ -410,6 +408,9 @@ namespace FCSP.Models.Migrations
                     b.Property<float>("TotalPrice")
                         .HasColumnType("real");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
@@ -418,6 +419,8 @@ namespace FCSP.Models.Migrations
 
                     b.Property<long?>("VoucherId1")
                         .HasColumnType("bigint");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ShippingInfoId");
 
@@ -429,21 +432,19 @@ namespace FCSP.Models.Migrations
 
                     b.HasIndex("VoucherId1");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Status")
-                                .HasColumnName("Order_Status");
-
-                            t.Property("UserId")
-                                .HasColumnName("Order_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Order");
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.OrderDetail", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignId")
                         .HasColumnType("bigint");
@@ -457,28 +458,31 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("CustomShoeDesignId");
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("CustomShoeDesignId")
-                                .HasColumnName("OrderDetail_CustomShoeDesignId");
-
-                            t.Property("Price")
-                                .HasColumnName("OrderDetail_Price");
-                        });
-
-                    b.HasDiscriminator().HasValue("OrderDetail");
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Payment", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float>("Amount")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("OrderId")
                         .HasColumnType("bigint");
@@ -489,20 +493,26 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("OrderId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("OrderId")
-                                .HasColumnName("Payment_OrderId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Payment");
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.PaymentGateway", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
@@ -510,33 +520,33 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("PaymentMethod")
-                                .HasColumnName("PaymentGateway_PaymentMethod");
-
-                            t.Property("Status")
-                                .HasColumnName("PaymentGateway_Status");
-
-                            t.Property("UserId")
-                                .HasColumnName("PaymentGateway_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("PaymentGateway");
+                    b.ToTable("PaymentGateways");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Posts", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -545,36 +555,33 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Content")
-                                .HasColumnName("Posts_Content");
-
-                            t.Property("IsDeleted")
-                                .HasColumnName("Posts_IsDeleted");
-
-                            t.Property("Title")
-                                .HasColumnName("Posts_Title");
-
-                            t.Property("UserId")
-                                .HasColumnName("Posts_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Posts");
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.PostsComments", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Comment")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -582,31 +589,34 @@ namespace FCSP.Models.Migrations
                     b.Property<long>("PostsId")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("PostsId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("IsDeleted")
-                                .HasColumnName("PostsComments_IsDeleted");
-
-                            t.Property("UserId")
-                                .HasColumnName("PostsComments_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("PostsComments");
+                    b.ToTable("PostsComments");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Rating", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Comment")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignId")
                         .HasColumnType("bigint");
@@ -614,37 +624,34 @@ namespace FCSP.Models.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("UserRating")
                         .HasColumnType("int");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("CustomShoeDesignId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Comment")
-                                .HasColumnName("Rating_Comment");
-
-                            t.Property("CustomShoeDesignId")
-                                .HasColumnName("Rating_CustomShoeDesignId");
-
-                            t.Property("IsDeleted")
-                                .HasColumnName("Rating_IsDeleted");
-
-                            t.Property("UserId")
-                                .HasColumnName("Rating_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Rating");
+                    b.ToTable("Ratings");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.ReturnedCustomShoe", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("CustomShoeDesignId")
                         .HasColumnType("bigint");
@@ -655,26 +662,26 @@ namespace FCSP.Models.Migrations
                     b.Property<float>("Price")
                         .HasColumnType("real");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("CustomShoeDesignId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("CustomShoeDesignId")
-                                .HasColumnName("ReturnedCustomShoe_CustomShoeDesignId");
-
-                            t.Property("IsDeleted")
-                                .HasColumnName("ReturnedCustomShoe_IsDeleted");
-
-                            t.Property("Price")
-                                .HasColumnName("ReturnedCustomShoe_Price");
-                        });
-
-                    b.HasDiscriminator().HasValue("ReturnedCustomShoe");
+                    b.ToTable("ReturnedCustomShoes");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Service", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -686,26 +693,29 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("ManufacturerId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("IsDeleted")
-                                .HasColumnName("Service_IsDeleted");
-
-                            t.Property("ManufacturerId")
-                                .HasColumnName("Service_ManufacturerId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Service");
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.SetServiceAmount", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float>("Amount")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -722,31 +732,25 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("ServiceId");
 
                     b.HasIndex("ServiceId1");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Amount")
-                                .HasColumnName("SetServiceAmount_Amount");
-
-                            t.Property("ServiceId")
-                                .HasColumnName("SetServiceAmount_ServiceId");
-
-                            t.Property("ServiceId1")
-                                .HasColumnName("SetServiceAmount_ServiceId1");
-
-                            t.Property("Status")
-                                .HasColumnName("SetServiceAmount_Status");
-                        });
-
-                    b.HasDiscriminator().HasValue("SetServiceAmount");
+                    b.ToTable("SetServiceAmounts");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -759,6 +763,9 @@ namespace FCSP.Models.Migrations
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("District")
                         .IsRequired()
@@ -778,6 +785,9 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
@@ -785,23 +795,23 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("IsDeleted")
-                                .HasColumnName("ShippingInfo_IsDeleted");
-
-                            t.Property("UserId")
-                                .HasColumnName("ShippingInfo_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("ShippingInfo");
+                    b.ToTable("ShippingInfos");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Texture", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
@@ -816,32 +826,32 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("IsDeleted")
-                                .HasColumnName("Texture_IsDeleted");
-
-                            t.Property("Status")
-                                .HasColumnName("Texture_Status");
-
-                            t.Property("UserId")
-                                .HasColumnName("Texture_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("Texture");
+                    b.ToTable("Textures");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Transaction", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float>("Amount")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("OrderDetailId")
                         .HasColumnType("bigint");
@@ -852,27 +862,33 @@ namespace FCSP.Models.Migrations
                     b.Property<long>("ReceiverId")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("OrderDetailId");
 
                     b.HasIndex("PaymentId");
 
                     b.HasIndex("ReceiverId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Amount")
-                                .HasColumnName("Transaction_Amount");
-                        });
-
-                    b.HasDiscriminator().HasValue("Transaction");
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.User", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<float?>("Balance")
                         .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long?>("DefaultAddressId")
                         .HasColumnType("bigint");
@@ -898,29 +914,32 @@ namespace FCSP.Models.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("UserRole")
                         .HasColumnType("int");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("DefaultAddressId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Gender")
-                                .HasColumnName("User_Gender");
-
-                            t.Property("IsDeleted")
-                                .HasColumnName("User_IsDeleted");
-
-                            t.Property("Name")
-                                .HasColumnName("User_Name");
-                        });
-
-                    b.HasDiscriminator().HasValue("User");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.UserActivity", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
@@ -935,45 +954,54 @@ namespace FCSP.Models.Migrations
                     b.Property<long>("ViewedDesignId")
                         .HasColumnType("bigint");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("ViewedDesignId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("UserId")
-                                .HasColumnName("UserActivity_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("UserActivity");
+                    b.ToTable("UserActivities");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.UserRecommendation", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("RecommendDesignId")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("RecommendDesignId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("UserId")
-                                .HasColumnName("UserRecommendation_UserId");
-                        });
-
-                    b.HasDiscriminator().HasValue("UserRecommendation");
+                    b.ToTable("UserRecommendations");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Voucher", b =>
                 {
-                    b.HasBaseType("FCSP.Models.Entities.BaseEntity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -984,22 +1012,18 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("VoucherName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VoucherValue")
                         .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("BaseEntities", t =>
-                        {
-                            t.Property("Description")
-                                .HasColumnName("Voucher_Description");
+                    b.HasKey("Id");
 
-                            t.Property("Status")
-                                .HasColumnName("Voucher_Status");
-                        });
-
-                    b.HasDiscriminator().HasValue("Voucher");
+                    b.ToTable("Vouchers");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesign", b =>
@@ -1031,35 +1055,16 @@ namespace FCSP.Models.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTexture", b =>
-                {
-                    b.HasOne("FCSP.Models.Entities.CustomShoeDesign", "CustomShoeDesign")
-                        .WithMany("CustomShoeDesignTextures")
-                        .HasForeignKey("CustomShoeDesignId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FCSP.Models.Entities.Texture", "Texture")
-                        .WithMany("CustomShoeDesignTextures")
-                        .HasForeignKey("TextureId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CustomShoeDesign");
-
-                    b.Navigation("Texture");
-                });
-
             modelBuilder.Entity("FCSP.Models.Entities.CustomShoeDesignTextures", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.CustomShoeDesign", "CustomShoeDesign")
-                        .WithMany()
+                        .WithMany("CustomShoeDesignTextures")
                         .HasForeignKey("CustomShoeDesignId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FCSP.Models.Entities.Texture", "Texture")
-                        .WithMany()
+                        .WithMany("CustomShoeDesignTextures")
                         .HasForeignKey("TextureId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();

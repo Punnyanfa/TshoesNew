@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FCSP.Repositories.Implementations
 {
-    public class CustomShoeDesignTextureRepository : GenericRepository<CustomShoeDesignTexture>, ICustomShoeDesignTextureRepository
+    public class CustomShoeDesignTextureRepository : GenericRepository<CustomShoeDesignTextures>, ICustomShoeDesignTextureRepository
     {
         private readonly FcspDbContext _dbContext;
 
@@ -15,7 +15,7 @@ namespace FCSP.Repositories.Implementations
             _dbContext = context;
         }
 
-        public async Task AddRangeAsync(IEnumerable<CustomShoeDesignTexture> entities)
+        public async Task AddRangeAsync(IEnumerable<CustomShoeDesignTextures> entities)
         {
             await _dbContext.CustomShoeDesignTextures.AddRangeAsync(entities);
             await _dbContext.SaveChangesAsync();

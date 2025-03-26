@@ -2,9 +2,9 @@ using FCSP.Models.Entities;
 
 namespace FCSP.Repositories.Interfaces
 {
-    public interface ICustomShoeDesignTextureRepository : IGenericRepository<CustomShoeDesignTexture>
+    public interface ICustomShoeDesignTextureRepository : IGenericRepository<CustomShoeDesignTextures>
     {
-        Task AddRangeAsync(IEnumerable<CustomShoeDesignTexture> entities);
+        Task AddRangeAsync(IEnumerable<CustomShoeDesignTextures> entities);
         Task RemoveRangeAsync(IEnumerable<long> designIds);
     }
 }

@@ -16,7 +16,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             _customShoeDesignTextureRepository = customShoeDesignTextureRepository;
         }
 
-        public async Task<IEnumerable<CustomShoeDesignTexture>> GetAllCustomShoeDesignTextures()
+        public async Task<IEnumerable<CustomShoeDesignTextures>> GetAllCustomShoeDesignTextures()
         {
             var response = await _customShoeDesignTextureRepository.GetAllAsync();
             return response;
@@ -24,7 +24,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
 
         public async Task<GetCustomShoeDesignTextureByIdResponse> GetCustomShoeDesignTextureById(GetCustomShoeDesignTextureByIdRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromGetByIdRequest(request);
+            CustomShoeDesignTextures customShoeDesignTexture = GetEntityFromGetByIdRequest(request);
             return new GetCustomShoeDesignTextureByIdResponse
             {
                 CustomShoeDesignId = customShoeDesignTexture.CustomShoeDesignId,
@@ -34,28 +34,28 @@ namespace FCSP.Services.CustomShoeDesignTextureService
 
         public async Task<AddCustomShoeDesignTextureResponse> AddCustomShoeDesignTexture(AddCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromAddRequest(request);
+            CustomShoeDesignTextures customShoeDesignTexture = GetEntityFromAddRequest(request);
             var addedCustomShoeDesignTexture = await _customShoeDesignTextureRepository.AddAsync(customShoeDesignTexture);
             return new AddCustomShoeDesignTextureResponse { Id = addedCustomShoeDesignTexture.Id };
         }
 
         public async Task<AddCustomShoeDesignTextureResponse> UpdateCustomShoeDesignTexture(UpdateCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromUpdateRequest(request);
+            CustomShoeDesignTextures customShoeDesignTexture = GetEntityFromUpdateRequest(request);
             await _customShoeDesignTextureRepository.UpdateAsync(customShoeDesignTexture);
             return new AddCustomShoeDesignTextureResponse { Id = customShoeDesignTexture.Id };
         }
 
         public async Task<AddCustomShoeDesignTextureResponse> DeleteCustomShoeDesignTexture(DeleteCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = GetEntityFromDeleteRequest(request);
+            CustomShoeDesignTextures customShoeDesignTexture = GetEntityFromDeleteRequest(request);
             await _customShoeDesignTextureRepository.DeleteAsync(customShoeDesignTexture.Id);
             return new AddCustomShoeDesignTextureResponse { Id = customShoeDesignTexture.Id };
         }
 
-        private CustomShoeDesignTexture GetEntityFromGetByIdRequest(GetCustomShoeDesignTextureByIdRequest request)
+        private CustomShoeDesignTextures GetEntityFromGetByIdRequest(GetCustomShoeDesignTextureByIdRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = _customShoeDesignTextureRepository.Find(request.Id);
+            CustomShoeDesignTextures customShoeDesignTexture = _customShoeDesignTextureRepository.Find(request.Id);
             if (customShoeDesignTexture == null)
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");
@@ -63,9 +63,9 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             return customShoeDesignTexture;
         }
 
-        private CustomShoeDesignTexture GetEntityFromAddRequest(AddCustomShoeDesignTextureRequest request)
+        private CustomShoeDesignTextures GetEntityFromAddRequest(AddCustomShoeDesignTextureRequest request)
         {
-            return new CustomShoeDesignTexture
+            return new CustomShoeDesignTextures
             {
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 TextureId = request.TextureId,
@@ -74,9 +74,9 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             };
         }
 
-        private CustomShoeDesignTexture GetEntityFromUpdateRequest(UpdateCustomShoeDesignTextureRequest request)
+        private CustomShoeDesignTextures GetEntityFromUpdateRequest(UpdateCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = _customShoeDesignTextureRepository.Find(request.Id);
+            CustomShoeDesignTextures customShoeDesignTexture = _customShoeDesignTextureRepository.Find(request.Id);
             if (customShoeDesignTexture == null)
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");
@@ -88,9 +88,9 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             return customShoeDesignTexture;
         }
 
-        private CustomShoeDesignTexture GetEntityFromDeleteRequest(DeleteCustomShoeDesignTextureRequest request)
+        private CustomShoeDesignTextures GetEntityFromDeleteRequest(DeleteCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTexture customShoeDesignTexture = _customShoeDesignTextureRepository.Find(request.Id);
+            CustomShoeDesignTextures customShoeDesignTexture = _customShoeDesignTextureRepository.Find(request.Id);
             if (customShoeDesignTexture == null)
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");

@@ -16,7 +16,7 @@ public class CustomShoeDesign : BaseEntity
     // Navigation properties
     public virtual User User { get; set; } = null!;
     public virtual CustomShoeDesignTemplate CustomShoeDesignTemplate { get; set; } = null!;
-    public virtual ICollection<CustomShoeDesignTexture> CustomShoeDesignTextures { get; } = [];
+    public virtual ICollection<CustomShoeDesignTextures> CustomShoeDesignTextures { get; } = [];
     public virtual ICollection<DesignPreview> DesignPreviews { get; } = [];
     public virtual ICollection<Rating> Ratings { get; } = [];
     public virtual ICollection<UserActivity> ViewedActivities { get; } = [];

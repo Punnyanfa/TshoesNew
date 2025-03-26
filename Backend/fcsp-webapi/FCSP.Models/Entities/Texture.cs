@@ -12,5 +12,5 @@ public class Texture : BaseEntity
 
     // Navigation properties
     public virtual User User { get; set; } = null!;
-    public virtual ICollection<CustomShoeDesignTexture> CustomShoeDesignTextures { get; } = [];
+    public virtual ICollection<CustomShoeDesignTextures> CustomShoeDesignTextures { get; } = [];
 }
