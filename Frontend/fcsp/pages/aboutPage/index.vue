@@ -1,7 +1,7 @@
 <template>
   <div class="about-wrapper">
     <!-- Header Component (Assumed Imported) -->
-    <Header />
+    <Header/>
 
     <!-- Breadcrumb -->
     <nav class="container py-3" aria-label="breadcrumb">
@@ -159,8 +159,9 @@
 </template>
 
 <script setup>
-import Header from './components/Header.vue'; // Import Header component
-import Footer from './components/Footer.vue'; // Import Footer component
+import Header from '~/components/Header.vue';
+
+
 
 // Dynamic year for footer
 const currentYear = new Date().getFullYear();
