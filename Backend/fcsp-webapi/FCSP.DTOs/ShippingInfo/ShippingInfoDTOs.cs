@@ -74,4 +74,23 @@ namespace FCSP.DTOs.ShippingInfo
     {
         public long UserId { get; set; }
     }
+    public class SetDefaultShippingInfoRequest
+    {
+        public long Id { get; set; }
+        public long UserId { get; set; }
+    }
+    public class GetAllShippingInfoResponse
+    {
+        public IEnumerable<GetShippingInfoByIdResponse> ShippingInfos { get; set; }
+    }
+
+    public class GetShippingInfosByUserResponse
+    {
+        public IEnumerable<GetShippingInfoByIdResponse> ShippingInfos { get; set; }
+    }
+
+    public class SetDefaultShippingInfoResponse
+    {
+        public bool Success { get; set; }
+    }
 } 
