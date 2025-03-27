@@ -247,6 +247,46 @@ namespace FCSP.Services.ShippingInfoService
                 };
             }
         }
+        public async Task<BaseResponseModel<GetShippingInfoByOrderIdResponse>> GetByOrderId(GetShippingInfoByOrderIdRequest request)
+        {
+            try
+            {
+                var shippingInfo = await GetShippingInfoByOrderId(request);
+                if (shippingInfo == null)
+                {
+                    throw new InvalidOperationException($"No shipping information found for Order ID {request.OrderId}");
+                }
+
+                return new BaseResponseModel<GetShippingInfoByOrderIdResponse>
+                {
+                    Code = 200,
+                    Message = "Shipping information retrieved successfully",
+                    Data = new GetShippingInfoByOrderIdResponse
+                    {
+                        Id = shippingInfo.Id,
+                        UserId = shippingInfo.UserId,
+                        ReceiverName = shippingInfo.ContactNumber ?? "N/A",
+                        PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
+                        Address = shippingInfo.StreetAddress ?? string.Empty,
+                        City = shippingInfo.City ?? string.Empty,
+                        District = shippingInfo.District ?? string.Empty,
+                        Ward = shippingInfo.Ward ?? string.Empty,
+                        IsDefault = shippingInfo.IsDefault,
+                        CreatedAt = shippingInfo.CreatedAt,
+                        UpdatedAt = shippingInfo.UpdatedAt
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<GetShippingInfoByOrderIdResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
 
         #endregion
 
@@ -357,6 +397,15 @@ namespace FCSP.Services.ShippingInfoService
                 addr.IsDefault = false;
                 await _shippingInfoRepository.UpdateAsync(addr);
             }
+        }
+        private async Task<ShippingInfo> GetShippingInfoByOrderId(GetShippingInfoByOrderIdRequest request)
+        {
+            var shippingInfo = await _shippingInfoRepository.GetByOrderIdAsync(request.OrderId);
+            if (shippingInfo == null || shippingInfo.IsDeleted)
+            {
+                throw new InvalidOperationException($"Shipping information for Order ID {request.OrderId} not found");
+            }
+            return shippingInfo;
         }
 
         #endregion

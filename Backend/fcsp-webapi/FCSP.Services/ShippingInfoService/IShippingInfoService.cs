@@ -13,5 +13,6 @@ namespace FCSP.Services.ShippingInfoService
         Task<BaseResponseModel<DeleteShippingInfoResponse>> DeleteShippingInfo(DeleteShippingInfoRequest request);
         Task<BaseResponseModel<GetShippingInfosByUserResponse>> GetShippingInfosByUserId(GetShippingInfosByUserRequest request);
         Task<BaseResponseModel<SetDefaultShippingInfoResponse>> SetDefaultShippingInfo(SetDefaultShippingInfoRequest request);
+        Task<BaseResponseModel<GetShippingInfoByOrderIdResponse>> GetByOrderId(GetShippingInfoByOrderIdRequest request); // New method
     }
 }

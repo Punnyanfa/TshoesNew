@@ -93,4 +93,23 @@ namespace FCSP.DTOs.ShippingInfo
     {
         public bool Success { get; set; }
     }
-} 
+    public class GetShippingInfoByOrderIdRequest
+    {
+        public long OrderId { get; set; }
+    }
+
+    public class GetShippingInfoByOrderIdResponse
+    {
+        public long Id { get; set; }
+        public long UserId { get; set; }
+        public string ReceiverName { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
+        public string Address { get; set; } = null!;
+        public string City { get; set; } = null!;
+        public string District { get; set; } = null!;
+        public string Ward { get; set; } = null!;
+        public bool IsDefault { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+}

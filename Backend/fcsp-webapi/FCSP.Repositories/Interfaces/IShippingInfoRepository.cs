@@ -7,5 +7,6 @@ namespace FCSP.Repositories.Interfaces
     public interface IShippingInfoRepository : IGenericRepository<ShippingInfo>
     {
         Task<IEnumerable<ShippingInfo>> GetByUserIdAsync(long userId);
+        Task<ShippingInfo> GetByOrderIdAsync(long orderId);
     }
 }

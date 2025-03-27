@@ -20,5 +20,11 @@ namespace FCSP.Repositories.Implementations
                 .Where(si => si.UserId == userId && !si.IsDeleted)
                 .ToListAsync();
         }
+        public async Task<ShippingInfo> GetByOrderIdAsync(long orderId)
+        {
+            return await Entities
+                .Include(si => si.Orders) // Include Orders navigation property
+                .FirstOrDefaultAsync(si => si.Orders.Any(o => o.Id == orderId && !si.IsDeleted));
+        }
     }
 }

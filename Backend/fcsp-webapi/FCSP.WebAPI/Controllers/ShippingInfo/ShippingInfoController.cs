@@ -67,4 +67,11 @@ public class ShippingInfoController : ControllerBase
         var result = await _shippingInfoService.SetDefaultShippingInfo(request);
         return StatusCode(result.Code, result);
     }
+    [HttpGet("order/{orderId}")]
+    public async Task<IActionResult> GetByOrderId(long orderId)
+    {
+        var request = new GetShippingInfoByOrderIdRequest { OrderId = orderId };
+        var result = await _shippingInfoService.GetByOrderId(request);
+        return StatusCode(result.Code, result);
+    }
 }
