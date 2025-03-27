@@ -5,6 +5,8 @@ using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
 using FCSP.DTOs.ShippingInfo;
 using FCSP.Repositories.Interfaces;
+using System.Net.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace FCSP.Services.Auth;
 
