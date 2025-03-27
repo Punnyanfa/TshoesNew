@@ -19,7 +19,6 @@ namespace FCSP.Repositories.Implementations
             return await _context.Orders
                 .Where(x => x.UserId == userId)
                 .Include(o => o.OrderDetails)
-                .Include(o => o.ShippingStatus)
                 .ToListAsync();
         }
 
@@ -27,7 +26,6 @@ namespace FCSP.Repositories.Implementations
         {
             return await _context.Orders
                 .Include(o => o.OrderDetails)
-                .Include(o => o.ShippingStatus)
                 .ToListAsync();
         }
     }
