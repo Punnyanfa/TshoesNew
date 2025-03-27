@@ -96,7 +96,8 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import Sidebar from "@/components/SideBar.vue";
+import Sidebar from "~/components/sidebar.vue";
+
 
 const router = useRouter();
 const products = ref([
