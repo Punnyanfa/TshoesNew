@@ -3,6 +3,7 @@ using FCSP.DTOs.Authentication;
 using FCSP.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace FCSP.WebAPI.Controllers.Authorization;
 
@@ -37,13 +38,14 @@ public class AuthController : ControllerBase
     [Authorize]
     public IActionResult TestLogin()
     {
-        return Ok("Authentication OK!");
+        var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+        return Ok(token.ToString());
     }
 
     [HttpPut("password")]
     [Authorize]
     public async Task<IActionResult> UpdateUserPassword([FromBody] UpdateUserPasswordRequest request)
-    {
+    {   
         var response = await _authService.UpdateUserPassword(request);
         return StatusCode(response.Code, response);
     }
