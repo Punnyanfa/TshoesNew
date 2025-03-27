@@ -7,7 +7,7 @@
       <main class="main-content">
         <div class="customizer-grid">
           <!-- Sidebar Custom Component -->
-          <SidebarCustom 
+          <Sidebarcustom 
             class="sidebar-custom"
             :scene="scene" 
             :model="model" 
@@ -89,7 +89,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import SidebarCustom from '@/components/SidebarCustom.vue';
+import Sidebarcustom from '~/components/sidebarcustom.vue';
 
 // Refs cho Three.js container và states
 const container = ref(null);
