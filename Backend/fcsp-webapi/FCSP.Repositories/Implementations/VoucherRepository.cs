@@ -10,6 +10,14 @@ namespace FCSP.Repositories.Implementations
     {
         public VoucherRepository(FcspDbContext context) : base(context)
         {
+
+        }
+
+        public async Task<IEnumerable<Voucher>> GetNonExpiredVouchersAsync()
+        {
+            return await _context.Vouchers
+                 .Where(v => v.ExpirationDate >= DateTime.UtcNow && v.Status == (int)VoucherStatus.Active)
+                 .ToListAsync();
         }
 
         public async Task<Voucher> GetVoucherByOrderIdAsync(long orderId)

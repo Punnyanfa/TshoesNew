@@ -69,5 +69,11 @@ namespace FCSP.WebAPI.Controllers.Voucher
             var updatedCount = await _voucherService.UpdateExpiredVouchers();
             return Ok(new { UpdatedCount = updatedCount });
         }
+        [HttpGet("non-expired")]
+        public async Task<IActionResult> GetNonExpiredVouchers()
+        {
+            var vouchers = await _voucherService.GetNonExpiredVouchers();
+            return Ok(vouchers);
+        }
     }
 }

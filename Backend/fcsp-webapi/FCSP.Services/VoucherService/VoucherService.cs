@@ -99,6 +99,18 @@ namespace FCSP.Services.VoucherService
         {
            return await _voucherRepository.UpdateExpiredVouchersAsync();
         }
+        public async Task<IEnumerable<GetVoucherByIdResponse>> GetNonExpiredVouchers()
+        {
+            var vouchers = await _voucherRepository.GetNonExpiredVouchersAsync();
+            return vouchers.Select(voucher => new GetVoucherByIdResponse
+            {
+                Id = voucher.Id,
+                Code = voucher.VoucherName ?? string.Empty,
+                DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
+                ExpiryDate = voucher.ExpirationDate,
+                IsUsed = voucher.Status == (int)VoucherStatus.Used
+            }).ToList();
+        }
 
         private void ValidateExpirationDate(DateTime expiryDate, DateTime? createdAt = null)
         {

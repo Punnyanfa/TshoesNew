@@ -13,5 +13,6 @@ namespace FCSP.Services.VoucherService
         Task<UpdateVoucherResponse> UpdateVoucher(UpdateVoucherRequest request);
         Task<DeleteVoucherResponse> DeleteVoucher(DeleteVoucherRequest request);
         Task<int> UpdateExpiredVouchers();
+        Task<IEnumerable<GetVoucherByIdResponse>> GetNonExpiredVouchers();
     }
 } 
