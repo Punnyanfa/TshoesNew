@@ -5,6 +5,6 @@ namespace FCSP.Repositories.Interfaces
     public interface IVoucherRepository : IGenericRepository<Voucher>
     {
         Task<Voucher> GetVoucherByOrderIdAsync(long orderId);
-        Task UpdateExpiredVouchersAsync();
+        Task<int> UpdateExpiredVouchersAsync();
     }
 }

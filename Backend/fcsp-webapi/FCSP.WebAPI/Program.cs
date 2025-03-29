@@ -11,6 +11,7 @@ var services = builder.Services;
 
 services.AddControllers();
 builder.Services.AddHostedService<VoucherExpirationService>();
+builder.Services.AddLogging(logging => logging.AddConsole());
 services.AddHttpClient();
 services.AddEndpointsApiExplorer();
 

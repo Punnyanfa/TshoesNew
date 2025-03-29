@@ -95,9 +95,9 @@ namespace FCSP.Services.VoucherService
             return new DeleteVoucherResponse { Success = true };
         }
 
-        public async Task UpdateExpiredVouchers()
+        public async Task<int> UpdateExpiredVouchers()
         {
-            await _voucherRepository.UpdateExpiredVouchersAsync();
+           return await _voucherRepository.UpdateExpiredVouchersAsync();
         }
 
         private void ValidateExpirationDate(DateTime expiryDate, DateTime? createdAt = null)

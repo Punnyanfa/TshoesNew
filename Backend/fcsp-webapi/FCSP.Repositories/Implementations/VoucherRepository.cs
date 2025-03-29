@@ -1,3 +1,4 @@
+using FCSP.Common.Enums;
 using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -18,19 +19,20 @@ namespace FCSP.Repositories.Implementations
                 .FirstOrDefaultAsync(v => v.Orders.Any(o => o.Id == orderId));
         }
 
-        public async Task UpdateExpiredVouchersAsync()
+        public async Task<int> UpdateExpiredVouchersAsync()
         {
             var expiredVouchers = await _context.Vouchers
-                .Where(v => v.ExpirationDate < DateTime.UtcNow && v.Status == (int)FCSP.Common.Enums.VoucherStatus.Active)
+                .Where(v => v.ExpirationDate < DateTime.UtcNow && v.Status == (int)VoucherStatus.Active)
                 .ToListAsync();
 
             foreach (var voucher in expiredVouchers)
             {
-                voucher.Status = (int)FCSP.Common.Enums.VoucherStatus.Expired;
+                voucher.Status = (int)VoucherStatus.Expired;
                 voucher.UpdatedAt = DateTime.Now;
             }
 
             await _context.SaveChangesAsync();
+            return expiredVouchers.Count; 
         }
     }
 }

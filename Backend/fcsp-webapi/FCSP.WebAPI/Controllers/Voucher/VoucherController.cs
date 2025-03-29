@@ -66,8 +66,8 @@ namespace FCSP.WebAPI.Controllers.Voucher
         [HttpPost("update-expired")]
         public async Task<IActionResult> UpdateExpiredVouchers()
         {
-            await _voucherService.UpdateExpiredVouchers();
-            return Ok();
+            var updatedCount = await _voucherService.UpdateExpiredVouchers();
+            return Ok(new { UpdatedCount = updatedCount });
         }
     }
 }
