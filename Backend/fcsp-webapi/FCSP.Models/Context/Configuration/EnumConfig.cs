@@ -51,5 +51,9 @@ internal static class EnumConfig
         modelBuilder.Entity<Designer>()
             .Property(d => d.Status)
             .HasConversion<int>();
+
+        modelBuilder.Entity<Voucher>()
+            .Property(v => v.Status)
+            .HasConversion<int>();
     }
 }

@@ -1,3 +1,4 @@
+using FCSP.WebAPI;
 using FCSP.WebAPI.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ config.AddUserSecrets<Program>();
 var services = builder.Services;
 
 services.AddControllers();
+builder.Services.AddHostedService<VoucherExpirationService>();
 services.AddHttpClient();
 services.AddEndpointsApiExplorer();
 

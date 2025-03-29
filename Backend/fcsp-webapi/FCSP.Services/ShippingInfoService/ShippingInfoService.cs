@@ -13,14 +13,15 @@ namespace FCSP.Services.ShippingInfoService
     public class ShippingInfoService : IShippingInfoService
     {
         private readonly IShippingInfoRepository _shippingInfoRepository;
+        private readonly IUserRepository _userRepository;
 
-        public ShippingInfoService(IShippingInfoRepository shippingInfoRepository)
+        public ShippingInfoService(IShippingInfoRepository shippingInfoRepository, IUserRepository userRepository)
         {
             _shippingInfoRepository = shippingInfoRepository;
+            _userRepository = userRepository;
         }
-
+       
         #region Public Methods
-
         public async Task<BaseResponseModel<GetAllShippingInfoResponse>> GetAllShippingInfo()
         {
             try
@@ -60,7 +61,7 @@ namespace FCSP.Services.ShippingInfoService
                     {
                         Id = shippingInfo.Id,
                         UserId = shippingInfo.UserId,
-                        ReceiverName = shippingInfo.ContactNumber ?? "N/A",
+                        ReceiverName = await GetUserNameById(shippingInfo.UserId),
                         PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
                         Address = shippingInfo.StreetAddress ?? string.Empty,
                         City = shippingInfo.City ?? string.Empty,
@@ -128,7 +129,7 @@ namespace FCSP.Services.ShippingInfoService
                     Data = new AddShippingInfoResponse
                     {
                         Id = addedShippingInfo.Id,
-                        ReceiverName = addedShippingInfo.ContactNumber ?? "N/A",
+                        ReceiverName = await GetUserNameById(addedShippingInfo.UserId),
                         Address = addedShippingInfo.StreetAddress ?? string.Empty,
                         IsDefault = addedShippingInfo.IsDefault
                     }
@@ -174,7 +175,7 @@ namespace FCSP.Services.ShippingInfoService
                     Data = new UpdateShippingInfoResponse
                     {
                         Id = shippingInfo.Id,
-                        ReceiverName = shippingInfo.ContactNumber ?? "N/A",
+                        ReceiverName = await GetUserNameById(shippingInfo.UserId),
                         Address = shippingInfo.StreetAddress ?? string.Empty,
                         IsDefault = shippingInfo.IsDefault
                     }
@@ -265,7 +266,7 @@ namespace FCSP.Services.ShippingInfoService
                     {
                         Id = shippingInfo.Id,
                         UserId = shippingInfo.UserId,
-                        ReceiverName = shippingInfo.ContactNumber ?? "N/A",
+                        ReceiverName = await GetUserNameById(shippingInfo.UserId),
                         PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
                         Address = shippingInfo.StreetAddress ?? string.Empty,
                         City = shippingInfo.City ?? string.Empty,
@@ -291,15 +292,19 @@ namespace FCSP.Services.ShippingInfoService
         #endregion
 
         #region Private Methods
-
+        public async Task<string> GetUserNameById(long userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            return user?.Name ?? "N/A"; // Return UserName or "N/A" if user not found
+        }
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetAllShippingInfos()
         {
             var shippingInfos = await _shippingInfoRepository.GetAllAsync();
-            return shippingInfos.Select(si => new GetShippingInfoByIdResponse
+            var tasks = shippingInfos.Select(async si => new GetShippingInfoByIdResponse
             {
                 Id = si.Id,
                 UserId = si.UserId,
-                ReceiverName = si.ContactNumber ?? "N/A",
+                ReceiverName = si.User?.Name ?? "N/A",
                 PhoneNumber = si.PhoneNumber ?? string.Empty,
                 Address = si.StreetAddress ?? string.Empty,
                 City = si.City ?? string.Empty,
@@ -309,6 +314,7 @@ namespace FCSP.Services.ShippingInfoService
                 CreatedAt = si.CreatedAt,
                 UpdatedAt = si.UpdatedAt
             });
+            return await Task.WhenAll(tasks); 
         }
 
         private async Task<ShippingInfo> GetShippingInfoEntityById(GetShippingInfoByIdRequest request)
@@ -328,7 +334,7 @@ namespace FCSP.Services.ShippingInfoService
             {
                 Id = si.Id,
                 UserId = si.UserId,
-                ReceiverName = si.ContactNumber ?? "N/A",
+                ReceiverName = si.User?.Name ?? "N/A",
                 PhoneNumber = si.PhoneNumber ?? string.Empty,
                 Address = si.StreetAddress ?? string.Empty,
                 City = si.City ?? string.Empty,

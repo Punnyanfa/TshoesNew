@@ -17,14 +17,24 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<ShippingInfo>> GetByUserIdAsync(long userId)
         {
             return await Entities
+                .Include(si => si.User)
                 .Where(si => si.UserId == userId && !si.IsDeleted)
                 .ToListAsync();
         }
         public async Task<ShippingInfo> GetByOrderIdAsync(long orderId)
         {
             return await Entities
-                .Include(si => si.Orders) // Include Orders navigation property
+                .Include(si => si.Orders).
+                Include(si => si.User)
                 .FirstOrDefaultAsync(si => si.Orders.Any(o => o.Id == orderId && !si.IsDeleted));
+        }
+
+        public async Task<IEnumerable<ShippingInfo>> GetAllAsync()
+        {
+            return await _context.ShippingInfos
+        .Include(si => si.User) // Fetch User data
+        .Where(si => !si.IsDeleted)
+        .ToListAsync();
         }
     }
 }

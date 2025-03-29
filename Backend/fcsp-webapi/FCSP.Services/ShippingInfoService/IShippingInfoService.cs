@@ -6,6 +6,7 @@ namespace FCSP.Services.ShippingInfoService
 {
     public interface IShippingInfoService
     {
+        Task<string> GetUserNameById(long userId);
         Task<BaseResponseModel<GetAllShippingInfoResponse>> GetAllShippingInfo();
         Task<BaseResponseModel<GetShippingInfoByIdResponse>> GetShippingInfoById(GetShippingInfoByIdRequest request);
         Task<BaseResponseModel<AddShippingInfoResponse>> AddShippingInfo(AddShippingInfoRequest request);

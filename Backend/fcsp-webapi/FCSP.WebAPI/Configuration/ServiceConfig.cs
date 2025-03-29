@@ -78,6 +78,7 @@ internal static class ServiceConfig
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IVoucherService, VoucherService>();
+     
 
         // Service services
         services.AddScoped<IServiceService, ServiceService>();
