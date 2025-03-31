@@ -33,11 +33,12 @@ namespace FCSP.WebAPI.Controllers.Rating
         [HttpPost]
         public async Task<IActionResult> AddRating([FromBody] AddRatingRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var response = await _ratingService.AddRating(request);
-            return CreatedAtAction(nameof(GetRatingById), new { id = response.RatingId }, response);
+            if (response.Code != 200)
+            {
+                return StatusCode(response.Code, response.Message);
+            }
+            return CreatedAtAction(nameof(GetRatingById), new { id = response.Data.RatingId }, response.Data);
         }
 
         [HttpPut("{id}")]

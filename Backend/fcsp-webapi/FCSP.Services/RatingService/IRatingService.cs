@@ -1,17 +1,20 @@
+using FCSP.DTOs;
 using FCSP.DTOs.Rating;
 using FCSP.Models.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.RatingService
 {
     public interface IRatingService
     {
-        Task<IEnumerable<Rating>> GetAllRatings();
-        Task<GetRatingByIdResponse> GetRatingById(GetRatingByIdRequest request);
-        Task<AddRatingResponse> AddRating(AddRatingRequest request);
-        Task<UpdateRatingResponse> UpdateRating(UpdateRatingRequest request);
-        Task<DeleteRatingResponse> DeleteRating(DeleteRatingRequest request);
-        Task<List<CustomShoeRatingStats>> GetCustomShoeRatingStats();
-        Task<List<TopRatedCustomShoe>> GetTopRatedCustomShoes();
-        Task<CustomShoeRatingStats> GetCustomShoeRatingStatsById(long customShoeDesignId);
+        Task<BaseResponseModel<IEnumerable<Rating>>> GetAllRatings();
+        Task<BaseResponseModel<GetRatingByIdResponse>> GetRatingById(GetRatingByIdRequest request);
+        Task<BaseResponseModel<AddRatingResponse>> AddRating(AddRatingRequest request);
+        Task<BaseResponseModel<UpdateRatingResponse>> UpdateRating(UpdateRatingRequest request);
+        Task<BaseResponseModel<DeleteRatingResponse>> DeleteRating(DeleteRatingRequest request);
+        Task<BaseResponseModel<List<CustomShoeRatingStats>>> GetCustomShoeRatingStats();
+        Task<BaseResponseModel<List<TopRatedCustomShoe>>> GetTopRatedCustomShoes();
+        Task<BaseResponseModel<CustomShoeRatingStats>> GetCustomShoeRatingStatsById(long customShoeDesignId);
     }
 }
