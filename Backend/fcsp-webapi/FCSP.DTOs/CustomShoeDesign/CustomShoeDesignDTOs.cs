@@ -27,6 +27,8 @@ namespace FCSP.DTOs.CustomShoeDesign
         public long Id { get; set; }
         public string? Name { get; set; }
         public string? PreviewImageUrl { get; set; }
+        public float? Rating { get; set; }
+        public int? RatingCount { get; set; }
         public float? Price { get; set; }
     }
 

@@ -65,7 +65,7 @@ public class AuthService : IAuthService
                 Message = "User registered successfully",
                 Data = new UserRegisterResponse
                 {
-                    Token = _tokenService.GetToken(user),
+                    Success = true,
                 },
             };
         }
@@ -75,6 +75,10 @@ public class AuthService : IAuthService
             {
                 Code = 500,
                 Message = ex.Message,
+                Data = new UserRegisterResponse
+                {
+                    Success = false,
+                },
             };
         }
     }

@@ -26,7 +26,7 @@ public class UserRegisterRequest
 
 public class UserRegisterResponse
 {
-    public string Token { get; set; } = string.Empty;
+    public bool Success { get; set; }
 }
 
 public class UpdateUserPasswordRequest

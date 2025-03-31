@@ -256,6 +256,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
+            Rating = (float)d.Ratings?.Average(r => r.UserRating),
+            RatingCount = d.Ratings?.Count,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
         });
@@ -281,7 +283,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
             Id = d.Id,
+            Name = d.CustomShoeDesignTemplate?.Name,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+            Rating = (float)d.Ratings?.Average(r => r.UserRating),
             Price = d.TotalAmount
         });
     }
