@@ -6,5 +6,6 @@ namespace FCSP.Repositories.Interfaces
     {
         Task<IEnumerable<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId);
         Task<IEnumerable<CustomShoeDesign>> GetAllPublicCustomShoeDesignsAsync();
+        Task<IEnumerable<CustomShoeDesign>> GetDesignsByIdsAsync(IEnumerable<long> designIds);
     }
 }

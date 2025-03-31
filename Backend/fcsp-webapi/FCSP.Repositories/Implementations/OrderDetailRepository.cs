@@ -20,5 +20,18 @@ namespace FCSP.Repositories.Implementations
                 .Where(od => od.OrderId == orderId)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<long>> GetTopFiveBestSellingDesignsAsync()
+        {
+            return await _context.OrderDetails
+                .Where(od => od.Order.Status == Common.Enums.OrderStatus.Completed)
+                .Where(od => od.CustomShoeDesign.IsDeleted == false)
+                .GroupBy(od => od.CustomShoeDesignId)
+                .Select(g => new { DesignId = g.Key, TotalQuantity = g.Sum(od => od.Quantity) })
+                .OrderByDescending(x => x.TotalQuantity)
+                .Take(5)
+                .Select(x => x.DesignId)
+                .ToListAsync();
+        }
     }
 }

@@ -7,5 +7,6 @@ namespace FCSP.Repositories.Interfaces
     public interface IOrderDetailRepository : IGenericRepository<OrderDetail>
     {
         Task<IEnumerable<OrderDetail>> GetByOrderIdAsync(long orderId);
+        Task<IEnumerable<long>> GetTopFiveBestSellingDesignsAsync();
     }
 }

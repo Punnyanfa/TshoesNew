@@ -17,7 +17,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public long UserId { get; set; }
     }
 
-    public class GetCustomShoeDesignsByUserIdResponse 
+    public class GetListCustomShoeDesignsResponse 
     {
         public IEnumerable<GetCustomShoeDesignByIdResponse>? Designs { get; set; }
     }
@@ -25,7 +25,8 @@ namespace FCSP.DTOs.CustomShoeDesign
     public class GetCustomShoeDesignByIdResponse
     {
         public long Id { get; set; }
-        public List<string>? PreviewImageUrls { get; set; }
+        public string? Name { get; set; }
+        public string? PreviewImageUrl { get; set; }
         public float? Price { get; set; }
     }
 
