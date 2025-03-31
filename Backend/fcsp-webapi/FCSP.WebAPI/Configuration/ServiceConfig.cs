@@ -13,6 +13,7 @@ using FCSP.Services.PaymentService;
 using FCSP.Services.PostService;
 using FCSP.Services.PostsCommentsService;
 using FCSP.Services.RatingService;
+using FCSP.Services.ReturnedCustomShoeService;
 using FCSP.Services.ServiceService;
 using FCSP.Services.ShippingInfoService;
 using FCSP.Services.TemplateService;
@@ -71,6 +72,7 @@ internal static class ServiceConfig
         services.AddScoped<ITemplateService, TemplateService>();
         services.AddScoped<IDesignPreviewService, DesignPreviewService>();
         services.AddScoped<IDesignServiceService, DesignServiceService>();
+        services.AddScoped<IReturnedCustomShoeService, ReturnedCustomShoeService>();
 
         // Order & Payment services
         services.AddScoped<IOrderService, OrderService>();

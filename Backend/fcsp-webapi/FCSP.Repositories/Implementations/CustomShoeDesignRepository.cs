@@ -23,17 +23,31 @@ namespace FCSP.Repositories.Implementations
                 .ToListAsync();
         }
 
-
-
         public async Task<IEnumerable<CustomShoeDesign>> GetDesignsByUserIdAsync(long userId)
         {
             return await Entities
                 .Where(d => d.UserId == userId)
+                .Include(d => d.User)
+                .Include(d => d.CustomShoeDesignTemplate)
                 .Include(d => d.CustomShoeDesignTextures)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
                 .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<CustomShoeDesign>> GetDesignsByIdsAsync(IEnumerable<long> designIds)
+        {
+            return await Entities
+                .Where(d => designIds.Contains(d.Id))
+                .Include(d => d.User)
+                .Include(d => d.CustomShoeDesignTemplate)
+                .Include(d => d.CustomShoeDesignTextures)
+                .Include(d => d.DesignPreviews)
+                .Include(d => d.DesignServices)
+                .Where(d => d.IsDeleted == false)
+                .ToListAsync();
+        }
+
     }
 }

@@ -30,6 +30,7 @@ internal static class RepositoryConfig
         services.AddScoped<ICustomShoeDesignTemplateRepository, TemplateRepository>();
         services.AddScoped<IDesignPreviewRepository, DesignPreviewRepository>();
         services.AddScoped<IDesignServiceRepository, DesignServiceRepository>();
+        services.AddScoped<IReturnedCustomShoeRepository, ReturnedCustomShoeRepository>();
         
         // Order & Payment repositories
         services.AddScoped<IOrderRepository, OrderRepository>();

@@ -30,6 +30,17 @@ public class CustomShoeDesignController : ControllerBase
     }
     
     /// <summary>
+    /// Get top 5 best selling designs
+    /// </summary>
+    /// <returns>List of top 5 best selling designs</returns>
+    [HttpGet("top-5-best-selling")]
+    public async Task<IActionResult> GetTopFiveBestSellingDesigns()
+    {
+        var result = await _customShoeDesignService.GetTopFiveBestSellingPublicDesigns();
+        return StatusCode(result.Code, result);
+    }
+
+    /// <summary>
     /// Get a custom shoe design by ID
     /// </summary>
     /// <param name="id">Custom shoe design ID</param>

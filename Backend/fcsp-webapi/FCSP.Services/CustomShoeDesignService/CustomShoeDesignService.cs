@@ -12,6 +12,7 @@ namespace FCSP.Services.CustomShoeDesignService;
 
 public class CustomShoeDesignService : ICustomShoeDesignService
 {
+    private readonly IOrderDetailRepository _orderDetailRepository;
     private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
     private readonly ICustomShoeDesignTextureRepository _customShoeDesignTextureRepository;
     private readonly IDesignPreviewRepository _designPreviewRepository;
@@ -20,12 +21,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     public CustomShoeDesignService(
         ICustomShoeDesignRepository customShoeDesignRepository,
+        IOrderDetailRepository orderDetailRepository,
         ICustomShoeDesignTextureRepository customShoeDesignTextureRepository,
         IDesignPreviewRepository designPreviewRepository,
         ICustomShoeDesignTexturesRepository customShoeDesignTexturesRepository,
         ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository)
     {
         _customShoeDesignRepository = customShoeDesignRepository;
+        _orderDetailRepository = orderDetailRepository;
         _customShoeDesignTextureRepository = customShoeDesignTextureRepository;
         _designPreviewRepository = designPreviewRepository;
         _customShoeDesignTexturesRepository = customShoeDesignTexturesRepository;
@@ -58,6 +61,32 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
     }
 
+    public async Task<BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>> GetTopFiveBestSellingPublicDesigns()
+    {
+        try
+        {
+            var designs = await GetTopFiveBestSellingDesigns();
+            return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
+            {
+                Code = 200,
+                Message = "Custom shoe designs retrieved successfully",
+                Data = new GetAllPublicCustomShoeDesignsResponse
+                {
+                    Designs = designs
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = null
+            };
+        }
+    }
+
     public async Task<BaseResponseModel<GetCustomShoeDesignByIdResponse>> GetDesignById(GetCustomShoeDesignByIdRequest request)
     {
         try{
@@ -69,7 +98,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Data = new GetCustomShoeDesignByIdResponse
                 {
                     Id = design.Id,
-                    PreviewImageUrls = design.DesignPreviews?.Select(p => p.PreviewImageUrl).ToList() ?? new List<string>(),
+                    PreviewImageUrl = design.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
                     Price = design.TotalAmount
                 }
             };
@@ -85,15 +114,15 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
     }
 
-    public async Task<BaseResponseModel<GetCustomShoeDesignsByUserIdResponse>> GetDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
+    public async Task<BaseResponseModel<GetListCustomShoeDesignsResponse>> GetDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
     {
         try{
             var designs = await GetCustomShoeDesignsByUserId(request);
-            return new BaseResponseModel<GetCustomShoeDesignsByUserIdResponse>
+            return new BaseResponseModel<GetListCustomShoeDesignsResponse>
             {
                 Code = 200,
                 Message = "Custom shoe designs retrieved successfully",
-                Data = new GetCustomShoeDesignsByUserIdResponse
+                Data = new GetListCustomShoeDesignsResponse
                 {
                     Designs = designs
                 }
@@ -101,7 +130,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
         catch(Exception ex)
         {
-            return new BaseResponseModel<GetCustomShoeDesignsByUserIdResponse>
+            return new BaseResponseModel<GetListCustomShoeDesignsResponse>
             {
                 Code = 500,
                 Message = ex.Message,
@@ -214,7 +243,20 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
             Id = d.Id,
-            PreviewImageUrls = d.DesignPreviews?.Select(p => p.PreviewImageUrl).ToList() ?? new List<string>(),
+            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+            Price = d.TotalAmount
+        });
+    }
+
+    private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetTopFiveBestSellingDesigns()
+    {
+        var designIds = await _orderDetailRepository.GetTopFiveBestSellingDesignsAsync();
+        var designs = await _customShoeDesignRepository.GetDesignsByIdsAsync(designIds);
+        return designs.Select(d => new GetCustomShoeDesignByIdResponse
+        {
+            Id = d.Id,
+            Name = d.CustomShoeDesignTemplate?.Name,
+            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
         });
     }
@@ -239,7 +281,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
             Id = d.Id,
-            PreviewImageUrls = d.DesignPreviews?.Select(p => p.PreviewImageUrl).ToList() ?? new List<string>(),
+            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
         });
     }
