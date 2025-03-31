@@ -10,5 +10,8 @@ namespace FCSP.Services.RatingService
         Task<AddRatingResponse> AddRating(AddRatingRequest request);
         Task<UpdateRatingResponse> UpdateRating(UpdateRatingRequest request);
         Task<DeleteRatingResponse> DeleteRating(DeleteRatingRequest request);
+        Task<List<CustomShoeRatingStats>> GetCustomShoeRatingStats();
+        Task<List<TopRatedCustomShoe>> GetTopRatedCustomShoes();
+        Task<CustomShoeRatingStats> GetCustomShoeRatingStatsById(long customShoeDesignId);
     }
-} 
+}

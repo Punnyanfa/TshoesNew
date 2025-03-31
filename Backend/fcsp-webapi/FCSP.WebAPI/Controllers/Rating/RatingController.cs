@@ -33,6 +33,9 @@ namespace FCSP.WebAPI.Controllers.Rating
         [HttpPost]
         public async Task<IActionResult> AddRating([FromBody] AddRatingRequest request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var response = await _ratingService.AddRating(request);
             return CreatedAtAction(nameof(GetRatingById), new { id = response.RatingId }, response);
         }
@@ -41,7 +44,10 @@ namespace FCSP.WebAPI.Controllers.Rating
         public async Task<IActionResult> UpdateRating(long id, [FromBody] UpdateRatingRequest request)
         {
             if (id != request.Id)
-                return BadRequest();
+                return BadRequest("ID mismatch");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var response = await _ratingService.UpdateRating(request);
             return Ok(response);
@@ -53,6 +59,31 @@ namespace FCSP.WebAPI.Controllers.Rating
             var request = new DeleteRatingRequest { Id = id };
             var response = await _ratingService.DeleteRating(request);
             return Ok(response);
+        }
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetCustomShoeRatingStats()
+        {
+            var stats = await _ratingService.GetCustomShoeRatingStats();
+            return Ok(stats);
+        }
+        [HttpGet("top-rated")]
+        public async Task<IActionResult> GetTopRatedCustomShoes()
+        {
+            var topRated = await _ratingService.GetTopRatedCustomShoes();
+            return Ok(topRated);
+        }
+        [HttpGet("stats/{customShoeDesignId}")]
+        public async Task<IActionResult> GetCustomShoeRatingStatsById(long customShoeDesignId)
+        {
+            try
+            {
+                var stats = await _ratingService.GetCustomShoeRatingStatsById(customShoeDesignId);
+                return Ok(stats);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 } 

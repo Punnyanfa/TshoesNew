@@ -6,7 +6,7 @@ public class Rating : BaseEntity
 {
     public long CustomShoeDesignId { get; set; }
     public long UserId { get; set; }
-    public int UserRating { get; set; } // Named UserRating to avoid conflict with class name
+    public int UserRating { get; set; } 
     public string? Comment { get; set; }
     public bool IsDeleted { get; set; }
 
