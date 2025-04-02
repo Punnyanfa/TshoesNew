@@ -4,6 +4,8 @@ namespace FCSP.Repositories.Interfaces
 {
     public interface IVoucherRepository : IGenericRepository<Voucher>
     {
-        // Add any custom repository method declarations here
+        Task<IEnumerable<Voucher>> GetNonExpiredVouchersAsync();
+        Task<Voucher> GetVoucherByOrderIdAsync(long orderId);
+        Task<int> UpdateExpiredVouchersAsync();
     }
 }

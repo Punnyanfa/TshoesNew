@@ -5,10 +5,14 @@ namespace FCSP.Services.VoucherService
 {
     public interface IVoucherService
     {
+
         Task<IEnumerable<Voucher>> GetAllVouchers();
         Task<GetVoucherByIdResponse> GetVoucherById(GetVoucherByIdRequest request);
+        Task<GetVoucherByOrderIdResponse> GetVoucherByOrderId(GetVoucherByOrderIdRequest request);
         Task<AddVoucherResponse> AddVoucher(AddVoucherRequest request);
         Task<UpdateVoucherResponse> UpdateVoucher(UpdateVoucherRequest request);
         Task<DeleteVoucherResponse> DeleteVoucher(DeleteVoucherRequest request);
+        Task<int> UpdateExpiredVouchers();
+        Task<IEnumerable<GetVoucherByIdResponse>> GetNonExpiredVouchers();
     }
 } 

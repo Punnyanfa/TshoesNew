@@ -32,7 +32,7 @@ namespace FCSP.Services.OrderDetailService
                 CustomShoeDesignId = orderDetail.CustomShoeDesignId,
                 Quantity = orderDetail.Quantity,
                 UnitPrice = orderDetail.Price,
-                Size = null, // Set appropriate value if available
+                Size = null,
                 CreatedAt = orderDetail.CreatedAt,
                 UpdatedAt = orderDetail.UpdatedAt
             };
@@ -42,8 +42,8 @@ namespace FCSP.Services.OrderDetailService
         {
             OrderDetail orderDetail = GetEntityFromAddRequest(request);
             var addedOrderDetail = await _orderDetailRepository.AddAsync(orderDetail);
-            return new AddOrderDetailResponse 
-            { 
+            return new AddOrderDetailResponse
+            {
                 Id = addedOrderDetail.Id,
                 UnitPrice = addedOrderDetail.Price
             };
@@ -53,8 +53,8 @@ namespace FCSP.Services.OrderDetailService
         {
             OrderDetail orderDetail = await GetEntityFromUpdateRequest(request);
             await _orderDetailRepository.UpdateAsync(orderDetail);
-            return new UpdateOrderDetailResponse 
-            { 
+            return new UpdateOrderDetailResponse
+            {
                 Id = orderDetail.Id,
                 UnitPrice = orderDetail.Price
             };
@@ -97,11 +97,11 @@ namespace FCSP.Services.OrderDetailService
             {
                 throw new InvalidOperationException("OrderDetail not found");
             }
-            
+
             orderDetail.Quantity = request.Quantity;
             orderDetail.Price = request.UnitPrice;
             orderDetail.UpdatedAt = DateTime.UtcNow;
-            
+
             return orderDetail;
         }
 
@@ -115,4 +115,4 @@ namespace FCSP.Services.OrderDetailService
             return orderDetail;
         }
     }
-} 
+}

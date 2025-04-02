@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace FCSP.DTOs.Rating
 {
     public class GetRatingByIdRequest
@@ -22,7 +24,12 @@ namespace FCSP.DTOs.Rating
         public long UserId { get; set; }
         public long TargetId { get; set; }
         public string Type { get; set; }
+
+        [Range(1, 5, ErrorMessage = "Rating value must be between 1 and 5")]
         public int Value { get; set; }
+
+        [MaxLength(250, ErrorMessage = "Comment cannot exceed 250 characters")]
+        [BadWordValidation(ErrorMessage = "Comment contains inappropriate language")]
         public string Comment { get; set; }
     }
 
@@ -37,7 +44,12 @@ namespace FCSP.DTOs.Rating
         public long UserId { get; set; }
         public long TargetId { get; set; }
         public string Type { get; set; }
+
+        [Range(1, 5, ErrorMessage = "Rating value must be between 1 and 5")]
         public int Value { get; set; }
+
+        [MaxLength(250, ErrorMessage = "Comment cannot exceed 250 characters")]
+        [BadWordValidation(ErrorMessage = "Comment contains inappropriate language")]
         public string Comment { get; set; }
     }
 
@@ -55,4 +67,14 @@ namespace FCSP.DTOs.Rating
     {
         public bool Success { get; set; }
     }
-} 
+    public class CustomShoeRatingStats
+    {
+        public long CustomShoeDesignId { get; set; }
+        public Dictionary<int, int> RatingBreakdown { get; set; } = new Dictionary<int, int>(); // Key: Rating (1-5), Value: Count
+    }
+    public class TopRatedCustomShoe
+    {
+        public long CustomShoeDesignId { get; set; }
+        public int HighRatingCount { get; set; }
+    }
+}

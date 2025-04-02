@@ -1,9 +1,12 @@
 using FCSP.Models.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Interfaces
 {
     public interface IOrderRepository : IGenericRepository<Order>
     {
-        // Add any custom repository methods here
+        Task<IEnumerable<Order>> GetOrdersByUserIdAsync(long userId); 
+        Task<IEnumerable<Order>> GetAllPublicOrderAsync();
     }
 }

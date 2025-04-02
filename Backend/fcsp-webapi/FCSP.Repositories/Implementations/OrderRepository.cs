@@ -1,6 +1,10 @@
 using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -10,6 +14,19 @@ namespace FCSP.Repositories.Implementations
         {
         }
 
-        // Implement any custom repository methods here
+        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(long userId)
+        {
+            return await _context.Orders
+                .Where(x => x.UserId == userId)
+                .Include(o => o.OrderDetails)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Order>> GetAllPublicOrderAsync()
+        {
+            return await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ToListAsync();
+        }
     }
 }

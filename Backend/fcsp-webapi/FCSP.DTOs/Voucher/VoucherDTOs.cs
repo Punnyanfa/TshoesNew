@@ -1,3 +1,6 @@
+using System;
+using FCSP.Common.Enums;
+
 namespace FCSP.DTOs.Voucher
 {
     public class GetVoucherByIdRequest
@@ -10,8 +13,23 @@ namespace FCSP.DTOs.Voucher
         public long Id { get; set; }
         public string Code { get; set; }
         public float DiscountAmount { get; set; }
+        public VoucherStatus Status { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsUsed { get; set; }
+    }
+
+    public class GetVoucherByOrderIdRequest
+    {
+        public long OrderId { get; set; }
+    }
+
+    public class GetVoucherByOrderIdResponse
+    {
+        public long Id { get; set; }
+        public string Code { get; set; }
+        public float DiscountAmount { get; set; }
+        public DateTime ExpiryDate { get; set; }
+        public VoucherStatus Status { get; set; }
     }
 
     public class AddVoucherRequest
@@ -49,4 +67,4 @@ namespace FCSP.DTOs.Voucher
     {
         public bool Success { get; set; }
     }
-} 
+}

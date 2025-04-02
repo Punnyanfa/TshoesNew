@@ -1,16 +1,16 @@
+using FCSP.DTOs;
 using FCSP.DTOs.Order;
-using FCSP.Models.Entities;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FCSP.Services.OrderService
 {
     public interface IOrderService
     {
-        Task<IEnumerable<Order>> GetAllOrders();
-        Task<GetOrderByIdResponse> GetOrderById(GetOrderByIdRequest request);
-        Task<AddOrderResponse> AddOrder(AddOrderRequest request);
-        Task<UpdateOrderResponse> UpdateOrder(UpdateOrderRequest request);
-        Task<DeleteOrderResponse> DeleteOrder(DeleteOrderRequest request);
+        Task<BaseResponseModel<List<GetOrderByIdResponse>>> GetAllOrders();
+        Task<BaseResponseModel<GetOrderByIdResponse>> GetOrderById(GetOrderByIdRequest request);
+        Task<BaseResponseModel<List<GetOrderByUserIdResponse>>> GetOrdersByUserId(GetOrdersByUserIdRequest request);
+        Task<BaseResponseModel<AddOrderResponse>> AddOrder(AddOrderRequest request);
+        Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrder(UpdateOrderRequest request);
+        Task<BaseResponseModel<DeleteOrderResponse>> DeleteOrder(DeleteOrderRequest request);
     }
-} 
+}
