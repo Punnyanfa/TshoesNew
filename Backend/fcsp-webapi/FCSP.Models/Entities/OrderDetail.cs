@@ -10,6 +10,8 @@ public class OrderDetail : BaseEntity
 
     public virtual CustomShoeDesign CustomShoeDesign { get; set; } = null!;
 
+    public int Size { get; set; }
+
     public int Quantity { get; set; }
 
     public float Price { get; set; }

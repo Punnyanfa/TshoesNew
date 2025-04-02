@@ -18,8 +18,14 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [HttpPost]
+    public async Task<IActionResult> GetHashedPassword(string password)
+    {
+        var response = _authService.HashPassword(password);
+        return StatusCode(200, response);
+    }
+
     [HttpPost("[action]")]
-    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
     {
         var response = await _authService.Login(request);

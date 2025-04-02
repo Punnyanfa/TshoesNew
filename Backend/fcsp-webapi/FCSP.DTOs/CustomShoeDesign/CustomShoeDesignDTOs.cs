@@ -37,7 +37,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public long? UserId { get; set; }
         public long? CustomShoeDesignTemplateId { get; set; }
         public string? DesignData { get; set; }
-        public string? Size { get; set; }
+        public string? Description { get; set; }
         public float? DesignerMarkup { get; set; }
         public float? TotalAmount { get; set; }
         public List<long>? TextureIds { get; set; }

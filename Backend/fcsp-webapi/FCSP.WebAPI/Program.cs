@@ -1,4 +1,5 @@
-using FCSP.WebAPI.Configuration;
+﻿using FCSP.WebAPI.Configuration;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,10 +13,13 @@ services.AddControllers();
 services.AddHttpClient();
 services.AddEndpointsApiExplorer();
 
+
+
 ServiceConfig.Configure(services);
 RepositoryConfig.Configure(services);
 AuthConfig.Configure(services, config);
 DocumentationConfig.Configure(services);
+CorsConfig.Configure(services);
 
 var app = builder.Build();
 
@@ -33,12 +37,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// if (app.Environment.IsDevelopment())
-// {
-    
-// }
-
 app.UseHttpsRedirection();
+
+// Enable CORS
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

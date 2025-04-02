@@ -7,7 +7,8 @@ public class CustomShoeDesign : BaseEntity
     public long UserId { get; set; }
     public long CustomShoeDesignTemplateId { get; set; }
     public string? DesignData { get; set; }
-    public string? Size { get; set; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
     public CustomShoeDesignStatus Status { get; set; }
     public float DesignerMarkup { get; set; }
     public float TotalAmount { get; set; }

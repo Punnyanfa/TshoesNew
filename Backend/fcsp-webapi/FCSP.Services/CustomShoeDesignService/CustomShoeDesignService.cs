@@ -243,6 +243,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
             Id = d.Id,
+            Name = d.CustomShoeDesignTemplate?.Name,
+            Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+            RatingCount = d.Ratings?.Count ?? 0,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
         });
@@ -256,8 +259,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
-            Rating = (float)d.Ratings?.Average(r => r.UserRating),
-            RatingCount = d.Ratings?.Count,
+            Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+            RatingCount = d.Ratings?.Count ?? 0,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
         });
@@ -285,7 +288,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-            Rating = (float)d.Ratings?.Average(r => r.UserRating),
+            Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+            RatingCount = d.Ratings?.Count ?? 0,
             Price = d.TotalAmount
         });
     }
@@ -297,7 +301,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             UserId = request.UserId ?? 0,
             CustomShoeDesignTemplateId = request.CustomShoeDesignTemplateId ?? 0,
             DesignData = request.DesignData,
-            Size = request.Size,
+            Description = request.Description,
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
             TotalAmount = request.TotalAmount ?? 0,

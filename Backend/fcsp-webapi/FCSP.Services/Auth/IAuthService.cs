@@ -5,6 +5,8 @@ namespace FCSP.Services.Auth;
 
 public interface IAuthService
 {
+    public string HashPassword(string password);
+
     public Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request);
 
     public Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request);

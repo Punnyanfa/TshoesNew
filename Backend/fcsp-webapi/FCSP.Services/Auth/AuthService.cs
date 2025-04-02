@@ -7,6 +7,7 @@ using FCSP.DTOs.ShippingInfo;
 using FCSP.Repositories.Interfaces;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
+using Azure.Core;
 
 namespace FCSP.Services.Auth;
 
@@ -21,6 +22,12 @@ public class AuthService : IAuthService
         _passwordHashingService = passwordHashingService;
         _tokenService = tokenService;
         _userRepository = userRepository;
+    }
+
+    public string HashPassword(string password)
+    {
+        var hashedPassword = _passwordHashingService.GetHashedPassword(password);
+        return hashedPassword;
     }
 
     public async Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request)

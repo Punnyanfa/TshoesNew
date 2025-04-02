@@ -2,7 +2,6 @@
 
 public class CustomShoeDesignTemplate : BaseEntity
 {
-    public long? UserId { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public string? Gender { get; set; }
