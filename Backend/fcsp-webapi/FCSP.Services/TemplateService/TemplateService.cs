@@ -91,8 +91,7 @@ namespace FCSP.Services.TemplateService
                 Description = request.Description,
                 Price = (float)request.BasePrice,
                 TwoDImageUrl = request.PreviewImageUrl,
-                ThreeDFileUrl = request.Model3DUrl,
-                UserId = 1 // Default user ID, should be replaced with actual user ID
+                ThreeDFileUrl = request.Model3DUrl
             };
         }
 

@@ -27,6 +27,7 @@ using Microsoft.Extensions.DependencyInjection;
 using FCSP.DTOs.Texture;
 using Microsoft.Extensions.Options;
 using FCSP.Common.Configurations;
+using FCSP.Services.SizeService;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -94,5 +95,8 @@ internal static class ServiceConfig
 
         // Shipping service
         services.AddScoped<IShippingInfoService, ShippingInfoService>();
+
+        // Size service
+        services.AddScoped<ISizeService, SizeService>();
     }
 }

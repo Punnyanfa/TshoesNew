@@ -10,7 +10,9 @@ public class OrderDetail : BaseEntity
 
     public virtual CustomShoeDesign CustomShoeDesign { get; set; } = null!;
 
-    public int Size { get; set; }
+    public long SizeId { get; set; }
+
+    public virtual Size Size { get; set; } = null!;
 
     public int Quantity { get; set; }
 

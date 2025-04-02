@@ -55,5 +55,8 @@ internal static class RepositoryConfig
         
         // Shipping repository
         services.AddScoped<IShippingInfoRepository, ShippingInfoRepository>();
+        
+        // Size repository
+        services.AddScoped<ISizeRepository, SizeRepository>();
     }
 }

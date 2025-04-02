@@ -33,13 +33,6 @@ internal static class RelationshipConfig
             .HasForeignKey(d => d.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // CustomShoeDesignTemplate relationships
-        modelBuilder.Entity<CustomShoeDesignTemplate>()
-            .HasOne(t => t.User)
-            .WithMany(u => u.Templates)
-            .HasForeignKey(t => t.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // CustomShoeDesignTexture relationships
         modelBuilder.Entity<CustomShoeDesignTextures>()
             .HasOne(dt => dt.CustomShoeDesign)

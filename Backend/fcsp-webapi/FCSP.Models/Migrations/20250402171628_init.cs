@@ -28,6 +28,22 @@ namespace FCSP.Models.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Size",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SizeValue = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Size", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Vouchers",
                 columns: table => new
                 {
@@ -55,17 +71,25 @@ namespace FCSP.Models.Migrations
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     CustomShoeDesignTemplateId = table.Column<long>(type: "bigint", nullable: false),
                     DesignData = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Size = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     DesignerMarkup = table.Column<float>(type: "real", nullable: false),
                     TotalAmount = table.Column<float>(type: "real", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    SizeId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CustomShoeDesigns", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CustomShoeDesigns_Size_SizeId",
+                        column: x => x.SizeId,
+                        principalTable: "Size",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -98,6 +122,8 @@ namespace FCSP.Models.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
+                    Size = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -119,7 +145,6 @@ namespace FCSP.Models.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<long>(type: "bigint", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -128,6 +153,7 @@ namespace FCSP.Models.Migrations
                     _2DImageUrl = table.Column<string>(name: "2DImageUrl", type: "nvarchar(max)", nullable: true),
                     _3DFileUrl = table.Column<string>(name: "3DFileUrl", type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -322,6 +348,7 @@ namespace FCSP.Models.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<long>(type: "bigint", nullable: false),
                     CustomShoeDesignId = table.Column<long>(type: "bigint", nullable: false),
+                    SizeId = table.Column<long>(type: "bigint", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -335,6 +362,12 @@ namespace FCSP.Models.Migrations
                         column: x => x.CustomShoeDesignId,
                         principalTable: "CustomShoeDesigns",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderDetails_Size_SizeId",
+                        column: x => x.SizeId,
+                        principalTable: "Size",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -655,6 +688,11 @@ namespace FCSP.Models.Migrations
                 column: "CustomShoeDesignTemplateId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CustomShoeDesigns_SizeId",
+                table: "CustomShoeDesigns",
+                column: "SizeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CustomShoeDesigns_UserId",
                 table: "CustomShoeDesigns",
                 column: "UserId");
@@ -728,6 +766,11 @@ namespace FCSP.Models.Migrations
                 name: "IX_OrderDetails_OrderId",
                 table: "OrderDetails",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderDetails_SizeId",
+                table: "OrderDetails",
+                column: "SizeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_ShippingInfoId",
@@ -881,7 +924,7 @@ namespace FCSP.Models.Migrations
                 column: "UserId",
                 principalTable: "Users",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CustomShoeDesignTextures_Textures_TextureId",
@@ -1088,6 +1131,9 @@ namespace FCSP.Models.Migrations
 
             migrationBuilder.DropTable(
                 name: "CustomShoeDesignTemplates");
+
+            migrationBuilder.DropTable(
+                name: "Size");
 
             migrationBuilder.DropTable(
                 name: "Vouchers");

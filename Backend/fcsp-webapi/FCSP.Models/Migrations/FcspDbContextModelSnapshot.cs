@@ -62,6 +62,9 @@ namespace FCSP.Models.Migrations
                     b.Property<long>("CustomShoeDesignTemplateId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DesignData")
                         .HasColumnType("nvarchar(max)");
 
@@ -71,8 +74,11 @@ namespace FCSP.Models.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Size")
+                    b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SizeId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -89,6 +95,8 @@ namespace FCSP.Models.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomShoeDesignTemplateId");
+
+                    b.HasIndex("SizeId");
 
                     b.HasIndex("UserId");
 
@@ -136,7 +144,7 @@ namespace FCSP.Models.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<long?>("UserId")
+                    b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -455,6 +463,9 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<long>("SizeId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -463,6 +474,8 @@ namespace FCSP.Models.Migrations
                     b.HasIndex("CustomShoeDesignId");
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("SizeId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -662,6 +675,9 @@ namespace FCSP.Models.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -800,6 +816,31 @@ namespace FCSP.Models.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ShippingInfos");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.Size", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SizeValue")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Size");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Texture", b =>
@@ -1034,6 +1075,12 @@ namespace FCSP.Models.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FCSP.Models.Entities.Size", "Size")
+                        .WithMany("CustomShoeDesigns")
+                        .HasForeignKey("SizeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("FCSP.Models.Entities.User", "User")
                         .WithMany("CustomShoeDesigns")
                         .HasForeignKey("UserId")
@@ -1041,6 +1088,8 @@ namespace FCSP.Models.Migrations
                         .IsRequired();
 
                     b.Navigation("CustomShoeDesignTemplate");
+
+                    b.Navigation("Size");
 
                     b.Navigation("User");
                 });
@@ -1050,7 +1099,8 @@ namespace FCSP.Models.Migrations
                     b.HasOne("FCSP.Models.Entities.User", "User")
                         .WithMany("Templates")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -1208,9 +1258,17 @@ namespace FCSP.Models.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FCSP.Models.Entities.Size", "Size")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("SizeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("CustomShoeDesign");
 
                     b.Navigation("Order");
+
+                    b.Navigation("Size");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Payment", b =>
@@ -1476,6 +1534,13 @@ namespace FCSP.Models.Migrations
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>
                 {
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.Size", b =>
+                {
+                    b.Navigation("CustomShoeDesigns");
+
+                    b.Navigation("OrderDetails");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Texture", b =>
