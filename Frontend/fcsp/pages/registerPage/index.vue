@@ -56,6 +56,8 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { registerUser } from '@/server/auth/register-service';
 import {
   UserOutlined,
   MailOutlined,
@@ -64,6 +66,7 @@ import {
   EyeInvisibleOutlined
 } from '@ant-design/icons-vue';
 
+const router = useRouter();
 const name = ref('');
 const email = ref('');
 const password = ref('');
@@ -73,19 +76,93 @@ const emailError = ref('');
 const passwordError = ref('');
 
 const validateInputs = () => {
-  nameError.value = name.value ? '' : 'Name is required';
-  emailError.value = email.value ? '' : 'Email is required';
-  passwordError.value = password.value ? '' : 'Password is required';
-  return !nameError.value && !emailError.value && !passwordError.value;
+  let isValid = true;
+  
+  // Validate name
+  if (!name.value.trim()) {
+    nameError.value = 'Name is required';
+    isValid = false;
+  } else {
+    nameError.value = '';
+  }
+
+  // Validate email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email.value.trim()) {
+    emailError.value = 'Email is required';
+    isValid = false;
+  } else if (!emailRegex.test(email.value)) {
+    emailError.value = 'Please enter a valid email address';
+    isValid = false;
+  } else {
+    emailError.value = '';
+  }
+
+  // Validate password
+  if (!password.value) {
+    passwordError.value = 'Password is required';
+    isValid = false;
+  } else if (password.value.length < 6) {
+    passwordError.value = 'Password must be at least 6 characters';
+    isValid = false;
+  } else {
+    passwordError.value = '';
+  }
+
+  return isValid;
 };
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
 
-const register = () => {
-  if (!validateInputs()) return;
-  console.log(`Registering ${name.value}`);
+const register = async () => {
+  try {
+    if (!validateInputs()) return;
+
+    // Gọi API với đúng thứ tự tham số (name, email, password)
+    const response = await registerUser(
+      name.value,    // tham số 1: name
+      email.value,   // tham số 2: email
+      password.value 
+      
+    );console.log("register response:", name.value);
+
+    
+
+    // Xử lý response thành công
+    if (response) {
+      // Có thể hiển thị thông báo thành công
+      alert('Registration successful!');
+      // Chuyển hướng đến trang login
+      router.push('/loginPage');
+    }
+  } catch (error) {
+    // Xử lý các trường hợp lỗi chi tiết hơn
+    if (error.response) {
+      // Lỗi từ server với status code
+      switch (error.response.status) {
+        case 400:
+          alert('Invalid input data. Please check your information.');
+          break;
+        case 409:
+          alert('Email already exists. Please use a different email.');
+          break;
+        case 500:
+          alert('Server error. Please try again later.');
+          break;
+        default:
+          alert(`Registration failed: ${error.response.data.message || 'Please try again later.'}`);
+      }
+    } else if (error.request) {
+      // Lỗi không nhận được response
+      alert('Unable to connect to the server. Please check your internet connection.');
+    } else {
+      // Lỗi khác
+      alert('Registration failed: ' + error.message);
+    }
+    console.error('Registration error:', error);
+  }
 };
 </script>
 

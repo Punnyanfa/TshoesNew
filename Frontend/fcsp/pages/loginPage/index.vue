@@ -63,6 +63,9 @@
 
 <script setup>
 import { ref } from 'vue';
+import { ElNotification } from 'element-plus'; 
+import { loginUser } from '@/server/auth/login-service';
+import { useRouter } from 'vue-router';
 import {
   MailOutlined,
   LockOutlined,
@@ -70,28 +73,50 @@ import {
   EyeInvisibleOutlined
 } from '@ant-design/icons-vue';
 
+// State management
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const emailError = ref('');
 const passwordError = ref('');
+const router = useRouter();
 
+// Validation and UI handlers
 const validateInputs = () => {
   emailError.value = email.value ? '' : 'Email is required';
   passwordError.value = password.value ? '' : 'Password is required';
   return !emailError.value && !passwordError.value;
 };
 
-const togglePassword = () => {
-  showPassword.value = !showPassword.value;
-};
+const togglePassword = () => showPassword.value = !showPassword.value;
 
-const login = () => {
+// Login handler
+const login = async () => {
   if (!validateInputs()) return;
-  console.log(`Logging in with ${email.value}`);
-  // Handle login logic
+  
+  const routeMap = {
+    "Admin login": '/adminPage',
+    "Login successful": '/homePage',
+    "Failed": null,
+    "Error": null
+  };
+
+  const result = await loginUser(email.value, password.value);
+  const route = routeMap[result];
+
+  if (route) {
+    console.log(`Redirecting to ${route.substring(1)}...`);
+    router.push(route);
+  } else {
+    ElNotification({
+      title: 'Error',
+      message: 'Login failed. Please try again.',
+      type: 'error',
+    });
+  }
 };
 </script>
+
 
 <style scoped>
 /* 🌟 Background */

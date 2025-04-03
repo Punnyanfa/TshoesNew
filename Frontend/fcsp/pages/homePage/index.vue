@@ -325,50 +325,34 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 
 // Import required modules
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
+import {  GetBestSelling } from '~/server/BestSelling-service'
+import { ref, onMounted } from 'vue'
 
-// Định nghĩa dữ liệu sản phẩm
-const products = [
-  {
-    id: 1,
-    name: 'Air Max Supreme',
-    price: '2.999.000₫',
-    rating: 4.8,
-    reviews: 120,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s'
-  },
-  {
-    id: 2,
-    name: 'Ultra Boost Pro',
-    price: '3.499.000₫',
-    rating: 4.9,
-    reviews: 200,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s'
-  },
-  {
-    id: 3,
-    name: 'Nike Air Jordan',
-    price: '4.299.000₫',
-    rating: 5.0,
-    reviews: 150,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s'
-  },
-  {
-    id: 4,
-    name: 'Adidas Yeezy',
-    price: '5.999.000₫',
-    rating: 4.7,
-    reviews: 180,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s'
-  },
-  {
-    id: 5,
-    name: 'Puma RS-X',
-    price: '2.799.000₫',
-    rating: 4.6,
-    reviews: 90,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s'
+// Define reactive state
+const products = ref([])
+const showNotification = ref(false)
+const notificationMessage = ref('')
+const imageLoaded = ref({})
+
+// Fetch products on component mount
+onMounted(async () => {
+  try {
+    const response = await GetBestSelling()
+    console.log("shshhs",response.data.designs)
+    if (response && response.data.designs) {
+      products.value = response.data.designs.map(product => ({
+        id: product.id,
+        name: product.name,
+        image: product.previewImageUrl,
+        price: product.price,
+        rating: product.rating,
+        reviews: product.ratingCount
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching products:', error)
   }
-]
+})
 
 const swiperModules = [Navigation, Pagination, Autoplay]
 const swiperOptions = {
@@ -402,11 +386,7 @@ const swiperOptions = {
 }
 
 import { useCartStore } from '~/stores/cart'
-import { ref } from 'vue'
-
 const cartStore = useCartStore()
-const showNotification = ref(false)
-const notificationMessage = ref('')
 
 // Hàm thêm vào giỏ hàng
 const addToCart = (product) => {
@@ -426,8 +406,7 @@ const addToCart = (product) => {
   }, 3000)
 }
 
-// Thêm loading state cho hình ảnh
-const imageLoaded = ref({})
+// Handle image loading
 const handleImageLoad = (productId) => {
   imageLoaded.value[productId] = true
 }
