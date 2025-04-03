@@ -1,7 +1,12 @@
+using FCSP.DTOs;
 using FCSP.DTOs.Voucher;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Common.Enums;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace FCSP.Services.VoucherService
 {
@@ -15,101 +20,277 @@ namespace FCSP.Services.VoucherService
             _voucherRepository = voucherRepository;
         }
 
-        public async Task<IEnumerable<Voucher>> GetAllVouchers()
+        public async Task<BaseResponseModel<List<Voucher>>> GetAllVouchers()
         {
-            return await _voucherRepository.GetAllAsync();
-        }
-
-        public async Task<GetVoucherByIdResponse> GetVoucherById(GetVoucherByIdRequest request)
-        {
-            var voucher = await _voucherRepository.FindAsync(request.Id);
-            if (voucher == null)
-                throw new Exception("Voucher not found");
-
-            return new GetVoucherByIdResponse
+            try
             {
-                Id = voucher.Id,
-                Code = voucher.VoucherName ?? string.Empty,
-                DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
-                Status = (VoucherStatus)voucher.Status,
-                ExpiryDate = voucher.ExpirationDate,
-                IsUsed = voucher.Status == (int)VoucherStatus.Used
-            };
-        }
-
-        public async Task<GetVoucherByOrderIdResponse> GetVoucherByOrderId(GetVoucherByOrderIdRequest request)
-        {
-            var voucher = await _voucherRepository.GetVoucherByOrderIdAsync(request.OrderId);
-            if (voucher == null)
-                throw new Exception("No voucher found for this order");
-
-            return new GetVoucherByOrderIdResponse
+                var vouchers = await _voucherRepository.GetAllAsync();
+                return new BaseResponseModel<List<Voucher>>
+                {
+                    Code = 200,
+                    Message = "Vouchers retrieved successfully",
+                    Data = vouchers.ToList()
+                };
+            }
+            catch (Exception ex)
             {
-                Id = voucher.Id,
-                Code = voucher.VoucherName ?? string.Empty,
-                DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
-                ExpiryDate = voucher.ExpirationDate,
-                Status = (VoucherStatus)voucher.Status
-            };
+                return new BaseResponseModel<List<Voucher>>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving vouchers: {ex.Message}"
+                };
+            }
         }
 
-        public async Task<AddVoucherResponse> AddVoucher(AddVoucherRequest request)
+        public async Task<BaseResponseModel<GetVoucherByIdResponse>> GetVoucherById(GetVoucherByIdRequest request)
         {
-            ValidateExpirationDate(request.ExpiryDate);
-
-            var voucher = new Voucher
+            try
             {
-                VoucherName = request.Code,
-                VoucherValue = request.DiscountAmount.ToString(),
-                ExpirationDate = request.ExpiryDate,
-                Status = (int)VoucherStatus.Active,
-                Description = request.Code
-                // CreatedAt is set by BaseEntity
-            };
+                var voucher = await _voucherRepository.FindAsync(request.Id);
+                if (voucher == null)
+                {
+                    return new BaseResponseModel<GetVoucherByIdResponse>
+                    {
+                        Code = 404,
+                        Message = "Voucher not found"
+                    };
+                }
 
-            var addedVoucher = await _voucherRepository.AddAsync(voucher);
-            return new AddVoucherResponse { VoucherId = addedVoucher.Id };
-        }
+                var response = new GetVoucherByIdResponse
+                {
+                    Id = voucher.Id,
+                    Code = voucher.VoucherName ?? string.Empty,
+                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
+                    Status = (VoucherStatus)voucher.Status,
+                    ExpiryDate = voucher.ExpirationDate,
+                    IsUsed = voucher.Status == (int)VoucherStatus.Used
+                };
 
-        public async Task<UpdateVoucherResponse> UpdateVoucher(UpdateVoucherRequest request)
-        {
-            var voucher = await _voucherRepository.FindAsync(request.Id);
-            if (voucher == null)
-                throw new Exception("Voucher not found");
-
-            ValidateExpirationDate(request.ExpiryDate, voucher.CreatedAt);
-
-            voucher.VoucherName = request.Code;
-            voucher.VoucherValue = request.DiscountAmount.ToString();
-            voucher.ExpirationDate = request.ExpiryDate;
-            voucher.Status = request.IsUsed ? (int)VoucherStatus.Used : (int)VoucherStatus.Active;
-            voucher.UpdatedAt = DateTime.Now;
-
-            await _voucherRepository.UpdateAsync(voucher);
-            return new UpdateVoucherResponse { VoucherId = voucher.Id };
-        }
-
-        public async Task<DeleteVoucherResponse> DeleteVoucher(DeleteVoucherRequest request)
-        {
-            await _voucherRepository.DeleteAsync(request.Id);
-            return new DeleteVoucherResponse { Success = true };
-        }
-
-        public async Task<int> UpdateExpiredVouchers()
-        {
-           return await _voucherRepository.UpdateExpiredVouchersAsync();
-        }
-        public async Task<IEnumerable<GetVoucherByIdResponse>> GetNonExpiredVouchers()
-        {
-            var vouchers = await _voucherRepository.GetNonExpiredVouchersAsync();
-            return vouchers.Select(voucher => new GetVoucherByIdResponse
+                return new BaseResponseModel<GetVoucherByIdResponse>
+                {
+                    Code = 200,
+                    Message = "Voucher retrieved successfully",
+                    Data = response
+                };
+            }
+            catch (Exception ex)
             {
-                Id = voucher.Id,
-                Code = voucher.VoucherName ?? string.Empty,
-                DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
-                ExpiryDate = voucher.ExpirationDate,
-                IsUsed = voucher.Status == (int)VoucherStatus.Used
-            }).ToList();
+                return new BaseResponseModel<GetVoucherByIdResponse>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving voucher: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<GetVoucherByOrderIdResponse>> GetVoucherByOrderId(GetVoucherByOrderIdRequest request)
+        {
+            try
+            {
+                var voucher = await _voucherRepository.GetVoucherByOrderIdAsync(request.OrderId);
+                if (voucher == null)
+                {
+                    return new BaseResponseModel<GetVoucherByOrderIdResponse>
+                    {
+                        Code = 404,
+                        Message = "No voucher found for this order"
+                    };
+                }
+
+                var response = new GetVoucherByOrderIdResponse
+                {
+                    Id = voucher.Id,
+                    Code = voucher.VoucherName ?? string.Empty,
+                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
+                    ExpiryDate = voucher.ExpirationDate,
+                    Status = (VoucherStatus)voucher.Status
+                };
+
+                return new BaseResponseModel<GetVoucherByOrderIdResponse>
+                {
+                    Code = 200,
+                    Message = "Voucher retrieved successfully",
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<GetVoucherByOrderIdResponse>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving voucher: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<AddVoucherResponse>> AddVoucher(AddVoucherRequest request)
+        {
+            try
+            {
+                ValidateExpirationDate(request.ExpiryDate);
+
+                var voucher = new Voucher
+                {
+                    VoucherName = request.Code,
+                    VoucherValue = request.DiscountAmount.ToString(),
+                    ExpirationDate = request.ExpiryDate,
+                    Status = (int)VoucherStatus.Active,
+                    Description = request.Code
+                    // CreatedAt is set by BaseEntity
+                };
+
+                var addedVoucher = await _voucherRepository.AddAsync(voucher);
+                return new BaseResponseModel<AddVoucherResponse>
+                {
+                    Code = 201,
+                    Message = "Voucher created successfully",
+                    Data = new AddVoucherResponse { VoucherId = addedVoucher.Id }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<AddVoucherResponse>
+                {
+                    Code = 500,
+                    Message = $"Error creating voucher: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<UpdateVoucherResponse>> UpdateVoucher(UpdateVoucherRequest request)
+        {
+            try
+            {
+                var voucher = await _voucherRepository.FindAsync(request.Id);
+                if (voucher == null)
+                {
+                    return new BaseResponseModel<UpdateVoucherResponse>
+                    {
+                        Code = 404,
+                        Message = "Voucher not found"
+                    };
+                }
+
+                try
+                {
+                    ValidateExpirationDate(request.ExpiryDate, voucher.CreatedAt);
+                }
+                catch (ArgumentException ex)
+                {
+                    return new BaseResponseModel<UpdateVoucherResponse>
+                    {
+                        Code = 400,
+                        Message = ex.Message
+                    };
+                }
+
+                voucher.VoucherName = request.Code;
+                voucher.VoucherValue = request.DiscountAmount.ToString();
+                voucher.ExpirationDate = request.ExpiryDate;
+                voucher.Status = request.IsUsed ? (int)VoucherStatus.Used : (int)VoucherStatus.Active;
+                voucher.UpdatedAt = DateTime.Now;
+
+                await _voucherRepository.UpdateAsync(voucher);
+                return new BaseResponseModel<UpdateVoucherResponse>
+                {
+                    Code = 200,
+                    Message = "Voucher updated successfully",
+                    Data = new UpdateVoucherResponse { VoucherId = voucher.Id }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateVoucherResponse>
+                {
+                    Code = 500,
+                    Message = $"Error updating voucher: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<DeleteVoucherResponse>> DeleteVoucher(DeleteVoucherRequest request)
+        {
+            try
+            {
+                var voucher = await _voucherRepository.FindAsync(request.Id);
+                if (voucher == null)
+                {
+                    return new BaseResponseModel<DeleteVoucherResponse>
+                    {
+                        Code = 404,
+                        Message = "Voucher not found"
+                    };
+                }
+
+                await _voucherRepository.DeleteAsync(request.Id);
+                return new BaseResponseModel<DeleteVoucherResponse>
+                {
+                    Code = 200,
+                    Message = "Voucher deleted successfully",
+                    Data = new DeleteVoucherResponse { Success = true }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<DeleteVoucherResponse>
+                {
+                    Code = 500,
+                    Message = $"Error deleting voucher: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<int>> UpdateExpiredVouchers()
+        {
+            try
+            {
+                var count = await _voucherRepository.UpdateExpiredVouchersAsync();
+                return new BaseResponseModel<int>
+                {
+                    Code = 200,
+                    Message = $"Successfully updated {count} expired vouchers",
+                    Data = count
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<int>
+                {
+                    Code = 500,
+                    Message = $"Error updating expired vouchers: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<List<GetVoucherByIdResponse>>> GetNonExpiredVouchers()
+        {
+            try
+            {
+                var vouchers = await _voucherRepository.GetNonExpiredVouchersAsync();
+                var voucherResponses = vouchers.Select(voucher => new GetVoucherByIdResponse
+                {
+                    Id = voucher.Id,
+                    Code = voucher.VoucherName ?? string.Empty,
+                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
+                    ExpiryDate = voucher.ExpirationDate,
+                    IsUsed = voucher.Status == (int)VoucherStatus.Used
+                }).ToList();
+
+                return new BaseResponseModel<List<GetVoucherByIdResponse>>
+                {
+                    Code = 200,
+                    Message = "Non-expired vouchers retrieved successfully",
+                    Data = voucherResponses
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<List<GetVoucherByIdResponse>>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving non-expired vouchers: {ex.Message}"
+                };
+            }
         }
 
         private void ValidateExpirationDate(DateTime expiryDate, DateTime? createdAt = null)
@@ -122,7 +303,7 @@ namespace FCSP.Services.VoucherService
 
             var maxExpiryDate = createdAt.Value.AddDays(MAX_EXPIRY_DAYS);
             if (expiryDate > maxExpiryDate)
-                throw new ArgumentException($"Expiration date cannot be more than {MAX_EXPIRY_DAYS} days from creation date"); // Corrected from 'Facetiming'
+                throw new ArgumentException($"Expiration date cannot be more than {MAX_EXPIRY_DAYS} days from creation date");
         }
     }
 }

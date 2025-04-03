@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.PaymentGateway;
 using FCSP.Models.Entities;
 using System.Collections.Generic;
@@ -7,10 +8,11 @@ namespace FCSP.Services.PaymentGatewayService
 {
     public interface IPaymentGatewayService
     {
-        Task<IEnumerable<PaymentGateway>> GetAllPaymentGateways();
-        Task<GetPaymentGatewayByIdResponse> GetPaymentGatewayById(GetPaymentGatewayByIdRequest request);
-        Task<AddPaymentGatewayResponse> AddPaymentGateway(AddPaymentGatewayRequest request);
-        Task<UpdatePaymentGatewayResponse> UpdatePaymentGateway(UpdatePaymentGatewayRequest request);
-        Task<DeletePaymentGatewayResponse> DeletePaymentGateway(DeletePaymentGatewayRequest request);
+        Task<PaymentGatewayListResponse> GetAllPaymentGateways();
+        Task<PaymentGatewayResponse> GetPaymentGatewayById(GetPaymentGatewayByIdRequest request);
+        Task<PaymentGatewayResponse> AddPaymentGateway(AddPaymentGatewayRequest request);
+        Task<PaymentGatewayResponse> UpdatePaymentGateway(UpdatePaymentGatewayRequest request);
+        Task<PaymentGatewayResponse> DeletePaymentGateway(DeletePaymentGatewayRequest request);
+        Task<PaymentGatewayListResponse> GetPaymentGatewaysByUser(GetPaymentGatewaysByUserRequest request);
     }
 } 

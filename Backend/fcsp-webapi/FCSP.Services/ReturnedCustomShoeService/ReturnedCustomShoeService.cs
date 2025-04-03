@@ -125,11 +125,11 @@ namespace FCSP.Services.ReturnedCustomShoeService
             }
         }
 
-        public async Task<BaseResponseModel<GetReturnedCustomShoesResponse>> GetReturnedCustomShoesByDesignId(long customShoeDesignId)
+        public async Task<BaseResponseModel<GetReturnedCustomShoesResponse>> GetReturnedCustomShoesByDesignId(GetReturnedCustomShoeByDesignIdRequest request)
         {
             try
             {
-                var returnedShoes = await _returnedCustomShoeRepository.GetByCustomShoeDesignIdAsync(customShoeDesignId);
+                var returnedShoes = await _returnedCustomShoeRepository.GetByCustomShoeDesignIdAsync(request.Id);
                 
                 return new BaseResponseModel<GetReturnedCustomShoesResponse>
                 {

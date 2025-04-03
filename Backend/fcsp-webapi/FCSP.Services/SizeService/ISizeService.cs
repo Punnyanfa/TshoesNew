@@ -1,3 +1,4 @@
+using FCSP.DTOs.Size;
 using FCSP.Models.Entities;
 
 namespace FCSP.Services.SizeService
@@ -5,10 +6,10 @@ namespace FCSP.Services.SizeService
     public interface ISizeService
     {
         // Define methods for Size service
-        Task<Size> GetSizeByIdAsync(long id);
-        Task<IEnumerable<Size>> GetAllSizesAsync();
-        Task<Size> CreateSizeAsync(Size size);
-        Task UpdateSizeAsync(Size size);
-        Task DeleteSizeAsync(long id);
+        Task<SizeResponse> GetSizeByIdAsync(GetSizeByIdRequest request);
+        Task<SizeListResponse> GetAllSizesAsync();
+        Task<SizeResponse> CreateSizeAsync(AddSizeRequest request);
+        Task<SizeResponse> UpdateSizeAsync(UpdateSizeRequest request);
+        Task<SizeResponse> DeleteSizeAsync(DeleteSizeRequest request);
     }
 } 

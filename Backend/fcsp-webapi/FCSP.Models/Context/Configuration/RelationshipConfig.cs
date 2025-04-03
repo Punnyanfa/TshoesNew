@@ -181,7 +181,7 @@ internal static class RelationshipConfig
 
         modelBuilder.Entity<DesignService>()
             .HasOne(ds => ds.Service)
-            .WithMany()
+            .WithMany(s => s.DesignServices)
             .HasForeignKey(ds => ds.ServiceId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -216,7 +216,7 @@ internal static class RelationshipConfig
         // SetServiceAmount relationships
         modelBuilder.Entity<SetServiceAmount>()
             .HasOne(ssa => ssa.Service)
-            .WithMany()
+            .WithMany(s => s.SetServiceAmounts)
             .HasForeignKey(ssa => ssa.ServiceId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -245,6 +245,19 @@ internal static class RelationshipConfig
             .WithMany()
             .HasForeignKey(t => t.PaymentId)
             .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+
+        // Size relationships
+        modelBuilder.Entity<Size>()
+            .HasMany(s => s.CustomShoeDesigns)
+            .WithOne(d => d.Size)
+            .HasForeignKey(d => d.SizeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Size>()
+            .HasMany(s => s.OrderDetails)
+            .WithOne(d => d.Size)
+            .HasForeignKey(d => d.SizeId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // ReturnedCustomShoe relationships
         modelBuilder.Entity<ReturnedCustomShoe>()

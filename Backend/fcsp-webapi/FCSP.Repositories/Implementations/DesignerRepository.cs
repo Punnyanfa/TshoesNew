@@ -22,7 +22,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Designer>> GetActiveDesignersAsync()
         {
             return await Entities
-                .Where(d => d.Status > 0) // Assuming positive status means active
+                .Where(d => d.Status == Common.Enums.DesignerStatus.Active) // Assuming positive status means active
                 .Include(d => d.User)
                 .ToListAsync();
         }

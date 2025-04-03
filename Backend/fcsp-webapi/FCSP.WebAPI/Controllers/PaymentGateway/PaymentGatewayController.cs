@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.PaymentGateway;
 using FCSP.Services.PaymentGatewayService;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ public class PaymentGatewayController : ControllerBase
     public async Task<IActionResult> GetAllPaymentGateways()
     {
         var result = await _paymentGatewayService.GetAllPaymentGateways();
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpGet("{id}")]
@@ -27,21 +28,29 @@ public class PaymentGatewayController : ControllerBase
     {
         var request = new GetPaymentGatewayByIdRequest { Id = id };
         var result = await _paymentGatewayService.GetPaymentGatewayById(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
+    }
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetPaymentGatewaysByUser(int userId)
+    {
+        var request = new GetPaymentGatewaysByUserRequest { UserId = userId };
+        var result = await _paymentGatewayService.GetPaymentGatewaysByUser(request);
+        return StatusCode(result.Code, result);
     }
 
     [HttpPost]
     public async Task<IActionResult> AddPaymentGateway([FromBody] AddPaymentGatewayRequest request)
     {
         var result = await _paymentGatewayService.AddPaymentGateway(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdatePaymentGateway([FromBody] UpdatePaymentGatewayRequest request)
     {
         var result = await _paymentGatewayService.UpdatePaymentGateway(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpDelete("{id}")]
@@ -49,6 +58,6 @@ public class PaymentGatewayController : ControllerBase
     {
         var request = new DeletePaymentGatewayRequest { Id = id };
         var result = await _paymentGatewayService.DeletePaymentGateway(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 } 

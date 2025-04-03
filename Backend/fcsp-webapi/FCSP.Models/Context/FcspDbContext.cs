@@ -48,6 +48,7 @@ public class FcspDbContext : DbContext
     public DbSet<Designer> Designers { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<ReturnedCustomShoe> ReturnedCustomShoes { get; set; }
+    public DbSet<Size> Sizes { get; set; }
     #endregion
 
     #region Private Methods

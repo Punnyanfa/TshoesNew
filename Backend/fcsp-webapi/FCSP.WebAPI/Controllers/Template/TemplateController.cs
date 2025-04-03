@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Services.TemplateService;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ public class TemplateController : ControllerBase
     public async Task<IActionResult> GetAllTemplates()
     {
         var result = await _templateService.GetAllTemplate();
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpGet("{id}")]
@@ -27,21 +28,21 @@ public class TemplateController : ControllerBase
     {
         var request = new GetTemplateByIdRequest { Id = id };
         var result = await _templateService.GetTemplateById(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpPost]
     public async Task<IActionResult> AddTemplate([FromBody] AddTemplateRequest request)
     {
         var result = await _templateService.AddTemplate(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateTemplate([FromBody] UpdateTemplateRequest request)
     {
         var result = await _templateService.UpdateTemplate(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpDelete("{id}")]
@@ -49,6 +50,6 @@ public class TemplateController : ControllerBase
     {
         var request = new DeleteTemplateRequest { Id = id };
         var result = await _templateService.DeleteTemplate(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 } 

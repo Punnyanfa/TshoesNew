@@ -26,8 +26,8 @@ namespace FCSP.WebAPI.Controllers.Service
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllServices()
         {
-            var services = await _serviceService.GetAllServices();
-            return Ok(services);
+            var response = await _serviceService.GetAllServices();
+            return StatusCode(response.Code, response);
         }
 
         /// <summary>
@@ -38,18 +38,10 @@ namespace FCSP.WebAPI.Controllers.Service
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetServiceById(long id)
+        public async Task<IActionResult> GetServiceById(GetServiceByIdRequest request)
         {
-            try
-            {
-                var request = new GetServiceByIdRequest { Id = id };
-                var response = await _serviceService.GetServiceById(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var response = await _serviceService.GetServiceById(request);
+            return StatusCode(response.Code, response);
         }
 
         /// <summary>
@@ -62,15 +54,8 @@ namespace FCSP.WebAPI.Controllers.Service
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddService([FromBody] AddServiceRequest request)
         {
-            try
-            {
-                var response = await _serviceService.AddService(request);
-                return CreatedAtAction(nameof(GetServiceById), new { id = response.ServiceId }, response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var response = await _serviceService.AddService(request);
+            return StatusCode(response.Code, response);
         }
 
         /// <summary>
@@ -88,15 +73,8 @@ namespace FCSP.WebAPI.Controllers.Service
             if (id != request.Id)
                 return BadRequest(new { message = "ID mismatch between route and request body" });
 
-            try
-            {
-                var response = await _serviceService.UpdateService(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var response = await _serviceService.UpdateService(request);
+            return StatusCode(response.Code, response);
         }
 
         /// <summary>
@@ -107,18 +85,10 @@ namespace FCSP.WebAPI.Controllers.Service
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteService(long id)
+        public async Task<IActionResult> DeleteService(DeleteServiceRequest request)
         {
-            try
-            {
-                var request = new DeleteServiceRequest { Id = id };
-                var response = await _serviceService.DeleteService(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var response = await _serviceService.DeleteService(request);
+            return StatusCode(response.Code, response);
         }
     }
 }

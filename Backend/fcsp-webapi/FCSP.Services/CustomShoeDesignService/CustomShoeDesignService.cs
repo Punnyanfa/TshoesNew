@@ -18,6 +18,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private readonly IDesignPreviewRepository _designPreviewRepository;
     private readonly ICustomShoeDesignTexturesRepository _customShoeDesignTexturesRepository;
     private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
+    private readonly IDesignServiceRepository _designServiceRepository;
+    private readonly ISetServiceAmountRepository _setServiceAmountRepository;
+    private readonly IServiceRepository _serviceRepository;
 
     public CustomShoeDesignService(
         ICustomShoeDesignRepository customShoeDesignRepository,
@@ -25,7 +28,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         ICustomShoeDesignTextureRepository customShoeDesignTextureRepository,
         IDesignPreviewRepository designPreviewRepository,
         ICustomShoeDesignTexturesRepository customShoeDesignTexturesRepository,
-        ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository)
+        ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository,
+        IDesignServiceRepository designServiceRepository,
+        ISetServiceAmountRepository setServiceAmountRepository,
+        IServiceRepository serviceRepository)
     {
         _customShoeDesignRepository = customShoeDesignRepository;
         _orderDetailRepository = orderDetailRepository;
@@ -33,6 +39,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         _designPreviewRepository = designPreviewRepository;
         _customShoeDesignTexturesRepository = customShoeDesignTexturesRepository;
         _customShoeDesignTemplateRepository = customShoeDesignTemplateRepository;
+        _designServiceRepository = designServiceRepository;
+        _setServiceAmountRepository = setServiceAmountRepository;
+        _serviceRepository = serviceRepository;
     }
 
     #region Public Methods
@@ -40,6 +49,16 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         try{
             var designs = await GetAllPublicCustomShoeDesigns();
+            if(designs == null || !designs.Any())
+            {
+                return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
+                {
+                    Code = 404,
+                    Message = "No public custom shoe designs found",
+                    Data = null
+                };
+            }
+
             return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
             {
                 Code = 200,
@@ -66,6 +85,16 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         try
         {
             var designs = await GetTopFiveBestSellingDesigns();
+            if(designs == null || !designs.Any())
+            {
+                return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
+                {
+                    Code = 404,
+                    Message = "No public custom shoe designs found",
+                    Data = null
+                };
+            }
+
             return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
             {
                 Code = 200,
@@ -91,6 +120,16 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         try{
             var design = await GetCustomShoeDesignById(request);
+            if(design == null)
+            {
+                return new BaseResponseModel<GetCustomShoeDesignByIdResponse>
+                {
+                    Code = 404,
+                    Message = "Custom shoe design not found",
+                    Data = null
+                };
+            }
+
             return new BaseResponseModel<GetCustomShoeDesignByIdResponse>
             {
                 Code = 200,
@@ -98,7 +137,11 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Data = new GetCustomShoeDesignByIdResponse
                 {
                     Id = design.Id,
+                    Name = design.CustomShoeDesignTemplate?.Name,
+                    Description = design.Description,
                     PreviewImageUrl = design.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                    Rating = design.Ratings != null && design.Ratings.Any() ? (float)Math.Round(design.Ratings.Average(r => r.UserRating), 1) : 0,
+                    RatingCount = design.Ratings?.Count ?? 0,
                     Price = design.TotalAmount
                 }
             };
@@ -118,6 +161,16 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         try{
             var designs = await GetCustomShoeDesignsByUserId(request);
+            if(designs == null || !designs.Any())
+            {
+                return new BaseResponseModel<GetListCustomShoeDesignsResponse>
+                {
+                    Code = 404,
+                    Message = "No custom shoe designs found for user with ID {request.UserId}",
+                    Data = null
+                };
+            }
+
             return new BaseResponseModel<GetListCustomShoeDesignsResponse>
             {
                 Code = 200,
@@ -142,15 +195,22 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     public async Task<BaseResponseModel<AddCustomShoeDesignResponse>> AddCustomShoeDesign(AddCustomShoeDesignRequest request)
     {
         try{
-            var design = GetCustomShoeDesignFromAddDesignRequest(request);
+            var design = await GetCustomShoeDesignFromAddDesignRequest(request);
         
             var addedDesign = await _customShoeDesignRepository.AddAsync(design);
 
             var designTextures = GetDesignTexturesFromAddDesignRequest(request, addedDesign.Id);
 
+            var designServices = GetDesignServicesFromAddDesignRequest(request, addedDesign.Id);
+
             if(designTextures.Any())
             {
                 await _customShoeDesignTextureRepository.AddRangeAsync(designTextures);
+            }
+
+            if(designServices.Any())
+            {
+                await _designServiceRepository.AddRangeAsync(designServices);
             }
 
             return new BaseResponseModel<AddCustomShoeDesignResponse> 
@@ -237,13 +297,21 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     #endregion
 
     #region Private Methods
+    
     private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetAllPublicCustomShoeDesigns()
     {
         var designs = await _customShoeDesignRepository.GetAllPublicCustomShoeDesignsAsync();
+        if(designs == null || !designs.Any())
+        {
+            return new List<GetCustomShoeDesignByIdResponse>();
+        }
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
+            Description = d.Description,
+            Gender = d.CustomShoeDesignTemplate?.Gender,
+            Size = d.Size?.SizeValue,
             Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
             RatingCount = d.Ratings?.Count ?? 0,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -255,6 +323,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         var designIds = await _orderDetailRepository.GetTopFiveBestSellingDesignsAsync();
         var designs = await _customShoeDesignRepository.GetDesignsByIdsAsync(designIds);
+        if(designs == null || !designs.Any())
+        {
+            return new List<GetCustomShoeDesignByIdResponse>();
+        }
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
             Id = d.Id,
@@ -269,10 +341,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private async Task<CustomShoeDesign> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
     {
         var design = await _customShoeDesignRepository.FindAsync(request.Id);
-        if (design == null)
-        {
-            throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
-        }
         return design;
     }
     
@@ -281,7 +349,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         var designs = await _customShoeDesignRepository.GetDesignsByUserIdAsync(request.UserId);
         if(designs == null || !designs.Any())
         {
-            throw new InvalidOperationException($"No custom shoe designs found for user with ID {request.UserId}");
+            return new List<GetCustomShoeDesignByIdResponse>();
         }
         return designs.Select(d => new GetCustomShoeDesignByIdResponse
         {
@@ -294,8 +362,26 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         });
     }
 
-    private CustomShoeDesign GetCustomShoeDesignFromAddDesignRequest(AddCustomShoeDesignRequest request)
+    private async Task<CustomShoeDesign> GetCustomShoeDesignFromAddDesignRequest(AddCustomShoeDesignRequest request)
     {
+        
+        var template = await _customShoeDesignTemplateRepository.FindAsync(request.CustomShoeDesignTemplateId ?? 0);
+        var templatePrice = template?.Price ?? 0;
+        
+        float servicesPrice = 0;
+        if (request.ServiceIds != null && request.ServiceIds.Any())
+        {
+            foreach (var serviceId in request.ServiceIds)
+            {
+                var serviceAmount = await _setServiceAmountRepository.GetActiveAmountByServiceIdAsync(serviceId);
+                if (serviceAmount != null)
+                {
+                    servicesPrice += serviceAmount.Amount;
+                }
+            }
+        }
+        
+        var totalAmount = templatePrice + servicesPrice;
         var design = new CustomShoeDesign
         {
             UserId = request.UserId ?? 0,
@@ -304,7 +390,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Description = request.Description,
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
-            TotalAmount = request.TotalAmount ?? 0,
+            TotalAmount = totalAmount,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -327,6 +413,21 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         });
     }
 
+    private IEnumerable<DesignService> GetDesignServicesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
+    {
+        if(request.ServiceIds == null || !request.ServiceIds.Any())
+        {
+            return new List<DesignService>();
+        }
+        return request.ServiceIds.Select(serviceId => new DesignService
+        {
+            CustomShoeDesignId = designId,
+            ServiceId = serviceId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+    }
+
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromUpdateDesignRequest(UpdateCustomShoeDesignRequest request)
     {
         var design = await _customShoeDesignRepository.FindAsync(request.Id);
@@ -342,7 +443,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
         
         design.DesignData = request.DesignData ?? design.DesignData;
-        design.TotalAmount = request.TotalAmount ?? design.TotalAmount;
         design.UpdatedAt = DateTime.UtcNow;
         return design;
     }

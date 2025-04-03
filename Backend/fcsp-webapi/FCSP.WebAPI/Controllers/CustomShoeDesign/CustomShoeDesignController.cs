@@ -25,8 +25,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllPublicDesigns()
     {
-        var result = await _customShoeDesignService.GetAllPublicDesigns();
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.GetAllPublicDesigns();
+        return StatusCode(response.Code, response);
     }
     
     /// <summary>
@@ -36,8 +36,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpGet("top-5-best-selling")]
     public async Task<IActionResult> GetTopFiveBestSellingDesigns()
     {
-        var result = await _customShoeDesignService.GetTopFiveBestSellingPublicDesigns();
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.GetTopFiveBestSellingPublicDesigns();
+        return StatusCode(response.Code, response);
     }
 
     /// <summary>
@@ -48,8 +48,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
     {
-        var result = await _customShoeDesignService.GetDesignById(request);
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.GetDesignById(request);
+        return StatusCode(response.Code, response);
     }
 
     /// <summary>
@@ -60,8 +60,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetDesignsByUser(GetCustomShoeDesignsByUserIdRequest request)
     {
-        var result = await _customShoeDesignService.GetDesignsByUserId(request);
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.GetDesignsByUserId(request);
+        return StatusCode(response.Code, response);
     }
 
     /// <summary>
@@ -72,8 +72,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateCustomShoeDesign([FromBody] AddCustomShoeDesignRequest request)
     {
-        var result = await _customShoeDesignService.AddCustomShoeDesign(request);
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.AddCustomShoeDesign(request);
+        return StatusCode(response.Code, response);
     }
 
     /// <summary>
@@ -85,8 +85,8 @@ public class CustomShoeDesignController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCustomShoeDesign(long id, [FromBody] UpdateCustomShoeDesignRequest designDto)
     {
-        var result = await _customShoeDesignService.UpdateCustomShoeDesign(designDto);
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.UpdateCustomShoeDesign(designDto);
+        return StatusCode(response.Code, response);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class CustomShoeDesignController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCustomShoeDesign(DeleteCustomShoeDesignRequest request)
     {
-        var result = await _customShoeDesignService.DeleteCustomShoeDesign(request);
-        return StatusCode(result.Code, result);
+        var response = await _customShoeDesignService.DeleteCustomShoeDesign(request);
+        return StatusCode(response.Code, response);
     }
 } 

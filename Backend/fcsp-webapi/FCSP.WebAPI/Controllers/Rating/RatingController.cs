@@ -19,7 +19,7 @@ namespace FCSP.WebAPI.Controllers.Rating
         public async Task<IActionResult> GetAllRatings()
         {
             var ratings = await _ratingService.GetAllRatings();
-            return Ok(ratings);
+            return StatusCode(ratings.Code, ratings);
         }
 
         [HttpGet("{id}")]
@@ -27,7 +27,7 @@ namespace FCSP.WebAPI.Controllers.Rating
         {
             var request = new GetRatingByIdRequest { Id = id };
             var rating = await _ratingService.GetRatingById(request);
-            return Ok(rating);
+            return StatusCode(rating.Code, rating);
         }
 
         [HttpPost]
@@ -38,7 +38,7 @@ namespace FCSP.WebAPI.Controllers.Rating
             {
                 return StatusCode(response.Code, response.Message);
             }
-            return CreatedAtAction(nameof(GetRatingById), new { id = response.Data.RatingId }, response.Data);
+            return StatusCode(response.Code, response.Data);
         }
 
         [HttpPut("{id}")]
@@ -51,7 +51,7 @@ namespace FCSP.WebAPI.Controllers.Rating
                 return BadRequest(ModelState);
 
             var response = await _ratingService.UpdateRating(request);
-            return Ok(response);
+            return StatusCode(response.Code, response);
         }
 
         [HttpDelete("{id}")]
@@ -59,27 +59,27 @@ namespace FCSP.WebAPI.Controllers.Rating
         {
             var request = new DeleteRatingRequest { Id = id };
             var response = await _ratingService.DeleteRating(request);
-            return Ok(response);
+            return StatusCode(response.Code, response);
         }
         [HttpGet("stats")]
         public async Task<IActionResult> GetCustomShoeRatingStats()
         {
             var stats = await _ratingService.GetCustomShoeRatingStats();
-            return Ok(stats);
+            return StatusCode(stats.Code, stats);
         }
         [HttpGet("top-rated")]
         public async Task<IActionResult> GetTopRatedCustomShoes()
         {
             var topRated = await _ratingService.GetTopRatedCustomShoes();
-            return Ok(topRated);
+            return StatusCode(topRated.Code, topRated);
         }
         [HttpGet("stats/{customShoeDesignId}")]
         public async Task<IActionResult> GetCustomShoeRatingStatsById(long customShoeDesignId)
         {
             try
             {
-                var stats = await _ratingService.GetCustomShoeRatingStatsById(customShoeDesignId);
-                return Ok(stats);
+                var response = await _ratingService.GetCustomShoeRatingStatsById(customShoeDesignId);
+                return StatusCode(response.Code, response);
             }
             catch (InvalidOperationException ex)
             {

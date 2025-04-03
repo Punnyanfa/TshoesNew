@@ -14,6 +14,5 @@ public class CustomShoeDesignTemplate : BaseEntity
     public bool IsDeleted { get; set; }
 
     // Navigation properties
-    public virtual User User { get; set; } = null!;
     public virtual ICollection<CustomShoeDesign> CustomShoeDesigns { get; } = [];
 }

@@ -27,7 +27,6 @@ public class User : BaseEntity
     // Navigation properties
     public virtual ShippingInfo? DefaultAddress { get; set; }
     public virtual ICollection<CustomShoeDesign> CustomShoeDesigns { get; } = [];
-    public virtual ICollection<CustomShoeDesignTemplate> Templates { get; } = [];
     public virtual ICollection<Order> Orders { get; } = [];
     public virtual ICollection<PaymentGateway> PaymentGateways { get; } = [];
     public virtual ICollection<ShippingInfo> ShippingInfos { get; } = [];

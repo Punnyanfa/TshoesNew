@@ -1,3 +1,5 @@
+using FCSP.DTOs;
+
 namespace FCSP.DTOs.DesignService
 {
     public class GetDesignServiceByIdRequest
@@ -53,5 +55,25 @@ namespace FCSP.DTOs.DesignService
     public class DeleteDesignServiceResponse
     {
         public bool Success { get; set; }
+    }
+
+    public class DesignServiceDto
+    {
+        public long Id { get; set; }
+        public long CustomShoeDesignId { get; set; }
+        public long ServiceId { get; set; }
+        public float? Price { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+
+    public class GetDesignServicesByCustomShoeDesignIdRequest
+    {
+        public long CustomShoeDesignId { get; set; }
+    }
+
+    public class GetDesignServicesByServiceIdRequest
+    {
+        public long ServiceId { get; set; }
     }
 } 

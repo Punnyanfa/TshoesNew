@@ -56,5 +56,11 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities.FindAsync(keyValues);
         }
+
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _context.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
     }
 }
