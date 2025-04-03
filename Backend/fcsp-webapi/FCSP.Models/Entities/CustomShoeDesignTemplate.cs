@@ -12,6 +12,7 @@ public class CustomShoeDesignTemplate : BaseEntity
     [System.ComponentModel.DataAnnotations.Schema.Column("3DFileUrl")]
     public string? ThreeDFileUrl { get; set; }
     public bool IsDeleted { get; set; }
+    public long UserId { get; set; }
 
     // Navigation properties
     public virtual User User { get; set; } = null!;

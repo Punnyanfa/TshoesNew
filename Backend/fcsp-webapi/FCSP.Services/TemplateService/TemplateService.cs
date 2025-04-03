@@ -83,18 +83,39 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.Name) ||
+                    string.IsNullOrWhiteSpace(request.Gender) || string.IsNullOrWhiteSpace(request.Color))
+                {
+                    return new BaseResponseModel<AddTemplateResponse>
+                    {
+                        Code = 400,
+                        Message = "Name, Gender, and Color are required",
+                        Data = null
+                    };
+                }
+
+                if (request.BasePrice < 0)
+                {
+                    return new BaseResponseModel<AddTemplateResponse>
+                    {
+                        Code = 400,
+                        Message = "BasePrice cannot be negative",
+                        Data = null
+                    };
+                }
+
                 CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromAddRequest(request);
-                await _templateRepository.AddAsync(customShoeDesignTemplate);
+                var addedTemplate = await _templateRepository.AddAsync(customShoeDesignTemplate);
 
                 return new BaseResponseModel<AddTemplateResponse>
                 {
-                    Code = 200,
+                    Code = 201, // 201 Created thay vì 200 để phù hợp với POST
                     Message = "Template added successfully",
                     Data = new AddTemplateResponse
                     {
-                        Id = customShoeDesignTemplate.Id,
-                        Name = customShoeDesignTemplate.Name,
-                        PreviewImageUrl = customShoeDesignTemplate.TwoDImageUrl ?? string.Empty
+                        Id = addedTemplate.Id, // Đảm bảo lấy ID từ entity đã thêm
+                        Name = addedTemplate.Name,
+                        PreviewImageUrl = addedTemplate.TwoDImageUrl ?? string.Empty
                     }
                 };
             }
@@ -103,7 +124,7 @@ namespace FCSP.Services.TemplateService
                 return new BaseResponseModel<AddTemplateResponse>
                 {
                     Code = 500,
-                    Message = ex.Message,
+                    Message = $"An error occurred while adding template: {ex.Message}",
                     Data = null
                 };
             }
@@ -258,12 +279,13 @@ namespace FCSP.Services.TemplateService
                 };
             }
         }
-
         public async Task<BaseResponseModel<IEnumerable<GetPopularTemplatesResponse>>> GetPopularTemplates(GetPopularTemplatesRequest request)
         {
             try
             {
-                var templates = await _templateRepository.GetAllAsync();
+                var templates = await _templateRepository.GetAll()
+                    .Include(t => t.CustomShoeDesigns)
+                    .ToListAsync();
                 var popularTemplates = templates
                     .Where(t => !t.IsDeleted)
                     .OrderByDescending(t => t.CustomShoeDesigns.Count)
@@ -415,6 +437,7 @@ namespace FCSP.Services.TemplateService
         {
             return new CustomShoeDesignTemplate
             {
+                UserId = request.UserId,
                 Name = request.Name,
                 Description = request.Description,
                 Gender = request.Gender,

@@ -58,7 +58,7 @@ public class TemplateController : ControllerBase
         var customShoeDesignIds = await _templateService.GetCustomShoeDesignIdsByTemplate(templateId);
         var response = new GetCustomShoeDesignIdsByTemplateResponse
         {
-            CustomShoeDesignIds = customShoeDesignIds
+            CustomShoeDesignIds = (IEnumerable<long>)customShoeDesignIds
         };
         return Ok(response);
     }

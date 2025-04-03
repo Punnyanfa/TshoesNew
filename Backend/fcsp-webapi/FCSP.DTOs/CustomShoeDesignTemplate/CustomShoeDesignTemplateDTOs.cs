@@ -1,4 +1,6 @@
-﻿namespace FCSP.DTOs.CustomShoeDesignTemplate
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace FCSP.DTOs.CustomShoeDesignTemplate
 {
     public class GetTemplateByIdRequest
     {
@@ -20,14 +22,25 @@
 
     public class AddTemplateRequest
     {
+        [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; } = null!;
+        [Required(ErrorMessage = "Description is required")]
         public string Description { get; set; } = null!;
+        [Required(ErrorMessage = "Gender is required")]
         public string Gender { get; set; } = null!;
+        [Required(ErrorMessage = "Color is required")]
         public string Color { get; set; } = null!;
+        [Required(ErrorMessage = "PreviewImageUrl is required")]
+        [Url(ErrorMessage = "Invalid URL format")]
         public string PreviewImageUrl { get; set; } = null!;
+        [Required(ErrorMessage = "Model3DUrl is required")]
+        [Url(ErrorMessage = "Invalid URL format")]
         public string Model3DUrl { get; set; } = null!;
+        [Range(0, double.MaxValue, ErrorMessage = "BasePrice cannot be negative")]
         public decimal BasePrice { get; set; }
         public bool IsAvailable { get; set; }
+        [Required(ErrorMessage = "UserId is required")]
+        public long UserId { get; set; } // Thêm UserId
     }
 
     public class AddTemplateResponse
