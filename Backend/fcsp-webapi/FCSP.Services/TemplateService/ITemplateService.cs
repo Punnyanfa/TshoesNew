@@ -10,5 +10,12 @@ namespace FCSP.Services.TemplateService
         Task<AddTemplateResponse> AddTemplate(AddTemplateRequest request);
         Task<AddTemplateResponse> UpdateTemplate(UpdateTemplateRequest request);
         Task<DeleteTemplateResponse> DeleteTemplate(DeleteTemplateRequest request);
+        Task<IEnumerable<long>> GetCustomShoeDesignIdsByTemplate(long templateId);
+        Task<IEnumerable<CustomShoeDesignTemplate>> GetAvailableTemplates();
+        Task<IEnumerable<CustomShoeDesignTemplate>> SearchTemplates(SearchTemplatesRequest request);
+        Task<IEnumerable<GetPopularTemplatesResponse>> GetPopularTemplates(GetPopularTemplatesRequest request);
+        Task<RestoreTemplateResponse> RestoreTemplate(RestoreTemplateRequest request);
+        Task<GetTemplateStatsResponse> GetTemplateStats(GetTemplateStatsRequest request);
     }
 }
+
