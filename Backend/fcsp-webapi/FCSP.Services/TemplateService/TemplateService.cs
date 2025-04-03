@@ -437,7 +437,7 @@ namespace FCSP.Services.TemplateService
         {
             return new CustomShoeDesignTemplate
             {
-                UserId = request.UserId,
+               
                 Name = request.Name,
                 Description = request.Description,
                 Gender = request.Gender,

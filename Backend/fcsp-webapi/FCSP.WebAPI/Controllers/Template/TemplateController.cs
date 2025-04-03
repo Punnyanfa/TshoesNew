@@ -18,6 +18,10 @@ public class TemplateController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllTemplates()
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var result = await _templateService.GetAllTemplate();
         return Ok(result);
     }
@@ -25,6 +29,10 @@ public class TemplateController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetTemplateById(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var request = new GetTemplateByIdRequest { Id = id };
         var result = await _templateService.GetTemplateById(request);
         return Ok(result);
@@ -33,6 +41,10 @@ public class TemplateController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddTemplate([FromBody] AddTemplateRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var result = await _templateService.AddTemplate(request);
         return Ok(result);
     }
@@ -40,6 +52,10 @@ public class TemplateController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateTemplate([FromBody] UpdateTemplateRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var result = await _templateService.UpdateTemplate(request);
         return Ok(result);
     }
@@ -47,6 +63,10 @@ public class TemplateController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTemplate(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var request = new DeleteTemplateRequest { Id = id };
         var result = await _templateService.DeleteTemplate(request);
         return Ok(result);
@@ -55,6 +75,10 @@ public class TemplateController : ControllerBase
     [HttpGet("{templateId}/custom-shoe-designs")]
     public async Task<IActionResult> GetCustomShoeDesignIdsByTemplate(long templateId)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var customShoeDesignIds = await _templateService.GetCustomShoeDesignIdsByTemplate(templateId);
         var response = new GetCustomShoeDesignIdsByTemplateResponse
         {
@@ -66,6 +90,10 @@ public class TemplateController : ControllerBase
     [HttpGet("available")]
     public async Task<IActionResult> GetAvailableTemplates()
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var templates = await _templateService.GetAvailableTemplates();
         return Ok(templates);
     }
@@ -73,6 +101,10 @@ public class TemplateController : ControllerBase
     [HttpGet("search")]
     public async Task<IActionResult> SearchTemplates([FromQuery] SearchTemplatesRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var result = await _templateService.SearchTemplates(request);
         return Ok(result);
     }
@@ -80,6 +112,10 @@ public class TemplateController : ControllerBase
     [HttpGet("popular")]
     public async Task<IActionResult> GetPopularTemplates([FromQuery] GetPopularTemplatesRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var result = await _templateService.GetPopularTemplates(request);
         return Ok(result);
     }
@@ -87,6 +123,10 @@ public class TemplateController : ControllerBase
     [HttpPut("{id}/restore")]
     public async Task<IActionResult> RestoreTemplate(long id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var request = new RestoreTemplateRequest { Id = id };
         var result = await _templateService.RestoreTemplate(request);
         return Ok(result);
@@ -95,6 +135,10 @@ public class TemplateController : ControllerBase
     [HttpGet("{id}/stats")]
     public async Task<IActionResult> GetTemplateStats(long id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var request = new GetTemplateStatsRequest { Id = id };
         var result = await _templateService.GetTemplateStats(request);
         return Ok(result);
