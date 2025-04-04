@@ -19,26 +19,24 @@ namespace FCSP.Services.TemplateService
             _templateRepository = templateRepository;
         }
 
-        #region Public Methods
-        public async Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> GetAllTemplate()
+        public async Task<BaseResponseModel<List<CustomShoeDesignTemplate>>> GetAllTemplate()
         {
             try
             {
-                var response = await _templateRepository.GetAllAsync();
-                return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>
+                var templates = await _templateRepository.GetAllAsync();
+                return new BaseResponseModel<List<CustomShoeDesignTemplate>>
                 {
                     Code = 200,
                     Message = "Templates retrieved successfully",
-                    Data = response
+                    Data = templates.ToList()
                 };
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>
+                return new BaseResponseModel<List<CustomShoeDesignTemplate>>
                 {
                     Code = 500,
-                    Message = ex.Message,
-                    Data = null
+                    Message = $"Error retrieving templates: {ex.Message}"
                 };
             }
         }
@@ -47,25 +45,32 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromGetByIdRequest(request);
-                var response = new GetTemplateByIdResponse
+                var template = _templateRepository.Find(request.Id);
+                if (template == null)
                 {
-                    Id = customShoeDesignTemplate.Id,
-                    Name = customShoeDesignTemplate.Name,
-                    Description = customShoeDesignTemplate.Description ?? string.Empty,
-                    PreviewImageUrl = customShoeDesignTemplate.TwoDImageUrl ?? string.Empty,
-                    Model3DUrl = customShoeDesignTemplate.ThreeDFileUrl ?? string.Empty,
-                    BasePrice = (decimal)customShoeDesignTemplate.Price,
-                    IsAvailable = !customShoeDesignTemplate.IsDeleted,
-                    CreatedAt = customShoeDesignTemplate.CreatedAt,
-                    UpdatedAt = customShoeDesignTemplate.UpdatedAt
-                };
+                    return new BaseResponseModel<GetTemplateByIdResponse>
+                    {
+                        Code = 404,
+                        Message = "Template not found"
+                    };
+                }
 
                 return new BaseResponseModel<GetTemplateByIdResponse>
                 {
                     Code = 200,
                     Message = "Template retrieved successfully",
-                    Data = response
+                    Data = new GetTemplateByIdResponse
+                    {
+                        Id = template.Id,
+                        Name = template.Name,
+                        Description = template.Description ?? string.Empty,
+                        PreviewImageUrl = template.TwoDImageUrl ?? string.Empty,
+                        Model3DUrl = template.ThreeDFileUrl ?? string.Empty,
+                        BasePrice = (decimal)template.Price,
+                        IsAvailable = !template.IsDeleted,
+                        CreatedAt = template.CreatedAt,
+                        UpdatedAt = template.UpdatedAt
+                    }
                 };
             }
             catch (Exception ex)
@@ -73,8 +78,7 @@ namespace FCSP.Services.TemplateService
                 return new BaseResponseModel<GetTemplateByIdResponse>
                 {
                     Code = 500,
-                    Message = ex.Message,
-                    Data = null
+                    Message = $"Error retrieving template: {ex.Message}"
                 };
             }
         }
@@ -83,14 +87,12 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                if (request == null || string.IsNullOrWhiteSpace(request.Name) ||
-                    string.IsNullOrWhiteSpace(request.Gender) || string.IsNullOrWhiteSpace(request.Color))
+                if (request == null || string.IsNullOrWhiteSpace(request.Name))
                 {
                     return new BaseResponseModel<AddTemplateResponse>
                     {
                         Code = 400,
-                        Message = "Name, Gender, and Color are required",
-                        Data = null
+                        Message = "Name is required"
                     };
                 }
 
@@ -99,23 +101,22 @@ namespace FCSP.Services.TemplateService
                     return new BaseResponseModel<AddTemplateResponse>
                     {
                         Code = 400,
-                        Message = "BasePrice cannot be negative",
-                        Data = null
+                        Message = "BasePrice cannot be negative"
                     };
                 }
 
-                CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromAddRequest(request);
-                var addedTemplate = await _templateRepository.AddAsync(customShoeDesignTemplate);
+                CustomShoeDesignTemplate template = GetEntityFromAddRequest(request);
+                await _templateRepository.AddAsync(template);
 
                 return new BaseResponseModel<AddTemplateResponse>
                 {
-                    Code = 201, // 201 Created thay vì 200 để phù hợp với POST
-                    Message = "Template added successfully",
+                    Code = 201,
+                    Message = "Template created successfully",
                     Data = new AddTemplateResponse
                     {
-                        Id = addedTemplate.Id, // Đảm bảo lấy ID từ entity đã thêm
-                        Name = addedTemplate.Name,
-                        PreviewImageUrl = addedTemplate.TwoDImageUrl ?? string.Empty
+                        Id = template.Id,
+                        Name = template.Name,
+                        PreviewImageUrl = template.TwoDImageUrl ?? string.Empty
                     }
                 };
             }
@@ -124,8 +125,7 @@ namespace FCSP.Services.TemplateService
                 return new BaseResponseModel<AddTemplateResponse>
                 {
                     Code = 500,
-                    Message = $"An error occurred while adding template: {ex.Message}",
-                    Data = null
+                    Message = $"Error creating template: {ex.Message}"
                 };
             }
         }
@@ -134,8 +134,24 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromUpdateRequest(request);
-                await _templateRepository.UpdateAsync(customShoeDesignTemplate);
+                var template = _templateRepository.Find(request.Id);
+                if (template == null)
+                {
+                    return new BaseResponseModel<AddTemplateResponse>
+                    {
+                        Code = 404,
+                        Message = "Template not found"
+                    };
+                }
+
+                template.Name = request.Name;
+                template.Description = request.Description;
+                template.Price = (float)request.BasePrice;
+                template.TwoDImageUrl = request.PreviewImageUrl;
+                template.ThreeDFileUrl = request.Model3DUrl;
+                template.UpdatedAt = DateTime.Now;
+
+                await _templateRepository.UpdateAsync(template);
 
                 return new BaseResponseModel<AddTemplateResponse>
                 {
@@ -143,9 +159,9 @@ namespace FCSP.Services.TemplateService
                     Message = "Template updated successfully",
                     Data = new AddTemplateResponse
                     {
-                        Id = customShoeDesignTemplate.Id,
-                        Name = customShoeDesignTemplate.Name,
-                        PreviewImageUrl = customShoeDesignTemplate.TwoDImageUrl ?? string.Empty
+                        Id = template.Id,
+                        Name = template.Name,
+                        PreviewImageUrl = template.TwoDImageUrl ?? string.Empty
                     }
                 };
             }
@@ -154,8 +170,7 @@ namespace FCSP.Services.TemplateService
                 return new BaseResponseModel<AddTemplateResponse>
                 {
                     Code = 500,
-                    Message = ex.Message,
-                    Data = null
+                    Message = $"Error updating template: {ex.Message}"
                 };
             }
         }
@@ -164,9 +179,18 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                CustomShoeDesignTemplate customShoeDesignTemplate = GetEntityFromDeleteRequest(request);
-                customShoeDesignTemplate.IsDeleted = true; // Soft delete thay vì xóa hẳn
-                await _templateRepository.UpdateAsync(customShoeDesignTemplate); // Sử dụng Update thay vì Delete
+                var template = _templateRepository.Find(request.Id);
+                if (template == null)
+                {
+                    return new BaseResponseModel<DeleteTemplateResponse>
+                    {
+                        Code = 404,
+                        Message = "Template not found"
+                    };
+                }
+
+                template.IsDeleted = true; // Soft delete
+                await _templateRepository.UpdateAsync(template);
 
                 return new BaseResponseModel<DeleteTemplateResponse>
                 {
@@ -180,264 +204,16 @@ namespace FCSP.Services.TemplateService
                 return new BaseResponseModel<DeleteTemplateResponse>
                 {
                     Code = 500,
-                    Message = ex.Message,
+                    Message = $"Error deleting template: {ex.Message}",
                     Data = new DeleteTemplateResponse { Success = false }
                 };
             }
-        }
-
-        public async Task<BaseResponseModel<IEnumerable<long>>> GetCustomShoeDesignIdsByTemplate(long templateId)
-        {
-            try
-            {
-                var template = await _templateRepository.FindAsync(templateId);
-                if (template == null)
-                {
-                    throw new InvalidOperationException($"Template with ID {templateId} not found");
-                }
-
-                var designIds = template.CustomShoeDesigns.Select(design => design.Id);
-
-                return new BaseResponseModel<IEnumerable<long>>
-                {
-                    Code = 200,
-                    Message = "Custom shoe design IDs retrieved successfully",
-                    Data = designIds
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<IEnumerable<long>>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = null
-                };
-            }
-        }
-
-        public async Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> GetAvailableTemplates()
-        {
-            try
-            {
-                var templates = await _templateRepository.GetAllAsync();
-                var availableTemplates = templates.Where(t => !t.IsDeleted);
-
-                return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>
-                {
-                    Code = 200,
-                    Message = "Available templates retrieved successfully",
-                    Data = availableTemplates
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = null
-                };
-            }
-        }
-
-        public async Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> SearchTemplates(SearchTemplatesRequest request)
-        {
-            try
-            {
-                var templates = _templateRepository.GetAll();
-
-                if (!string.IsNullOrEmpty(request.Name))
-                    templates = templates.Where(t => t.Name.Contains(request.Name));
-                if (!string.IsNullOrEmpty(request.Gender))
-                    templates = templates.Where(t => t.Gender == request.Gender);
-                if (!string.IsNullOrEmpty(request.Color))
-                    templates = templates.Where(t => t.Color == request.Color);
-                if (request.MinPrice.HasValue)
-                    templates = templates.Where(t => t.Price >= (float)request.MinPrice.Value);
-                if (request.MaxPrice.HasValue)
-                    templates = templates.Where(t => t.Price <= (float)request.MaxPrice.Value);
-                if (request.IsAvailable.HasValue)
-                    templates = templates.Where(t => t.IsDeleted == !request.IsAvailable.Value);
-
-                var result = await templates.ToListAsync();
-
-                return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>
-                {
-                    Code = 200,
-                    Message = "Templates retrieved successfully",
-                    Data = result
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = null
-                };
-            }
-        }
-        public async Task<BaseResponseModel<IEnumerable<GetPopularTemplatesResponse>>> GetPopularTemplates(GetPopularTemplatesRequest request)
-        {
-            try
-            {
-                var templates = await _templateRepository.GetAll()
-                    .Include(t => t.CustomShoeDesigns)
-                    .ToListAsync();
-                var popularTemplates = templates
-                    .Where(t => !t.IsDeleted)
-                    .OrderByDescending(t => t.CustomShoeDesigns.Count)
-                    .Take(request.Limit)
-                    .Select(t => new GetPopularTemplatesResponse
-                    {
-                        Id = t.Id,
-                        Name = t.Name,
-                        PreviewImageUrl = t.TwoDImageUrl ?? string.Empty,
-                        CustomShoeDesignCount = t.CustomShoeDesigns.Count
-                    });
-
-                return new BaseResponseModel<IEnumerable<GetPopularTemplatesResponse>>
-                {
-                    Code = 200,
-                    Message = "Popular templates retrieved successfully",
-                    Data = popularTemplates
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<IEnumerable<GetPopularTemplatesResponse>>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = null
-                };
-            }
-        }
-
-        public async Task<BaseResponseModel<RestoreTemplateResponse>> RestoreTemplate(RestoreTemplateRequest request)
-        {
-            try
-            {
-                var template = await _templateRepository.FindAsync(request.Id);
-                if (template == null)
-                {
-                    return new BaseResponseModel<RestoreTemplateResponse>
-                    {
-                        Code = 404,
-                        Message = "Template not found",
-                        Data = new RestoreTemplateResponse
-                        {
-                            Id = request.Id,
-                            Success = false,
-                            Message = "Template not found"
-                        }
-                    };
-                }
-
-                if (!template.IsDeleted)
-                {
-                    return new BaseResponseModel<RestoreTemplateResponse>
-                    {
-                        Code = 400,
-                        Message = "Template is already active",
-                        Data = new RestoreTemplateResponse
-                        {
-                            Id = request.Id,
-                            Success = false,
-                            Message = "Template is already active"
-                        }
-                    };
-                }
-
-                template.IsDeleted = false;
-                template.UpdatedAt = DateTime.Now;
-                await _templateRepository.UpdateAsync(template);
-
-                return new BaseResponseModel<RestoreTemplateResponse>
-                {
-                    Code = 200,
-                    Message = "Template restored successfully",
-                    Data = new RestoreTemplateResponse
-                    {
-                        Id = template.Id,
-                        Success = true,
-                        Message = "Template restored successfully"
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<RestoreTemplateResponse>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = new RestoreTemplateResponse
-                    {
-                        Id = request.Id,
-                        Success = false,
-                        Message = ex.Message
-                    }
-                };
-            }
-        }
-
-        public async Task<BaseResponseModel<GetTemplateStatsResponse>> GetTemplateStats(GetTemplateStatsRequest request)
-        {
-            try
-            {
-                var template = await _templateRepository.FindAsync(request.Id);
-                if (template == null)
-                {
-                    throw new InvalidOperationException($"Template with ID {request.Id} not found");
-                }
-
-                var stats = new GetTemplateStatsResponse
-                {
-                    Id = template.Id,
-                    Name = template.Name,
-                    CustomShoeDesignCount = template.CustomShoeDesigns.Count,
-                    CreatedAt = template.CreatedAt,
-                    LastUpdatedAt = template.UpdatedAt,
-                    IsAvailable = !template.IsDeleted
-                };
-
-                return new BaseResponseModel<GetTemplateStatsResponse>
-                {
-                    Code = 200,
-                    Message = "Template statistics retrieved successfully",
-                    Data = stats
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<GetTemplateStatsResponse>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = null
-                };
-            }
-        }
-        #endregion
-
-        #region Private Methods
-        private CustomShoeDesignTemplate GetEntityFromGetByIdRequest(GetTemplateByIdRequest request)
-        {
-            CustomShoeDesignTemplate template = _templateRepository.Find(request.Id);
-            if (template == null)
-            {
-                throw new InvalidOperationException($"Template with ID {request.Id} not found");
-            }
-            return template;
         }
 
         private CustomShoeDesignTemplate GetEntityFromAddRequest(AddTemplateRequest request)
         {
             return new CustomShoeDesignTemplate
             {
-               
                 Name = request.Name,
                 Description = request.Description,
                 Gender = request.Gender,
@@ -445,41 +221,10 @@ namespace FCSP.Services.TemplateService
                 Price = (float)request.BasePrice,
                 TwoDImageUrl = request.PreviewImageUrl,
                 ThreeDFileUrl = request.Model3DUrl,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
                 IsDeleted = false
             };
         }
-
-        private CustomShoeDesignTemplate GetEntityFromUpdateRequest(UpdateTemplateRequest request)
-        {
-            CustomShoeDesignTemplate customShoeDesignTemplate = _templateRepository.Find(request.Id);
-
-            if (customShoeDesignTemplate == null)
-            {
-                throw new InvalidOperationException($"Template with ID {request.Id} not found");
-            }
-            customShoeDesignTemplate.Name = request.Name;
-            customShoeDesignTemplate.Description = request.Description;
-            customShoeDesignTemplate.Gender = request.Gender;
-            customShoeDesignTemplate.Color = request.Color;
-            customShoeDesignTemplate.Price = (float)request.BasePrice;
-            customShoeDesignTemplate.TwoDImageUrl = request.PreviewImageUrl;
-            customShoeDesignTemplate.ThreeDFileUrl = request.Model3DUrl;
-            customShoeDesignTemplate.UpdatedAt = DateTime.UtcNow;
-
-            return customShoeDesignTemplate;
-        }
-
-        private CustomShoeDesignTemplate GetEntityFromDeleteRequest(DeleteTemplateRequest request)
-        {
-            CustomShoeDesignTemplate template = _templateRepository.Find(request.Id);
-            if (template == null)
-            {
-                throw new InvalidOperationException($"Template with ID {request.Id} not found");
-            }
-            return template;
-        }
-        #endregion
     }
 }

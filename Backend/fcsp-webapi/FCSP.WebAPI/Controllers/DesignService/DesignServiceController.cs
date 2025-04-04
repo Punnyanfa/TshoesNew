@@ -26,8 +26,8 @@ namespace FCSP.WebAPI.Controllers.DesignService
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllDesignServices()
         {
-            var designServices = await _designServiceService.GetAllDesignServices();
-            return Ok(designServices);
+            var result = await _designServiceService.GetAllDesignServices();
+            return StatusCode(result.Code, result);
         }
 
         /// <summary>
@@ -38,18 +38,10 @@ namespace FCSP.WebAPI.Controllers.DesignService
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetDesignServiceById(long id)
+        public async Task<IActionResult> GetDesignServiceById(GetDesignServiceByIdRequest request)
         {
-            try
-            {
-                var request = new GetDesignServiceByIdRequest { Id = id };
-                var response = await _designServiceService.GetDesignServiceById(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var result = await _designServiceService.GetDesignServiceById(request);
+            return StatusCode(result.Code, result);
         }
 
         /// <summary>
@@ -59,10 +51,10 @@ namespace FCSP.WebAPI.Controllers.DesignService
         /// <returns>List of design services</returns>
         [HttpGet("customShoeDesign/{customShoeDesignId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetDesignServicesByCustomShoeDesignId(long customShoeDesignId)
+        public async Task<IActionResult> GetDesignServicesByCustomShoeDesignId(GetDesignServicesByCustomShoeDesignIdRequest request)
         {
-            var designServices = await _designServiceService.GetDesignServicesByCustomShoeDesignId(customShoeDesignId);
-            return Ok(designServices);
+            var result = await _designServiceService.GetDesignServicesByCustomShoeDesignId(request);
+            return StatusCode(result.Code, result);
         }
 
         /// <summary>
@@ -72,10 +64,10 @@ namespace FCSP.WebAPI.Controllers.DesignService
         /// <returns>List of design services</returns>
         [HttpGet("service/{serviceId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetDesignServicesByServiceId(long serviceId)
+        public async Task<IActionResult> GetDesignServicesByServiceId(GetDesignServicesByServiceIdRequest request)
         {
-            var designServices = await _designServiceService.GetDesignServicesByServiceId(serviceId);
-            return Ok(designServices);
+            var result = await _designServiceService.GetDesignServicesByServiceId(request);
+            return StatusCode(result.Code, result);
         }
 
         /// <summary>
@@ -88,15 +80,8 @@ namespace FCSP.WebAPI.Controllers.DesignService
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddDesignService([FromBody] AddDesignServiceRequest request)
         {
-            try
-            {
-                var response = await _designServiceService.AddDesignService(request);
-                return CreatedAtAction(nameof(GetDesignServiceById), new { id = response.DesignServiceId }, response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _designServiceService.AddDesignService(request);
+            return StatusCode(result.Code, result);
         }
 
         /// <summary>
@@ -109,20 +94,10 @@ namespace FCSP.WebAPI.Controllers.DesignService
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateDesignService(long id, [FromBody] UpdateDesignServiceRequest request)
+        public async Task<IActionResult> UpdateDesignService([FromBody] UpdateDesignServiceRequest request)
         {
-            if (id != request.Id)
-                return BadRequest(new { message = "ID mismatch between route and request body" });
-
-            try
-            {
-                var response = await _designServiceService.UpdateDesignService(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var result = await _designServiceService.UpdateDesignService(request);
+            return StatusCode(result.Code, result);
         }
 
         /// <summary>
@@ -133,18 +108,10 @@ namespace FCSP.WebAPI.Controllers.DesignService
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteDesignService(long id)
+        public async Task<IActionResult> DeleteDesignService(DeleteDesignServiceRequest request)
         {
-            try
-            {
-                var request = new DeleteDesignServiceRequest { Id = id };
-                var response = await _designServiceService.DeleteDesignService(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var result = await _designServiceService.DeleteDesignService(request);
+            return StatusCode(result.Code, result);
         }
     }
 }

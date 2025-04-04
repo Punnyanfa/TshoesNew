@@ -9,6 +9,6 @@ namespace FCSP.Services.ReturnedCustomShoeService
         Task<BaseResponseModel<AddReturnedCustomShoeResponse>> AddReturnedCustomShoe(AddReturnedCustomShoeRequest request);
         Task<BaseResponseModel<GetReturnedCustomShoesResponse>> GetAllReturnedCustomShoes();
         Task<BaseResponseModel<GetReturnedCustomShoeByIdResponse>> GetReturnedCustomShoeById(GetReturnedCustomShoeByIdRequest request);
-        Task<BaseResponseModel<GetReturnedCustomShoesResponse>> GetReturnedCustomShoesByDesignId(long customShoeDesignId);
+        Task<BaseResponseModel<GetReturnedCustomShoesResponse>> GetReturnedCustomShoesByDesignId(GetReturnedCustomShoeByDesignIdRequest request);
     }
 } 

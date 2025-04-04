@@ -22,6 +22,11 @@ namespace FCSP.DTOs.ReturnedCustomShoe
         public long Id { get; set; }
     }
 
+    public class GetReturnedCustomShoeByDesignIdRequest
+    {
+        public long Id { get; set; }
+    }
+
     public class GetReturnedCustomShoeByIdResponse
     {
         public long Id { get; set; }

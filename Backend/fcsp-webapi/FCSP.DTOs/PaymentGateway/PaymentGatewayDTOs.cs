@@ -1,5 +1,27 @@
+using FCSP.DTOs;
+
 namespace FCSP.DTOs.PaymentGateway
 {
+    public class PaymentGatewayDto
+    {
+        public long Id { get; set; }
+        public long UserId { get; set; }
+        public string Name { get; set; } = null!;
+        public string Provider { get; set; } = null!;
+        public string AccountNumber { get; set; } = null!;
+        public bool IsDefault { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+
+    public class PaymentGatewayListResponse : BaseResponseModel<List<PaymentGatewayDto>>
+    {
+    }
+
+    public class PaymentGatewayResponse : BaseResponseModel<PaymentGatewayDto>
+    {
+    }
+
     public class GetPaymentGatewayByIdRequest
     {
         public long Id { get; set; }

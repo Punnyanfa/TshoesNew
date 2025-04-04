@@ -23,26 +23,6 @@ namespace FCSP.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<IList<SetServiceAmount>> GetByServiceIdAsync(long serviceId)
-        {
-            return await Entities
-                .Where(ssa => ssa.ServiceId == serviceId)
-                .OrderByDescending(ssa => ssa.StartDate)
-                .ToListAsync();
-        }
-
-        public async Task<SetServiceAmount> GetCurrentServiceAmountAsync(long serviceId)
-        {
-            var currentDate = DateTime.UtcNow;
-            return await Entities
-                .Where(ssa => ssa.ServiceId == serviceId &&
-                       ssa.Status == ServiceAmountStatus.Active &&
-                       ssa.StartDate <= currentDate &&
-                       (ssa.EndDate == null || ssa.EndDate >= currentDate))
-                .OrderByDescending(ssa => ssa.StartDate)
-                .FirstOrDefaultAsync();
-        }
-
         public async Task<SetServiceAmount?> GetActiveAmountByServiceIdAsync(long serviceId)
         {
             var today = DateTime.UtcNow.Date;

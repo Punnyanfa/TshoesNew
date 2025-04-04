@@ -50,7 +50,7 @@ namespace FCSP.WebAPI.Controllers.UserActivity
         public async Task<IActionResult> AddUserActivity([FromBody] AddUserActivityRequest request)
         {
             var response = await _userActivityService.AddUserActivity(request);
-            return CreatedAtAction(nameof(GetUserActivityById), new { id = response.UserActivityId }, response);
+            return StatusCode(response.Code, response);
         }
 
         [HttpPut("{id}")]

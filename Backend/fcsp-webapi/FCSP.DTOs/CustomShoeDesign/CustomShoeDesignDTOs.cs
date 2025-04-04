@@ -30,17 +30,21 @@ namespace FCSP.DTOs.CustomShoeDesign
         public float? Rating { get; set; }
         public int? RatingCount { get; set; }
         public float? Price { get; set; }
+        public string? Description { get; set; }
+        public string? Gender { get; set; }
+        public int? Size { get; set; }
     }
 
     public class AddCustomShoeDesignRequest
     {
         public long? UserId { get; set; }
         public long? CustomShoeDesignTemplateId { get; set; }
-        public string? DesignData { get; set; }
+        public string? Name { get; set; }
         public string? Description { get; set; }
-        public float? DesignerMarkup { get; set; }
-        public float? TotalAmount { get; set; }
+        public string? DesignData { get; set; }
+        public float? DesignerMarkup { get; set; } = 0;
         public List<long>? TextureIds { get; set; }
+        public List<long>? ServiceIds { get; set; }
     }
 
     public class AddCustomShoeDesignResponse
@@ -52,9 +56,12 @@ namespace FCSP.DTOs.CustomShoeDesign
     {
         public long Id { get; set; }
         public long CustomShoeDesignTemplateId { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
         public string? DesignData { get; set; }
-        public float? TotalAmount { get; set; }
+        public float? DesignerMarkup { get; set; } = 0;
         public List<long>? TextureIds { get; set; }
+        public List<long>? ServiceIds { get; set; }
     }
 
     public class UpdateCustomShoeDesignResponse

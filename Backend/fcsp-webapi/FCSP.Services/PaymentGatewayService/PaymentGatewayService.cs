@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.PaymentGateway;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -17,67 +18,179 @@ namespace FCSP.Services.PaymentGatewayService
             _paymentGatewayRepository = paymentGatewayRepository;
         }
 
-        public async Task<IEnumerable<PaymentGateway>> GetAllPaymentGateways()
+        public async Task<PaymentGatewayListResponse> GetAllPaymentGateways()
         {
-            var response = await _paymentGatewayRepository.GetAllAsync();
-            return response;
-        }
-
-        public async Task<GetPaymentGatewayByIdResponse> GetPaymentGatewayById(GetPaymentGatewayByIdRequest request)
-        {
-            PaymentGateway paymentGateway = await GetEntityFromGetByIdRequest(request);
-            return new GetPaymentGatewayByIdResponse
+            try
             {
-                Id = paymentGateway.Id,
-                UserId = paymentGateway.UserId,
-                Name = paymentGateway.PaymentMethod.ToString(),
-                Provider = paymentGateway.PaymentMethod.ToString(),
-                AccountNumber = "N/A", // Set appropriate value if available
-                IsDefault = false, // Set appropriate value if available
-                CreatedAt = paymentGateway.CreatedAt,
-                UpdatedAt = paymentGateway.UpdatedAt
-            };
-        }
-
-        public async Task<AddPaymentGatewayResponse> AddPaymentGateway(AddPaymentGatewayRequest request)
-        {
-            PaymentGateway paymentGateway = GetEntityFromAddRequest(request);
-            var addedPaymentGateway = await _paymentGatewayRepository.AddAsync(paymentGateway);
-            return new AddPaymentGatewayResponse 
-            { 
-                Id = addedPaymentGateway.Id,
-                Name = addedPaymentGateway.PaymentMethod.ToString(),
-                IsDefault = false // Set appropriate value if available
-            };
-        }
-
-        public async Task<UpdatePaymentGatewayResponse> UpdatePaymentGateway(UpdatePaymentGatewayRequest request)
-        {
-            PaymentGateway paymentGateway = await GetEntityFromUpdateRequest(request);
-            await _paymentGatewayRepository.UpdateAsync(paymentGateway);
-            return new UpdatePaymentGatewayResponse 
-            { 
-                Id = paymentGateway.Id,
-                Name = paymentGateway.PaymentMethod.ToString(),
-                IsDefault = false // Set appropriate value if available
-            };
-        }
-
-        public async Task<DeletePaymentGatewayResponse> DeletePaymentGateway(DeletePaymentGatewayRequest request)
-        {
-            PaymentGateway paymentGateway = await GetEntityFromDeleteRequest(request);
-            await _paymentGatewayRepository.DeleteAsync(paymentGateway.Id);
-            return new DeletePaymentGatewayResponse { Success = true };
-        }
-
-        private async Task<PaymentGateway> GetEntityFromGetByIdRequest(GetPaymentGatewayByIdRequest request)
-        {
-            PaymentGateway paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
-            if (paymentGateway == null)
-            {
-                throw new InvalidOperationException("PaymentGateway not found");
+                var paymentGateways = await _paymentGatewayRepository.GetAllAsync();
+                var paymentGatewayDtos = paymentGateways.Select(MapToDto).ToList();
+                
+                return new PaymentGatewayListResponse
+                {
+                    Code = 200,
+                    Message = "Payment gateways retrieved successfully",
+                    Data = paymentGatewayDtos
+                };
             }
-            return paymentGateway;
+            catch (Exception ex)
+            {
+                return new PaymentGatewayListResponse
+                {
+                    Code = 500,
+                    Message = $"Error retrieving payment gateways: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentGatewayResponse> GetPaymentGatewayById(GetPaymentGatewayByIdRequest request)
+        {
+            try
+            {
+                var paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
+                if (paymentGateway == null)
+                {
+                    return new PaymentGatewayResponse
+                    {
+                        Code = 404,
+                        Message = "Payment gateway not found"
+                    };
+                }
+
+                return new PaymentGatewayResponse
+                {
+                    Code = 200,
+                    Message = "Payment gateway retrieved successfully",
+                    Data = MapToDto(paymentGateway)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentGatewayResponse
+                {
+                    Code = 500,
+                    Message = $"Error retrieving payment gateway: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentGatewayResponse> AddPaymentGateway(AddPaymentGatewayRequest request)
+        {
+            try
+            {
+                PaymentGateway paymentGateway = GetEntityFromAddRequest(request);
+                var addedPaymentGateway = await _paymentGatewayRepository.AddAsync(paymentGateway);
+                
+                return new PaymentGatewayResponse
+                {
+                    Code = 201,
+                    Message = "Payment gateway created successfully",
+                    Data = MapToDto(addedPaymentGateway)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentGatewayResponse
+                {
+                    Code = 500,
+                    Message = $"Error creating payment gateway: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentGatewayResponse> UpdatePaymentGateway(UpdatePaymentGatewayRequest request)
+        {
+            try
+            {
+                var paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
+                if (paymentGateway == null)
+                {
+                    return new PaymentGatewayResponse
+                    {
+                        Code = 404,
+                        Message = "Payment gateway not found"
+                    };
+                }
+
+                // Parse payment method from request.Provider if needed
+                if (Enum.TryParse<PaymentMethod>(request.Provider, true, out PaymentMethod method))
+                {
+                    paymentGateway.PaymentMethod = method;
+                }
+                paymentGateway.UpdatedAt = DateTime.UtcNow;
+
+                await _paymentGatewayRepository.UpdateAsync(paymentGateway);
+                
+                return new PaymentGatewayResponse
+                {
+                    Code = 200,
+                    Message = "Payment gateway updated successfully",
+                    Data = MapToDto(paymentGateway)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentGatewayResponse
+                {
+                    Code = 500,
+                    Message = $"Error updating payment gateway: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentGatewayResponse> DeletePaymentGateway(DeletePaymentGatewayRequest request)
+        {
+            try
+            {
+                var paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
+                if (paymentGateway == null)
+                {
+                    return new PaymentGatewayResponse
+                    {
+                        Code = 404,
+                        Message = "Payment gateway not found"
+                    };
+                }
+
+                await _paymentGatewayRepository.DeleteAsync(paymentGateway.Id);
+                
+                return new PaymentGatewayResponse
+                {
+                    Code = 200,
+                    Message = "Payment gateway deleted successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentGatewayResponse
+                {
+                    Code = 500,
+                    Message = $"Error deleting payment gateway: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentGatewayListResponse> GetPaymentGatewaysByUser(GetPaymentGatewaysByUserRequest request)
+        {
+            try
+            {
+                var paymentGateways = await _paymentGatewayRepository.GetByUserIdAsync(request.UserId);
+                var paymentGatewayDtos = paymentGateways.Select(MapToDto).ToList();
+                
+                return new PaymentGatewayListResponse
+                {
+                    Code = 200,
+                    Message = "Payment gateways retrieved successfully",
+                    Data = paymentGatewayDtos
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentGatewayListResponse
+                {
+                    Code = 500,
+                    Message = $"Error retrieving payment gateways: {ex.Message}"
+                };
+            }
         }
 
         private PaymentGateway GetEntityFromAddRequest(AddPaymentGatewayRequest request)
@@ -91,32 +204,19 @@ namespace FCSP.Services.PaymentGatewayService
             };
         }
 
-        private async Task<PaymentGateway> GetEntityFromUpdateRequest(UpdatePaymentGatewayRequest request)
+        private PaymentGatewayDto MapToDto(PaymentGateway paymentGateway)
         {
-            PaymentGateway paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
-            if (paymentGateway == null)
+            return new PaymentGatewayDto
             {
-                throw new InvalidOperationException("PaymentGateway not found");
-            }
-            
-            // Parse payment method from request.Provider if needed
-            if (Enum.TryParse<PaymentMethod>(request.Provider, true, out PaymentMethod method))
-            {
-                paymentGateway.PaymentMethod = method;
-            }
-            paymentGateway.UpdatedAt = DateTime.UtcNow;
-            
-            return paymentGateway;
-        }
-
-        private async Task<PaymentGateway> GetEntityFromDeleteRequest(DeletePaymentGatewayRequest request)
-        {
-            PaymentGateway paymentGateway = await _paymentGatewayRepository.FindAsync(request.Id);
-            if (paymentGateway == null)
-            {
-                throw new InvalidOperationException("PaymentGateway not found");
-            }
-            return paymentGateway;
+                Id = paymentGateway.Id,
+                UserId = paymentGateway.UserId,
+                Name = paymentGateway.PaymentMethod.ToString(),
+                Provider = paymentGateway.PaymentMethod.ToString(),
+                AccountNumber = "N/A", // Set appropriate value if available
+                IsDefault = false, // Set appropriate value if available
+                CreatedAt = paymentGateway.CreatedAt,
+                UpdatedAt = paymentGateway.UpdatedAt
+            };
         }
     }
 } 

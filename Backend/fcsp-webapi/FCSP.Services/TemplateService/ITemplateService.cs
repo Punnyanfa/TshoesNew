@@ -6,7 +6,7 @@ namespace FCSP.Services.TemplateService
 {
     public interface ITemplateService
     {
-        Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> GetAllTemplate();
+        Task<BaseResponseModel<List<CustomShoeDesignTemplate>>> GetAllTemplate();
         Task<BaseResponseModel<GetTemplateByIdResponse>> GetTemplateById(GetTemplateByIdRequest request);
         Task<BaseResponseModel<AddTemplateResponse>> AddTemplate(AddTemplateRequest request);
         Task<BaseResponseModel<AddTemplateResponse>> UpdateTemplate(UpdateTemplateRequest request);

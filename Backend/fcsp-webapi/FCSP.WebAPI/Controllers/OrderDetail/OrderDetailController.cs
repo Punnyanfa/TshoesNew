@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.OrderDetail;
 using FCSP.Services.OrderDetailService;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ public class OrderDetailController : ControllerBase
     public async Task<IActionResult> GetAllOrderDetails()
     {
         var result = await _orderDetailService.GetAllOrderDetails();
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpGet("{id}")]
@@ -27,21 +28,21 @@ public class OrderDetailController : ControllerBase
     {
         var request = new GetOrderDetailByIdRequest { Id = id };
         var result = await _orderDetailService.GetOrderDetailById(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpPost]
     public async Task<IActionResult> AddOrderDetail([FromBody] AddOrderDetailRequest request)
     {
         var result = await _orderDetailService.AddOrderDetail(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateOrderDetail([FromBody] UpdateOrderDetailRequest request)
     {
         var result = await _orderDetailService.UpdateOrderDetail(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 
     [HttpDelete("{id}")]
@@ -49,6 +50,6 @@ public class OrderDetailController : ControllerBase
     {
         var request = new DeleteOrderDetailRequest { Id = id };
         var result = await _orderDetailService.DeleteOrderDetail(request);
-        return Ok(result);
+        return StatusCode(result.Code, result);
     }
 } 

@@ -1,6 +1,11 @@
+using FCSP.DTOs;
 using FCSP.DTOs.DesignService;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.DesignServiceService
 {
@@ -20,82 +25,254 @@ namespace FCSP.Services.DesignServiceService
             _serviceRepository = serviceRepository;
         }
 
-        public async Task<IEnumerable<DesignService>> GetAllDesignServices()
+        public async Task<BaseResponseModel<List<DesignServiceDto>>> GetAllDesignServices()
         {
-            return await _designServiceRepository.GetAllAsync();
+            try
+            {
+                var designServices = await _designServiceRepository.GetAllAsync();
+                var designServiceDtos = designServices.Select(MapToDto).ToList();
+                
+                return new BaseResponseModel<List<DesignServiceDto>>
+                {
+                    Code = 200,
+                    Message = "Design services retrieved successfully",
+                    Data = designServiceDtos
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<List<DesignServiceDto>>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
         }
 
-        public async Task<GetDesignServiceByIdResponse> GetDesignServiceById(GetDesignServiceByIdRequest request)
+        public async Task<BaseResponseModel<GetDesignServiceByIdResponse>> GetDesignServiceById(GetDesignServiceByIdRequest request)
         {
-            var designService = await _designServiceRepository.FindAsync(request.Id);
-            if (designService == null)
-                throw new Exception("Design service not found");
-
-            string? customShoeDesignName = null;
-            string? serviceName = null;
-
-            if (designService.CustomShoeDesign != null)
+            try
             {
-                customShoeDesignName = $"Design #{designService.CustomShoeDesign.Id}";
-            }
+                var designService = await _designServiceRepository.FindAsync(request.Id);
+                if (designService == null)
+                {
+                    return new BaseResponseModel<GetDesignServiceByIdResponse>
+                    {
+                        Code = 404,
+                        Message = "Design service not found",
+                        Data = null
+                    };
+                }
 
-            if (designService.Service != null)
+                string? customShoeDesignName = null;
+                string? serviceName = null;
+
+                if (designService.CustomShoeDesign != null)
+                {
+                    customShoeDesignName = $"Design #{designService.CustomShoeDesign.Id}";
+                }
+
+                if (designService.Service != null)
+                {
+                    serviceName = designService.Service.ServiceName;
+                }
+
+                return new BaseResponseModel<GetDesignServiceByIdResponse>
+                {
+                    Code = 200,
+                    Message = "Design service retrieved successfully",
+                    Data = new GetDesignServiceByIdResponse
+                    {
+                        Id = designService.Id,
+                        DesignId = designService.CustomShoeDesignId,
+                        ServiceId = designService.ServiceId,
+                        Price = designService.Price,
+                        CustomShoeDesignName = customShoeDesignName,
+                        ServiceName = serviceName
+                    }
+                };
+            }
+            catch (Exception ex)
             {
-                serviceName = designService.Service.ServiceName;
+                return new BaseResponseModel<GetDesignServiceByIdResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
+        }
 
-            return new GetDesignServiceByIdResponse
+        public async Task<BaseResponseModel<AddDesignServiceResponse>> AddDesignService(AddDesignServiceRequest request)
+        {
+            try
+            {
+                var designService = new DesignService
+                {
+                    CustomShoeDesignId = request.DesignId,
+                    ServiceId = request.ServiceId,
+                    Price = request.Price,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var addedDesignService = await _designServiceRepository.AddAsync(designService);
+                
+                return new BaseResponseModel<AddDesignServiceResponse>
+                {
+                    Code = 201,
+                    Message = "Design service added successfully",
+                    Data = new AddDesignServiceResponse { DesignServiceId = addedDesignService.Id }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<AddDesignServiceResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<UpdateDesignServiceResponse>> UpdateDesignService(UpdateDesignServiceRequest request)
+        {
+            try
+            {
+                var designService = await _designServiceRepository.FindAsync(request.Id);
+                if (designService == null)
+                {
+                    return new BaseResponseModel<UpdateDesignServiceResponse>
+                    {
+                        Code = 404,
+                        Message = "Design service not found",
+                        Data = null
+                    };
+                }
+
+                designService.CustomShoeDesignId = request.DesignId;
+                designService.ServiceId = request.ServiceId;
+                designService.Price = request.Price;
+                designService.UpdatedAt = DateTime.UtcNow;
+
+                await _designServiceRepository.UpdateAsync(designService);
+                
+                return new BaseResponseModel<UpdateDesignServiceResponse>
+                {
+                    Code = 200,
+                    Message = "Design service updated successfully",
+                    Data = new UpdateDesignServiceResponse { DesignServiceId = designService.Id }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateDesignServiceResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<DeleteDesignServiceResponse>> DeleteDesignService(DeleteDesignServiceRequest request)
+        {
+            try
+            {
+                var designService = await _designServiceRepository.FindAsync(request.Id);
+                if (designService == null)
+                {
+                    return new BaseResponseModel<DeleteDesignServiceResponse>
+                    {
+                        Code = 404,
+                        Message = "Design service not found",
+                        Data = null
+                    };
+                }
+
+                await _designServiceRepository.DeleteAsync(request.Id);
+                
+                return new BaseResponseModel<DeleteDesignServiceResponse>
+                {
+                    Code = 200,
+                    Message = "Design service deleted successfully",
+                    Data = new DeleteDesignServiceResponse { Success = true }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<DeleteDesignServiceResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<List<DesignServiceDto>>> GetDesignServicesByCustomShoeDesignId(GetDesignServicesByCustomShoeDesignIdRequest request)
+        {
+            try
+            {
+                var designServices = await _designServiceRepository.GetDesignServicesByCustomShoeDesignId(request.CustomShoeDesignId);
+                var designServiceDtos = designServices.Select(MapToDto).ToList();
+                
+                return new BaseResponseModel<List<DesignServiceDto>>
+                {
+                    Code = 200,
+                    Message = "Design services retrieved successfully",
+                    Data = designServiceDtos
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<List<DesignServiceDto>>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<List<DesignServiceDto>>> GetDesignServicesByServiceId(GetDesignServicesByServiceIdRequest request)
+        {
+            try
+            {
+                var designServices = await _designServiceRepository.GetDesignServicesByServiceId(request.ServiceId);
+                var designServiceDtos = designServices.Select(MapToDto).ToList();
+                
+                return new BaseResponseModel<List<DesignServiceDto>>
+                {
+                    Code = 200,
+                    Message = "Design services retrieved successfully",
+                    Data = designServiceDtos
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<List<DesignServiceDto>>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+        private DesignServiceDto MapToDto(DesignService designService)
+        {
+            return new DesignServiceDto
             {
                 Id = designService.Id,
-                DesignId = designService.CustomShoeDesignId,
+                CustomShoeDesignId = designService.CustomShoeDesignId,
                 ServiceId = designService.ServiceId,
                 Price = designService.Price,
-                CustomShoeDesignName = customShoeDesignName,
-                ServiceName = serviceName
+                CreatedAt = designService.CreatedAt,
+                UpdatedAt = designService.UpdatedAt
             };
-        }
-
-        public async Task<AddDesignServiceResponse> AddDesignService(AddDesignServiceRequest request)
-        {
-            var designService = new DesignService
-            {
-                CustomShoeDesignId = request.DesignId,
-                ServiceId = request.ServiceId,
-                Price = request.Price
-            };
-
-            var addedDesignService = await _designServiceRepository.AddAsync(designService);
-            return new AddDesignServiceResponse { DesignServiceId = addedDesignService.Id };
-        }
-
-        public async Task<UpdateDesignServiceResponse> UpdateDesignService(UpdateDesignServiceRequest request)
-        {
-            var designService = await _designServiceRepository.FindAsync(request.Id);
-            if (designService == null)
-                throw new Exception("Design service not found");
-
-            designService.CustomShoeDesignId = request.DesignId;
-            designService.ServiceId = request.ServiceId;
-            designService.Price = request.Price;
-
-            await _designServiceRepository.UpdateAsync(designService);
-            return new UpdateDesignServiceResponse { DesignServiceId = designService.Id };
-        }
-
-        public async Task<DeleteDesignServiceResponse> DeleteDesignService(DeleteDesignServiceRequest request)
-        {
-            await _designServiceRepository.DeleteAsync(request.Id);
-            return new DeleteDesignServiceResponse { Success = true };
-        }
-
-        public async Task<IEnumerable<DesignService>> GetDesignServicesByCustomShoeDesignId(long customShoeDesignId)
-        {
-            return await _designServiceRepository.GetDesignServicesByCustomShoeDesignId(customShoeDesignId);
-        }
-
-        public async Task<IEnumerable<DesignService>> GetDesignServicesByServiceId(long serviceId)
-        {
-            return await _designServiceRepository.GetDesignServicesByServiceId(serviceId);
         }
     }
 } 

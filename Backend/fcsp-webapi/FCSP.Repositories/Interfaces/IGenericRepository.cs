@@ -11,5 +11,6 @@ namespace FCSP.Repositories.Interfaces
         public IQueryable<T> GetAll();
         public T Find(params object[] keyValues);
         public Task<T> FindAsync(params object[] keyValues);
+        public Task AddRangeAsync(IEnumerable<T> entities);
     }
 }

@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -17,63 +18,152 @@ namespace FCSP.Services.PaymentService
             _paymentRepository = paymentRepository;
         }
 
-        public async Task<IEnumerable<Payment>> GetAllPayments()
+        public async Task<PaymentListResponse> GetAllPayments()
         {
-            var response = await _paymentRepository.GetAllAsync();
-            return response;
-        }
-
-        public async Task<GetPaymentByIdResponse> GetPaymentById(GetPaymentByIdRequest request)
-        {
-            Payment payment = await GetEntityFromGetByIdRequest(request);
-            return new GetPaymentByIdResponse
+            try
             {
-                Id = payment.Id,
-                OrderId = payment.OrderId,
-                Amount = payment.Amount,
-                Status = (int)payment.PaymentStatus,
-                CreatedAt = payment.CreatedAt,
-                UpdatedAt = payment.UpdatedAt
-            };
-        }
-
-        public async Task<AddPaymentResponse> AddPayment(AddPaymentRequest request)
-        {
-            Payment payment = GetEntityFromAddRequest(request);
-            var addedPayment = await _paymentRepository.AddAsync(payment);
-            return new AddPaymentResponse {
-                Id = addedPayment.Id,
-                Amount = addedPayment.Amount,
-                Status = (int)addedPayment.PaymentStatus
-            };
-        }
-
-        public async Task<UpdatePaymentResponse> UpdatePayment(UpdatePaymentRequest request)
-        {
-            Payment payment = await GetEntityFromUpdateRequest(request);
-            await _paymentRepository.UpdateAsync(payment);
-            return new UpdatePaymentResponse {
-                Id = payment.Id,
-                Amount = payment.Amount,
-                Status = (int)payment.PaymentStatus
-            };
-        }
-
-        public async Task<DeletePaymentResponse> DeletePayment(DeletePaymentRequest request)
-        {
-            Payment payment = await GetEntityFromDeleteRequest(request);
-            await _paymentRepository.DeleteAsync(payment.Id);
-            return new DeletePaymentResponse { Success = true };
-        }
-
-        private async Task<Payment> GetEntityFromGetByIdRequest(GetPaymentByIdRequest request)
-        {
-            Payment payment = await _paymentRepository.FindAsync(request.Id);
-            if (payment == null)
-            {
-                throw new InvalidOperationException("Payment not found");
+                var payments = await _paymentRepository.GetAllAsync();
+                var paymentDtos = payments.Select(MapToDto).ToList();
+                
+                return new PaymentListResponse
+                {
+                    Code = 200,
+                    Message = "Payments retrieved successfully",
+                    Data = paymentDtos
+                };
             }
-            return payment;
+            catch (Exception ex)
+            {
+                return new PaymentListResponse
+                {
+                    Code = 500,
+                    Message = $"Error retrieving payments: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentResponse> GetPaymentById(GetPaymentByIdRequest request)
+        {
+            try
+            {
+                var payment = await _paymentRepository.FindAsync(request.Id);
+                if (payment == null)
+                {
+                    return new PaymentResponse
+                    {
+                        Code = 404,
+                        Message = "Payment not found"
+                    };
+                }
+
+                return new PaymentResponse
+                {
+                    Code = 200,
+                    Message = "Payment retrieved successfully",
+                    Data = MapToDto(payment)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentResponse
+                {
+                    Code = 500,
+                    Message = $"Error retrieving payment: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentResponse> AddPayment(AddPaymentRequest request)
+        {
+            try
+            {
+                Payment payment = GetEntityFromAddRequest(request);
+                var addedPayment = await _paymentRepository.AddAsync(payment);
+                
+                return new PaymentResponse
+                {
+                    Code = 201,
+                    Message = "Payment created successfully",
+                    Data = MapToDto(addedPayment)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentResponse
+                {
+                    Code = 500,
+                    Message = $"Error creating payment: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentResponse> UpdatePayment(UpdatePaymentRequest request)
+        {
+            try
+            {
+                var payment = await _paymentRepository.FindAsync(request.Id);
+                if (payment == null)
+                {
+                    return new PaymentResponse
+                    {
+                        Code = 404,
+                        Message = "Payment not found"
+                    };
+                }
+
+                payment.Amount = request.Amount;
+                payment.PaymentStatus = (PaymentStatus)request.Status;
+                payment.UpdatedAt = DateTime.UtcNow;
+
+                await _paymentRepository.UpdateAsync(payment);
+                
+                return new PaymentResponse
+                {
+                    Code = 200,
+                    Message = "Payment updated successfully",
+                    Data = MapToDto(payment)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentResponse
+                {
+                    Code = 500,
+                    Message = $"Error updating payment: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<PaymentResponse> DeletePayment(DeletePaymentRequest request)
+        {
+            try
+            {
+                var payment = await _paymentRepository.FindAsync(request.Id);
+                if (payment == null)
+                {
+                    return new PaymentResponse
+                    {
+                        Code = 404,
+                        Message = "Payment not found"
+                    };
+                }
+
+                await _paymentRepository.DeleteAsync(payment.Id);
+                
+                return new PaymentResponse
+                {
+                    Code = 200,
+                    Message = "Payment deleted successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PaymentResponse
+                {
+                    Code = 500,
+                    Message = $"Error deleting payment: {ex.Message}"
+                };
+            }
         }
 
         private Payment GetEntityFromAddRequest(AddPaymentRequest request)
@@ -83,35 +173,23 @@ namespace FCSP.Services.PaymentService
                 OrderId = request.OrderId,
                 Amount = request.Amount,
                 PaymentMethod = PaymentMethod.Card,
-                PaymentStatus = PaymentStatus.Pending,
+                PaymentStatus = (PaymentStatus)request.Status,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
         }
 
-        private async Task<Payment> GetEntityFromUpdateRequest(UpdatePaymentRequest request)
+        private PaymentDto MapToDto(Payment payment)
         {
-            Payment payment = await _paymentRepository.FindAsync(request.Id);
-            if (payment == null)
+            return new PaymentDto
             {
-                throw new InvalidOperationException("Payment not found");
-            }
-
-            payment.Amount = request.Amount;
-            payment.PaymentStatus = PaymentStatus.Received;
-            payment.UpdatedAt = DateTime.UtcNow;
-
-            return payment;
-        }
-
-        private async Task<Payment> GetEntityFromDeleteRequest(DeletePaymentRequest request)
-        {
-            Payment payment = await _paymentRepository.FindAsync(request.Id);
-            if (payment == null)
-            {
-                throw new InvalidOperationException("Payment not found");
-            }
-            return payment;
+                Id = payment.Id,
+                OrderId = payment.OrderId,
+                Amount = payment.Amount,
+                Status = (int)payment.PaymentStatus,
+                CreatedAt = payment.CreatedAt,
+                UpdatedAt = payment.UpdatedAt
+            };
         }
     }
 } 

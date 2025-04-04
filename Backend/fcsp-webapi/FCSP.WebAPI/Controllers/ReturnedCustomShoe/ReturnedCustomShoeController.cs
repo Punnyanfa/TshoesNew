@@ -23,7 +23,7 @@ namespace FCSP.WebAPI.Controllers.ReturnedCustomShoe
         public async Task<ActionResult<BaseResponseModel<AddReturnedCustomShoeResponse>>> AddReturnedCustomShoe(AddReturnedCustomShoeRequest request)
         {
             var response = await _returnedCustomShoeService.AddReturnedCustomShoe(request);
-            return Ok(response);
+            return StatusCode(response.Code, response);
         }
 
         [HttpGet]
@@ -31,24 +31,23 @@ namespace FCSP.WebAPI.Controllers.ReturnedCustomShoe
         public async Task<ActionResult<BaseResponseModel<GetReturnedCustomShoesResponse>>> GetAllReturnedCustomShoes()
         {
             var response = await _returnedCustomShoeService.GetAllReturnedCustomShoes();
-            return Ok(response);
+            return StatusCode(response.Code, response);
         }
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<BaseResponseModel<GetReturnedCustomShoeByIdResponse>>> GetReturnedCustomShoeById(long id)
+        public async Task<ActionResult<BaseResponseModel<GetReturnedCustomShoeByIdResponse>>> GetReturnedCustomShoeById(GetReturnedCustomShoeByIdRequest request)
         {
-            var request = new GetReturnedCustomShoeByIdRequest { Id = id };
             var response = await _returnedCustomShoeService.GetReturnedCustomShoeById(request);
-            return Ok(response);
+            return StatusCode(response.Code, response);
         }
 
         [HttpGet("design/{designId}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<BaseResponseModel<GetReturnedCustomShoesResponse>>> GetReturnedCustomShoesByDesignId(long designId)
+        public async Task<ActionResult<BaseResponseModel<GetReturnedCustomShoesResponse>>> GetReturnedCustomShoesByDesignId(GetReturnedCustomShoeByDesignIdRequest request)
         {
-            var response = await _returnedCustomShoeService.GetReturnedCustomShoesByDesignId(designId);
-            return Ok(response);
+            var response = await _returnedCustomShoeService.GetReturnedCustomShoesByDesignId(request);
+            return StatusCode(response.Code, response);
         }
     }
 } 
