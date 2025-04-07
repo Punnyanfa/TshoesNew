@@ -1,147 +1,103 @@
-using FCSP.DTOs;
 using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Services.TemplateService;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCSP.WebAPI.Controllers.Template;
-
-[Route("api/[controller]")]
-[ApiController]
-public class TemplateController : ControllerBase
+namespace FCSP.WebAPI.Controllers.Template
 {
-    private readonly ITemplateService _templateService;
-
-    public TemplateController(ITemplateService templateService)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TemplateController : ControllerBase
     {
-        _templateService = templateService;
-    }
+        private readonly ITemplateService _templateService;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAllTemplates()
-    {
-        if (!ModelState.IsValid)
+        public TemplateController(ITemplateService templateService)
         {
-            return BadRequest(ModelState);
+            _templateService = templateService;
         }
-        var result = await _templateService.GetAllTemplate();
-        return StatusCode(result.Code, result);
-    }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetTemplateById(int id)
-    {
-        if (!ModelState.IsValid)
+        [HttpGet]
+        public async Task<IActionResult> GetAllTemplates()
         {
-            return BadRequest(ModelState);
+            var result = await _templateService.GetAllTemplate();
+            return StatusCode(result.Code, result);
         }
-        var request = new GetTemplateByIdRequest { Id = id };
-        var result = await _templateService.GetTemplateById(request);
-        return StatusCode(result.Code, result);
-    }
 
-    [HttpPost]
-    public async Task<IActionResult> AddTemplate([FromBody] AddTemplateRequest request)
-    {
-        if (!ModelState.IsValid)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetTemplateById(long id) // Changed to long
         {
-            return BadRequest(ModelState);
+            var request = new GetTemplateByIdRequest { Id = id };
+            var result = await _templateService.GetTemplateById(request);
+            return StatusCode(result.Code, result);
         }
-        var result = await _templateService.AddTemplate(request);
-        return StatusCode(result.Code, result);
-    }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateTemplate([FromBody] UpdateTemplateRequest request)
-    {
-        if (!ModelState.IsValid)
+        [HttpPost]
+        public async Task<IActionResult> AddTemplate([FromBody] AddTemplateRequest request)
         {
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _templateService.AddTemplate(request);
+            return StatusCode(result.Code, result);
         }
-        var result = await _templateService.UpdateTemplate(request);
-        return StatusCode(result.Code, result);
-    }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTemplate(int id)
-    {
-        if (!ModelState.IsValid)
+        [HttpPut]
+        public async Task<IActionResult> UpdateTemplate([FromBody] UpdateTemplateRequest request)
         {
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _templateService.UpdateTemplate(request);
+            return StatusCode(result.Code, result);
         }
-        var request = new DeleteTemplateRequest { Id = id };
-        var result = await _templateService.DeleteTemplate(request);
-        return StatusCode(result.Code, result);
-    }
 
-    [HttpGet("{templateId}/custom-shoe-designs")]
-    public async Task<IActionResult> GetCustomShoeDesignIdsByTemplate(long templateId)
-    {
-        if (!ModelState.IsValid)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTemplate(long id) // Changed to long
         {
-            return BadRequest(ModelState);
+            var request = new DeleteTemplateRequest { Id = id };
+            var result = await _templateService.DeleteTemplate(request);
+            return StatusCode(result.Code, result);
         }
-        var customShoeDesignIds = await _templateService.GetCustomShoeDesignIdsByTemplate(templateId);
-        var response = new GetCustomShoeDesignIdsByTemplateResponse
-        {
-            CustomShoeDesignIds = (IEnumerable<long>)customShoeDesignIds
-        };
-        return Ok(response);
-    }
 
-    [HttpGet("available")]
-    public async Task<IActionResult> GetAvailableTemplates()
-    {
-        if (!ModelState.IsValid)
+        [HttpGet("{templateId}/custom-shoe-designs")]
+        public async Task<IActionResult> GetCustomShoeDesignIdsByTemplate(long templateId)
         {
-            return BadRequest(ModelState);
+            var result = await _templateService.GetCustomShoeDesignIdsByTemplate(templateId);
+            return StatusCode(result.Code, result); // Fixed response handling
         }
-        var templates = await _templateService.GetAvailableTemplates();
-        return Ok(templates);
-    }
 
-    [HttpGet("search")]
-    public async Task<IActionResult> SearchTemplates([FromQuery] SearchTemplatesRequest request)
-    {
-        if (!ModelState.IsValid)
+        [HttpGet("available")]
+        public async Task<IActionResult> GetAvailableTemplates()
         {
-            return BadRequest(ModelState);
+            var result = await _templateService.GetAvailableTemplates();
+            return StatusCode(result.Code, result);
         }
-        var result = await _templateService.SearchTemplates(request);
-        return Ok(result);
-    }
 
-    [HttpGet("popular")]
-    public async Task<IActionResult> GetPopularTemplates([FromQuery] GetPopularTemplatesRequest request)
-    {
-        if (!ModelState.IsValid)
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchTemplates([FromQuery] SearchTemplatesRequest request)
         {
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _templateService.SearchTemplates(request);
+            return StatusCode(result.Code, result);
         }
-        var result = await _templateService.GetPopularTemplates(request);
-        return Ok(result);
-    }
 
-    [HttpPut("{id}/restore")]
-    public async Task<IActionResult> RestoreTemplate(long id)
-    {
-        if (!ModelState.IsValid)
+        [HttpGet("popular")]
+        public async Task<IActionResult> GetPopularTemplates([FromQuery] GetPopularTemplatesRequest request)
         {
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _templateService.GetPopularTemplates(request);
+            return StatusCode(result.Code, result);
         }
-        var request = new RestoreTemplateRequest { Id = id };
-        var result = await _templateService.RestoreTemplate(request);
-        return Ok(result);
-    }
 
-    [HttpGet("{id}/stats")]
-    public async Task<IActionResult> GetTemplateStats(long id)
-    {
-        if (!ModelState.IsValid)
+        [HttpPut("{id}/restore")]
+        public async Task<IActionResult> RestoreTemplate(long id)
         {
-            return BadRequest(ModelState);
+            var request = new RestoreTemplateRequest { Id = id };
+            var result = await _templateService.RestoreTemplate(request);
+            return StatusCode(result.Code, result);
         }
-        var request = new GetTemplateStatsRequest { Id = id };
-        var result = await _templateService.GetTemplateStats(request);
-        return Ok(result);
+
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> GetTemplateStats(long id)
+        {
+            var request = new GetTemplateStatsRequest { Id = id };
+            var result = await _templateService.GetTemplateStats(request);
+            return StatusCode(result.Code, result);
+        }
     }
-} 
+}

@@ -211,7 +211,7 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
     {
         [Required(ErrorMessage = "Id is required")]
         [Range(1, long.MaxValue, ErrorMessage = "Id must be greater than 0")]
-        public long Id { get; set; }
+        public long TemplateId { get; set; }
 
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; } = null!;
@@ -222,7 +222,7 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
         [Required(ErrorMessage = "CreatedAt is required")]
         public DateTime CreatedAt { get; set; }
 
-        public DateTime? LastUpdatedAt { get; set; }
+        public DateTime? LastUpdated { get; set; }
 
         public bool IsAvailable { get; set; }
     }
@@ -246,7 +246,6 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
         [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
         public string PreviewImageUrl { get; set; } = null!;
 
-        [Range(0, int.MaxValue, ErrorMessage = "CustomShoeDesignCount cannot be negative")]
-        public int CustomShoeDesignCount { get; set; }
+        public decimal BasePrice { get; set; }
     }
 }

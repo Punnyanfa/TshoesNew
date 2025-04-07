@@ -1,5 +1,5 @@
-﻿using FCSP.DTOs;
-using FCSP.DTOs.CustomShoeDesignTemplate;
+﻿using FCSP.DTOs.CustomShoeDesignTemplate;
+using FCSP.DTOs;
 using FCSP.Models.Entities;
 
 namespace FCSP.Services.TemplateService
@@ -9,7 +9,7 @@ namespace FCSP.Services.TemplateService
         Task<BaseResponseModel<List<CustomShoeDesignTemplate>>> GetAllTemplate();
         Task<BaseResponseModel<GetTemplateByIdResponse>> GetTemplateById(GetTemplateByIdRequest request);
         Task<BaseResponseModel<AddTemplateResponse>> AddTemplate(AddTemplateRequest request);
-        Task<BaseResponseModel<AddTemplateResponse>> UpdateTemplate(UpdateTemplateRequest request);
+        Task<BaseResponseModel<UpdateTemplateResponse>> UpdateTemplate(UpdateTemplateRequest request); // Fixed return type
         Task<BaseResponseModel<DeleteTemplateResponse>> DeleteTemplate(DeleteTemplateRequest request);
         Task<BaseResponseModel<IEnumerable<long>>> GetCustomShoeDesignIdsByTemplate(long templateId);
         Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> GetAvailableTemplates();
