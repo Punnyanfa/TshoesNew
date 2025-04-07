@@ -134,16 +134,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Code = 200,
                 Message = "Custom shoe design retrieved successfully",
-                Data = new GetCustomShoeDesignByIdResponse
-                {
-                    Id = design.Id,
-                    Name = design.CustomShoeDesignTemplate?.Name,
-                    Description = design.Description,
-                    PreviewImageUrl = design.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-                    Rating = design.Ratings != null && design.Ratings.Any() ? (float)Math.Round(design.Ratings.Average(r => r.UserRating), 1) : 0,
-                    RatingCount = design.Ratings?.Count ?? 0,
-                    Price = design.TotalAmount
-                }
+                Data = design
             };
         }
         catch(Exception ex)
@@ -331,6 +322,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
+            Description = d.Description,
+            Gender = d.CustomShoeDesignTemplate?.Gender,
+            Size = d.Size?.SizeValue,
             Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
             RatingCount = d.Ratings?.Count ?? 0,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -338,10 +332,21 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         });
     }
 
-    private async Task<CustomShoeDesign> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
+    private async Task<GetCustomShoeDesignByIdResponse> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
     {
         var design = await _customShoeDesignRepository.FindAsync(request.Id);
-        return design;
+        return new GetCustomShoeDesignByIdResponse
+        {
+            Id = design.Id,
+            Name = design.CustomShoeDesignTemplate?.Name,
+            Description = design.Description,
+            Gender = design.CustomShoeDesignTemplate?.Gender,
+            Size = design.Size?.SizeValue,
+            Rating = design.Ratings != null && design.Ratings.Any() ? (float)Math.Round(design.Ratings.Average(r => r.UserRating), 1) : 0,
+            RatingCount = design.Ratings?.Count ?? 0,
+            PreviewImageUrl = design.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+            Price = design.TotalAmount
+        };
     }
     
     private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
