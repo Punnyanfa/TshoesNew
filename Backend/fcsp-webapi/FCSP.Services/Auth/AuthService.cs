@@ -205,6 +205,7 @@ public class AuthService : IAuthService
             Name = request.Name,
             Email = request.Email,
             PasswordHash = _passwordHashingService.GetHashedPassword(request.Password),
+            Balance = 0,
             UserRole = Common.Enums.UserRole.Customer,
         };
     }

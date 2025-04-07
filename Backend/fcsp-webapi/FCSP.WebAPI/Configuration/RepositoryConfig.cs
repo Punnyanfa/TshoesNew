@@ -41,7 +41,7 @@ internal static class RepositoryConfig
         
         // Service repositories
         services.AddScoped<IServiceRepository, ServiceRepository>();
-        
+        services.AddScoped<ISetServiceAmountRepository, SetServiceAmountRepository>();
         // Texture & Rating repositories
         services.AddScoped<ITextureRepository, TextureRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
