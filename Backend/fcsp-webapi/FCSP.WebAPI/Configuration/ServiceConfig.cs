@@ -28,6 +28,7 @@ using FCSP.DTOs.Texture;
 using Microsoft.Extensions.Options;
 using FCSP.Common.Configurations;
 using FCSP.Services.SizeService;
+using FCSP.Services;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -81,7 +82,8 @@ internal static class ServiceConfig
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IVoucherService, VoucherService>();
-     
+        services.AddScoped<IPaymentProcessor, PaymentProcessor>();
+
 
         // Service services
         services.AddScoped<IServiceService, ServiceService>();
