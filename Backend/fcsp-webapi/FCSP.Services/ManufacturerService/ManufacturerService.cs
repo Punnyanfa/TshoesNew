@@ -46,7 +46,7 @@ namespace FCSP.Services.ManufacturerService
                 }
 
                 _logger.LogInformation("Fetching manufacturer with ID: {Id}", request.Id);
-                var manufacturer = await _manufacturerRepository.FindAsync(request.Id);
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
                 if (manufacturer == null)
                 {
                     _logger.LogWarning("Manufacturer not found for ID: {Id}", request.Id);
@@ -83,12 +83,25 @@ namespace FCSP.Services.ManufacturerService
                     };
                 }
 
+                var existingManufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(request.UserId);
+                if (existingManufacturer != null)
+                {
+                    _logger.LogWarning("User with ID {UserId} already has a Manufacturer", request.UserId);
+                    return new BaseResponseModel<AddManufacturerResponse>
+                    {
+                        Code = 409,
+                        Message = "User already has a Manufacturer"
+                    };
+                }
+
                 var manufacturer = new Manufacturer
                 {
                     UserId = request.UserId,
                     Name = request.Name,
                     CommissionRate = request.CommissionRate,
-                    Status = (ManufacturerStatus)request.Status
+                    Status = request.CommissionRate < 40 ? ManufacturerStatus.Suspended : (ManufacturerStatus)request.Status,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
 
                 var addedManufacturer = await _manufacturerRepository.AddAsync(manufacturer);
@@ -101,7 +114,7 @@ namespace FCSP.Services.ManufacturerService
                     {
                         Id = addedManufacturer.Id,
                         Name = addedManufacturer.Name,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = addedManufacturer.CreatedAt
                     }
                 };
             }
@@ -123,7 +136,7 @@ namespace FCSP.Services.ManufacturerService
                 }
 
                 _logger.LogInformation("Updating manufacturer with ID: {Id}", request.Id);
-                var manufacturer = await _manufacturerRepository.FindAsync(request.Id);
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
                 if (manufacturer == null)
                 {
                     _logger.LogWarning("Manufacturer not found for ID: {Id}", request.Id);
@@ -132,7 +145,8 @@ namespace FCSP.Services.ManufacturerService
 
                 manufacturer.Name = request.Name;
                 manufacturer.CommissionRate = request.CommissionRate;
-                manufacturer.Status = (ManufacturerStatus)request.Status;
+                manufacturer.Status = request.CommissionRate < 40 ? ManufacturerStatus.Suspended : (ManufacturerStatus)request.Status;
+                manufacturer.UpdatedAt = DateTime.UtcNow;
 
                 await _manufacturerRepository.UpdateAsync(manufacturer);
                 _logger.LogInformation("Manufacturer updated with ID: {Id}", manufacturer.Id);
@@ -145,7 +159,7 @@ namespace FCSP.Services.ManufacturerService
                         Id = manufacturer.Id,
                         Name = manufacturer.Name,
                         Status = (int)manufacturer.Status,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = manufacturer.UpdatedAt
                     }
                 };
             }
@@ -167,15 +181,15 @@ namespace FCSP.Services.ManufacturerService
                 }
 
                 _logger.LogInformation("Attempting to delete manufacturer with ID: {Id}", request.Id);
-                var manufacturer = await _manufacturerRepository.FindAsync(request.Id);
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
                 if (manufacturer == null)
                 {
                     _logger.LogWarning("Manufacturer not found for ID: {Id}", request.Id);
                     return new BaseResponseModel<bool> { Code = 404, Message = "Manufacturer not found" };
                 }
 
-                // Thay vì xóa cứng, cập nhật Status thành Inactive
                 manufacturer.Status = ManufacturerStatus.Inactive;
+                manufacturer.UpdatedAt = DateTime.UtcNow;
                 await _manufacturerRepository.UpdateAsync(manufacturer);
                 _logger.LogInformation("Manufacturer marked as Inactive with ID: {Id}", request.Id);
                 return new BaseResponseModel<bool> { Code = 200, Message = "Manufacturer marked as inactive", Data = true };
@@ -198,16 +212,14 @@ namespace FCSP.Services.ManufacturerService
                 }
 
                 _logger.LogInformation("Fetching manufacturers for UserId: {UserId}", userId);
-                var manufacturers = await _manufacturerRepository.GetAllAsync();
-                var userManufacturers = manufacturers.Where(m => m.UserId == userId).ToList();
-
-                if (!userManufacturers.Any())
+                var manufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(userId);
+                if (manufacturer == null)
                 {
                     _logger.LogWarning("No manufacturers found for UserId: {UserId}", userId);
                     return new BaseResponseModel<List<GetManufacturerDetailResponse>> { Code = 404, Message = "No manufacturers found for this user" };
                 }
 
-                var responseData = userManufacturers.Select(MapToDetailResponse).ToList();
+                var responseData = new List<GetManufacturerDetailResponse> { MapToDetailResponse(manufacturer) };
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>>
                 {
                     Code = 200,
@@ -246,20 +258,20 @@ namespace FCSP.Services.ManufacturerService
                 Name = manufacturer.Name,
                 CommissionRate = manufacturer.CommissionRate,
                 Status = (int)manufacturer.Status,
-                CreatedAt = DateTime.UtcNow, // Giả định
-                UpdatedAt = DateTime.UtcNow, // Giả định
-                Services = manufacturer.Services.Select(s => new ServiceDto
+                CreatedAt = manufacturer.CreatedAt, // Loại bỏ ??
+                UpdatedAt = manufacturer.UpdatedAt, // Loại bỏ ??
+                Services = manufacturer.Services?.Select(s => new ServiceDto
                 {
                     Id = s.Id,
                     ServiceName = s.ServiceName,
-                    CurrentAmount = s.SetServiceAmounts
+                    CurrentAmount = s.SetServiceAmounts?
                         .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow))?.Amount
-                }).ToList(),
-                Criterias = manufacturer.ManufacturerCriterias.Select(mc => new CriteriaDto
+                }).ToList() ?? new List<ServiceDto>(),
+                Criterias = manufacturer.ManufacturerCriterias?.Select(mc => new CriteriaDto
                 {
                     Id = mc.CriteriaId,
                     Name = mc.Criteria.Name
-                }).ToList()
+                }).ToList() ?? new List<CriteriaDto>()
             };
         }
     }

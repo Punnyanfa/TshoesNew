@@ -38,7 +38,6 @@ namespace FCSP.WebAPI.Controllers.Manufacturer
         {
             _logger.LogInformation("Retrieving manufacturer with ID: {Id}", id);
             var request = new GetManufacturerRequest { Id = id };
-
             if (id <= 0)
             {
                 _logger.LogWarning("Invalid ID provided: {Id}", id);
@@ -85,18 +84,8 @@ namespace FCSP.WebAPI.Controllers.Manufacturer
         public async Task<IActionResult> UpdateManufacturer(long id, [FromBody] UpdateManufacturerRequest request)
         {
             _logger.LogInformation("Updating manufacturer with ID: {Id}", id);
-            if (id != request.Id)
-            {
-                _logger.LogWarning("ID mismatch: Route ID {RouteId} does not match request ID {RequestId}", id, request.Id);
-                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "ID mismatch between route and request body" });
-            }
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                _logger.LogWarning("Validation failed: {Errors}", string.Join(", ", errors));
-                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "Validation failed", Data = errors });
-            }
+            var validationResult = ValidateRequest(id, request, request.Id);
+            if (validationResult != null) return validationResult;
 
             var response = await _manufacturerService.UpdateManufacturer(request);
             return StatusCode(response.Code, response);
@@ -110,7 +99,6 @@ namespace FCSP.WebAPI.Controllers.Manufacturer
         {
             _logger.LogInformation("Deleting manufacturer with ID: {Id}", id);
             var request = new GetManufacturerRequest { Id = id };
-
             if (id <= 0)
             {
                 _logger.LogWarning("Invalid ID provided: {Id}", id);
@@ -150,6 +138,15 @@ namespace FCSP.WebAPI.Controllers.Manufacturer
             _logger.LogInformation("Retrieving all active manufacturers");
             var response = await _manufacturerService.GetActiveManufacturers();
             return StatusCode(response.Code, response);
+        }
+
+        private IActionResult ValidateRequest<T>(long routeId, T request, long requestId)
+        {
+            if (routeId != requestId)
+                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "ID mismatch between route and request body" });
+            if (!ModelState.IsValid)
+                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "Validation failed", Data = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            return null;
         }
     }
 }

@@ -47,7 +47,7 @@ namespace FCSP.DTOs.Service
         public float Price { get; set; }
 
         [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
-        public long ManufacturerId { get; set; } // Thêm ManufacturerId
+        public long ManufacturerId { get; set; }
     }
 
     public class UpdateServiceResponse

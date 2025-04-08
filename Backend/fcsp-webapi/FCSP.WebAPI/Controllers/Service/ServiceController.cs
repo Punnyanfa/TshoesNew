@@ -1,3 +1,4 @@
+using FCSP.DTOs;
 using FCSP.DTOs.Service;
 using FCSP.Services.ServiceService;
 using Microsoft.AspNetCore.Mvc;
@@ -53,11 +54,8 @@ namespace FCSP.WebAPI.Controllers.Service
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateService(long id, [FromBody] UpdateServiceRequest request)
         {
-            if (id != request.Id)
-                return BadRequest(new { message = "ID mismatch between route and request body" });
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var validationResult = ValidateRequest(id, request, request.Id);
+            if (validationResult != null) return validationResult;
 
             var response = await _serviceService.UpdateService(request);
             return StatusCode(response.Code, response);
@@ -73,6 +71,15 @@ namespace FCSP.WebAPI.Controllers.Service
 
             var response = await _serviceService.DeleteService(request);
             return StatusCode(response.Code, response);
+        }
+
+        private IActionResult ValidateRequest<T>(long routeId, T request, long requestId)
+        {
+            if (routeId != requestId)
+                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "ID mismatch between route and request body" });
+            if (!ModelState.IsValid)
+                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "Validation failed", Data = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            return null;
         }
     }
 }

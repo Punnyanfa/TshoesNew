@@ -11,7 +11,7 @@ namespace FCSP.Services.ServiceService
     {
         private readonly IServiceRepository _serviceRepository;
         private readonly IManufacturerRepository _manufacturerRepository;
-        private readonly IUserRepository _userRepository; // Giữ lại IUserRepository
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<ServiceService> _logger;
 
         public ServiceService(IServiceRepository serviceRepository, IManufacturerRepository manufacturerRepository, IUserRepository userRepository, ILogger<ServiceService> logger)
@@ -48,7 +48,7 @@ namespace FCSP.Services.ServiceService
                 }
 
                 _logger.LogInformation("Fetching service with ID: {Id}", request.Id);
-                var service = await _serviceRepository.FindAsync(request.Id);
+                var service = await _serviceRepository.GetServiceWithDetailsAsync(request.Id);
                 if (service == null)
                 {
                     _logger.LogWarning("Service not found for ID: {Id}", request.Id);
@@ -82,38 +82,17 @@ namespace FCSP.Services.ServiceService
         {
             try
             {
-                // Validate input
-                if (string.IsNullOrWhiteSpace(request.Name))
-                {
-                    _logger.LogWarning("Service name is required");
-                    return new BaseResponseModel<AddServiceResponse> { Code = 400, Message = "Service name is required" };
-                }
-                if (request.Name.Length < 2 || request.Name.Length > 100)
-                {
-                    _logger.LogWarning("Invalid service name length: {Length}", request.Name.Length);
-                    return new BaseResponseModel<AddServiceResponse> { Code = 400, Message = "Service name must be between 2 and 100 characters" };
-                }
-                if (request.Price < 0)
-                {
-                    _logger.LogWarning("Negative price provided: {Price}", request.Price);
-                    return new BaseResponseModel<AddServiceResponse> { Code = 400, Message = "Price cannot be negative" };
-                }
-                if (request.ManufacturerId <= 0)
-                {
-                    _logger.LogWarning("Invalid Manufacturer ID: {Id}", request.ManufacturerId);
-                    return new BaseResponseModel<AddServiceResponse> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
-                }
+                var validationResult = ValidateServiceInput<AddServiceResponse>(request.Name, request.Price, request.ManufacturerId);
+                if (validationResult != null) return validationResult;
 
-                // Kiểm tra Manufacturer
                 _logger.LogInformation("Checking Manufacturer with ID: {ManufacturerId}", request.ManufacturerId);
-                var manufacturer = await _manufacturerRepository.FindAsync(request.ManufacturerId);
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.ManufacturerId);
                 if (manufacturer == null)
                 {
                     _logger.LogWarning("Manufacturer not found for ID: {ManufacturerId}", request.ManufacturerId);
                     return new BaseResponseModel<AddServiceResponse> { Code = 404, Message = "Manufacturer not found" };
                 }
 
-                // Kiểm tra UserRole thông qua UserId trong Manufacturer
                 var user = await _userRepository.GetByIdAsync(manufacturer.UserId);
                 if (user == null || user.UserRole != UserRole.Manufacturer)
                 {
@@ -125,7 +104,6 @@ namespace FCSP.Services.ServiceService
                     };
                 }
 
-                // Kiểm tra Status của Manufacturer
                 if (manufacturer.Status != ManufacturerStatus.Active)
                 {
                     _logger.LogWarning("Manufacturer with ID {ManufacturerId} is not Active (Status: {Status})", request.ManufacturerId, manufacturer.Status);
@@ -180,24 +158,12 @@ namespace FCSP.Services.ServiceService
                     _logger.LogWarning("Invalid Service ID: {Id}", request.Id);
                     return new BaseResponseModel<UpdateServiceResponse> { Code = 400, Message = "Service ID must be greater than 0" };
                 }
-                if (string.IsNullOrWhiteSpace(request.Name))
-                {
-                    _logger.LogWarning("Service name is required");
-                    return new BaseResponseModel<UpdateServiceResponse> { Code = 400, Message = "Service name is required" };
-                }
-                if (request.Name.Length < 2 || request.Name.Length > 100)
-                {
-                    _logger.LogWarning("Invalid service name length: {Length}", request.Name.Length);
-                    return new BaseResponseModel<UpdateServiceResponse> { Code = 400, Message = "Service name must be between 2 and 100 characters" };
-                }
-                if (request.Price < 0)
-                {
-                    _logger.LogWarning("Negative price provided: {Price}", request.Price);
-                    return new BaseResponseModel<UpdateServiceResponse> { Code = 400, Message = "Price cannot be negative" };
-                }
+
+                var validationResult = ValidateServiceInput<UpdateServiceResponse>(request.Name, request.Price);
+                if (validationResult != null) return validationResult;
 
                 _logger.LogInformation("Updating service with ID: {Id}", request.Id);
-                var service = await _serviceRepository.FindAsync(request.Id);
+                var service = await _serviceRepository.GetServiceWithDetailsAsync(request.Id);
                 if (service == null)
                 {
                     _logger.LogWarning("Service not found for ID: {Id}", request.Id);
@@ -207,21 +173,13 @@ namespace FCSP.Services.ServiceService
                 service.ServiceName = request.Name;
                 var currentAmount = service.SetServiceAmounts
                     .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
-                if (currentAmount != null && currentAmount.Amount != request.Price)
+                if (currentAmount?.Amount != request.Price)
                 {
-                    currentAmount.EndDate = DateTime.UtcNow;
-                    currentAmount.Status = ServiceAmountStatus.Expired;
-                    service.SetServiceAmounts.Add(new SetServiceAmount
+                    if (currentAmount != null)
                     {
-                        ServiceId = service.Id,
-                        StartDate = DateTime.UtcNow,
-                        EndDate = null,
-                        Amount = request.Price,
-                        Status = ServiceAmountStatus.Active
-                    });
-                }
-                else if (currentAmount == null)
-                {
+                        currentAmount.EndDate = DateTime.UtcNow;
+                        currentAmount.Status = ServiceAmountStatus.Expired;
+                    }
                     service.SetServiceAmounts.Add(new SetServiceAmount
                     {
                         ServiceId = service.Id,
@@ -259,7 +217,7 @@ namespace FCSP.Services.ServiceService
                 }
 
                 _logger.LogInformation("Deleting service with ID: {Id}", request.Id);
-                var service = await _serviceRepository.FindAsync(request.Id);
+                var service = await _serviceRepository.GetServiceWithDetailsAsync(request.Id);
                 if (service == null)
                 {
                     _logger.LogWarning("Service not found for ID: {Id}", request.Id);
@@ -281,6 +239,31 @@ namespace FCSP.Services.ServiceService
                 _logger.LogError(ex, "Error deleting service with ID: {Id}", request.Id);
                 return new BaseResponseModel<DeleteServiceResponse> { Code = 500, Message = ex.Message };
             }
+        }
+
+        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, float price, long manufacturerId = 0)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning("Service name is required");
+                return new BaseResponseModel<T> { Code = 400, Message = "Service name is required" };
+            }
+            if (name.Length < 2 || name.Length > 100)
+            {
+                _logger.LogWarning("Invalid service name length: {Length}", name.Length);
+                return new BaseResponseModel<T> { Code = 400, Message = "Service name must be between 2 and 100 characters" };
+            }
+            if (price < 0)
+            {
+                _logger.LogWarning("Negative price provided: {Price}", price);
+                return new BaseResponseModel<T> { Code = 400, Message = "Price cannot be negative" };
+            }
+            if (manufacturerId < 0)
+            {
+                _logger.LogWarning("Invalid Manufacturer ID: {Id}", manufacturerId);
+                return new BaseResponseModel<T> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
+            }
+            return null;
         }
     }
 }

@@ -6,5 +6,6 @@ namespace FCSP.Repositories.Interfaces
     {
         Task<IList<Service>> GetByManufacturerIdAsync(long manufacturerId);
         Task<IList<Service>> GetActiveServicesAsync();
+        Task<Service> GetServiceWithDetailsAsync(long id);
     }
 }
