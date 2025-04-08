@@ -4,6 +4,10 @@ using FCSP.DTOs.Service;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.ServiceService
 {
@@ -14,7 +18,11 @@ namespace FCSP.Services.ServiceService
         private readonly IUserRepository _userRepository;
         private readonly ILogger<ServiceService> _logger;
 
-        public ServiceService(IServiceRepository serviceRepository, IManufacturerRepository manufacturerRepository, IUserRepository userRepository, ILogger<ServiceService> logger)
+        public ServiceService(
+            IServiceRepository serviceRepository,
+            IManufacturerRepository manufacturerRepository,
+            IUserRepository userRepository,
+            ILogger<ServiceService> logger)
         {
             _serviceRepository = serviceRepository ?? throw new ArgumentNullException(nameof(serviceRepository));
             _manufacturerRepository = manufacturerRepository ?? throw new ArgumentNullException(nameof(manufacturerRepository));
@@ -22,29 +30,69 @@ namespace FCSP.Services.ServiceService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<BaseResponseModel<List<Service>>> GetAllServices()
+        public async Task<BaseResponseModel<List<ServiceResponseDto>>> GetAllServices()
         {
             try
             {
                 _logger.LogInformation("Fetching all active services");
                 var services = await _serviceRepository.GetActiveServicesAsync();
-                return new BaseResponseModel<List<Service>> { Code = 200, Message = "Success", Data = services.ToList() };
+                if (services == null || !services.Any())
+                {
+                    _logger.LogWarning("No active services found");
+                    return new BaseResponseModel<List<ServiceResponseDto>>
+                    {
+                        Code = 404,
+                        Message = "No active services found",
+                        Data = null
+                    };
+                }
+
+                var result = services.Select(s =>
+                {
+                    var currentAmount = s.SetServiceAmounts
+                        .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
+                    return new ServiceResponseDto
+                    {
+                        Id = s.Id,
+                        Name = s.ServiceName,
+                        Price = currentAmount?.Amount ?? 0,
+                        ManufacturerId = s.ManufacturerId,
+                        IsDeleted = s.IsDeleted
+                    };
+                }).ToList();
+
+                return new BaseResponseModel<List<ServiceResponseDto>>
+                {
+                    Code = 200,
+                    Message = "Success",
+                    Data = result
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching services");
-                return new BaseResponseModel<List<Service>> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<List<ServiceResponseDto>>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
         }
 
-        public async Task<BaseResponseModel<GetServiceByIdResponse>> GetServiceById(GetServiceByIdRequest request)
+        public async Task<BaseResponseModel<ServiceResponseDto>> GetServiceById(GetServiceByIdRequest request)
         {
             try
             {
                 if (request.Id <= 0)
                 {
                     _logger.LogWarning("Invalid Service ID: {Id}", request.Id);
-                    return new BaseResponseModel<GetServiceByIdResponse> { Code = 400, Message = "Service ID must be greater than 0" };
+                    return new BaseResponseModel<ServiceResponseDto>
+                    {
+                        Code = 400,
+                        Message = "Service ID must be greater than 0",
+                        Data = null
+                    };
                 }
 
                 _logger.LogInformation("Fetching service with ID: {Id}", request.Id);
@@ -52,21 +100,27 @@ namespace FCSP.Services.ServiceService
                 if (service == null)
                 {
                     _logger.LogWarning("Service not found for ID: {Id}", request.Id);
-                    return new BaseResponseModel<GetServiceByIdResponse> { Code = 404, Message = "Service not found" };
+                    return new BaseResponseModel<ServiceResponseDto>
+                    {
+                        Code = 404,
+                        Message = "Service not found",
+                        Data = null
+                    };
                 }
 
                 var currentAmount = service.SetServiceAmounts
                     .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
 
-                return new BaseResponseModel<GetServiceByIdResponse>
+                return new BaseResponseModel<ServiceResponseDto>
                 {
                     Code = 200,
                     Message = "Success",
-                    Data = new GetServiceByIdResponse
+                    Data = new ServiceResponseDto
                     {
                         Id = service.Id,
                         Name = service.ServiceName,
                         Price = currentAmount?.Amount ?? 0,
+                        ManufacturerId = service.ManufacturerId,
                         IsDeleted = service.IsDeleted
                     }
                 };
@@ -74,7 +128,12 @@ namespace FCSP.Services.ServiceService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching service with ID: {Id}", request.Id);
-                return new BaseResponseModel<GetServiceByIdResponse> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<ServiceResponseDto>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
         }
 
@@ -90,7 +149,12 @@ namespace FCSP.Services.ServiceService
                 if (manufacturer == null)
                 {
                     _logger.LogWarning("Manufacturer not found for ID: {ManufacturerId}", request.ManufacturerId);
-                    return new BaseResponseModel<AddServiceResponse> { Code = 404, Message = "Manufacturer not found" };
+                    return new BaseResponseModel<AddServiceResponse>
+                    {
+                        Code = 404,
+                        Message = "Manufacturer not found",
+                        Data = null
+                    };
                 }
 
                 var user = await _userRepository.GetByIdAsync(manufacturer.UserId);
@@ -100,7 +164,8 @@ namespace FCSP.Services.ServiceService
                     return new BaseResponseModel<AddServiceResponse>
                     {
                         Code = 403,
-                        Message = "Only users with Manufacturer role can add services"
+                        Message = "Only users with Manufacturer role can add services",
+                        Data = null
                     };
                 }
 
@@ -110,7 +175,8 @@ namespace FCSP.Services.ServiceService
                     return new BaseResponseModel<AddServiceResponse>
                     {
                         Code = 403,
-                        Message = "Services can only be added by Manufacturers with Active status"
+                        Message = "Services can only be added by Manufacturers with Active status",
+                        Data = null
                     };
                 }
 
@@ -139,13 +205,25 @@ namespace FCSP.Services.ServiceService
                 {
                     Code = 201,
                     Message = "Success",
-                    Data = new AddServiceResponse { ServiceId = addedService.Id }
+                    Data = new AddServiceResponse
+                    {
+                        Id = addedService.Id,
+                        Name = addedService.ServiceName,
+                        Price = request.Price,
+                        ManufacturerId = addedService.ManufacturerId,
+                        IsDeleted = addedService.IsDeleted
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding service for ManufacturerId: {ManufacturerId}", request.ManufacturerId);
-                return new BaseResponseModel<AddServiceResponse> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<AddServiceResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
         }
 
@@ -156,7 +234,12 @@ namespace FCSP.Services.ServiceService
                 if (request.Id <= 0)
                 {
                     _logger.LogWarning("Invalid Service ID: {Id}", request.Id);
-                    return new BaseResponseModel<UpdateServiceResponse> { Code = 400, Message = "Service ID must be greater than 0" };
+                    return new BaseResponseModel<UpdateServiceResponse>
+                    {
+                        Code = 400,
+                        Message = "Service ID must be greater than 0",
+                        Data = null
+                    };
                 }
 
                 var validationResult = ValidateServiceInput<UpdateServiceResponse>(request.Name, request.Price);
@@ -167,7 +250,12 @@ namespace FCSP.Services.ServiceService
                 if (service == null)
                 {
                     _logger.LogWarning("Service not found for ID: {Id}", request.Id);
-                    return new BaseResponseModel<UpdateServiceResponse> { Code = 404, Message = "Service not found" };
+                    return new BaseResponseModel<UpdateServiceResponse>
+                    {
+                        Code = 404,
+                        Message = "Service not found",
+                        Data = null
+                    };
                 }
 
                 service.ServiceName = request.Name;
@@ -196,13 +284,25 @@ namespace FCSP.Services.ServiceService
                 {
                     Code = 200,
                     Message = "Success",
-                    Data = new UpdateServiceResponse { ServiceId = service.Id }
+                    Data = new UpdateServiceResponse
+                    {
+                        Id = service.Id,
+                        Name = service.ServiceName,
+                        Price = request.Price,
+                        ManufacturerId = service.ManufacturerId,
+                        IsDeleted = service.IsDeleted
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating service with ID: {Id}", request.Id);
-                return new BaseResponseModel<UpdateServiceResponse> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<UpdateServiceResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
         }
 
@@ -213,7 +313,12 @@ namespace FCSP.Services.ServiceService
                 if (request.Id <= 0)
                 {
                     _logger.LogWarning("Invalid Service ID: {Id}", request.Id);
-                    return new BaseResponseModel<DeleteServiceResponse> { Code = 400, Message = "Service ID must be greater than 0" };
+                    return new BaseResponseModel<DeleteServiceResponse>
+                    {
+                        Code = 400,
+                        Message = "Service ID must be greater than 0",
+                        Data = null
+                    };
                 }
 
                 _logger.LogInformation("Deleting service with ID: {Id}", request.Id);
@@ -221,7 +326,12 @@ namespace FCSP.Services.ServiceService
                 if (service == null)
                 {
                     _logger.LogWarning("Service not found for ID: {Id}", request.Id);
-                    return new BaseResponseModel<DeleteServiceResponse> { Code = 404, Message = "Service not found" };
+                    return new BaseResponseModel<DeleteServiceResponse>
+                    {
+                        Code = 404,
+                        Message = "Service not found",
+                        Data = null
+                    };
                 }
 
                 service.IsDeleted = true;
@@ -237,7 +347,12 @@ namespace FCSP.Services.ServiceService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting service with ID: {Id}", request.Id);
-                return new BaseResponseModel<DeleteServiceResponse> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<DeleteServiceResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
         }
 
@@ -246,22 +361,22 @@ namespace FCSP.Services.ServiceService
             if (string.IsNullOrWhiteSpace(name))
             {
                 _logger.LogWarning("Service name is required");
-                return new BaseResponseModel<T> { Code = 400, Message = "Service name is required" };
+                return new BaseResponseModel<T> { Code = 400, Message = "Service name is required", Data = default };
             }
             if (name.Length < 2 || name.Length > 100)
             {
                 _logger.LogWarning("Invalid service name length: {Length}", name.Length);
-                return new BaseResponseModel<T> { Code = 400, Message = "Service name must be between 2 and 100 characters" };
+                return new BaseResponseModel<T> { Code = 400, Message = "Service name must be between 2 and 100 characters", Data = default };
             }
             if (price < 0)
             {
                 _logger.LogWarning("Negative price provided: {Price}", price);
-                return new BaseResponseModel<T> { Code = 400, Message = "Price cannot be negative" };
+                return new BaseResponseModel<T> { Code = 400, Message = "Price cannot be negative", Data = default };
             }
             if (manufacturerId < 0)
             {
                 _logger.LogWarning("Invalid Manufacturer ID: {Id}", manufacturerId);
-                return new BaseResponseModel<T> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
+                return new BaseResponseModel<T> { Code = 400, Message = "Manufacturer ID must be greater than 0", Data = default };
             }
             return null;
         }

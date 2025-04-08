@@ -1,63 +1,75 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace FCSP.DTOs.Service
 {
-    public class GetServiceByIdRequest
+    public class ServiceResponseDto
     {
-        [Range(1, long.MaxValue, ErrorMessage = "Service ID must be greater than 0")]
         public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public float Price { get; set; } // Thay đổi từ decimal sang float
+        public long ManufacturerId { get; set; }
+        public bool IsDeleted { get; set; }
     }
 
-    public class GetServiceByIdResponse
+    public class GetServiceByIdRequest
     {
+        [Required(ErrorMessage = "ServiceId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "ServiceId must be greater than 0.")]
         public long Id { get; set; }
-        public string Name { get; set; } = null!;
-        public float Price { get; set; }
-        public bool IsDeleted { get; set; }
     }
 
     public class AddServiceRequest
     {
-        [Required(ErrorMessage = "Service name is required")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Service name must be between 2 and 100 characters")]
-        public string Name { get; set; } = null!;
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
+        public string Name { get; set; } = string.Empty;
 
-        [Range(0, float.MaxValue, ErrorMessage = "Price cannot be negative")]
-        public float Price { get; set; }
+        [Required(ErrorMessage = "Price is required.")]
+        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] // Thay đổi từ double sang float
+        public float Price { get; set; } // Thay đổi từ decimal sang float
 
-        [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
+        [Required(ErrorMessage = "ManufacturerId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "ManufacturerId must be greater than 0.")]
         public long ManufacturerId { get; set; }
     }
 
     public class AddServiceResponse
     {
-        public long ServiceId { get; set; }
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public float Price { get; set; } // Thay đổi từ decimal sang float
+        public long ManufacturerId { get; set; }
+        public bool IsDeleted { get; set; }
     }
 
     public class UpdateServiceRequest
     {
-        [Range(1, long.MaxValue, ErrorMessage = "Service ID must be greater than 0")]
+        [Required(ErrorMessage = "ServiceId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "ServiceId must be greater than 0.")]
         public long Id { get; set; }
 
-        [Required(ErrorMessage = "Service name is required")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Service name must be between 2 and 100 characters")]
-        public string Name { get; set; } = null!;
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
+        public string Name { get; set; } = string.Empty;
 
-        [Range(0, float.MaxValue, ErrorMessage = "Price cannot be negative")]
-        public float Price { get; set; }
-
-        [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
-        public long ManufacturerId { get; set; }
+        [Required(ErrorMessage = "Price is required.")]
+        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] // Thay đổi từ double sang float
+        public float Price { get; set; } // Thay đổi từ decimal sang float
     }
 
     public class UpdateServiceResponse
     {
-        public long ServiceId { get; set; }
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public float Price { get; set; } // Thay đổi từ decimal sang float
+        public long ManufacturerId { get; set; }
+        public bool IsDeleted { get; set; }
     }
 
     public class DeleteServiceRequest
     {
-        [Range(1, long.MaxValue, ErrorMessage = "Service ID must be greater than 0")]
+        [Required(ErrorMessage = "ServiceId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "ServiceId must be greater than 0.")]
         public long Id { get; set; }
     }
 
