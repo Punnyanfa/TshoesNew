@@ -1,12 +1,10 @@
-using FCSP.Common.Enums;
-using FCSP.DTOs.ShippingInfo;
+﻿using FCSP.Common.Enums;
 
 namespace FCSP.DTOs.Authentication;
 
 public class UserLoginRequest
 {
     public string Email { get; set; } = string.Empty;
-
     public string Password { get; set; } = string.Empty;
 }
 
@@ -18,9 +16,7 @@ public class UserLoginResponse
 public class UserRegisterRequest
 {
     public string Name { get; set; } = string.Empty;
-
     public string Email { get; set; } = string.Empty;
-
     public string Password { get; set; } = string.Empty;
 }
 
@@ -63,4 +59,17 @@ public class UpdateUserInformationRequest
 public class UpdateUserInformationResponse
 {
     public bool Success { get; set; }
-} 
+}
+
+// DTO mới để cập nhật UserRole
+public class UpdateUserRoleRequest
+{
+    public long Id { get; set; }
+    public UserRole Role { get; set; } // Sử dụng enum UserRole
+}
+
+public class UpdateUserRoleResponse
+{
+    public bool Success { get; set; }
+    public UserRole NewRole { get; set; }
+}

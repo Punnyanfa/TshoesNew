@@ -1,10 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace FCSP.DTOs.Manufacturer
 {
     public class GetManufacturerRequest
     {
+        [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
         public long Id { get; set; }
     }
-
     public class GetManufacturerResponse
     {
         public long Id { get; set; }
@@ -37,9 +39,17 @@ namespace FCSP.DTOs.Manufacturer
 
     public class AddManufacturerRequest
     {
+        [Range(1, long.MaxValue, ErrorMessage = "User ID must be greater than 0")]
         public long UserId { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
         public string Name { get; set; } = null!;
+
+        [Range(0, 100, ErrorMessage = "Commission rate must be between 0 and 100")]
         public float CommissionRate { get; set; }
+
+        [Range(0, 3, ErrorMessage = "Status must be 0 (Inactive), 1 (Active), 2 (Suspended), or 3 (Pending)")]
         public int Status { get; set; }
     }
 
@@ -52,9 +62,17 @@ namespace FCSP.DTOs.Manufacturer
 
     public class UpdateManufacturerRequest
     {
+        [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
         public long Id { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
         public string Name { get; set; } = null!;
+
+        [Range(0, 100, ErrorMessage = "Commission rate must be between 0 and 100")]
         public float CommissionRate { get; set; }
+
+        [Range(0, 3, ErrorMessage = "Status must be 0 (Inactive), 1 (Active), 2 (Suspended), or 3 (Pending)")]
         public int Status { get; set; }
     }
 
@@ -65,4 +83,4 @@ namespace FCSP.DTOs.Manufacturer
         public int Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
-} 
+}

@@ -3,7 +3,6 @@ using FCSP.DTOs.Authentication;
 using FCSP.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 
 namespace FCSP.WebAPI.Controllers.Authorization;
 
@@ -45,13 +44,13 @@ public class AuthController : ControllerBase
     public IActionResult TestLogin()
     {
         var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
-        return Ok(token.ToString());
+        return Ok(token);
     }
 
     [HttpPut("password")]
     [Authorize]
     public async Task<IActionResult> UpdateUserPassword([FromBody] UpdateUserPasswordRequest request)
-    {   
+    {
         var response = await _authService.UpdateUserPassword(request);
         return StatusCode(response.Code, response);
     }
@@ -69,6 +68,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> DeleteUser([FromBody] UserDeleteRequest request)
     {
         var response = await _authService.DeleteUser(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPut("role")]
+    [Authorize(Roles = "Admin")] // Chỉ Admin mới được cập nhật UserRole
+    public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleRequest request)
+    {
+        var response = await _authService.UpdateUserRole(request);
         return StatusCode(response.Code, response);
     }
 }

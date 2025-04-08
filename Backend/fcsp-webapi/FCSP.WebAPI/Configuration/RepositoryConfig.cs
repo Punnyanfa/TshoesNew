@@ -52,7 +52,10 @@ internal static class RepositoryConfig
         
         // Notification repository
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        
+
+        // Manufacturer repository
+        services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
+
         // Shipping repository
         services.AddScoped<IShippingInfoRepository, ShippingInfoRepository>();
         

@@ -1,8 +1,8 @@
+﻿using FCSP.Common.Enums;
 using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -18,14 +18,17 @@ namespace FCSP.Repositories.Implementations
                 .Where(m => m.UserId == userId)
                 .Include(m => m.Services)
                 .Include(m => m.ManufacturerCriterias)
+                    .ThenInclude(mc => mc.Criteria) // Include Criteria để lấy Name
                 .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Manufacturer>> GetManufacturersByStatusAsync(int status)
         {
             return await Entities
-                .Where(m => m.Status == Common.Enums.ManufacturerStatus.Active)
+                .Where(m => m.Status == (ManufacturerStatus)status)
                 .Include(m => m.Services)
+                .Include(m => m.ManufacturerCriterias)
+                    .ThenInclude(mc => mc.Criteria) // Include Criteria để lấy Name
                 .ToListAsync();
         }
     }

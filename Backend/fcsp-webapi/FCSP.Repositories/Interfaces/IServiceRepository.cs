@@ -4,6 +4,7 @@ namespace FCSP.Repositories.Interfaces
 {
     public interface IServiceRepository : IGenericRepository<Service>
     {
-        // Add any custom repository methods here
+        Task<IList<Service>> GetByManufacturerIdAsync(long manufacturerId);
+        Task<IList<Service>> GetActiveServicesAsync();
     }
 }

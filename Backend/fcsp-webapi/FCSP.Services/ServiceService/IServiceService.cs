@@ -1,3 +1,4 @@
+using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Service;
 using FCSP.Models.Entities;
@@ -12,4 +13,4 @@ namespace FCSP.Services.ServiceService
         Task<BaseResponseModel<UpdateServiceResponse>> UpdateService(UpdateServiceRequest request);
         Task<BaseResponseModel<DeleteServiceResponse>> DeleteService(DeleteServiceRequest request);
     }
-} 
+}

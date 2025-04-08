@@ -1,19 +1,15 @@
-﻿using FCSP.DTOs.Authentication;
-using FCSP.DTOs;
+﻿using FCSP.DTOs;
+using FCSP.DTOs.Authentication;
 
 namespace FCSP.Services.Auth;
 
 public interface IAuthService
 {
-    public string HashPassword(string password);
-
-    public Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request);
-
-    public Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request);
-
-    public Task<BaseResponseModel<UpdateUserPasswordResponse>> UpdateUserPassword(UpdateUserPasswordRequest request);
-
-    public Task<BaseResponseModel<UpdateUserInformationResponse>> UpdateUserInformation(UpdateUserInformationRequest request);
-
-    public Task<BaseResponseModel<UserDeleteResponse>> DeleteUser(UserDeleteRequest request);
+    string HashPassword(string password);
+    Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request);
+    Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request);
+    Task<BaseResponseModel<UpdateUserPasswordResponse>> UpdateUserPassword(UpdateUserPasswordRequest request);
+    Task<BaseResponseModel<UpdateUserInformationResponse>> UpdateUserInformation(UpdateUserInformationRequest request);
+    Task<BaseResponseModel<UserDeleteResponse>> DeleteUser(UserDeleteRequest request);
+    Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request); // Phương thức mới
 }

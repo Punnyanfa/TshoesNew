@@ -29,6 +29,7 @@ using Microsoft.Extensions.Options;
 using FCSP.Common.Configurations;
 using FCSP.Services.SizeService;
 using FCSP.Services;
+using FCSP.Services.ManufacturerService;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -94,6 +95,9 @@ internal static class ServiceConfig
 
         // Notification service
         services.AddScoped<INotificationService, NotificationService>();
+
+        // Manufacturer services 
+        services.AddScoped<IManufacturerService, ManufacturerService>();
 
         // Shipping service
         services.AddScoped<IShippingInfoService, ShippingInfoService>();
