@@ -1,4 +1,4 @@
-using FCSP.DTOs;
+﻿using FCSP.DTOs;
 using FCSP.DTOs.Service;
 using FCSP.Services.ServiceService;
 using Microsoft.AspNetCore.Mvc;
@@ -24,14 +24,22 @@ namespace FCSP.WebAPI.Controllers.Service
             return StatusCode(response.Code, response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:long}")] // Ràng buộc id phải là long
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetServiceById([FromRoute] GetServiceByIdRequest request)
+        public async Task<IActionResult> GetServiceById(long id) // Thay [FromRoute] GetServiceByIdRequest bằng long id
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (id <= 0)
+            {
+                return BadRequest(new BaseResponseModel<object>
+                {
+                    Code = 400,
+                    Message = "Service ID must be greater than 0"
+                });
+            }
 
+            var request = new GetServiceByIdRequest { Id = id };
             var response = await _serviceService.GetServiceById(request);
             return StatusCode(response.Code, response);
         }
@@ -48,7 +56,7 @@ namespace FCSP.WebAPI.Controllers.Service
             return StatusCode(response.Code, response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:long}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -61,14 +69,22 @@ namespace FCSP.WebAPI.Controllers.Service
             return StatusCode(response.Code, response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:long}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteService([FromRoute] DeleteServiceRequest request)
+        public async Task<IActionResult> DeleteService(long id) // Thay [FromRoute] DeleteServiceRequest bằng long id
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (id <= 0)
+            {
+                return BadRequest(new BaseResponseModel<object>
+                {
+                    Code = 400,
+                    Message = "Service ID must be greater than 0"
+                });
+            }
 
+            var request = new DeleteServiceRequest { Id = id };
             var response = await _serviceService.DeleteService(request);
             return StatusCode(response.Code, response);
         }
