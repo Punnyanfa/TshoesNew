@@ -1,4 +1,4 @@
-using FCSP.DTOs;
+﻿using FCSP.DTOs;
 
 namespace FCSP.DTOs.DesignService
 {
@@ -12,7 +12,7 @@ namespace FCSP.DTOs.DesignService
         public long Id { get; set; }
         public long DesignId { get; set; }
         public long ServiceId { get; set; }
-        public float? Price { get; set; }
+        public float? Price { get; set; } // Giữ lại để trả về giá đã tính
         public string? CustomShoeDesignName { get; set; }
         public string? ServiceName { get; set; }
     }
@@ -20,31 +20,28 @@ namespace FCSP.DTOs.DesignService
     public class AddDesignServiceRequest
     {
         public long DesignId { get; set; }
-        
         public long ServiceId { get; set; }
-        
-        public float? Price { get; set; }
+        // Bỏ thuộc tính Price vì sẽ tính tự động
     }
 
     public class AddDesignServiceResponse
     {
         public long DesignServiceId { get; set; }
+        public float? Price { get; set; } // Thêm để trả về giá đã tính
     }
 
     public class UpdateDesignServiceRequest
     {
         public long Id { get; set; }
-
         public long DesignId { get; set; }
-
         public long ServiceId { get; set; }
-        
-        public float? Price { get; set; }
+        // Bỏ thuộc tính Price vì sẽ tính tự động
     }
 
     public class UpdateDesignServiceResponse
     {
         public long DesignServiceId { get; set; }
+        public float? Price { get; set; } // Thêm để trả về giá đã tính
     }
 
     public class DeleteDesignServiceRequest
@@ -62,7 +59,7 @@ namespace FCSP.DTOs.DesignService
         public long Id { get; set; }
         public long CustomShoeDesignId { get; set; }
         public long ServiceId { get; set; }
-        public float? Price { get; set; }
+        public float? Price { get; set; } // Giữ lại để trả về giá đã tính
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -76,4 +73,4 @@ namespace FCSP.DTOs.DesignService
     {
         public long ServiceId { get; set; }
     }
-} 
+}

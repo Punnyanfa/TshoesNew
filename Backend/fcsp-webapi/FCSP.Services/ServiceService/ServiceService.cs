@@ -356,6 +356,46 @@ namespace FCSP.Services.ServiceService
             }
         }
 
+        public async Task<float?> GetServicePriceAsync(long serviceId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching price for service with ID: {ServiceId}", serviceId);
+                var service = await _serviceRepository.GetServiceWithDetailsAsync(serviceId);
+                if (service == null)
+                {
+                    _logger.LogWarning("Service not found for ID: {ServiceId}", serviceId);
+                    return null;
+                }
+
+                if (!service.SetServiceAmounts.Any())
+                {
+                    _logger.LogWarning("No SetServiceAmounts found for Service with ID: {ServiceId}", serviceId);
+                    return null;
+                }
+
+                var currentAmount = service.SetServiceAmounts
+                    .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
+
+                if (currentAmount == null)
+                {
+                    _logger.LogWarning("No active SetServiceAmount found for Service with ID: {ServiceId}. Existing statuses: {Statuses}, EndDates: {EndDates}",
+                        serviceId,
+                        string.Join(", ", service.SetServiceAmounts.Select(a => a.Status)),
+                        string.Join(", ", service.SetServiceAmounts.Select(a => a.EndDate?.ToString() ?? "null")));
+                    return null;
+                }
+
+                _logger.LogInformation("Found active price {Price} for Service with ID: {ServiceId}", currentAmount.Amount, serviceId);
+                return currentAmount.Amount;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching price for service with ID: {ServiceId}", serviceId);
+                return null;
+            }
+        }
+
         private BaseResponseModel<T>? ValidateServiceInput<T>(string name, float price, long manufacturerId = 0)
         {
             if (string.IsNullOrWhiteSpace(name))
