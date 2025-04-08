@@ -2,6 +2,7 @@
 using FCSP.DTOs.Order;
 using FCSP.Services.OrderService;
 using System.Threading.Tasks;
+using FCSP.DTOs;
 
 namespace FCSP.Controllers
 {
@@ -51,7 +52,9 @@ namespace FCSP.Controllers
         public async Task<IActionResult> UpdateOrder(long id, [FromBody] UpdateOrderRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            request.Id = id;
+            if (id != request.Id)
+                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "ID mismatch between route and request body" });
+
             var response = await _orderService.UpdateOrder(request);
             return StatusCode(response.Code, response);
         }

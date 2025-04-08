@@ -1,4 +1,4 @@
-using FCSP.Common.Enums;
+﻿using FCSP.Common.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace FCSP.DTOs.Order
@@ -18,10 +18,11 @@ namespace FCSP.DTOs.Order
         public long? VoucherId { get; set; }
         public float TotalPrice { get; set; }
         public OrderStatus Status { get; set; }
-        public string? Note { get; set; }
+        public OrderShippingStatus ShippingStatus { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public List<OrderDetailDto> OrderDetails { get; set; } = [];
+        public List<OrderDetailResponseDto> OrderDetails { get; set; } = [];
     }
 
     public class AddOrderRequest
@@ -37,21 +38,12 @@ namespace FCSP.DTOs.Order
         [Range(1, long.MaxValue, ErrorMessage = "VoucherId must be greater than 0 if provided.")]
         public long? VoucherId { get; set; }
 
-        [Required(ErrorMessage = "TotalPrice is required.")]
-        [Range(0, float.MaxValue, ErrorMessage = "TotalPrice cannot be negative.")]
-        public float TotalPrice { get; set; }
-
-        [Required(ErrorMessage = "Status is required.")]
-        public OrderStatus Status { get; set; }
-
         [Required(ErrorMessage = "PaymentMethod is required.")]
         public PaymentMethod PaymentMethod { get; set; }
 
-        public string? Note { get; set; }
-
         [Required(ErrorMessage = "OrderDetails are required.")]
         [MinLength(1, ErrorMessage = "Order must contain at least one OrderDetail.")]
-        public List<OrderDetailDto> OrderDetails { get; set; } = [];
+        public List<OrderDetailRequestDto> OrderDetails { get; set; } = [];
     }
 
     public class AddOrderResponse
@@ -59,6 +51,7 @@ namespace FCSP.DTOs.Order
         public long Id { get; set; }
         public float TotalPrice { get; set; }
         public OrderStatus Status { get; set; }
+        public OrderShippingStatus ShippingStatus { get; set; }
     }
 
     public class UpdateOrderRequest
@@ -74,18 +67,12 @@ namespace FCSP.DTOs.Order
         [Range(1, long.MaxValue, ErrorMessage = "VoucherId must be greater than 0 if provided.")]
         public long? VoucherId { get; set; }
 
-        [Required(ErrorMessage = "TotalPrice is required.")]
-        [Range(0, float.MaxValue, ErrorMessage = "TotalPrice cannot be negative.")]
-        public float TotalPrice { get; set; }
-
         [Required(ErrorMessage = "Status is required.")]
         public OrderStatus Status { get; set; }
 
-        public string? Note { get; set; }
-
         [Required(ErrorMessage = "OrderDetails are required.")]
         [MinLength(1, ErrorMessage = "Order must contain at least one OrderDetail.")]
-        public List<OrderDetailDto> OrderDetails { get; set; } = [];
+        public List<OrderDetailRequestDto> OrderDetails { get; set; } = [];
     }
 
     public class UpdateOrderResponse
@@ -93,6 +80,7 @@ namespace FCSP.DTOs.Order
         public long Id { get; set; }
         public float TotalPrice { get; set; }
         public OrderStatus Status { get; set; }
+        public OrderShippingStatus ShippingStatus { get; set; }
     }
 
     public class DeleteOrderRequest
@@ -122,28 +110,35 @@ namespace FCSP.DTOs.Order
         public long? VoucherId { get; set; }
         public float TotalPrice { get; set; }
         public OrderStatus Status { get; set; }
-        public string? Note { get; set; }
+        public OrderShippingStatus ShippingStatus { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public List<OrderDetailDto> OrderDetails { get; set; } = [];
+        public List<OrderDetailResponseDto> OrderDetails { get; set; } = [];
     }
 
-    public class OrderDetailDto
+    // DTO cho request (không có UnitPrice)
+    public class OrderDetailRequestDto
     {
         [Required(ErrorMessage = "CustomShoeDesignId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "CustomShoeDesignId must be greater than 0.")]
         public long CustomShoeDesignId { get; set; }
 
         [Required(ErrorMessage = "Quantity is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
+        [Range(1, 1000, ErrorMessage = "Quantity must be between 1 and 1000.")]
         public int Quantity { get; set; }
-
-        [Required(ErrorMessage = "UnitPrice is required.")]
-        [Range(0, float.MaxValue, ErrorMessage = "UnitPrice cannot be negative.")]
-        public float UnitPrice { get; set; }
 
         [Required(ErrorMessage = "SizeId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "SizeId must be greater than 0.")]
+        public long SizeId { get; set; }
+    }
+
+    // DTO cho response (có UnitPrice)
+    public class OrderDetailResponseDto
+    {
+        public long CustomShoeDesignId { get; set; }
+        public int Quantity { get; set; }
+        public float UnitPrice { get; set; }
         public long SizeId { get; set; }
     }
 

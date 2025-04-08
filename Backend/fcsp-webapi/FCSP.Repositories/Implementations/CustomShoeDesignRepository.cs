@@ -11,7 +11,10 @@ namespace FCSP.Repositories.Implementations
         public CustomShoeDesignRepository(FcspDbContext context) : base(context)
         {
         }
-
+        public async Task<CustomShoeDesign> FindByIdAsync(long id)
+        {
+            return await _context.Set<CustomShoeDesign>().FindAsync(id);
+        }
         public async Task<IEnumerable<CustomShoeDesign>> GetAllPublicCustomShoeDesignsAsync()
         {
             return await Entities
@@ -22,7 +25,6 @@ namespace FCSP.Repositories.Implementations
                     .ThenInclude(t => t.Texture)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
-                .Include(d => d.Size)
                 .Where(d => d.IsDeleted == false)
                 .Where(d => d.Status == Common.Enums.CustomShoeDesignStatus.Public)
                 .ToListAsync();
@@ -39,7 +41,6 @@ namespace FCSP.Repositories.Implementations
                     .ThenInclude(t => t.Texture)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
-                .Include(d => d.Size)
                 .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }
@@ -55,7 +56,6 @@ namespace FCSP.Repositories.Implementations
                     .ThenInclude(t => t.Texture)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
-                .Include(d => d.Size)
                 .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }

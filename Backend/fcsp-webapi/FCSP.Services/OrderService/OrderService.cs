@@ -17,6 +17,7 @@ namespace FCSP.Services.OrderService
         private readonly IOrderDetailRepository _orderDetailRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IVoucherRepository _voucherRepository;
+        private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
         private readonly IPaymentProcessor _paymentProcessor;
         private readonly ILogger<OrderService> _logger;
 
@@ -25,6 +26,7 @@ namespace FCSP.Services.OrderService
             IOrderDetailRepository orderDetailRepository,
             IPaymentRepository paymentRepository,
             IVoucherRepository voucherRepository,
+            ICustomShoeDesignRepository customShoeDesignRepository,
             IPaymentProcessor paymentProcessor,
             ILogger<OrderService> logger)
         {
@@ -32,6 +34,7 @@ namespace FCSP.Services.OrderService
             _orderDetailRepository = orderDetailRepository;
             _paymentRepository = paymentRepository;
             _voucherRepository = voucherRepository;
+            _customShoeDesignRepository = customShoeDesignRepository;
             _paymentProcessor = paymentProcessor;
             _logger = logger;
         }
@@ -107,21 +110,49 @@ namespace FCSP.Services.OrderService
             {
                 _logger.LogInformation("Adding new order for user ID: {UserId}", request.UserId);
 
-                // Validate TotalPrice matches OrderDetails
-                var calculatedTotal = CalculateOrderDetailsTotal(request.OrderDetails);
-                if (Math.Abs(calculatedTotal - request.TotalPrice) > 0.01) // Cho phép sai số nhỏ do float
+                // Lấy TotalAmount từ CustomShoeDesign và tính tổng
+                float calculatedTotal = 0;
+                foreach (var od in request.OrderDetails) // OrderDetails giờ là List<OrderDetailRequestDto>
                 {
-                    _logger.LogWarning("TotalPrice {TotalPrice} does not match calculated total {CalculatedTotal} for user ID: {UserId}", request.TotalPrice, calculatedTotal, request.UserId);
+                    var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
+                    if (customShoeDesign == null)
+                    {
+                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} not found for user ID: {UserId}", od.CustomShoeDesignId, request.UserId);
+                        return new BaseResponseModel<AddOrderResponse>
+                        {
+                            Code = 400,
+                            Message = $"CustomShoeDesign with ID {od.CustomShoeDesignId} not found.",
+                            Data = null
+                        };
+                    }
+
+                    if (customShoeDesign.TotalAmount <= 0) // Không cho phép TotalAmount <= 0
+                    {
+                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} has invalid total amount: {TotalAmount}", od.CustomShoeDesignId, customShoeDesign.TotalAmount);
+                        return new BaseResponseModel<AddOrderResponse>
+                        {
+                            Code = 400,
+                            Message = $"CustomShoeDesign with ID {od.CustomShoeDesignId} has invalid total amount. Total amount must be greater than 0.",
+                            Data = null
+                        };
+                    }
+
+                    calculatedTotal += od.Quantity * customShoeDesign.TotalAmount;
+                }
+
+                if (calculatedTotal <= 0)
+                {
+                    _logger.LogWarning("Calculated total is {CalculatedTotal} for user ID: {UserId}", calculatedTotal, request.UserId);
                     return new BaseResponseModel<AddOrderResponse>
                     {
                         Code = 400,
-                        Message = $"TotalPrice ({request.TotalPrice}) does not match the calculated total of OrderDetails ({calculatedTotal}).",
+                        Message = "Order total must be greater than 0.",
                         Data = null
                     };
                 }
 
-                // Validate Voucher (nếu có)
-                float totalPrice = request.TotalPrice;
+                // Validate Voucher (nếu có) và áp dụng giảm giá
+                float totalPrice = calculatedTotal;
                 if (request.VoucherId.HasValue)
                 {
                     var voucher = await _voucherRepository.FindByIdAsync(request.VoucherId.Value);
@@ -143,12 +174,24 @@ namespace FCSP.Services.OrderService
                         return new BaseResponseModel<AddOrderResponse>
                         {
                             Code = 400,
-                            Message = $"Invalid voucher: {validationMessage}. Proceeding without voucher.",
+                            Message = $"Invalid voucher: {validationMessage}.",
                             Data = null
                         };
                     }
 
                     totalPrice = ApplyVoucherDiscount(totalPrice, voucher);
+                }
+
+                // Kiểm tra totalPrice sau khi áp dụng voucher
+                if (totalPrice <= 0)
+                {
+                    _logger.LogWarning("Final total price after voucher is {TotalPrice} for user ID: {UserId}", totalPrice, request.UserId);
+                    return new BaseResponseModel<AddOrderResponse>
+                    {
+                        Code = 400,
+                        Message = "Final order total must be greater than 0 after applying voucher.",
+                        Data = null
+                    };
                 }
 
                 // Tạo Order
@@ -169,15 +212,16 @@ namespace FCSP.Services.OrderService
                 _logger.LogInformation("Created order with ID: {OrderId} for user ID: {UserId}", addedOrder.Id, request.UserId);
 
                 // Tạo OrderDetails
-                foreach (var od in request.OrderDetails)
+                foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
                 {
+                    var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
                     var orderDetail = new OrderDetail
                     {
                         OrderId = addedOrder.Id,
                         CustomShoeDesignId = od.CustomShoeDesignId,
                         SizeId = od.SizeId,
                         Quantity = od.Quantity,
-                        Price = od.UnitPrice,
+                        Price = customShoeDesign.TotalAmount,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -205,7 +249,8 @@ namespace FCSP.Services.OrderService
                     {
                         Id = addedOrder.Id,
                         TotalPrice = addedOrder.TotalPrice,
-                        Status = addedOrder.Status
+                        Status = addedOrder.Status,
+                        ShippingStatus = addedOrder.ShippingStatus
                     }
                 };
             }
@@ -222,20 +267,91 @@ namespace FCSP.Services.OrderService
             {
                 _logger.LogInformation("Updating order with ID: {OrderId}", request.Id);
 
-                // Validate TotalPrice matches OrderDetails
-                var calculatedTotal = CalculateOrderDetailsTotal(request.OrderDetails);
-                if (Math.Abs(calculatedTotal - request.TotalPrice) > 0.01) // Cho phép sai số nhỏ do float
+                // Lấy TotalAmount từ CustomShoeDesign và tính tổng
+                float calculatedTotal = 0;
+                foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
                 {
-                    _logger.LogWarning("TotalPrice {TotalPrice} does not match calculated total {CalculatedTotal} for order ID: {OrderId}", request.TotalPrice, calculatedTotal, request.Id);
+                    var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
+                    if (customShoeDesign == null)
+                    {
+                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} not found for order ID: {OrderId}", od.CustomShoeDesignId, request.Id);
+                        return new BaseResponseModel<UpdateOrderResponse>
+                        {
+                            Code = 400,
+                            Message = $"CustomShoeDesign with ID {od.CustomShoeDesignId} not found.",
+                            Data = null
+                        };
+                    }
+
+                    if (customShoeDesign.TotalAmount <= 0)
+                    {
+                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} has invalid total amount: {TotalAmount}", od.CustomShoeDesignId, customShoeDesign.TotalAmount);
+                        return new BaseResponseModel<UpdateOrderResponse>
+                        {
+                            Code = 400,
+                            Message = $"CustomShoeDesign with ID {od.CustomShoeDesignId} has invalid total amount. Total amount must be greater than 0.",
+                            Data = null
+                        };
+                    }
+
+                    calculatedTotal += od.Quantity * customShoeDesign.TotalAmount;
+                }
+
+                if (calculatedTotal <= 0)
+                {
+                    _logger.LogWarning("Calculated total is {CalculatedTotal} for order ID: {OrderId}", calculatedTotal, request.Id);
                     return new BaseResponseModel<UpdateOrderResponse>
                     {
                         Code = 400,
-                        Message = $"TotalPrice ({request.TotalPrice}) does not match the calculated total of OrderDetails ({calculatedTotal}).",
+                        Message = "Order total must be greater than 0.",
                         Data = null
                     };
                 }
 
-                var updatedOrder = await UpdateOrderAsync(request);
+                // Validate Voucher (nếu có) và áp dụng giảm giá
+                float totalPrice = calculatedTotal;
+                if (request.VoucherId.HasValue)
+                {
+                    var voucher = await _voucherRepository.FindByIdAsync(request.VoucherId.Value);
+                    if (voucher == null)
+                    {
+                        _logger.LogWarning("Voucher with ID {VoucherId} not found for order ID: {OrderId}", request.VoucherId, request.Id);
+                        return new BaseResponseModel<UpdateOrderResponse>
+                        {
+                            Code = 400,
+                            Message = "Voucher not found.",
+                            Data = null
+                        };
+                    }
+
+                    var (isValid, validationMessage) = IsVoucherValid(voucher);
+                    if (!isValid)
+                    {
+                        _logger.LogWarning("Invalid voucher with ID {VoucherId} for order ID: {OrderId}. Reason: {ValidationMessage}", request.VoucherId, request.Id, validationMessage);
+                        return new BaseResponseModel<UpdateOrderResponse>
+                        {
+                            Code = 400,
+                            Message = $"Invalid voucher: {validationMessage}.",
+                            Data = null
+                        };
+                    }
+
+                    totalPrice = ApplyVoucherDiscount(totalPrice, voucher);
+                }
+
+                // Kiểm tra totalPrice sau khi áp dụng voucher
+                if (totalPrice <= 0)
+                {
+                    _logger.LogWarning("Final total price after voucher is {TotalPrice} for order ID: {OrderId}", totalPrice, request.Id);
+                    return new BaseResponseModel<UpdateOrderResponse>
+                    {
+                        Code = 400,
+                        Message = "Final order total must be greater than 0 after applying voucher.",
+                        Data = null
+                    };
+                }
+
+                var updatedOrder = await UpdateOrderAsync(request, totalPrice);
                 _logger.LogInformation("Successfully updated order with ID: {OrderId}", request.Id);
                 return new BaseResponseModel<UpdateOrderResponse>
                 {
@@ -534,25 +650,35 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
             }
 
-            return orders.Select(o => new GetOrderByUserIdResponse
+            var result = new List<GetOrderByUserIdResponse>();
+            foreach (var order in orders)
             {
-                Id = o.Id,
-                UserId = o.UserId,
-                ShippingInfoId = o.ShippingInfoId,
-                VoucherId = o.VoucherId,
-                TotalPrice = o.TotalPrice,
-                Status = o.Status,
-                Note = null,
-                CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt,
-                OrderDetails = o.OrderDetails?.Select(od => new OrderDetailDto
+                var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
+                var payment = payments.FirstOrDefault();
+
+                result.Add(new GetOrderByUserIdResponse
                 {
-                    CustomShoeDesignId = od.CustomShoeDesignId,
-                    Quantity = od.Quantity,
-                    UnitPrice = od.Price,
-                    SizeId = od.SizeId
-                }).ToList() ?? new List<OrderDetailDto>()
-            }).ToList();
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    ShippingInfoId = order.ShippingInfoId,
+                    VoucherId = order.VoucherId,
+                    TotalPrice = order.TotalPrice,
+                    Status = order.Status,
+                    ShippingStatus = order.ShippingStatus,
+                    PaymentMethod = payment?.PaymentMethod ?? PaymentMethod.CashOnDelivery,
+                    CreatedAt = order.CreatedAt,
+                    UpdatedAt = order.UpdatedAt,
+                    OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
+                    {
+                        CustomShoeDesignId = od.CustomShoeDesignId,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.Price,
+                        SizeId = od.SizeId
+                    }).ToList() ?? new List<OrderDetailResponseDto>()
+                });
+            }
+
+            return result;
         }
 
         private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
@@ -563,6 +689,9 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException($"Order with ID {request.Id} not found");
             }
 
+            var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
+            var payment = payments.FirstOrDefault();
+
             return new GetOrderByIdResponse
             {
                 Id = order.Id,
@@ -571,16 +700,17 @@ namespace FCSP.Services.OrderService
                 VoucherId = order.VoucherId,
                 TotalPrice = order.TotalPrice,
                 Status = order.Status,
-                Note = null,
+                ShippingStatus = order.ShippingStatus,
+                PaymentMethod = payment?.PaymentMethod ?? PaymentMethod.CashOnDelivery,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
-                OrderDetails = order.OrderDetails?.Select(od => new OrderDetailDto
+                OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
                 {
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     Quantity = od.Quantity,
                     UnitPrice = od.Price,
                     SizeId = od.SizeId
-                }).ToList() ?? new List<OrderDetailDto>()
+                }).ToList() ?? new List<OrderDetailResponseDto>()
             };
         }
 
@@ -592,28 +722,38 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException("No orders found");
             }
 
-            return orders.Select(o => new GetOrderByIdResponse
+            var result = new List<GetOrderByIdResponse>();
+            foreach (var order in orders)
             {
-                Id = o.Id,
-                UserId = o.UserId,
-                ShippingInfoId = o.ShippingInfoId,
-                VoucherId = o.VoucherId,
-                TotalPrice = o.TotalPrice,
-                Status = o.Status,
-                Note = null,
-                CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt,
-                OrderDetails = o.OrderDetails?.Select(od => new OrderDetailDto
+                var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
+                var payment = payments.FirstOrDefault();
+
+                result.Add(new GetOrderByIdResponse
                 {
-                    CustomShoeDesignId = od.CustomShoeDesignId,
-                    Quantity = od.Quantity,
-                    UnitPrice = od.Price,
-                    SizeId = od.SizeId
-                }).ToList() ?? new List<OrderDetailDto>()
-            }).ToList();
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    ShippingInfoId = order.ShippingInfoId,
+                    VoucherId = order.VoucherId,
+                    TotalPrice = order.TotalPrice,
+                    Status = order.Status,
+                    ShippingStatus = order.ShippingStatus,
+                    PaymentMethod = payment?.PaymentMethod ?? PaymentMethod.CashOnDelivery,
+                    CreatedAt = order.CreatedAt,
+                    UpdatedAt = order.UpdatedAt,
+                    OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
+                    {
+                        CustomShoeDesignId = od.CustomShoeDesignId,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.Price,
+                        SizeId = od.SizeId
+                    }).ToList() ?? new List<OrderDetailResponseDto>()
+                });
+            }
+
+            return result;
         }
 
-        private async Task<UpdateOrderResponse> UpdateOrderAsync(UpdateOrderRequest request)
+        private async Task<UpdateOrderResponse> UpdateOrderAsync(UpdateOrderRequest request, float totalPrice)
         {
             var order = await _orderRepository.FindAsync(request.Id);
             if (order == null)
@@ -623,7 +763,7 @@ namespace FCSP.Services.OrderService
 
             order.ShippingInfoId = request.ShippingInfoId;
             order.VoucherId = request.VoucherId;
-            order.TotalPrice = request.TotalPrice;
+            order.TotalPrice = totalPrice;
             order.Status = request.Status;
             order.UpdatedAt = DateTime.UtcNow;
 
@@ -633,15 +773,16 @@ namespace FCSP.Services.OrderService
                 await _orderDetailRepository.DeleteAsync(existingDetail.Id);
             }
 
-            foreach (var od in request.OrderDetails)
+            foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
             {
+                var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
                 var newOrderDetail = new OrderDetail
                 {
                     OrderId = order.Id,
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     SizeId = od.SizeId,
                     Quantity = od.Quantity,
-                    Price = od.UnitPrice,
+                    Price = customShoeDesign.TotalAmount,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -654,13 +795,9 @@ namespace FCSP.Services.OrderService
             {
                 Id = order.Id,
                 TotalPrice = order.TotalPrice,
-                Status = order.Status
+                Status = order.Status,
+                ShippingStatus = order.ShippingStatus
             };
-        }
-
-        private float CalculateOrderDetailsTotal(List<OrderDetailDto> orderDetails)
-        {
-            return orderDetails.Sum(od => od.Quantity * od.UnitPrice);
         }
 
         private (bool isValid, string message) IsVoucherValid(Voucher voucher)
@@ -688,11 +825,11 @@ namespace FCSP.Services.OrderService
 
         private float ApplyVoucherDiscount(float totalPrice, Voucher voucher)
         {
-            if (float.TryParse(voucher.VoucherValue, out float discount))
+            if (float.TryParse(voucher.VoucherValue, out float discount) && discount > 0)
             {
                 return Math.Max(0, totalPrice - discount);
             }
-            return totalPrice; // Nếu không parse được, không áp dụng giảm giá
+            return totalPrice;
         }
 
         private bool IsValidOrderStatusTransition(OrderStatus current, OrderStatus next)

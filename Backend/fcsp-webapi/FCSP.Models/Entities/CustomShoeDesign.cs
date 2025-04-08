@@ -13,7 +13,7 @@ public class CustomShoeDesign : BaseEntity
     public float DesignerMarkup { get; set; }
     public float TotalAmount { get; set; }
     public bool IsDeleted { get; set; }
-    public long SizeId { get; set; }
+
 
     // Navigation properties
     public virtual User User { get; set; } = null!;
@@ -26,5 +26,4 @@ public class CustomShoeDesign : BaseEntity
     public virtual ICollection<DesignService> DesignServices { get; } = [];
     public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
     public virtual ICollection<ReturnedCustomShoe> ReturnedCustomShoes { get; } = [];
-    public virtual Size Size { get; set; } = null!;
 }

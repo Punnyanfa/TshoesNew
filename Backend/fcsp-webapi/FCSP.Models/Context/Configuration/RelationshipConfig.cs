@@ -247,11 +247,7 @@ internal static class RelationshipConfig
             .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
 
         // Size relationships
-        modelBuilder.Entity<Size>()
-            .HasMany(s => s.CustomShoeDesigns)
-            .WithOne(d => d.Size)
-            .HasForeignKey(d => d.SizeId)
-            .OnDelete(DeleteBehavior.Restrict);
+      
 
         modelBuilder.Entity<Size>()
             .HasMany(s => s.OrderDetails)
