@@ -153,8 +153,8 @@ const changePage = (page) => {
 };
 
 const goToDetailPage = (productId) => {
-  console.log('Navigating to product:', productId);
-  router.push(`/productPage/${productId}`);
+  console.log('Navigating to product detail:', productId);
+  router.push(`/productPage/${productId}`);  // Điều hướng đến trang chi tiết sản phẩm
 };
 
 const getStarClass = (rating, position) => {
