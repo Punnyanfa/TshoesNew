@@ -54,23 +54,37 @@
     <span class="sneaker-badge">{{ cartCount }}</span>
   </router-link>
 
-  <!-- User Dropdown (Authenticated) -->
-  <a-dropdown v-if="isAuthenticated" class="user-dropdown">
-    <a-button class="sneaker-btn user-btn">
-      <UserOutlined /> {{ userName }}
-      <DownOutlined />
-    </a-button>
-    <a-dropdown-menu slot="overlay">
-      <a-dropdown-item><ProfileOutlined /> Profile</a-dropdown-item>
-      <a-dropdown-item><SettingOutlined /> Settings</a-dropdown-item>
-      <a-dropdown-item @click="logout"><LogoutOutlined /> Logout</a-dropdown-item>
-    </a-dropdown-menu>
-  </a-dropdown>
-
-  <!-- Login Link (Non-Authenticated) -->
-  <router-link v-else to="/loginPage" class="sneaker-btn">
-    <UserOutlined /> Login
-  </router-link>
+  <!-- User Section -->
+  <template v-if="isAuthenticated">
+    <a-dropdown class="user-dropdown" trigger="click">
+      <a-button class="sneaker-btn user-btn">
+        <UserOutlined /> {{ userName }}
+        <DownOutlined />
+      </a-button>
+      <template #overlay>
+        <a-menu>
+          <a-menu-item key="profile">
+            <router-link to="/profilePage">
+              <ProfileOutlined /> Profile
+            </router-link>
+          </a-menu-item>
+          <a-menu-item key="settings">
+            <router-link to="/settingsPage">
+              <SettingOutlined /> Settings
+            </router-link>
+          </a-menu-item>
+          <a-menu-item key="logout" @click="logout">
+            <LogoutOutlined /> Logout
+          </a-menu-item>
+        </a-menu>
+      </template>
+    </a-dropdown>
+  </template>
+  <template v-else>
+    <router-link to="/loginPage" class="sneaker-btn">
+      <UserOutlined /> Login
+    </router-link>
+  </template>
 
   <!-- Theme Toggle Button -->
   <a-button 
@@ -91,18 +105,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { ShoppingCartOutlined, UserOutlined, DownOutlined, ProfileOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 
 const isAuthenticated = ref(false);
-const userName = ref('SneakerFan');
+const userName = ref('');
 const cartCount = ref(2);
 const isNavOpen = ref(false);
 const isSearchOpen = ref(false);
 const searchQuery = ref('');
 const isDarkTheme = ref(true);
-const isScrolled = ref(false); // Thêm biến trạng thái scroll
+const isScrolled = ref(false);
 
 const navItems = [
   { path: '/homePage', label: 'Home', icon: 'home' },
@@ -111,6 +127,15 @@ const navItems = [
   { path: '/contactPage', label: 'Contact', icon: 'mail' },
   { path: '/customPage', label: 'Customize', icon: 'edit', highlight: true },
 ];
+
+// Watch for authentication state changes
+watch(() => {
+  const token = localStorage.getItem('userToken');
+  isAuthenticated.value = !!token;
+  if (isAuthenticated.value) {
+    userName.value = localStorage.getItem('username') || 'User';
+  }
+}, { immediate: true });
 
 // Xử lý sự kiện scroll
 const handleScroll = () => {
@@ -141,7 +166,19 @@ const onSearch = (value) => {
 };
 
 const logout = () => {
+  // Clear all user data from localStorage
+  localStorage.removeItem('userToken');
+  localStorage.removeItem('email');
+  localStorage.removeItem('role');
+  localStorage.removeItem('username');
+  localStorage.removeItem('userId');
+  
+  // Reset authentication state
   isAuthenticated.value = false;
+  userName.value = '';
+  
+  // Redirect to home page
+  router.push('/homePage');
 };
 
 const toggleTheme = () => {

@@ -987,7 +987,7 @@
     //   }
     },
     mounted() {
-      this.initBootstrapComponents();
+      
     },
     created() {
       this.fetchDesigns();

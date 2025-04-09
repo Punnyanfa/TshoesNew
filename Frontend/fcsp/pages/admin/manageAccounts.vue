@@ -373,6 +373,7 @@
   </template>
   
   <script>
+  
   export default {
     name: 'AccountManagement',
     data() {
@@ -694,21 +695,10 @@
           this.loading = false;
         }
       },
-    //   initBootstrapComponents() {
-    //     // Initialize tooltips
-    //     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    //     tooltipTriggerList.map(function (tooltipTriggerEl) {
-    //       return new bootstrap.Tooltip(tooltipTriggerEl);
-    //     });
-        
-        // // Initialize modals
-        // this.accountDetailsModal = new bootstrap.Modal(this.$refs.accountDetailsModal);
-        // this.editAccountModal = new bootstrap.Modal(this.$refs.editAccountModal);
-        // this.confirmStatusModal = new bootstrap.Modal(this.$refs.confirmStatusModal);
-    //   }
+      
     },
     mounted() {
-      this.initBootstrapComponents();
+      
     },
     created() {
       this.fetchAccounts();

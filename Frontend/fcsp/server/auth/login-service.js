@@ -3,19 +3,25 @@ import { instance, Login } from "../api-instance-provider"; // Import `instance`
 import { ElNotification } from 'element-plus';
 
 // Hàm lưu token, email, role và userId vào localStorage
-const saveTokenAndUserInfo = (token, email, role, name) => {
+// Hàm lưu token, email, role, userId và username vào localStorage
+const saveTokenAndUserInfo = (token, email, role) => {
   if (token) {
     localStorage.setItem("userToken", token); 
     localStorage.setItem("email", email);
     localStorage.setItem("role", role);
-    localStorage.setItem("name", name);
 
-    // Giải mã token để lấy userId
+    // Giải mã token để lấy thông tin
     const decodedToken = jwtDecode(token);
-    const userId = decodedToken.userId;
-
+    console.log("decodedToken", decodedToken);
+    const userId = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+    const username = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+    console.log("username", username);
     if (userId) {
       localStorage.setItem("userId", userId); // Lưu userId vào localStorage
+    }
+
+    if (username) {
+      localStorage.setItem("username", username); // Lưu username vào localStorage
     }
   }
 };
@@ -24,11 +30,11 @@ const saveTokenAndUserInfo = (token, email, role, name) => {
 export const loginUser = async (email, password) => {
   try {
     const response = await instance.post(Login.ORIGIN, { email, password });
-    
+    const { code, message, data } = response.data;
     // Kiểm tra response trực tiếp từ API
-    if (response.status === 200) {
-      const { token, role, name } = response.data;
-
+    if (code === 200) {
+      const { token, role, name } = data;
+      console.log("token", token, role, name);
       // Lưu thông tin user
       saveTokenAndUserInfo(token, email, role, name);
 
@@ -67,4 +73,3 @@ export const loginUser = async (email, password) => {
     return "Error";
   }
 };
-
