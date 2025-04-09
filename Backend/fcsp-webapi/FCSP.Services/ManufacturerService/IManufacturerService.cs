@@ -6,7 +6,7 @@ namespace FCSP.Services.ManufacturerService
 {
     public interface IManufacturerService
     {
-        Task<BaseResponseModel<List<Manufacturer>>> GetAllManufacturers();
+        Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetAllManufacturers();
         Task<BaseResponseModel<GetManufacturerDetailResponse>> GetManufacturerById(GetManufacturerRequest request);
         Task<BaseResponseModel<AddManufacturerResponse>> AddManufacturer(AddManufacturerRequest request);
         Task<BaseResponseModel<UpdateManufacturerResponse>> UpdateManufacturer(UpdateManufacturerRequest request);
