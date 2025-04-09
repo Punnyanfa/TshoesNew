@@ -45,9 +45,10 @@ public class CustomShoeDesignController : ControllerBase
     /// </summary>
     /// <param name="request">Custom shoe design ID</param>
     /// <returns>Custom shoe design details</returns>
-    [HttpGet("{request}")]
-    public async Task<IActionResult> GetCustomShoeDesignById([FromRoute]GetCustomShoeDesignByIdRequest request)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCustomShoeDesignById([FromRoute]long id)
     {
+        GetCustomShoeDesignByIdRequest request = new GetCustomShoeDesignByIdRequest { Id = id };
         var response = await _customShoeDesignService.GetDesignById(request);
         return StatusCode(response.Code, response);
     }
@@ -57,9 +58,10 @@ public class CustomShoeDesignController : ControllerBase
     /// </summary>
     /// <param name="request">User ID</param>
     /// <returns>List of designs by user</returns>
-    [HttpGet("user/{request}")]
-    public async Task<IActionResult> GetDesignsByUser([FromRoute]GetCustomShoeDesignsByUserIdRequest request)
+    [HttpGet("user/{id}")]
+    public async Task<IActionResult> GetDesignsByUser([FromRoute]long id)
     {
+        GetCustomShoeDesignsByUserIdRequest request = new GetCustomShoeDesignsByUserIdRequest { UserId = id };
         var response = await _customShoeDesignService.GetDesignsByUserId(request);
         return StatusCode(response.Code, response);
     }
@@ -82,8 +84,8 @@ public class CustomShoeDesignController : ControllerBase
     /// <param name="request">Custom shoe design ID</param>
     /// <param name="designDto">Updated custom shoe design data</param>
     /// <returns>Updated custom shoe design</returns>
-    [HttpPut("{request}")]
-    public async Task<IActionResult> UpdateCustomShoeDesign([FromRoute] UpdateCustomShoeDesignRequest request)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateCustomShoeDesign([FromRoute]long id, [FromBody] UpdateCustomShoeDesignRequest request)
     {
         var response = await _customShoeDesignService.UpdateCustomShoeDesign(request);
         return StatusCode(response.Code, response);
@@ -94,9 +96,10 @@ public class CustomShoeDesignController : ControllerBase
     /// </summary>
     /// <param name="request">Custom shoe design ID</param>
     /// <returns>No content if successful</returns>
-    [HttpDelete("{request}")]
-    public async Task<IActionResult> DeleteCustomShoeDesign([FromRoute]DeleteCustomShoeDesignRequest request)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCustomShoeDesign([FromRoute]long id)
     {
+        DeleteCustomShoeDesignRequest request = new DeleteCustomShoeDesignRequest { Id = id };
         var response = await _customShoeDesignService.DeleteCustomShoeDesign(request);
         return StatusCode(response.Code, response);
     }

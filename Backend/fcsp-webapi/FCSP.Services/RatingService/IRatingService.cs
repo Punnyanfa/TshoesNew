@@ -8,7 +8,7 @@ namespace FCSP.Services.RatingService
 {
     public interface IRatingService
     {
-        Task<BaseResponseModel<IEnumerable<Rating>>> GetAllRatings();
+        Task<BaseResponseModel<IEnumerable<GetRatingByIdResponse>>> GetAllRatings();
         Task<BaseResponseModel<GetRatingByIdResponse>> GetRatingById(GetRatingByIdRequest request);
         Task<BaseResponseModel<AddRatingResponse>> AddRating(AddRatingRequest request);
         Task<BaseResponseModel<UpdateRatingResponse>> UpdateRating(UpdateRatingRequest request);

@@ -2,6 +2,7 @@
 using FCSP.DTOs.Rating;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,21 +21,33 @@ namespace FCSP.Services.RatingService
 
         #region Public Methods
 
-        public async Task<BaseResponseModel<IEnumerable<Rating>>> GetAllRatings()
+        public async Task<BaseResponseModel<IEnumerable<GetRatingByIdResponse>>> GetAllRatings()
         {
             try
             {
-                var ratings = await _ratingRepository.GetAllAsync();
-                return new BaseResponseModel<IEnumerable<Rating>>
+                var ratings = await _ratingRepository.GetAll()
+                                                        .Include(r => r.User)
+                                                        .Include(r => r.CustomShoeDesign)
+                                                            .ThenInclude(r => r.DesignPreviews)
+                                                        .ToListAsync();
+                return new BaseResponseModel<IEnumerable<GetRatingByIdResponse>>
                 {
                     Code = 200,
                     Message = "Ratings retrieved successfully",
-                    Data = ratings
+                    Data = ratings.Select(d => new GetRatingByIdResponse
+                    {
+                        DesignName = d.CustomShoeDesign.Name,
+                        DesignPreviewUrl = d.CustomShoeDesign.DesignPreviews.First().PreviewImageUrl,
+                        UserName = d.User.Name,
+                        UserRating = d.UserRating,
+                        Comment = d.Comment,
+                        CreatedAt = d.CreatedAt
+                    })
                 };
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<IEnumerable<Rating>>
+                return new BaseResponseModel<IEnumerable<GetRatingByIdResponse>>
                 {
                     Code = 500,
                     Message = ex.Message,
@@ -210,7 +223,11 @@ namespace FCSP.Services.RatingService
 
         private async Task<Rating> GetRatingByIdInternal(GetRatingByIdRequest request)
         {
-            var rating = await _ratingRepository.FindAsync(request.Id);
+            var rating = await _ratingRepository.GetAll()
+                                                        .Include(r => r.User)
+                                                        .Include(r => r.CustomShoeDesign)
+                                                            .ThenInclude(r => r.DesignPreviews)
+                                                        .FirstOrDefaultAsync(r => r.Id == request.Id);
             if (rating == null)
             {
                 throw new InvalidOperationException($"Rating with ID {request.Id} not found");
@@ -263,13 +280,12 @@ namespace FCSP.Services.RatingService
             return new GetRatingByIdResponse
             {
                 Id = rating.Id,
-                UserId = rating.UserId,
-                TargetId = rating.CustomShoeDesignId,
-                Type = "CustomShoeDesign",
-                Value = rating.UserRating,
+                UserName = rating.User.Name,
+                DesignName = rating.CustomShoeDesign.Name,
+                DesignPreviewUrl = rating.CustomShoeDesign.DesignPreviews.First().PreviewImageUrl,
+                UserRating = rating.UserRating,
                 Comment = rating.Comment ?? string.Empty,
                 CreatedAt = rating.CreatedAt,
-                UpdatedAt = rating.UpdatedAt
             };
         }
 

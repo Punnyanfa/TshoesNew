@@ -10,13 +10,12 @@ namespace FCSP.DTOs.Rating
     public class GetRatingByIdResponse
     {
         public long Id { get; set; }
-        public long UserId { get; set; }
-        public long TargetId { get; set; }
-        public string Type { get; set; }
-        public int Value { get; set; }
-        public string Comment { get; set; }
+        public string? DesignName { get; set; }
+        public string? DesignPreviewUrl { get; set; }
+        public string? UserName { get; set; }
+        public int UserRating { get; set; }
+        public string? Comment { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 
     public class AddRatingRequest

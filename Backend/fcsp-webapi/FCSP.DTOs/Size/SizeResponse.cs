@@ -9,6 +9,12 @@ namespace FCSP.DTOs.Size
         public bool IsDeleted { get; set; }
     }
 
+    public class ShoeSizes
+    {
+        public long Id { get; set; }
+        public int SizeValue { get; set; }
+    }
+
     public class SizeResponse : BaseResponseModel<SizeDto>
     {
     }

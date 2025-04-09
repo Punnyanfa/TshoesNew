@@ -22,6 +22,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private readonly IDesignServiceRepository _designServiceRepository;
     private readonly ISetServiceAmountRepository _setServiceAmountRepository;
     private readonly IServiceRepository _serviceRepository;
+    private readonly ISizeRepository _sizeRepository;
 
     public CustomShoeDesignService(
         ICustomShoeDesignRepository customShoeDesignRepository,
@@ -32,7 +33,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository,
         IDesignServiceRepository designServiceRepository,
         ISetServiceAmountRepository setServiceAmountRepository,
-        IServiceRepository serviceRepository)
+        IServiceRepository serviceRepository,
+        ISizeRepository sizeRepository)
     {
         _customShoeDesignRepository = customShoeDesignRepository;
         _orderDetailRepository = orderDetailRepository;
@@ -43,6 +45,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         _designServiceRepository = designServiceRepository;
         _setServiceAmountRepository = setServiceAmountRepository;
         _serviceRepository = serviceRepository;
+        _sizeRepository = sizeRepository;
     }
 
     #region Public Methods
@@ -304,6 +307,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Description = d.Description,
             Gender = d.CustomShoeDesignTemplate?.Gender,
             Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+            Status = d.Status,
             RatingCount = d.Ratings?.Count ?? 0,
             PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
@@ -340,10 +344,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                                                         .Include(d => d.DesignServices)
                                                             .ThenInclude(s => s.Service)
                                                         .FirstOrDefaultAsync(d => d.Id == request.Id);
-
+        var sizes = await _sizeRepository.GetAllAsync();
         if (design == null)
         {
-            return new GetCustomShoeDesignByIdResponse();
+            return null;
         }
 
         return new GetCustomShoeDesignByIdResponse
@@ -354,6 +358,11 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Price = design.TotalAmount,
             TemplateUrl = design.CustomShoeDesignTemplate?.ThreeDFileUrl,
             DesignData = design.DesignData,
+            Sizes = sizes.Select(d => new DTOs.Size.ShoeSizes
+            {
+                Id = d.Id,
+                SizeValue = d.SizeValue
+            }),
             TexturesUrls = design.CustomShoeDesignTextures?.Select(t => t.Texture?.ImageUrl),
             Services = design.DesignServices?.Select(s => new GetCustomShoeDesignServiceByIdResponse
             {
