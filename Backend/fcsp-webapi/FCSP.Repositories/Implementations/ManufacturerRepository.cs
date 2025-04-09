@@ -43,5 +43,14 @@ namespace FCSP.Repositories.Implementations
                 .ThenInclude(mc => mc.Criteria)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
+        public async Task<List<Manufacturer>> GetAllWithDetailsAsync()
+        {
+            return await _context.Manufacturers
+                .Include(m => m.Services)
+                .ThenInclude(s => s.SetServiceAmounts)
+                .Include(m => m.ManufacturerCriterias)
+                .ThenInclude(mc => mc.Criteria)
+                .ToListAsync();
+        }
     }
 }

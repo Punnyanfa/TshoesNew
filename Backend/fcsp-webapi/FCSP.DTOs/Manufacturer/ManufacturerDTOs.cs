@@ -8,21 +8,17 @@ namespace FCSP.DTOs.Manufacturer
         public long Id { get; set; }
     }
 
-    public class GetManufacturerResponse
+    public class GetManufacturerDetailResponse
     {
         public long Id { get; set; }
         public long UserId { get; set; }
         public string Name { get; set; } = null!;
         public float CommissionRate { get; set; }
         public int Status { get; set; }
+        public List<ServiceDto> Services { get; set; }
+        public List<CriteriaDto> Criterias { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-    }
-
-    public class GetManufacturerDetailResponse : GetManufacturerResponse
-    {
-        public IEnumerable<ServiceDto>? Services { get; set; }
-        public IEnumerable<CriteriaDto>? Criterias { get; set; }
     }
 
     public class ServiceDto

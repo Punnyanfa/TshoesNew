@@ -20,21 +20,32 @@ namespace FCSP.Services.ManufacturerService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<BaseResponseModel<List<Manufacturer>>> GetAllManufacturers()
+        public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetAllManufacturers()
         {
             try
             {
-                _logger.LogInformation("Fetching all manufacturers");
-                var manufacturers = await _manufacturerRepository.GetAllAsync();
-                return new BaseResponseModel<List<Manufacturer>> { Code = 200, Message = "Success", Data = manufacturers.ToList() };
+                _logger.LogInformation("Fetching all manufacturers with details");
+                var manufacturers = await _manufacturerRepository.GetAllWithDetailsAsync();
+
+                var detailedManufacturers = manufacturers.Select(m => MapToDetailResponse(m)).ToList();
+
+                return new BaseResponseModel<List<GetManufacturerDetailResponse>>
+                {
+                    Code = 200,
+                    Message = "Success",
+                    Data = detailedManufacturers
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching all manufacturers");
-                return new BaseResponseModel<List<Manufacturer>> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<List<GetManufacturerDetailResponse>>
+                {
+                    Code = 500,
+                    Message = ex.Message
+                };
             }
         }
-
         public async Task<BaseResponseModel<GetManufacturerDetailResponse>> GetManufacturerById(GetManufacturerRequest request)
         {
             try
@@ -258,8 +269,6 @@ namespace FCSP.Services.ManufacturerService
                 Name = manufacturer.Name,
                 CommissionRate = manufacturer.CommissionRate,
                 Status = (int)manufacturer.Status,
-                CreatedAt = manufacturer.CreatedAt, // Loại bỏ ??
-                UpdatedAt = manufacturer.UpdatedAt, // Loại bỏ ??
                 Services = manufacturer.Services?.Select(s => new ServiceDto
                 {
                     Id = s.Id,
@@ -271,7 +280,9 @@ namespace FCSP.Services.ManufacturerService
                 {
                     Id = mc.CriteriaId,
                     Name = mc.Criteria.Name
-                }).ToList() ?? new List<CriteriaDto>()
+                }).ToList() ?? new List<CriteriaDto>(),
+                CreatedAt = manufacturer.CreatedAt,
+                UpdatedAt = manufacturer.UpdatedAt
             };
         }
     }
