@@ -402,7 +402,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             }
         }
         
-        var totalAmount = templatePrice + servicesPrice;
+        var totalAmount = templatePrice + servicesPrice + request.DesignerMarkup.Value;
         var design = new CustomShoeDesign
         {
             UserId = request.UserId ?? 0,
