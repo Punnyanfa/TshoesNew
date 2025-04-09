@@ -43,10 +43,10 @@ public class CustomShoeDesignController : ControllerBase
     /// <summary>
     /// Get a custom shoe design by ID
     /// </summary>
-    /// <param name="id">Custom shoe design ID</param>
+    /// <param name="request">Custom shoe design ID</param>
     /// <returns>Custom shoe design details</returns>
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
+    [HttpGet("{request}")]
+    public async Task<IActionResult> GetCustomShoeDesignById([FromRoute]GetCustomShoeDesignByIdRequest request)
     {
         var response = await _customShoeDesignService.GetDesignById(request);
         return StatusCode(response.Code, response);
@@ -55,10 +55,10 @@ public class CustomShoeDesignController : ControllerBase
     /// <summary>
     /// Get all designs by a specific user
     /// </summary>
-    /// <param name="userId">User ID</param>
+    /// <param name="request">User ID</param>
     /// <returns>List of designs by user</returns>
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetDesignsByUser(GetCustomShoeDesignsByUserIdRequest request)
+    [HttpGet("user/{request}")]
+    public async Task<IActionResult> GetDesignsByUser([FromRoute]GetCustomShoeDesignsByUserIdRequest request)
     {
         var response = await _customShoeDesignService.GetDesignsByUserId(request);
         return StatusCode(response.Code, response);
@@ -79,25 +79,23 @@ public class CustomShoeDesignController : ControllerBase
     /// <summary>
     /// Update an existing custom shoe design
     /// </summary>
-    /// <param name="id">Custom shoe design ID</param>
+    /// <param name="request">Custom shoe design ID</param>
     /// <param name="designDto">Updated custom shoe design data</param>
     /// <returns>Updated custom shoe design</returns>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCustomShoeDesign(long id, [FromBody] UpdateCustomShoeDesignRequest designDto)
+    [HttpPut("{request}")]
+    public async Task<IActionResult> UpdateCustomShoeDesign([FromRoute] UpdateCustomShoeDesignRequest request)
     {
-        var response = await _customShoeDesignService.UpdateCustomShoeDesign(designDto);
+        var response = await _customShoeDesignService.UpdateCustomShoeDesign(request);
         return StatusCode(response.Code, response);
     }
 
     /// <summary>
     /// Delete a custom shoe design
     /// </summary>
-    /// <param name="id">Custom shoe design ID</param>
+    /// <param name="request">Custom shoe design ID</param>
     /// <returns>No content if successful</returns>
-    [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteCustomShoeDesign(DeleteCustomShoeDesignRequest request)
+    [HttpDelete("{request}")]
+    public async Task<IActionResult> DeleteCustomShoeDesign([FromRoute]DeleteCustomShoeDesignRequest request)
     {
         var response = await _customShoeDesignService.DeleteCustomShoeDesign(request);
         return StatusCode(response.Code, response);
