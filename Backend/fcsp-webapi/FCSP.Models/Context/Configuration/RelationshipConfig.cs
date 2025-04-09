@@ -10,8 +10,8 @@ internal static class RelationshipConfig
         // User relationships
         modelBuilder.Entity<User>()
             .HasOne(u => u.DefaultAddress)
-            .WithMany()
-            .HasForeignKey(u => u.DefaultAddressId)
+            .WithOne()
+            .HasForeignKey<User>(u => u.DefaultAddressId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<ShippingInfo>()
@@ -82,13 +82,13 @@ internal static class RelationshipConfig
 
         modelBuilder.Entity<Order>()
             .HasOne(o => o.Voucher)
-            .WithMany()
+            .WithMany(v => v.Orders)
             .HasForeignKey(o => o.VoucherId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Order>()
             .HasOne(o => o.ShippingInfo)
-            .WithMany()
+            .WithMany(s => s.Orders)
             .HasForeignKey(o => o.ShippingInfoId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -236,15 +236,15 @@ internal static class RelationshipConfig
 
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.OrderDetail)
-            .WithMany()
+            .WithMany(od => od.Transactions)
             .HasForeignKey(t => t.OrderDetailId)
-            .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Payment)
-            .WithMany()
+            .WithMany(p => p.Transactions)
             .HasForeignKey(t => t.PaymentId)
-            .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Size relationships
       

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.CustomShoeDesignService;
 
@@ -289,14 +290,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     #region Private Methods
     
-    private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetAllPublicCustomShoeDesigns()
+    private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetAllPublicCustomShoeDesigns()
     {
         var designs = await _customShoeDesignRepository.GetAllPublicCustomShoeDesignsAsync();
         if(designs == null || !designs.Any())
         {
-            return new List<GetCustomShoeDesignByIdResponse>();
+            return new List<GetSimpleCustomShoeDesignResponse>();
         }
-        return designs.Select(d => new GetCustomShoeDesignByIdResponse
+        return designs.Select(d => new GetSimpleCustomShoeDesignResponse
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
@@ -309,15 +310,15 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         });
     }
 
-    private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetTopFiveBestSellingDesigns()
+    private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetTopFiveBestSellingDesigns()
     {
         var designIds = await _orderDetailRepository.GetTopFiveBestSellingDesignsAsync();
         var designs = await _customShoeDesignRepository.GetDesignsByIdsAsync(designIds);
         if(designs == null || !designs.Any())
         {
-            return new List<GetCustomShoeDesignByIdResponse>();
+            return new List<GetSimpleCustomShoeDesignResponse>();
         }
-        return designs.Select(d => new GetCustomShoeDesignByIdResponse
+        return designs.Select(d => new GetSimpleCustomShoeDesignResponse
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
@@ -332,34 +333,52 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private async Task<GetCustomShoeDesignByIdResponse> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
     {
-        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+        var design = await _customShoeDesignRepository.GetAll() 
+                                                        .Include(d => d.CustomShoeDesignTemplate)
+                                                        .Include(d => d.CustomShoeDesignTextures)
+                                                            .ThenInclude(t => t.Texture)
+                                                        .Include(d => d.DesignServices)
+                                                            .ThenInclude(s => s.Service)
+                                                        .FirstOrDefaultAsync(d => d.Id == request.Id);
+
+        if (design == null)
+        {
+            return new GetCustomShoeDesignByIdResponse();
+        }
+
         return new GetCustomShoeDesignByIdResponse
         {
             Id = design.Id,
             Name = design.CustomShoeDesignTemplate?.Name,
             Description = design.Description,
-            Gender = design.CustomShoeDesignTemplate?.Gender,
-            Rating = design.Ratings != null && design.Ratings.Any() ? (float)Math.Round(design.Ratings.Average(r => r.UserRating), 1) : 0,
-            RatingCount = design.Ratings?.Count ?? 0,
-            PreviewImageUrl = design.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-            Price = design.TotalAmount
+            Price = design.TotalAmount,
+            TemplateUrl = design.CustomShoeDesignTemplate?.ThreeDFileUrl,
+            DesignData = design.DesignData,
+            TexturesUrls = design.CustomShoeDesignTextures?.Select(t => t.Texture?.ImageUrl),
+            Services = design.DesignServices?.Select(s => new GetCustomShoeDesignServiceByIdResponse
+            {
+                Id = s.Service.Id,
+                Name = s.Service.ServiceName
+            })
         };
     }
     
-    private async Task<IEnumerable<GetCustomShoeDesignByIdResponse>> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
+    private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
     {
         var designs = await _customShoeDesignRepository.GetDesignsByUserIdAsync(request.UserId);
         if(designs == null || !designs.Any())
         {
-            return new List<GetCustomShoeDesignByIdResponse>();
+            return new List<GetSimpleCustomShoeDesignResponse>();
         }
-        return designs.Select(d => new GetCustomShoeDesignByIdResponse
+        return designs.Select(d => new GetSimpleCustomShoeDesignResponse
         {
             Id = d.Id,
             Name = d.CustomShoeDesignTemplate?.Name,
-            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+            Description = d.Description,
+            Gender = d.CustomShoeDesignTemplate?.Gender,
             Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
             RatingCount = d.Ratings?.Count ?? 0,
+            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
             Price = d.TotalAmount
         });
     }
@@ -432,7 +451,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromUpdateDesignRequest(UpdateCustomShoeDesignRequest request)
     {
-        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+        var design = await _customShoeDesignRepository.FindAsync((object)request.Id);
         if (design == null)
         {
             throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
@@ -485,7 +504,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromDeleteDesignRequest(DeleteCustomShoeDesignRequest request)
     {
-        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+        var design = await _customShoeDesignRepository.FindAsync((object)request.Id);
 
         if (design == null)
         {

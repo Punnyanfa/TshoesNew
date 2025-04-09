@@ -99,7 +99,7 @@ namespace FCSP.Models.Migrations
                     DesignerMarkup = table.Column<float>(type: "real", nullable: false),
                     TotalAmount = table.Column<float>(type: "real", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    SizeId = table.Column<long>(type: "bigint", nullable: false),
+                    SizeId = table.Column<long>(type: "bigint", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -116,8 +116,7 @@ namespace FCSP.Models.Migrations
                         name: "FK_CustomShoeDesigns_Sizes_SizeId",
                         column: x => x.SizeId,
                         principalTable: "Sizes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -381,8 +380,6 @@ namespace FCSP.Models.Migrations
                     AmountPaid = table.Column<float>(type: "real", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     ShippingStatus = table.Column<int>(type: "int", nullable: false),
-                    ShippingInfoId1 = table.Column<long>(type: "bigint", nullable: true),
-                    VoucherId1 = table.Column<long>(type: "bigint", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -395,11 +392,6 @@ namespace FCSP.Models.Migrations
                         principalTable: "Vouchers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Orders_Vouchers_VoucherId1",
-                        column: x => x.VoucherId1,
-                        principalTable: "Vouchers",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -766,11 +758,6 @@ namespace FCSP.Models.Migrations
                 column: "ShippingInfoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_ShippingInfoId1",
-                table: "Orders",
-                column: "ShippingInfoId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
                 table: "Orders",
                 column: "UserId");
@@ -779,11 +766,6 @@ namespace FCSP.Models.Migrations
                 name: "IX_Orders_VoucherId",
                 table: "Orders",
                 column: "VoucherId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_VoucherId1",
-                table: "Orders",
-                column: "VoucherId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentGateways_UserId",
@@ -883,7 +865,9 @@ namespace FCSP.Models.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Users_DefaultAddressId",
                 table: "Users",
-                column: "DefaultAddressId");
+                column: "DefaultAddressId",
+                unique: true,
+                filter: "[DefaultAddressId] IS NOT NULL");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CustomShoeDesigns_Users_UserId",
@@ -956,13 +940,6 @@ namespace FCSP.Models.Migrations
                 principalTable: "ShippingInfos",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Orders_ShippingInfos_ShippingInfoId1",
-                table: "Orders",
-                column: "ShippingInfoId1",
-                principalTable: "ShippingInfos",
-                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Orders_Users_UserId",

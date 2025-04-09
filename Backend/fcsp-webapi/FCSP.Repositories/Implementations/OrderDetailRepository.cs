@@ -18,6 +18,12 @@ namespace FCSP.Repositories.Implementations
         {
             return await _context.OrderDetails
                 .Where(od => od.OrderId == orderId)
+                .Include(od => od.Size)
+                .Include(od => od.CustomShoeDesign)
+                    .ThenInclude(cd => cd.DesignPreviews)
+                .Include(od => od.CustomShoeDesign)
+                    .ThenInclude(cd => cd.DesignServices)
+                        .ThenInclude(ds => ds.Service)
                 .ToListAsync();
         }
 

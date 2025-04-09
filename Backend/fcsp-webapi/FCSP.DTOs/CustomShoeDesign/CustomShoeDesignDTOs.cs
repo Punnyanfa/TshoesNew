@@ -9,7 +9,7 @@ namespace FCSP.DTOs.CustomShoeDesign
 
     public class GetAllPublicCustomShoeDesignsResponse
     {
-        public IEnumerable<GetCustomShoeDesignByIdResponse>? Designs { get; set; }
+        public IEnumerable<GetSimpleCustomShoeDesignResponse>? Designs { get; set; }
     }
 
     public class GetCustomShoeDesignsByUserIdRequest 
@@ -19,10 +19,10 @@ namespace FCSP.DTOs.CustomShoeDesign
 
     public class GetListCustomShoeDesignsResponse 
     {
-        public IEnumerable<GetCustomShoeDesignByIdResponse>? Designs { get; set; }
+        public IEnumerable<GetSimpleCustomShoeDesignResponse>? Designs { get; set; }
     }
 
-    public class GetCustomShoeDesignByIdResponse
+    public class GetSimpleCustomShoeDesignResponse
     {
         public long Id { get; set; }
         public string? Name { get; set; }
@@ -32,7 +32,24 @@ namespace FCSP.DTOs.CustomShoeDesign
         public float? Price { get; set; }
         public string? Description { get; set; }
         public string? Gender { get; set; }
-        public int? Size { get; set; }
+    }
+
+    public class GetCustomShoeDesignByIdResponse
+    {
+        public long Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? TemplateUrl { get; set; }
+        public string? DesignData { get; set; }
+        public float? Price { get; set; }
+        public IEnumerable<string>? TexturesUrls { get; set; }
+        public IEnumerable<GetCustomShoeDesignServiceByIdResponse>? Services { get; set; }
+    }
+
+    public class GetCustomShoeDesignServiceByIdResponse
+    {
+        public long Id { get; set; }
+        public string? Name { get; set; }
     }
 
     public class AddCustomShoeDesignRequest

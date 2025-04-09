@@ -26,7 +26,7 @@ namespace FCSP.Services.ReturnedCustomShoeService
         {
             try
             {
-                var design = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
+                var design = await _customShoeDesignRepository.FindAsync((object)request.CustomShoeDesignId);
                 if (design == null)
                 {
                     throw new InvalidOperationException($"Custom shoe design with ID {request.CustomShoeDesignId} not found");

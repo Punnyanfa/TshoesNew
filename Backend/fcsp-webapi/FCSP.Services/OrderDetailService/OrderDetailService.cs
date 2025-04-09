@@ -5,6 +5,7 @@ using FCSP.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.OrderDetailService
 {
@@ -23,7 +24,7 @@ namespace FCSP.Services.OrderDetailService
         {
             try
             {
-                var response = await _orderDetailRepository.GetAllAsync();
+                var response = await _orderDetailRepository.GetAll().Include(od => od.Size).ToListAsync();
                 return new BaseResponseModel<IEnumerable<GetOrderDetailByIdResponse>>
                 {
                     Code = 200,
@@ -35,7 +36,7 @@ namespace FCSP.Services.OrderDetailService
                         CustomShoeDesignId = orderDetail.CustomShoeDesignId,
                         Quantity = orderDetail.Quantity,
                         UnitPrice = orderDetail.Price,
-                        Size = orderDetail.Size.SizeValue,
+                        SizeId = orderDetail.SizeId,
                         CreatedAt = orderDetail.CreatedAt,
                         UpdatedAt = orderDetail.UpdatedAt
                     }).ToList()
@@ -56,7 +57,7 @@ namespace FCSP.Services.OrderDetailService
         {
             try
             {
-                OrderDetail orderDetail = await GetEntityFromAddRequest(request);
+                var orderDetail = await GetEntityFromAddRequest(request);
                 var addedOrderDetail = await _orderDetailRepository.AddAsync(orderDetail);
                 return new BaseResponseModel<AddOrderDetailResponse>
                 {
@@ -148,7 +149,7 @@ namespace FCSP.Services.OrderDetailService
                         CustomShoeDesignId = orderDetails.CustomShoeDesignId,
                         Quantity = orderDetails.Quantity,
                         UnitPrice = orderDetails.Price,
-                        Size = orderDetails.Size.SizeValue,
+                        SizeId = orderDetails.SizeId,
                         CreatedAt = orderDetails.CreatedAt,
                         UpdatedAt = orderDetails.UpdatedAt
                     }
@@ -167,31 +168,32 @@ namespace FCSP.Services.OrderDetailService
 
         private async Task<OrderDetail> GetEntityFromGetByIdRequest(GetOrderDetailByIdRequest request)
         {
-            var orderDetail = await _orderDetailRepository.FindAsync(request.Id);
+            var orderDetail = await _orderDetailRepository.GetAll()
+                                                            .Include(od => od.Size)
+                                                            .Include(od => od.CustomShoeDesign)
+                                                                .ThenInclude(cd => cd.CustomShoeDesignTemplate)
+                                                            .Include(od => od.CustomShoeDesign)
+                                                                .ThenInclude(cd => cd.DesignPreviews)
+                                                            .Include(od => od.CustomShoeDesign)
+                                                                .ThenInclude(cd => cd.DesignServices)
+                                                                    .ThenInclude(ds => ds.Service)
+                                                            .FirstOrDefaultAsync(od => od.Id == request.Id);
             if (orderDetail == null)
             {
-                throw new InvalidOperationException("OrderDetail not found");
+                return null;
             }
             return orderDetail;
         }
 
         private async Task<OrderDetail> GetEntityFromAddRequest(AddOrderDetailRequest request)
-        {
-            // If a size value is provided, find the corresponding Size entity
-            long sizeId = 0;
-            if (request.Size.HasValue)
-            {
-                var size = await _sizeRepository.GetSizeEntityBySizeValueAsync(request.Size.Value);
-                sizeId = size.Id;
-            }
-            
+        {   
             return new OrderDetail
             {
                 OrderId = request.OrderId,
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 Quantity = request.Quantity,
                 Price = request.UnitPrice,
-                SizeId = sizeId, // Use the found or default sizeId
+                SizeId = request.SizeId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -199,22 +201,13 @@ namespace FCSP.Services.OrderDetailService
 
         private async Task<OrderDetail> GetEntityFromUpdateRequest(UpdateOrderDetailRequest request)
         {
-            OrderDetail orderDetail = await _orderDetailRepository.FindAsync(request.Id);
+            var orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
-                throw new InvalidOperationException("OrderDetail not found");
+                return null;
             }
-
             orderDetail.Quantity = request.Quantity;
-            orderDetail.Price = request.UnitPrice;
-            
-            // If a size value is provided, update the size
-            if (request.Size.HasValue)
-            {
-                var size = await _sizeRepository.GetSizeEntityBySizeValueAsync(request.Size.Value);
-                orderDetail.SizeId = size.Id;
-            }
-            
+            orderDetail.SizeId = request.SizeId;
             orderDetail.UpdatedAt = DateTime.UtcNow;
 
             return orderDetail;
@@ -222,10 +215,10 @@ namespace FCSP.Services.OrderDetailService
 
         private async Task<OrderDetail> GetEntityFromDeleteRequest(DeleteOrderDetailRequest request)
         {
-            OrderDetail orderDetail = await _orderDetailRepository.FindAsync(request.Id);
+            var orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
-                throw new InvalidOperationException("OrderDetail not found");
+                return null;
             }
             return orderDetail;
         }

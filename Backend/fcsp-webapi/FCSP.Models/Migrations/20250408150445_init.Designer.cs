@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCSP.Models.Migrations
 {
     [DbContext(typeof(FcspDbContext))]
-    [Migration("20250404164646_init")]
+    [Migration("20250408150445_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -80,7 +80,7 @@ namespace FCSP.Models.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("SizeId")
+                    b.Property<long?>("SizeId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Status")
@@ -394,9 +394,6 @@ namespace FCSP.Models.Migrations
                     b.Property<long>("ShippingInfoId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ShippingInfoId1")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("ShippingStatus")
                         .HasColumnType("int");
 
@@ -415,20 +412,13 @@ namespace FCSP.Models.Migrations
                     b.Property<long?>("VoucherId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("VoucherId1")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ShippingInfoId");
 
-                    b.HasIndex("ShippingInfoId1");
-
                     b.HasIndex("UserId");
 
                     b.HasIndex("VoucherId");
-
-                    b.HasIndex("VoucherId1");
 
                     b.ToTable("Orders");
                 });
@@ -951,7 +941,9 @@ namespace FCSP.Models.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DefaultAddressId");
+                    b.HasIndex("DefaultAddressId")
+                        .IsUnique()
+                        .HasFilter("[DefaultAddressId] IS NOT NULL");
 
                     b.ToTable("Users");
                 });
@@ -1063,11 +1055,9 @@ namespace FCSP.Models.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FCSP.Models.Entities.Size", "Size")
+                    b.HasOne("FCSP.Models.Entities.Size", null)
                         .WithMany("CustomShoeDesigns")
-                        .HasForeignKey("SizeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("SizeId");
 
                     b.HasOne("FCSP.Models.Entities.User", "User")
                         .WithMany("CustomShoeDesigns")
@@ -1076,8 +1066,6 @@ namespace FCSP.Models.Migrations
                         .IsRequired();
 
                     b.Navigation("CustomShoeDesignTemplate");
-
-                    b.Navigation("Size");
 
                     b.Navigation("User");
                 });
@@ -1186,14 +1174,10 @@ namespace FCSP.Models.Migrations
             modelBuilder.Entity("FCSP.Models.Entities.Order", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.ShippingInfo", "ShippingInfo")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("ShippingInfoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("FCSP.Models.Entities.ShippingInfo", null)
-                        .WithMany("Orders")
-                        .HasForeignKey("ShippingInfoId1");
 
                     b.HasOne("FCSP.Models.Entities.User", "User")
                         .WithMany("Orders")
@@ -1202,13 +1186,9 @@ namespace FCSP.Models.Migrations
                         .IsRequired();
 
                     b.HasOne("FCSP.Models.Entities.Voucher", "Voucher")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("VoucherId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("FCSP.Models.Entities.Voucher", null)
-                        .WithMany("Orders")
-                        .HasForeignKey("VoucherId1");
 
                     b.Navigation("ShippingInfo");
 
@@ -1373,13 +1353,13 @@ namespace FCSP.Models.Migrations
             modelBuilder.Entity("FCSP.Models.Entities.Transaction", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.OrderDetail", "OrderDetail")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("OrderDetailId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("FCSP.Models.Entities.Payment", "Payment")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -1400,8 +1380,8 @@ namespace FCSP.Models.Migrations
             modelBuilder.Entity("FCSP.Models.Entities.User", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.ShippingInfo", "DefaultAddress")
-                        .WithMany()
-                        .HasForeignKey("DefaultAddressId")
+                        .WithOne()
+                        .HasForeignKey("FCSP.Models.Entities.User", "DefaultAddressId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DefaultAddress");
@@ -1486,6 +1466,16 @@ namespace FCSP.Models.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.OrderDetail", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.Payment", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Posts", b =>

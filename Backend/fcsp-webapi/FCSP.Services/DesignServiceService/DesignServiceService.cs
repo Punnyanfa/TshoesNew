@@ -168,7 +168,7 @@ namespace FCSP.Services.DesignServiceService
 
                 // Kiểm tra CustomShoeDesign tồn tại
                 _logger.LogInformation("Checking CustomShoeDesign with ID: {DesignId}", request.DesignId);
-                var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.DesignId);
+                var customShoeDesign = await _customShoeDesignRepository.FindAsync((object)request.DesignId);
                 if (customShoeDesign == null)
                 {
                     _logger.LogWarning("CustomShoeDesign not found for ID: {DesignId}", request.DesignId);
@@ -275,7 +275,7 @@ namespace FCSP.Services.DesignServiceService
 
                 // Kiểm tra CustomShoeDesign tồn tại
                 _logger.LogInformation("Checking CustomShoeDesign with ID: {DesignId}", request.DesignId);
-                var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.DesignId);
+                var customShoeDesign = await _customShoeDesignRepository.FindAsync((object)request.DesignId);
                 if (customShoeDesign == null)
                 {
                     _logger.LogWarning("CustomShoeDesign not found for ID: {DesignId}", request.DesignId);

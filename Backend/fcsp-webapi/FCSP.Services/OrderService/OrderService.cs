@@ -114,7 +114,7 @@ namespace FCSP.Services.OrderService
                 float calculatedTotal = 0;
                 foreach (var od in request.OrderDetails) // OrderDetails giờ là List<OrderDetailRequestDto>
                 {
-                    var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
+                    var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
                     if (customShoeDesign == null)
                     {
                         _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} not found for user ID: {UserId}", od.CustomShoeDesignId, request.UserId);
@@ -214,7 +214,7 @@ namespace FCSP.Services.OrderService
                 // Tạo OrderDetails
                 foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
                 {
-                    var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
+                    var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
                     var orderDetail = new OrderDetail
                     {
                         OrderId = addedOrder.Id,
@@ -271,7 +271,7 @@ namespace FCSP.Services.OrderService
                 float calculatedTotal = 0;
                 foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
                 {
-                    var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
+                    var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
                     if (customShoeDesign == null)
                     {
                         _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} not found for order ID: {OrderId}", od.CustomShoeDesignId, request.Id);
@@ -775,7 +775,7 @@ namespace FCSP.Services.OrderService
 
             foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
             {
-                var customShoeDesign = await _customShoeDesignRepository.FindByIdAsync(od.CustomShoeDesignId);
+                var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
                 var newOrderDetail = new OrderDetail
                 {
                     OrderId = order.Id,

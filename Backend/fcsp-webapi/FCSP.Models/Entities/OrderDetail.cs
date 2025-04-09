@@ -17,4 +17,7 @@ public class OrderDetail : BaseEntity
     public int Quantity { get; set; }
 
     public float Price { get; set; }
+
+    // Navigation properties
+    public virtual ICollection<Transaction> Transactions { get; } = [];
 }

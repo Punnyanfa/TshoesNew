@@ -13,4 +13,7 @@ public class Payment : BaseEntity
     public PaymentMethod PaymentMethod { get; set; }
 
     public PaymentStatus PaymentStatus { get; set; }
+
+    // Navigation properties
+    public virtual ICollection<Transaction> Transactions { get; } = [];
 }

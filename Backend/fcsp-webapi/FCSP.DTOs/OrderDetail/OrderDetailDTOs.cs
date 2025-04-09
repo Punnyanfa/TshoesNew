@@ -12,7 +12,7 @@ namespace FCSP.DTOs.OrderDetail
         public long CustomShoeDesignId { get; set; }
         public int Quantity { get; set; }
         public float UnitPrice { get; set; }
-        public int? Size { get; set; }
+        public long SizeId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -23,7 +23,7 @@ namespace FCSP.DTOs.OrderDetail
         public long CustomShoeDesignId { get; set; }
         public int Quantity { get; set; }
         public float UnitPrice { get; set; }
-        public int? Size { get; set; }
+        public long SizeId { get; set; }
     }
 
     public class AddOrderDetailResponse
@@ -37,7 +37,7 @@ namespace FCSP.DTOs.OrderDetail
         public long Id { get; set; }
         public int Quantity { get; set; }
         public float UnitPrice { get; set; }
-        public int? Size { get; set; }
+        public long SizeId { get; set; }
     }
 
     public class UpdateOrderDetailResponse

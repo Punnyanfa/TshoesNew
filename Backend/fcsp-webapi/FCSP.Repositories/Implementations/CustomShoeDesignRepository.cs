@@ -1,3 +1,4 @@
+using Azure.Core;
 using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -11,10 +12,7 @@ namespace FCSP.Repositories.Implementations
         public CustomShoeDesignRepository(FcspDbContext context) : base(context)
         {
         }
-        public async Task<CustomShoeDesign> FindByIdAsync(long id)
-        {
-            return await _context.Set<CustomShoeDesign>().FindAsync(id);
-        }
+
         public async Task<IEnumerable<CustomShoeDesign>> GetAllPublicCustomShoeDesignsAsync()
         {
             return await Entities
