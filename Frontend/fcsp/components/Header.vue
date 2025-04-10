@@ -49,7 +49,7 @@
   </div>
 
   <!-- Cart Button -->
-  <router-link to="/cartPage" class="sneaker-btn-icon cart-btn">
+  <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
     <ShoppingCartOutlined />
     <span class="sneaker-badge">{{ cartCount }}</span>
   </router-link>

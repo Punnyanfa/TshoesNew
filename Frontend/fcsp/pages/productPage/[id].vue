@@ -59,7 +59,10 @@
                   Selected size: {{ selectedSize }}
                 </div>
               </div>
-              
+              <div class="mb-4">
+                <h5 class="mb-3">Quantity:</h5>
+                <input type="number" v-model="selectedQuantity" min="1" class="form-control w-25" />
+              </div>
               <!-- Textures section (moved to sidebar in mobile view) -->
               <div class="d-md-none mb-4">
                 <h5>Textures:</h5>
@@ -90,14 +93,16 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { getProductById } from '~/server/product-service';
 
 const route = useRoute();
+const router = useRouter();
 const product = ref(null);
 const loading = ref(true);
 const selectedSize = ref('');
 const selectedTextureIndex = ref(0);
+const selectedQuantity = ref(1);
 
 // Fetch product details from API
 const fetchProduct = async () => {
@@ -115,20 +120,60 @@ const fetchProduct = async () => {
 // Fetch product data when component is mounted
 onMounted(fetchProduct);
 
-// Add product to cart with selected size
+// Modified addToCart function to save to sessionStorage
 const addToCart = () => {
-  if (product.value && selectedSize.value) {
+  if (product.value && selectedSize.value && selectedQuantity.value > 0) {
+    // Determine the image URL to store
+    let imageUrl = '/placeholder.png'; // Default placeholder
+    if (product.value.texturesUrls && product.value.texturesUrls.length > 0) {
+      imageUrl = product.value.texturesUrls[selectedTextureIndex.value];
+    } else if (product.value.previewImageUrl) { 
+      imageUrl = product.value.previewImageUrl;
+    }
+
     const productToAdd = {
-      ...product.value,
+      id: product.value.id,
+      name: product.value.name,
+      description: product.value.description,
+      price: product.value.price,
       selectedSize: selectedSize.value,
-      selectedTexture: product.value.texturesUrls ? 
-                      product.value.texturesUrls[selectedTextureIndex.value] : 
-                      null
+      selectedQuantity: selectedQuantity.value,
+      previewImageUrl: imageUrl // Use the determined image URL
     };
-    
-    console.log('Product added to cart:', productToAdd);
-    // Code to add product to cart
-    // Example: localStorage.setItem('cart', JSON.stringify([...cart, productToAdd]));
+
+    try {
+      // Get existing cart from sessionStorage
+      let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+
+      // Check if item with same ID and size already exists
+      const existingItemIndex = cart.findIndex(item =>
+        item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize
+      );
+
+      if (existingItemIndex > -1) {
+        // Update quantity if item exists
+        cart[existingItemIndex].selectedQuantity += productToAdd.selectedQuantity;
+      } else {
+        // Add new item if it doesn't exist
+        cart.push(productToAdd);
+      }
+
+      // Save updated cart back to sessionStorage
+      sessionStorage.setItem('cart', JSON.stringify(cart));
+
+      console.log('Product added to cart:', productToAdd);
+      console.log('Updated cart stored in session:', cart);
+
+      // Optional: Navigate to the shopping cart page
+      router.push('/shoppingCartPage');
+
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+      // Optional: Show error message to user
+    }
+  } else {
+     console.warn('Please select size and quantity before adding to cart.');
+     // Optional: Show warning message to user
   }
 };
 </script>
