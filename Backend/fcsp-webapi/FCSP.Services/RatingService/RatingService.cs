@@ -13,10 +13,14 @@ namespace FCSP.Services.RatingService
     public class RatingService : IRatingService
     {
         private readonly IRatingRepository _ratingRepository;
+        private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
 
-        public RatingService(IRatingRepository ratingRepository)
+        public RatingService(
+            IRatingRepository ratingRepository,
+            ICustomShoeDesignRepository customShoeDesignRepository)
         {
             _ratingRepository = ratingRepository;
+            _customShoeDesignRepository = customShoeDesignRepository;
         }
 
         #region Public Methods
@@ -26,10 +30,12 @@ namespace FCSP.Services.RatingService
             try
             {
                 var ratings = await _ratingRepository.GetAll()
-                                                        .Include(r => r.User)
-                                                        .Include(r => r.CustomShoeDesign)
-                                                            .ThenInclude(r => r.DesignPreviews)
-                                                        .ToListAsync();
+                    .Where(r => !r.IsDeleted) // Lọc các bản ghi chưa bị xóa mềm
+                    .Include(r => r.User)
+                    .Include(r => r.CustomShoeDesign)
+                        .ThenInclude(r => r.DesignPreviews)
+                    .ToListAsync();
+
                 return new BaseResponseModel<IEnumerable<GetRatingByIdResponse>>
                 {
                     Code = 200,
@@ -37,7 +43,7 @@ namespace FCSP.Services.RatingService
                     Data = ratings.Select(d => new GetRatingByIdResponse
                     {
                         DesignName = d.CustomShoeDesign.Name,
-                        DesignPreviewUrl = d.CustomShoeDesign.DesignPreviews.First().PreviewImageUrl,
+                        DesignPreviewUrl = d.CustomShoeDesign.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl ?? string.Empty,
                         UserName = d.User.Name,
                         UserRating = d.UserRating,
                         Comment = d.Comment,
@@ -224,10 +230,11 @@ namespace FCSP.Services.RatingService
         private async Task<Rating> GetRatingByIdInternal(GetRatingByIdRequest request)
         {
             var rating = await _ratingRepository.GetAll()
-                                                        .Include(r => r.User)
-                                                        .Include(r => r.CustomShoeDesign)
-                                                            .ThenInclude(r => r.DesignPreviews)
-                                                        .FirstOrDefaultAsync(r => r.Id == request.Id);
+                .Where(r => !r.IsDeleted) // Lọc bản ghi chưa bị xóa mềm
+                .Include(r => r.User)
+                .Include(r => r.CustomShoeDesign)
+                    .ThenInclude(r => r.DesignPreviews)
+                .FirstOrDefaultAsync(r => r.Id == request.Id);
             if (rating == null)
             {
                 throw new InvalidOperationException($"Rating with ID {request.Id} not found");
@@ -237,14 +244,21 @@ namespace FCSP.Services.RatingService
 
         private async Task<Rating> AddRatingInternal(AddRatingRequest request)
         {
+            var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
+            if (customShoeDesign == null || customShoeDesign.IsDeleted)
+            {
+                throw new InvalidOperationException($"Custom shoe design with ID {request.CustomShoeDesignId} not found or has been deleted");
+            }
+
             var rating = new Rating
             {
                 UserId = request.UserId,
-                CustomShoeDesignId = request.TargetId,
+                CustomShoeDesignId = request.CustomShoeDesignId,
                 UserRating = request.Value,
                 Comment = request.Comment,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                IsDeleted = false // Đảm bảo mặc định là false khi tạo mới
             };
             return await _ratingRepository.AddAsync(rating);
         }
@@ -252,13 +266,20 @@ namespace FCSP.Services.RatingService
         private async Task<Rating> UpdateRatingInternal(UpdateRatingRequest request)
         {
             var rating = await _ratingRepository.FindAsync(request.Id);
-            if (rating == null)
+            if (rating == null || rating.IsDeleted)
             {
-                throw new InvalidOperationException($"Rating with ID {request.Id} not found");
+                throw new InvalidOperationException($"Rating with ID {request.Id} not found or has been deleted");
+            }
+
+            var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
+            if (customShoeDesign == null || customShoeDesign.IsDeleted)
+            {
+                throw new InvalidOperationException($"Custom shoe design with ID {request.CustomShoeDesignId} not found or has been deleted");
             }
 
             rating.UserRating = request.Value;
             rating.Comment = request.Comment;
+            rating.CustomShoeDesignId = request.CustomShoeDesignId;
             rating.UpdatedAt = DateTime.UtcNow;
 
             await _ratingRepository.UpdateAsync(rating);
@@ -268,11 +289,15 @@ namespace FCSP.Services.RatingService
         private async Task DeleteRatingInternal(DeleteRatingRequest request)
         {
             var rating = await _ratingRepository.FindAsync(request.Id);
-            if (rating == null)
+            if (rating == null || rating.IsDeleted)
             {
-                throw new InvalidOperationException($"Rating with ID {request.Id} not found");
+                throw new InvalidOperationException($"Rating with ID {request.Id} not found or has been deleted");
             }
-            await _ratingRepository.DeleteAsync(request.Id);
+
+            // Thực hiện soft delete
+            rating.IsDeleted = true;
+            rating.UpdatedAt = DateTime.UtcNow;
+            await _ratingRepository.UpdateAsync(rating); // Cập nhật thay vì xóa
         }
 
         private GetRatingByIdResponse MapToDetailedResponse(Rating rating)
@@ -282,7 +307,7 @@ namespace FCSP.Services.RatingService
                 Id = rating.Id,
                 UserName = rating.User.Name,
                 DesignName = rating.CustomShoeDesign.Name,
-                DesignPreviewUrl = rating.CustomShoeDesign.DesignPreviews.First().PreviewImageUrl,
+                DesignPreviewUrl = rating.CustomShoeDesign.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl ?? string.Empty,
                 UserRating = rating.UserRating,
                 Comment = rating.Comment ?? string.Empty,
                 CreatedAt = rating.CreatedAt,
@@ -293,7 +318,7 @@ namespace FCSP.Services.RatingService
         {
             var ratings = await _ratingRepository.GetAllAsync();
             var groupedRatings = ratings
-                .Where(r => !r.IsDeleted)
+                .Where(r => !r.IsDeleted) // Lọc các bản ghi chưa bị xóa mềm
                 .GroupBy(r => r.CustomShoeDesignId)
                 .Select(g => new CustomShoeRatingStats
                 {
@@ -323,7 +348,7 @@ namespace FCSP.Services.RatingService
         {
             var ratings = await _ratingRepository.GetAllAsync();
             return ratings
-                .Where(r => !r.IsDeleted && r.UserRating >= 4)
+                .Where(r => !r.IsDeleted && r.UserRating >= 4) // Lọc các bản ghi chưa bị xóa mềm
                 .GroupBy(r => r.CustomShoeDesignId)
                 .Select(g => new TopRatedCustomShoe
                 {
@@ -339,7 +364,7 @@ namespace FCSP.Services.RatingService
         {
             var ratings = await _ratingRepository.GetAllAsync();
             var filteredRatings = ratings
-                .Where(r => !r.IsDeleted && r.CustomShoeDesignId == customShoeDesignId)
+                .Where(r => !r.IsDeleted && r.CustomShoeDesignId == customShoeDesignId) // Lọc các bản ghi chưa bị xóa mềm
                 .ToList();
 
             if (!filteredRatings.Any())

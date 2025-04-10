@@ -61,18 +61,21 @@ namespace FCSP.WebAPI.Controllers.Rating
             var response = await _ratingService.DeleteRating(request);
             return StatusCode(response.Code, response);
         }
+
         [HttpGet("stats")]
         public async Task<IActionResult> GetCustomShoeRatingStats()
         {
             var stats = await _ratingService.GetCustomShoeRatingStats();
             return StatusCode(stats.Code, stats);
         }
+
         [HttpGet("top-rated")]
         public async Task<IActionResult> GetTopRatedCustomShoes()
         {
             var topRated = await _ratingService.GetTopRatedCustomShoes();
             return StatusCode(topRated.Code, topRated);
         }
+
         [HttpGet("stats/{customShoeDesignId}")]
         public async Task<IActionResult> GetCustomShoeRatingStatsById(long customShoeDesignId)
         {
@@ -87,4 +90,4 @@ namespace FCSP.WebAPI.Controllers.Rating
             }
         }
     }
-} 
+}
