@@ -6,22 +6,21 @@ import { ElNotification } from 'element-plus';
 // Hàm lưu token, email, role, userId và username vào localStorage
 const saveTokenAndUserInfo = (token, email, role) => {
   if (token) {
-    localStorage.setItem("userToken", token); 
-    localStorage.setItem("email", email);
-    localStorage.setItem("role", role);
-
-    // Giải mã token để lấy thông tin
+    // Giải mã token để lấy thông 
     const decodedToken = jwtDecode(token);
     console.log("decodedToken", decodedToken);
     const userId = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
     const username = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
-    console.log("username", username);
+    const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
     if (userId) {
       localStorage.setItem("userId", userId); // Lưu userId vào localStorage
     }
 
     if (username) {
       localStorage.setItem("username", username); // Lưu username vào localStorage
+    }
+    if (role) {
+      localStorage.setItem("role", role); // Lưu username vào localStorage
     }
   }
 };
