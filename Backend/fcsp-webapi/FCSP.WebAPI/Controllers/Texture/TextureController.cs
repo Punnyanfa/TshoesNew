@@ -30,15 +30,17 @@ namespace FCSP.WebAPI.Controllers.Texture
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetTextureById(GetTextureByIdRequest request)
+        public async Task<IActionResult> GetTextureById(long id)
         {
+            var request = new GetTextureByIdRequest { Id = id };
             var response = await _textureService.GetTextureById(request);
             return StatusCode(response.Code, response);
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetTexturesByUser(GetTexturesByUserIdRequest request)
+        public async Task<IActionResult> GetTexturesByUser(long userId)
         {
+            var request = new GetTexturesByUserIdRequest { UserId = userId };
             var response = await _textureService.GetTexturesByUserId(request);
             return StatusCode(response.Code, response);
         }
@@ -51,8 +53,9 @@ namespace FCSP.WebAPI.Controllers.Texture
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTexture(DeleteTextureRequest request)
+        public async Task<IActionResult> DeleteTexture(long id)
         {
+            var request = new DeleteTextureRequest { Id = id };
             var response = await _textureService.DeleteTexture(request);
             return StatusCode(response.Code, response);
         }
