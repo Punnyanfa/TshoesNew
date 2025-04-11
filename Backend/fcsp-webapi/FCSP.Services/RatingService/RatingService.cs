@@ -36,6 +36,7 @@ namespace FCSP.Services.RatingService
                     Message = "Ratings retrieved successfully",
                     Data = ratings.Select(d => new GetRatingByIdResponse
                     {
+                        Id = d.Id,
                         DesignName = d.CustomShoeDesign.Name,
                         DesignPreviewUrl = d.CustomShoeDesign.DesignPreviews.First().PreviewImageUrl,
                         UserName = d.User.Name,

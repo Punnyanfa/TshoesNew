@@ -2,9 +2,9 @@
 
 public class OrderDetail : BaseEntity
 {
-    public long OrderId { get; set; }
+    public long? OrderId { get; set; }
 
-    public virtual Order Order { get; set; } = null!;
+    public virtual Order? Order { get; set; }
 
     public long CustomShoeDesignId { get; set; }
 

@@ -19,17 +19,18 @@ namespace FCSP.DTOs.OrderDetail
 
     public class AddOrderDetailRequest
     {
-        public long OrderId { get; set; }
         public long CustomShoeDesignId { get; set; }
-        public int Quantity { get; set; }
-        public float UnitPrice { get; set; }
         public long SizeId { get; set; }
     }
 
     public class AddOrderDetailResponse
     {
         public long Id { get; set; }
-        public float UnitPrice { get; set; }
+        public string PreviewImageUrl { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
+        public string ProductDescription { get; set; } = string.Empty;
+        public int SizeValue { get; set; }
+        public float ProductPrice { get; set; }
     }
 
     public class UpdateOrderDetailRequest

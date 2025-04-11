@@ -13,11 +13,13 @@ namespace FCSP.Services.OrderDetailService
     {
         private readonly IOrderDetailRepository _orderDetailRepository;
         private readonly ISizeRepository _sizeRepository;
+        private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
 
-        public OrderDetailService(IOrderDetailRepository orderDetailRepository, ISizeRepository sizeRepository)
+        public OrderDetailService(IOrderDetailRepository orderDetailRepository, ISizeRepository sizeRepository, ICustomShoeDesignRepository customShoeDesignRepository)
         {
             _orderDetailRepository = orderDetailRepository;
             _sizeRepository = sizeRepository;
+            _customShoeDesignRepository = customShoeDesignRepository;
         }
 
         public async Task<BaseResponseModel<IEnumerable<GetOrderDetailByIdResponse>>> GetAllOrderDetails()
@@ -32,7 +34,6 @@ namespace FCSP.Services.OrderDetailService
                     Data = response.Select(orderDetail => new GetOrderDetailByIdResponse
                     {
                         Id = orderDetail.Id,
-                        OrderId = orderDetail.OrderId,
                         CustomShoeDesignId = orderDetail.CustomShoeDesignId,
                         Quantity = orderDetail.Quantity,
                         UnitPrice = orderDetail.Price,
@@ -61,13 +62,17 @@ namespace FCSP.Services.OrderDetailService
                 var addedOrderDetail = await _orderDetailRepository.AddAsync(orderDetail);
                 return new BaseResponseModel<AddOrderDetailResponse>
                 {
-                Code = 200,
-                Message = "Order detail added successfully",
-                Data = new AddOrderDetailResponse
-                {
-                    Id = addedOrderDetail.Id,
-                    UnitPrice = addedOrderDetail.Price
-                }
+                    Code = 200,
+                    Message = "Order detail added successfully",
+                    Data = new AddOrderDetailResponse
+                    {
+                        Id = addedOrderDetail.Id,
+                        ProductPrice = addedOrderDetail.Price,
+                        ProductDescription = addedOrderDetail.CustomShoeDesign.Description,
+                        ProductName = addedOrderDetail.CustomShoeDesign.Name,
+                        PreviewImageUrl = addedOrderDetail.CustomShoeDesign.DesignPreviews.FirstOrDefault()?.PreviewImageUrl,
+                        SizeValue = addedOrderDetail.Size.SizeValue
+                    }
                 };
             }
             catch (Exception ex)
@@ -145,7 +150,7 @@ namespace FCSP.Services.OrderDetailService
                     Data = new GetOrderDetailByIdResponse
                     {
                         Id = orderDetails.Id,
-                        OrderId = orderDetails.OrderId,
+                        OrderId = orderDetails.OrderId.Value,
                         CustomShoeDesignId = orderDetails.CustomShoeDesignId,
                         Quantity = orderDetails.Quantity,
                         UnitPrice = orderDetails.Price,
@@ -186,13 +191,12 @@ namespace FCSP.Services.OrderDetailService
         }
 
         private async Task<OrderDetail> GetEntityFromAddRequest(AddOrderDetailRequest request)
-        {   
+        {   var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
             return new OrderDetail
             {
-                OrderId = request.OrderId,
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 Quantity = request.Quantity,
-                Price = request.UnitPrice,
+                Price = customShoeDesign.TotalAmount,
                 SizeId = request.SizeId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
