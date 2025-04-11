@@ -12,5 +12,6 @@ namespace FCSP.Services.ServiceService
         Task<BaseResponseModel<UpdateServiceResponse>> UpdateService(UpdateServiceRequest request);
         Task<BaseResponseModel<DeleteServiceResponse>> DeleteService(DeleteServiceRequest request);
         Task<float?> GetServicePriceAsync(long serviceId);
+        Task<BaseResponseModel<List<ServiceResponseDto>>> GetServicesByManufacturerId(long manufacturerId); // New method
     }
 }

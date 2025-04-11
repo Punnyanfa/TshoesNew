@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace FCSP.DTOs.Rating
 {
@@ -21,7 +21,8 @@ namespace FCSP.DTOs.Rating
     public class AddRatingRequest
     {
         public long UserId { get; set; }
-        public long TargetId { get; set; }
+        public long CustomShoeDesignId { get; set; } // Đổi từ TargetId
+
         public string Type { get; set; }
 
         [Range(1, 5, ErrorMessage = "Rating value must be between 1 and 5")]
@@ -41,7 +42,7 @@ namespace FCSP.DTOs.Rating
     {
         public long Id { get; set; }
         public long UserId { get; set; }
-        public long TargetId { get; set; }
+        public long CustomShoeDesignId { get; set; } // Đổi từ TargetId
         public string Type { get; set; }
 
         [Range(1, 5, ErrorMessage = "Rating value must be between 1 and 5")]
@@ -66,11 +67,13 @@ namespace FCSP.DTOs.Rating
     {
         public bool Success { get; set; }
     }
+
     public class CustomShoeRatingStats
     {
         public long CustomShoeDesignId { get; set; }
-        public Dictionary<int, int> RatingBreakdown { get; set; } = new Dictionary<int, int>(); // Key: Rating (1-5), Value: Count
+        public Dictionary<int, int> RatingBreakdown { get; set; } = new Dictionary<int, int>();
     }
+
     public class TopRatedCustomShoe
     {
         public long CustomShoeDesignId { get; set; }

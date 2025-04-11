@@ -46,6 +46,7 @@ namespace FCSP.Services.ManufacturerService
                 };
             }
         }
+
         public async Task<BaseResponseModel<GetManufacturerDetailResponse>> GetManufacturerById(GetManufacturerRequest request)
         {
             try
@@ -110,7 +111,7 @@ namespace FCSP.Services.ManufacturerService
                     UserId = request.UserId,
                     Name = request.Name,
                     CommissionRate = request.CommissionRate,
-                    Status = request.CommissionRate < 40 ? ManufacturerStatus.Suspended : (ManufacturerStatus)request.Status,
+                    Status = (ManufacturerStatus)request.Status, // Removed commission rate < 40 condition
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -156,7 +157,7 @@ namespace FCSP.Services.ManufacturerService
 
                 manufacturer.Name = request.Name;
                 manufacturer.CommissionRate = request.CommissionRate;
-                manufacturer.Status = request.CommissionRate < 40 ? ManufacturerStatus.Suspended : (ManufacturerStatus)request.Status;
+                manufacturer.Status = (ManufacturerStatus)request.Status; // Removed commission rate < 40 condition
                 manufacturer.UpdatedAt = DateTime.UtcNow;
 
                 await _manufacturerRepository.UpdateAsync(manufacturer);

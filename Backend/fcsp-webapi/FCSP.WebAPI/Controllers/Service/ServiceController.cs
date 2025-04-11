@@ -24,11 +24,11 @@ namespace FCSP.WebAPI.Controllers.Service
             return StatusCode(response.Code, response);
         }
 
-        [HttpGet("{id:long}")] // Ràng buộc id phải là long
+        [HttpGet("{id:long}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetServiceById(long id) // Thay [FromRoute] GetServiceByIdRequest bằng long id
+        public async Task<IActionResult> GetServiceById(long id)
         {
             if (id <= 0)
             {
@@ -41,6 +41,25 @@ namespace FCSP.WebAPI.Controllers.Service
 
             var request = new GetServiceByIdRequest { Id = id };
             var response = await _serviceService.GetServiceById(request);
+            return StatusCode(response.Code, response);
+        }
+
+        [HttpGet("manufacturer/{manufacturerId:long}")] // New endpoint
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetServicesByManufacturerId(long manufacturerId)
+        {
+            if (manufacturerId <= 0)
+            {
+                return BadRequest(new BaseResponseModel<object>
+                {
+                    Code = 400,
+                    Message = "Manufacturer ID must be greater than 0"
+                });
+            }
+
+            var response = await _serviceService.GetServicesByManufacturerId(manufacturerId);
             return StatusCode(response.Code, response);
         }
 
@@ -73,7 +92,7 @@ namespace FCSP.WebAPI.Controllers.Service
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteService(long id) // Thay [FromRoute] DeleteServiceRequest bằng long id
+        public async Task<IActionResult> DeleteService(long id)
         {
             if (id <= 0)
             {

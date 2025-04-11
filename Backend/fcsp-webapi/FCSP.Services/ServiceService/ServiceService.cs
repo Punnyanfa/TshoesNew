@@ -79,6 +79,66 @@ namespace FCSP.Services.ServiceService
                 };
             }
         }
+        public async Task<BaseResponseModel<List<ServiceResponseDto>>> GetServicesByManufacturerId(long manufacturerId)
+        {
+            try
+            {
+                if (manufacturerId <= 0)
+                {
+                    _logger.LogWarning("Invalid Manufacturer ID: {ManufacturerId}", manufacturerId);
+                    return new BaseResponseModel<List<ServiceResponseDto>>
+                    {
+                        Code = 400,
+                        Message = "Manufacturer ID must be greater than 0",
+                        Data = null
+                    };
+                }
+
+                _logger.LogInformation("Fetching services for ManufacturerId: {ManufacturerId}", manufacturerId);
+                var services = await _serviceRepository.GetByManufacturerIdAsync(manufacturerId);
+                if (services == null || !services.Any())
+                {
+                    _logger.LogWarning("No services found for ManufacturerId: {ManufacturerId}", manufacturerId);
+                    return new BaseResponseModel<List<ServiceResponseDto>>
+                    {
+                        Code = 404,
+                        Message = "No services found for this manufacturer",
+                        Data = null
+                    };
+                }
+
+                var result = services.Select(s =>
+                {
+                    var currentAmount = s.SetServiceAmounts
+                        .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
+                    return new ServiceResponseDto
+                    {
+                        Id = s.Id,
+                        Name = s.ServiceName,
+                        Price = currentAmount?.Amount ?? 0,
+                        ManufacturerId = s.ManufacturerId,
+                        IsDeleted = s.IsDeleted
+                    };
+                }).ToList();
+
+                return new BaseResponseModel<List<ServiceResponseDto>>
+                {
+                    Code = 200,
+                    Message = "Success",
+                    Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching services for ManufacturerId: {ManufacturerId}", manufacturerId);
+                return new BaseResponseModel<List<ServiceResponseDto>>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
 
         public async Task<BaseResponseModel<ServiceResponseDto>> GetServiceById(GetServiceByIdRequest request)
         {

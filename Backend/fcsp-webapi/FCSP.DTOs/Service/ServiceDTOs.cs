@@ -6,7 +6,7 @@ namespace FCSP.DTOs.Service
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public float Price { get; set; } // Thay đổi từ decimal sang float
+        public float Price { get; set; } 
         public long ManufacturerId { get; set; }
         public bool IsDeleted { get; set; }
     }
@@ -25,8 +25,8 @@ namespace FCSP.DTOs.Service
         public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Price is required.")]
-        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] // Thay đổi từ double sang float
-        public float Price { get; set; } // Thay đổi từ decimal sang float
+        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] 
+        public float Price { get; set; } 
 
         [Required(ErrorMessage = "ManufacturerId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "ManufacturerId must be greater than 0.")]
@@ -37,7 +37,7 @@ namespace FCSP.DTOs.Service
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public float Price { get; set; } // Thay đổi từ decimal sang float
+        public float Price { get; set; } 
         public long ManufacturerId { get; set; }
         public bool IsDeleted { get; set; }
     }
@@ -53,15 +53,15 @@ namespace FCSP.DTOs.Service
         public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Price is required.")]
-        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] // Thay đổi từ double sang float
-        public float Price { get; set; } // Thay đổi từ decimal sang float
+        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] 
+        public float Price { get; set; } 
     }
 
     public class UpdateServiceResponse
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public float Price { get; set; } // Thay đổi từ decimal sang float
+        public float Price { get; set; } 
         public long ManufacturerId { get; set; }
         public bool IsDeleted { get; set; }
     }
