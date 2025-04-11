@@ -12,14 +12,16 @@ namespace FCSP.Services.OrderDetailService
     public class OrderDetailService : IOrderDetailService
     {
         private readonly IOrderDetailRepository _orderDetailRepository;
-        private readonly ISizeRepository _sizeRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
+        private readonly ISizeRepository _sizeRepository;
 
-        public OrderDetailService(IOrderDetailRepository orderDetailRepository, ISizeRepository sizeRepository, ICustomShoeDesignRepository customShoeDesignRepository)
+        public OrderDetailService(IOrderDetailRepository orderDetailRepository, IOrderRepository orderRepository, ICustomShoeDesignRepository customShoeDesignRepository, ISizeRepository sizeRepository)
         {
             _orderDetailRepository = orderDetailRepository;
-            _sizeRepository = sizeRepository;
+            _orderRepository = orderRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
+            _sizeRepository = sizeRepository;
         }
 
         public async Task<BaseResponseModel<IEnumerable<GetOrderDetailByIdResponse>>> GetAllOrderDetails()
@@ -34,6 +36,7 @@ namespace FCSP.Services.OrderDetailService
                     Data = response.Select(orderDetail => new GetOrderDetailByIdResponse
                     {
                         Id = orderDetail.Id,
+                        OrderId = orderDetail.OrderId,
                         CustomShoeDesignId = orderDetail.CustomShoeDesignId,
                         Quantity = orderDetail.Quantity,
                         UnitPrice = orderDetail.Price,
@@ -66,12 +69,7 @@ namespace FCSP.Services.OrderDetailService
                     Message = "Order detail added successfully",
                     Data = new AddOrderDetailResponse
                     {
-                        Id = addedOrderDetail.Id,
-                        ProductPrice = addedOrderDetail.Price,
-                        ProductDescription = addedOrderDetail.CustomShoeDesign.Description,
-                        ProductName = addedOrderDetail.CustomShoeDesign.Name,
-                        PreviewImageUrl = addedOrderDetail.CustomShoeDesign.DesignPreviews.FirstOrDefault()?.PreviewImageUrl,
-                        SizeValue = addedOrderDetail.Size.SizeValue
+                        Success = true
                     }
                 };
             }
@@ -150,7 +148,7 @@ namespace FCSP.Services.OrderDetailService
                     Data = new GetOrderDetailByIdResponse
                     {
                         Id = orderDetails.Id,
-                        OrderId = orderDetails.OrderId.Value,
+                        OrderId = orderDetails.OrderId,
                         CustomShoeDesignId = orderDetails.CustomShoeDesignId,
                         Quantity = orderDetails.Quantity,
                         UnitPrice = orderDetails.Price,
@@ -191,13 +189,32 @@ namespace FCSP.Services.OrderDetailService
         }
 
         private async Task<OrderDetail> GetEntityFromAddRequest(AddOrderDetailRequest request)
-        {   var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
+        {   
+            var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
+            if (customShoeDesign == null)
+            {
+                return null;
+            }
+
+            var size = await _sizeRepository.FindAsync(request.SizeId);
+            if (size == null)
+            {
+                return null;
+            }
+
+            var order = await _orderRepository.FindAsync(request.OrderId);
+            if (order == null)
+            {
+                return null;
+            }
+
             return new OrderDetail
             {
-                CustomShoeDesignId = request.CustomShoeDesignId,
+                OrderId = request.OrderId,
+                CustomShoeDesignId = customShoeDesign.Id,
                 Quantity = request.Quantity,
                 Price = customShoeDesign.TotalAmount,
-                SizeId = request.SizeId,
+                SizeId = size.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

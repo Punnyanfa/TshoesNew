@@ -19,7 +19,6 @@ namespace FCSP.Services.OrderService
         private readonly IVoucherRepository _voucherRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
         private readonly IPaymentProcessor _paymentProcessor;
-        private readonly ILogger<OrderService> _logger;
 
         public OrderService(
             IOrderRepository orderRepository,
@@ -27,8 +26,7 @@ namespace FCSP.Services.OrderService
             IPaymentRepository paymentRepository,
             IVoucherRepository voucherRepository,
             ICustomShoeDesignRepository customShoeDesignRepository,
-            IPaymentProcessor paymentProcessor,
-            ILogger<OrderService> logger)
+            IPaymentProcessor paymentProcessor)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -36,7 +34,6 @@ namespace FCSP.Services.OrderService
             _voucherRepository = voucherRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
             _paymentProcessor = paymentProcessor;
-            _logger = logger;
         }
 
         #region Public Methods
@@ -45,9 +42,7 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Retrieving orders for user ID: {UserId}", request.UserId);
                 var orders = await GetOrdersByUserIdAsync(request);
-                _logger.LogInformation("Successfully retrieved {OrderCount} orders for user ID: {UserId}", orders.Count, request.UserId);
                 return new BaseResponseModel<List<GetOrderByUserIdResponse>>
                 {
                     Code = 200,
@@ -57,7 +52,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving orders for user ID: {UserId}", request.UserId);
                 return HandleException<List<GetOrderByUserIdResponse>>(ex, "retrieving orders by user ID");
             }
         }
@@ -66,9 +60,7 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Retrieving order with ID: {OrderId}", request.Id);
                 var order = await GetOrderByIdAsync(request);
-                _logger.LogInformation("Successfully retrieved order with ID: {OrderId}", request.Id);
                 return new BaseResponseModel<GetOrderByIdResponse>
                 {
                     Code = 200,
@@ -78,7 +70,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving order with ID: {OrderId}", request.Id);
                 return HandleException<GetOrderByIdResponse>(ex, "retrieving order by ID");
             }
         }
@@ -87,9 +78,7 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Retrieving all orders");
                 var orders = await GetAllOrdersAsync();
-                _logger.LogInformation("Successfully retrieved {OrderCount} orders", orders.Count);
                 return new BaseResponseModel<List<GetOrderByIdResponse>>
                 {
                     Code = 200,
@@ -99,7 +88,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all orders");
                 return HandleException<List<GetOrderByIdResponse>>(ex, "retrieving all orders");
             }
         }
@@ -108,31 +96,16 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Adding new order for user ID: {UserId}", request.UserId);
-
-                // Lấy TotalAmount từ CustomShoeDesign và tính tổng
                 float calculatedTotal = 0;
                 foreach (var od in request.OrderDetails) // OrderDetails giờ là List<OrderDetailRequestDto>
                 {
                     var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
                     if (customShoeDesign == null)
                     {
-                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} not found for user ID: {UserId}", od.CustomShoeDesignId, request.UserId);
                         return new BaseResponseModel<AddOrderResponse>
                         {
                             Code = 400,
                             Message = $"CustomShoeDesign with ID {od.CustomShoeDesignId} not found.",
-                            Data = null
-                        };
-                    }
-
-                    if (customShoeDesign.TotalAmount <= 0) // Không cho phép TotalAmount <= 0
-                    {
-                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} has invalid total amount: {TotalAmount}", od.CustomShoeDesignId, customShoeDesign.TotalAmount);
-                        return new BaseResponseModel<AddOrderResponse>
-                        {
-                            Code = 400,
-                            Message = $"CustomShoeDesign with ID {od.CustomShoeDesignId} has invalid total amount. Total amount must be greater than 0.",
                             Data = null
                         };
                     }
@@ -142,7 +115,6 @@ namespace FCSP.Services.OrderService
 
                 if (calculatedTotal <= 0)
                 {
-                    _logger.LogWarning("Calculated total is {CalculatedTotal} for user ID: {UserId}", calculatedTotal, request.UserId);
                     return new BaseResponseModel<AddOrderResponse>
                     {
                         Code = 400,
@@ -151,14 +123,12 @@ namespace FCSP.Services.OrderService
                     };
                 }
 
-                // Validate Voucher (nếu có) và áp dụng giảm giá
                 float totalPrice = calculatedTotal;
                 if (request.VoucherId.HasValue)
                 {
                     var voucher = await _voucherRepository.FindByIdAsync(request.VoucherId.Value);
                     if (voucher == null)
                     {
-                        _logger.LogWarning("Voucher with ID {VoucherId} not found for user ID: {UserId}", request.VoucherId, request.UserId);
                         return new BaseResponseModel<AddOrderResponse>
                         {
                             Code = 400,
@@ -170,7 +140,6 @@ namespace FCSP.Services.OrderService
                     var (isValid, validationMessage) = IsVoucherValid(voucher);
                     if (!isValid)
                     {
-                        _logger.LogWarning("Invalid voucher with ID {VoucherId} for user ID: {UserId}. Reason: {ValidationMessage}", request.VoucherId, request.UserId, validationMessage);
                         return new BaseResponseModel<AddOrderResponse>
                         {
                             Code = 400,
@@ -182,10 +151,8 @@ namespace FCSP.Services.OrderService
                     totalPrice = ApplyVoucherDiscount(totalPrice, voucher);
                 }
 
-                // Kiểm tra totalPrice sau khi áp dụng voucher
                 if (totalPrice <= 0)
                 {
-                    _logger.LogWarning("Final total price after voucher is {TotalPrice} for user ID: {UserId}", totalPrice, request.UserId);
                     return new BaseResponseModel<AddOrderResponse>
                     {
                         Code = 400,
@@ -209,7 +176,6 @@ namespace FCSP.Services.OrderService
                 };
 
                 var addedOrder = await _orderRepository.AddAsync(order);
-                _logger.LogInformation("Created order with ID: {OrderId} for user ID: {UserId}", addedOrder.Id, request.UserId);
 
                 // Tạo OrderDetails
                 foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
@@ -239,7 +205,6 @@ namespace FCSP.Services.OrderService
                     UpdatedAt = DateTime.UtcNow
                 };
                 await _paymentRepository.AddAsync(payment);
-                _logger.LogInformation("Created payment for order ID: {OrderId}", addedOrder.Id);
 
                 return new BaseResponseModel<AddOrderResponse>
                 {
@@ -256,7 +221,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding order for user ID: {UserId}", request.UserId);
                 return HandleException<AddOrderResponse>(ex, "adding order");
             }
         }
@@ -265,8 +229,6 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Updating order with ID: {OrderId}", request.Id);
-
                 // Lấy TotalAmount từ CustomShoeDesign và tính tổng
                 float calculatedTotal = 0;
                 foreach (var od in request.OrderDetails) // OrderDetails là List<OrderDetailRequestDto>
@@ -274,7 +236,6 @@ namespace FCSP.Services.OrderService
                     var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
                     if (customShoeDesign == null)
                     {
-                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} not found for order ID: {OrderId}", od.CustomShoeDesignId, request.Id);
                         return new BaseResponseModel<UpdateOrderResponse>
                         {
                             Code = 400,
@@ -285,7 +246,6 @@ namespace FCSP.Services.OrderService
 
                     if (customShoeDesign.TotalAmount <= 0)
                     {
-                        _logger.LogWarning("CustomShoeDesign with ID {CustomShoeDesignId} has invalid total amount: {TotalAmount}", od.CustomShoeDesignId, customShoeDesign.TotalAmount);
                         return new BaseResponseModel<UpdateOrderResponse>
                         {
                             Code = 400,
@@ -299,7 +259,6 @@ namespace FCSP.Services.OrderService
 
                 if (calculatedTotal <= 0)
                 {
-                    _logger.LogWarning("Calculated total is {CalculatedTotal} for order ID: {OrderId}", calculatedTotal, request.Id);
                     return new BaseResponseModel<UpdateOrderResponse>
                     {
                         Code = 400,
@@ -315,7 +274,6 @@ namespace FCSP.Services.OrderService
                     var voucher = await _voucherRepository.FindByIdAsync(request.VoucherId.Value);
                     if (voucher == null)
                     {
-                        _logger.LogWarning("Voucher with ID {VoucherId} not found for order ID: {OrderId}", request.VoucherId, request.Id);
                         return new BaseResponseModel<UpdateOrderResponse>
                         {
                             Code = 400,
@@ -327,7 +285,6 @@ namespace FCSP.Services.OrderService
                     var (isValid, validationMessage) = IsVoucherValid(voucher);
                     if (!isValid)
                     {
-                        _logger.LogWarning("Invalid voucher with ID {VoucherId} for order ID: {OrderId}. Reason: {ValidationMessage}", request.VoucherId, request.Id, validationMessage);
                         return new BaseResponseModel<UpdateOrderResponse>
                         {
                             Code = 400,
@@ -342,7 +299,6 @@ namespace FCSP.Services.OrderService
                 // Kiểm tra totalPrice sau khi áp dụng voucher
                 if (totalPrice <= 0)
                 {
-                    _logger.LogWarning("Final total price after voucher is {TotalPrice} for order ID: {OrderId}", totalPrice, request.Id);
                     return new BaseResponseModel<UpdateOrderResponse>
                     {
                         Code = 400,
@@ -352,7 +308,6 @@ namespace FCSP.Services.OrderService
                 }
 
                 var updatedOrder = await UpdateOrderAsync(request, totalPrice);
-                _logger.LogInformation("Successfully updated order with ID: {OrderId}", request.Id);
                 return new BaseResponseModel<UpdateOrderResponse>
                 {
                     Code = 200,
@@ -362,7 +317,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating order with ID: {OrderId}", request.Id);
                 return HandleException<UpdateOrderResponse>(ex, "updating order");
             }
         }
@@ -371,12 +325,9 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Deleting order with ID: {OrderId}", request.Id);
-
                 var order = await _orderRepository.FindAsync(request.Id);
                 if (order == null)
                 {
-                    _logger.LogWarning("Order with ID {OrderId} not found", request.Id);
                     return new BaseResponseModel<DeleteOrderResponse>
                     {
                         Code = 404,
@@ -388,7 +339,6 @@ namespace FCSP.Services.OrderService
                 // Kiểm tra trạng thái để cho phép hủy
                 if (order.Status != OrderStatus.Pending && order.Status != OrderStatus.Confirmed)
                 {
-                    _logger.LogWarning("Order with ID {OrderId} cannot be cancelled in its current state: {Status}", request.Id, order.Status);
                     return new BaseResponseModel<DeleteOrderResponse>
                     {
                         Code = 400,
@@ -405,7 +355,6 @@ namespace FCSP.Services.OrderService
                     order.Status = OrderStatus.Refunded;
                     payment.PaymentStatus = PaymentStatus.Rejected; // Giả lập hoàn tiền
                     await _paymentRepository.UpdateAsync(payment);
-                    _logger.LogInformation("Refunded payment for order ID: {OrderId}", order.Id);
                 }
                 else
                 {
@@ -414,7 +363,6 @@ namespace FCSP.Services.OrderService
 
                 order.ShippingStatus = OrderShippingStatus.Cancelled;
                 await _orderRepository.UpdateAsync(order);
-                _logger.LogInformation("Successfully cancelled order with ID: {OrderId}", order.Id);
 
                 return new BaseResponseModel<DeleteOrderResponse>
                 {
@@ -425,7 +373,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting order with ID: {OrderId}", request.Id);
                 return HandleException<DeleteOrderResponse>(ex, "deleting order");
             }
         }
@@ -434,12 +381,9 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Processing payment for order ID: {OrderId}", request.OrderId);
-
                 var order = await _orderRepository.FindAsync(request.OrderId);
                 if (order == null)
                 {
-                    _logger.LogWarning("Order with ID {OrderId} not found", request.OrderId);
                     return new BaseResponseModel<ProcessPaymentResponse>
                     {
                         Code = 404,
@@ -450,7 +394,6 @@ namespace FCSP.Services.OrderService
 
                 if (order.Status != OrderStatus.Pending)
                 {
-                    _logger.LogWarning("Order with ID {OrderId} is not in a payable state: {Status}", request.OrderId, order.Status);
                     return new BaseResponseModel<ProcessPaymentResponse>
                     {
                         Code = 400,
@@ -463,7 +406,6 @@ namespace FCSP.Services.OrderService
                 var payment = payments.FirstOrDefault();
                 if (payment == null)
                 {
-                    _logger.LogWarning("Payment record not found for order ID: {OrderId}", request.OrderId);
                     return new BaseResponseModel<ProcessPaymentResponse>
                     {
                         Code = 404,
@@ -474,7 +416,6 @@ namespace FCSP.Services.OrderService
 
                 if (payment.Amount < 0)
                 {
-                    _logger.LogWarning("Payment amount cannot be negative for order ID: {OrderId}", request.OrderId);
                     return new BaseResponseModel<ProcessPaymentResponse>
                     {
                         Code = 400,
@@ -488,7 +429,6 @@ namespace FCSP.Services.OrderService
                     // COD không cần thanh toán trước
                     payment.PaymentStatus = PaymentStatus.Pending;
                     order.Status = OrderStatus.Confirmed;
-                    _logger.LogInformation("Processed COD payment for order ID: {OrderId}", order.Id);
                 }
                 else
                 {
@@ -499,13 +439,11 @@ namespace FCSP.Services.OrderService
                         payment.PaymentStatus = PaymentStatus.Received;
                         order.AmountPaid = payment.Amount;
                         order.Status = OrderStatus.Confirmed;
-                        _logger.LogInformation("Successfully processed online payment for order ID: {OrderId}", order.Id);
                     }
                     else
                     {
                         payment.PaymentStatus = PaymentStatus.Rejected;
                         order.Status = OrderStatus.Failed;
-                        _logger.LogWarning("Failed to process online payment for order ID: {OrderId}", order.Id);
                     }
                 }
 
@@ -527,7 +465,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing payment for order ID: {OrderId}", request.OrderId);
                 return HandleException<ProcessPaymentResponse>(ex, "processing payment");
             }
         }
@@ -536,12 +473,9 @@ namespace FCSP.Services.OrderService
         {
             try
             {
-                _logger.LogInformation("Updating status for order ID: {OrderId}", request.OrderId);
-
                 var order = await _orderRepository.FindAsync(request.OrderId);
                 if (order == null)
                 {
-                    _logger.LogWarning("Order with ID {OrderId} not found", request.OrderId);
                     return new BaseResponseModel<UpdateOrderStatusResponse>
                     {
                         Code = 404,
@@ -554,8 +488,6 @@ namespace FCSP.Services.OrderService
                 if (!IsValidOrderStatusTransition(order.Status, request.Status) ||
                     !IsValidShippingStatusTransition(order.ShippingStatus, request.ShippingStatus))
                 {
-                    _logger.LogWarning("Invalid status transition for order ID: {OrderId}. Current: {CurrentStatus}/{CurrentShippingStatus}, Requested: {RequestedStatus}/{RequestedShippingStatus}",
-                        request.OrderId, order.Status, order.ShippingStatus, request.Status, request.ShippingStatus);
                     return new BaseResponseModel<UpdateOrderStatusResponse>
                     {
                         Code = 400,
@@ -571,7 +503,6 @@ namespace FCSP.Services.OrderService
                     var payment = payments.FirstOrDefault();
                     if (payment == null || (payment.PaymentMethod != PaymentMethod.CashOnDelivery && payment.PaymentStatus != PaymentStatus.Received))
                     {
-                        _logger.LogWarning("Cannot complete order ID: {OrderId}. Payment not received.", request.OrderId);
                         return new BaseResponseModel<UpdateOrderStatusResponse>
                         {
                             Code = 400,
@@ -597,7 +528,6 @@ namespace FCSP.Services.OrderService
                         order.AmountPaid = payment.Amount;
                         payment.UpdatedAt = DateTime.UtcNow;
                         await _paymentRepository.UpdateAsync(payment);
-                        _logger.LogInformation("Processed COD payment on completion for order ID: {OrderId}", order.Id);
                     }
                 }
                 else if (request.Status == OrderStatus.Refunded || request.Status == OrderStatus.Cancelled)
@@ -609,7 +539,6 @@ namespace FCSP.Services.OrderService
                         payment.PaymentStatus = PaymentStatus.Rejected; // Giả lập hoàn tiền
                         payment.UpdatedAt = DateTime.UtcNow;
                         await _paymentRepository.UpdateAsync(payment);
-                        _logger.LogInformation("Refunded payment for order ID: {OrderId}", order.Id);
                     }
                 }
 
@@ -617,7 +546,6 @@ namespace FCSP.Services.OrderService
                 order.ShippingStatus = request.ShippingStatus;
                 order.UpdatedAt = DateTime.UtcNow;
                 await _orderRepository.UpdateAsync(order);
-                _logger.LogInformation("Successfully updated status for order ID: {OrderId} to {Status}/{ShippingStatus}", order.Id, order.Status, order.ShippingStatus);
 
                 return new BaseResponseModel<UpdateOrderStatusResponse>
                 {
@@ -633,7 +561,6 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating status for order ID: {OrderId}", request.OrderId);
                 return HandleException<UpdateOrderStatusResponse>(ex, "updating order status");
             }
         }
