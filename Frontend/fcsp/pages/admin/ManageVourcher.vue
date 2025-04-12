@@ -2,7 +2,7 @@
     <div class="container-fluid mt-4">
       <div class="card">
         <div class="card-header bg-primary text-white">
-          <h4>dbo.Vouchers</h4>
+          <h4>Voucher Management</h4>
         </div>
         <div class="card-body">
           <!-- Voucher Form -->
@@ -10,7 +10,7 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <div class="form-group mb-3">
-                  <label for="voucherName">VoucherName</label>
+                  <label for="voucherName">Voucher Name</label>
                   <input 
                     type="text" 
                     class="form-control" 
@@ -22,7 +22,7 @@
                 </div>
                 
                 <div class="form-group mb-3">
-                  <label for="voucherValue">VoucherValue</label>
+                  <label for="voucherValue">Voucher Value</label>
                   <input 
                     type="text" 
                     class="form-control" 
@@ -47,18 +47,7 @@
               
               <div class="col-md-6">
                 <div class="form-group mb-3">
-                  <label for="startDate">StartDate</label>
-                  <input 
-                    type="datetime-local" 
-                    class="form-control" 
-                    id="startDate" 
-                    v-model="voucher.startDate"
-                    required
-                  >
-                </div>
-                
-                <div class="form-group mb-3">
-                  <label for="expirationDate">ExpirationDate</label>
+                  <label for="expirationDate">Expiration Date</label>
                   <input 
                     type="datetime-local" 
                     class="form-control" 
@@ -97,15 +86,14 @@
             <table class="table table-striped table-hover">
               <thead>
                 <tr>
-                  <th>Id</th>
-                  <th>VoucherName</th>
-                  <th>VoucherValue</th>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Value</th>
                   <th>Description</th>
-                  <th>StartDate</th>
-                  <th>ExpirationDate</th>
+                  <th>Expiration Date</th>
                   <th>Status</th>
-                  <th>CreatedAt</th>
-                  <th>UpdatedAt</th>
+                  <th>Created At</th>
+                  <th>Updated At</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -115,7 +103,6 @@
                   <td>{{ v.voucherName }}</td>
                   <td>{{ v.voucherValue }}</td>
                   <td>{{ v.description }}</td>
-                  <td>{{ formatDate(v.startDate) }}</td>
                   <td>{{ formatDate(v.expirationDate) }}</td>
                   <td>
                     <span 
@@ -140,7 +127,7 @@
                   </td>
                 </tr>
                 <tr v-if="vouchers.length === 0">
-                  <td colspan="10" class="text-center">No vouchers found</td>
+                  <td colspan="9" class="text-center">No vouchers found</td>
                 </tr>
               </tbody>
             </table>
@@ -151,6 +138,8 @@
   </template>
   
   <script>
+  import { getAllVouchers } from '@/server/ManageVoucher-service';
+  
   export default {
     name: 'VoucherPage',
     data() {
@@ -160,59 +149,29 @@
           voucherName: '',
           voucherValue: '',
           description: '',
-          startDate: '',
           expirationDate: '',
-          status: 1,
+          status: 0,
+          orders: [],
           createdAt: null,
-          updatedAt: null
+          updatedAt: null,
+          version: ''
         },
         vouchers: [],
         isEditing: false
       }
     },
     mounted() {
-      // Load vouchers when component is mounted
       this.loadVouchers()
     },
     methods: {
-      loadVouchers() {
-        // In a real application, this would be an API call
-        // For demo purposes, we'll use mock data
-        this.vouchers = [
-          {
-            id: 1,
-            voucherName: 'Summer Discount',
-            voucherValue: '20%',
-            description: 'Summer season discount for all products',
-            startDate: '2023-06-01T00:00:00',
-            expirationDate: '2023-08-31T23:59:59',
-            status: 1,
-            createdAt: '2023-05-15T10:30:00',
-            updatedAt: '2023-05-15T10:30:00'
-          },
-          {
-            id: 2,
-            voucherName: 'New User Bonus',
-            voucherValue: '$10',
-            description: 'Welcome bonus for new users',
-            startDate: '2023-01-01T00:00:00',
-            expirationDate: '2023-12-31T23:59:59',
-            status: 1,
-            createdAt: '2023-01-01T08:00:00',
-            updatedAt: '2023-01-01T08:00:00'
-          },
-          {
-            id: 3,
-            voucherName: 'Holiday Special',
-            voucherValue: '15%',
-            description: 'Special discount for holiday season',
-            startDate: '2022-12-01T00:00:00',
-            expirationDate: '2023-01-15T23:59:59',
-            status: 2,
-            createdAt: '2022-11-20T14:45:00',
-            updatedAt: '2023-01-16T00:00:01'
-          }
-        ]
+      async loadVouchers() {
+        try {
+          const response = await getAllVouchers();
+          this.vouchers = response;
+        } catch (error) {
+          console.error('Error loading vouchers:', error);
+          // You might want to show an error message to the user here
+        }
       },
       saveVoucher() {
         if (this.isEditing) {
@@ -229,12 +188,13 @@
             ...this.voucher,
             id: this.vouchers.length > 0 ? Math.max(...this.vouchers.map(v => v.id)) + 1 : 1,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
+            orders: [],
+            version: ''
           }
           this.vouchers.push(newVoucher)
         }
         
-        // Reset form after saving
         this.resetForm()
       },
       editVoucher(voucher) {
@@ -252,11 +212,12 @@
           voucherName: '',
           voucherValue: '',
           description: '',
-          startDate: '',
           expirationDate: '',
-          status: 1,
+          status: 0,
+          orders: [],
           createdAt: null,
-          updatedAt: null
+          updatedAt: null,
+          version: ''
         }
         this.isEditing = false
       },
@@ -278,8 +239,6 @@
   </script>
   
   <style>
-
-  
   .card-header {
     background-color: #2c6da3 !important;
   }
