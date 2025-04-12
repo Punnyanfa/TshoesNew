@@ -24,6 +24,22 @@ public class AuthController : ControllerBase
         return StatusCode(200, response);
     }
 
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var response = await _authService.GetAllUsers();
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUserById([FromRoute] long id)
+    {
+        var request = new GetUserByIdRequest { Id = id };
+        var response = await _authService.GetUserById(request);
+        return StatusCode(response.Code, response);
+    }
+
     [HttpPost("[action]")]
     public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
     {
