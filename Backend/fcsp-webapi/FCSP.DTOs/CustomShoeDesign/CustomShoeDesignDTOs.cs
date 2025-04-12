@@ -73,6 +73,17 @@ namespace FCSP.DTOs.CustomShoeDesign
         public bool Success { get; set; }
     }
 
+    public class UpdateCustomShoeDesignStatusRequest
+    {
+        public long Id { get; set; }
+        public CustomShoeDesignStatus Status { get; set; }
+    }
+
+    public class UpdateCustomShoeDesignStatusResponse
+    {
+        public bool Success { get; set; }
+    }
+    
     public class UpdateCustomShoeDesignRequest
     {
         public long Id { get; set; }

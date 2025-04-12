@@ -26,6 +26,46 @@ public class AuthService : IAuthService
         return _passwordHashingService.GetHashedPassword(password);
     }
 
+    public async Task<BaseResponseModel<GetAllUsersResponse>> GetAllUsers()
+    {
+        var users = await _userRepository.GetAllAsync();
+        return new BaseResponseModel<GetAllUsersResponse>
+        {
+            Code = 200,
+            Message = "Get all users successfully",
+            Data = new GetAllUsersResponse
+            {
+                Users = users.Select(user => new UsersInfo
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.UserRole.ToString(),
+                    Status = user.IsDeleted ? "Inactive" : "Active",
+                    CreatedAt = user.CreatedAt.ToString("dd-MM-yyyy"),
+                }).ToList()
+            }
+        };
+    }
+
+    public async Task<BaseResponseModel<GetUserByIdResponse>> GetUserById(GetUserByIdRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        return new BaseResponseModel<GetUserByIdResponse>
+        {
+            Code = 200, 
+            Message = "Get user by id successfully",
+            Data = new GetUserByIdResponse
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Dob = user.Dob ?? "",
+                Gender = user.Gender ?? ""
+            }
+        };
+    }
+
     public async Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request)
     {
         try

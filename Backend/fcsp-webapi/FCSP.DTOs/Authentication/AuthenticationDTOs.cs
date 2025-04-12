@@ -2,6 +2,34 @@
 
 namespace FCSP.DTOs.Authentication;
 
+public class GetAllUsersResponse
+{
+    public IEnumerable<UsersInfo> Users { get; set; } = new List<UsersInfo>();
+}
+
+public class UsersInfo
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string CreatedAt { get; set; } = string.Empty;
+}
+public class GetUserByIdRequest
+{
+    public long Id { get; set; }
+}
+
+public class GetUserByIdResponse
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Dob { get; set; } = string.Empty;
+    public string Gender { get; set; } = string.Empty;
+}
+
 public class UserLoginRequest
 {
     public string Email { get; set; } = string.Empty;
