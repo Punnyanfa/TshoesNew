@@ -78,6 +78,19 @@ public class CustomShoeDesignController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+
+    /// <summary>
+    /// Update the status of a custom shoe design
+    /// </summary>
+    /// <param name="request">Custom shoe design ID and status</param>
+    /// <returns>Updated custom shoe design status</returns>
+    [HttpPut("status")]
+    public async Task<IActionResult> UpdateCustomShoeDesignStatus([FromBody] UpdateCustomShoeDesignStatusRequest request)
+    {
+        var response = await _customShoeDesignService.UpdateCustomShoeDesignStatus(request);
+        return StatusCode(response.Code, response);
+    }
+
     /// <summary>
     /// Update an existing custom shoe design
     /// </summary>

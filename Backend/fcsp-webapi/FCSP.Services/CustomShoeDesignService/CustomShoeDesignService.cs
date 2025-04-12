@@ -232,6 +232,37 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
     }
 
+    public async Task<BaseResponseModel<UpdateCustomShoeDesignStatusResponse>> UpdateCustomShoeDesignStatus(UpdateCustomShoeDesignStatusRequest request)
+    { 
+        try{
+            var design = await GetCustomShoeDesignFromUpdateDesignStatusRequest(request);
+
+            await _customShoeDesignRepository.UpdateAsync(design);
+
+            return new BaseResponseModel<UpdateCustomShoeDesignStatusResponse> 
+            { 
+                Code = 200,
+                Message = "Custom shoe design status updated successfully",
+                Data = new UpdateCustomShoeDesignStatusResponse 
+                { 
+                    Success = true
+                }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<UpdateCustomShoeDesignStatusResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new UpdateCustomShoeDesignStatusResponse
+                {
+                    Success = false
+                }
+            };
+        }
+    }
+
     public async Task<BaseResponseModel<UpdateCustomShoeDesignResponse>> UpdateCustomShoeDesign(UpdateCustomShoeDesignRequest request)
     { 
         try{
@@ -456,6 +487,24 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         });
+    }
+
+    private async Task<CustomShoeDesign> GetCustomShoeDesignFromUpdateDesignStatusRequest(UpdateCustomShoeDesignStatusRequest request)
+    {
+        var design = await _customShoeDesignRepository.FindAsync(request.Id);
+        if (design == null)
+        {
+            throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
+        }
+
+        if(design.Status == request.Status)
+        {
+            throw new InvalidOperationException($"Custom shoe design with ID {request.Id} is already {request.Status}");
+        }
+
+        design.Status = request.Status;
+        design.UpdatedAt = DateTime.UtcNow;
+        return design;
     }
 
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromUpdateDesignRequest(UpdateCustomShoeDesignRequest request)
