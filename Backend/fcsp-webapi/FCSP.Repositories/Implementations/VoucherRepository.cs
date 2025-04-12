@@ -19,6 +19,12 @@ namespace FCSP.Repositories.Implementations
                  .Where(v => v.ExpirationDate >= DateTime.UtcNow && v.Status == (int)VoucherStatus.Active)
                  .ToListAsync();
         }
+        public async Task<IEnumerable<Voucher>> GetAllVoucherAsync()
+        {
+            return await _context.Vouchers
+                .Include(v => v.Orders)
+                .ToListAsync();
+        }
 
         public async Task<Voucher> GetVoucherByOrderIdAsync(long orderId)
         {
@@ -46,6 +52,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<Voucher> FindByIdAsync(long id)
         {
             return await _context.Vouchers
+                .Include(o => o.Orders)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
     }

@@ -16,6 +16,7 @@ namespace FCSP.DTOs.Voucher
         public VoucherStatus Status { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsUsed { get; set; }
+        public List<long> OrderIds { get; set; } = new List<long>();
     }
 
     public class GetVoucherByOrderIdRequest
@@ -50,7 +51,7 @@ namespace FCSP.DTOs.Voucher
         public string Code { get; set; }
         public float DiscountAmount { get; set; }
         public DateTime ExpiryDate { get; set; }
-        public bool IsUsed { get; set; }
+      
     }
 
     public class UpdateVoucherResponse
