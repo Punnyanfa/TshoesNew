@@ -19,6 +19,8 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
 
         [Required(ErrorMessage = "Description is required")]
         public string Description { get; set; } = null!;
+        public string Gender { get; set; } = null!;
+        public string Color { get; set; } = null!;
 
         [Required(ErrorMessage = "PreviewImageUrl is required")]
         [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
