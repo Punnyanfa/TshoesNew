@@ -2,39 +2,35 @@ import { jwtDecode } from "jwt-decode"; // Import thư viện jwt-decode để g
 import { instance, Login } from "../api-instance-provider"; // Import `instance` để gọi API và `Login` cho URL
 import { ElNotification } from 'element-plus';
 
-// Hàm lưu token, email, role và userId vào localStorage
-// Hàm lưu token, email, role, userId và username vào localStorage
+
 const saveTokenAndUserInfo = (token, email, role) => {
   if (token) {
-    // Giải mã token để lấy thông 
     const decodedToken = jwtDecode(token);
     console.log("decodedToken", decodedToken);
     const userId = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
     const username = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
     const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
     if (userId) {
-      localStorage.setItem("userId", userId); // Lưu userId vào localStorage
+      localStorage.setItem("userId", userId); 
     }
 
     if (username) {
-      localStorage.setItem("username", username); // Lưu username vào localStorage
+      localStorage.setItem("username", username); 
     }
     if (role) {
-      localStorage.setItem("role", role); // Lưu username vào localStorage
+      localStorage.setItem("role", role); 
     }
   }
 };
 
-// Phương thức xử lý đăng nhập
 export const loginUser = async (email, password) => {
   try {
     const response = await instance.post(Login.ORIGIN, { email, password });
     const { code, message, data } = response.data;
-    // Kiểm tra response trực tiếp từ API
+
     if (code === 200) {
       const { token, role, name } = data;
       console.log("token", token, role, name);
-      // Lưu thông tin user
       saveTokenAndUserInfo(token, email, role, name);
 
       if (role === "Admin") {
