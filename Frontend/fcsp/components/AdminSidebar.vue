@@ -8,7 +8,7 @@
         <ShoppingCartOutlined />
         <span>Order Management</span>
       </router-link>
-      <router-link to="/admin/product" class="menu-item">
+      <router-link to="/admin/manageProduct" class="menu-item">
         <AppstoreOutlined />
         <span>Product Management</span>
       </router-link>

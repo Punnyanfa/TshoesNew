@@ -134,7 +134,7 @@
         class="best-seller-swiper"
       >
         <SwiperSlide v-for="product in products" :key="product.id">
-          <div class="product-card">
+          <div class="product-card" @click="navigateToProduct(product.id)">
             <div class="product-image position-relative">
               <img 
                 :src="product.image" 
@@ -147,19 +147,14 @@
               <div class="product-overlay">
                 <button 
                   class="btn btn-add-cart"
-                  @click="addToCart(product)"
+                  @click.stop="addToCart(product)"
                 >
-                  <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                
                 </button>
               </div>
             </div>
             <div class="product-info mt-3">
-              <NuxtLink 
-                :to="`/product/${product.id}`" 
-                class="product-title text-decoration-none"
-              >
-                <h5 class="fw-bold mb-2">{{ product.name }}</h5>
-              </NuxtLink>
+              <h5 class="fw-bold mb-2">{{ product.name }}</h5>
               <div class="d-flex justify-content-between align-items-center">
                 <span class="price fw-bold">{{ product.price }}</span>
                 <span class="rating">
@@ -327,12 +322,14 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
 import {  GetBestSelling } from '~/server/BestSelling-service'
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 // Define reactive state
 const products = ref([])
 const showNotification = ref(false)
 const notificationMessage = ref('')
 const imageLoaded = ref({})
+const router = useRouter()
 
 // Fetch products on component mount
 onMounted(async () => {
@@ -410,6 +407,10 @@ const addToCart = (product) => {
 const handleImageLoad = (productId) => {
   imageLoaded.value[productId] = true
 }
+
+const navigateToProduct = (productId) => {
+  router.push(`/productPage/${productId}`);
+};
 </script>
 
 <style scoped>
@@ -566,78 +567,37 @@ const handleImageLoad = (productId) => {
   }
 
   .product-card {
-    background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.4s ease;
-    overflow: hidden;
-    height: 100%;
-    padding: 15px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 1rem;
+    border-radius: 8px;
   }
 
   .product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
 
   .product-image {
     overflow: hidden;
-    position: relative;
-    padding-top: 100%; /* Tỷ lệ khung hình vuông */
-    border-radius: 10px;
+    border-radius: 8px;
   }
 
   .product-image img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
   }
 
   .product-card:hover .product-image img {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 
-  .product-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: all 0.3s ease;
-    border-radius: 10px;
-  }
-
-  .product-card:hover .product-overlay {
-    opacity: 1;
+  .btn-add-cart {
+    z-index: 2;
+    position: relative;
   }
 
   .product-info {
     padding: 1rem 0.5rem;
-  }
-
-  .btn-add-cart {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
-    color: #fff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 25px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-  }
-
-  .btn-add-cart:hover {
-    transform: scale(1.1);
-    background: linear-gradient(45deg, #3498db, #2c3e50);
   }
 
   .price {
