@@ -9,7 +9,7 @@
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
-
+        
         <!-- Error Alert -->
         <div v-if="error" class="alert alert-danger mb-4">
           {{ error }}
@@ -206,7 +206,6 @@
   
   <script>
   import { postShippingInfo, shippingInfo, deleteShippingInfo } from '@/server/shipping-service'
-  import { Modal } from 'bootstrap'
 
   export default {
     name: 'ShippingAddress',
@@ -233,12 +232,19 @@
     },
     mounted() {
       // Khởi tạo modal khi component được mount
-      this.modal = new Modal(this.$refs.editModal);
+      this.$nextTick(() => {
+        this.initModal();
+      });
     },
     created() {
       this.fetchAddresses();
     },
     methods: {
+      initModal() {
+        if (typeof window !== 'undefined' && window.bootstrap) {
+          this.modal = new window.bootstrap.Modal(this.$refs.editModal);
+        }
+      },
       getUserId() {
         const userId = localStorage.getItem('userId');
         if (!userId) {
@@ -268,7 +274,7 @@
           const response = await shippingInfo(userId);
           console.log("Response from API:", response);
           
-          if (response && Array.isArray(response)) {
+          if (Array.isArray(response)) {
             this.addresses = response;
           } else if (response && Array.isArray(response.shippingInfos)) {
             this.addresses = response.shippingInfos;
@@ -288,16 +294,31 @@
         this.isEditing = true;
         this.editingId = address.id;
         this.currentAddress = { ...address };
-        this.modal.show();
+        this.$nextTick(() => {
+          if (typeof window !== 'undefined' && window.bootstrap) {
+            const modal = new window.bootstrap.Modal(this.$refs.editModal);
+            modal.show();
+          }
+        });
       },
       openAddModal() {
         this.isEditing = false;
         this.editingId = null;
         this.currentAddress = this.getEmptyAddress();
-        this.modal.show();
+        this.$nextTick(() => {
+          if (typeof window !== 'undefined' && window.bootstrap) {
+            const modal = new window.bootstrap.Modal(this.$refs.editModal);
+            modal.show();
+          }
+        });
       },
       closeModal() {
-        this.modal.hide();
+        if (typeof window !== 'undefined' && window.bootstrap) {
+          const modal = window.bootstrap.Modal.getInstance(this.$refs.editModal);
+          if (modal) {
+            modal.hide();
+          }
+        }
         this.error = null;
       },
       async saveAddress() {
@@ -305,7 +326,6 @@
           const userId = this.getUserId();
           if (!userId) return;
 
-          // Validate dữ liệu trước khi gửi
           if (!this.currentAddress.phoneNumber || 
               !this.currentAddress.address || !this.currentAddress.city || 
               !this.currentAddress.district || !this.currentAddress.ward) {
@@ -315,34 +335,28 @@
 
           this.loading = true;
           const addressData = {
-            userId: userId,
-            phoneNumber: this.currentAddress.phoneNumber.trim(),
-            address: this.currentAddress.address.trim(),
-            city: this.currentAddress.city.trim(),
-            district: this.currentAddress.district.trim(),
-            ward: this.currentAddress.ward.trim(),
-            country: this.currentAddress.country,
-            isDefault: this.currentAddress.isDefault
+            ...this.currentAddress,
+            userId: userId
           };
 
           if (this.isEditing && this.editingId) {
             addressData.id = this.editingId;
           }
 
+          // Nếu đây là địa chỉ đầu tiên, tự động đặt làm mặc định
+          if (this.addresses.length === 0) {
+            addressData.isDefault = true;
+          }
+
           const response = await postShippingInfo(addressData);
           
           if (response) {
-            // Refresh danh sách địa chỉ sau khi lưu thành công
             await this.fetchAddresses();
-
-            // Đóng modal và reset form
             this.closeModal();
             this.currentAddress = this.getEmptyAddress();
             this.isEditing = false;
             this.editingId = null;
             this.error = null;
-            
-            // Thông báo thành công
             alert(this.isEditing ? 'Cập nhật địa chỉ thành công' : 'Thêm địa chỉ mới thành công');
           }
         } catch (error) {
@@ -393,15 +407,24 @@
       },
       async setAsDefault(id) {
         try {
+          this.loading = true;
           const address = this.addresses.find(addr => addr.id === id);
           if (address) {
-            const updatedAddress = { ...address, isDefault: true };
+            const updatedAddress = { 
+              ...address, 
+              isDefault: true,
+              userId: this.getUserId()
+            };
             await postShippingInfo(updatedAddress);
+            // Sau khi đặt địa chỉ mặc định, cập nhật lại danh sách
             await this.fetchAddresses();
+            alert('Đã đặt làm địa chỉ mặc định');
           }
         } catch (error) {
           console.error('Error setting default address:', error);
-          this.error = 'Failed to set default address. Please try again.';
+          this.error = 'Không thể đặt địa chỉ mặc định. Vui lòng thử lại.';
+        } finally {
+          this.loading = false;
         }
       }
     }

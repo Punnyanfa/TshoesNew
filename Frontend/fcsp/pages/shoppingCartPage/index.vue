@@ -231,22 +231,33 @@ const selectedTotal = computed(() => {
 
 // Function to handle proceeding to checkout
 const proceedToCheckout = () => {
-  const itemsToCheckout = cartItems.value.filter(item => {
-     const itemId = item.id + '-' + item.selectedSize;
-     return selectedItems.value.has(itemId);
-  });
-
-  if (itemsToCheckout.length === 0) {
-    console.warn('No items selected for checkout.');
-    return; // Or show a message to the user
-  }
-
-  console.log('Proceeding to checkout with:', itemsToCheckout);
-  // 1. Store selected items for the checkout page (e.g., in sessionStorage)
-  sessionStorage.setItem('checkoutItems', JSON.stringify(itemsToCheckout));
+  // Lọc ra các sản phẩm đã được chọn
+  const selectedProducts = cartItems.value.filter(item => {
+    const itemId = item.id + '-' + item.selectedSize;
+    return selectedItems.value.has(itemId);
+  }).map(item => ({
+    id: item.id,
+    name: item.name,
+    price: parseFloat(item.price),
+    quantity: parseInt(item.selectedQuantity) || 1,
+    selectedSize: item.selectedSize,
+    image: item.previewImageUrl,
+    total: parseFloat(item.price) * (parseInt(item.selectedQuantity) || 1)
+  }));
   
-  // 2. Navigate to the checkout page
-  router.push('/checkoutPage'); 
+  // Tính toán tổng tiền của các sản phẩm đã chọn
+  const orderData = {
+    items: selectedProducts,
+    totalPrice: selectedSubtotal.value,
+    shippingCost: shippingCost.value,
+    totalPayment: selectedTotal.value
+  };
+
+  // Lưu thông tin đơn hàng vào sessionStorage
+  sessionStorage.setItem('orderData', JSON.stringify(orderData));
+  
+  // Chuyển hướng đến trang order
+  router.push('/orderPage');
 };
 </script>
 

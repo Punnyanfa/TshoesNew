@@ -56,29 +56,36 @@
 
   <!-- User Section -->
   <template v-if="isAuthenticated">
-    <a-dropdown class="user-dropdown" trigger="click">
-      <a-button class="sneaker-btn user-btn">
-        <UserOutlined /> {{ userName }}
-        <DownOutlined />
-      </a-button>
-      <template #overlay>
-        <a-menu>
-          <a-menu-item key="profile">
-            <router-link to="/profilePage">
-              <ProfileOutlined /> Profile
-            </router-link>
-          </a-menu-item>
-          <a-menu-item key="settings">
-            <router-link to="/settingsPage">
-              <SettingOutlined /> Settings
-            </router-link>
-          </a-menu-item>
-          <a-menu-item key="logout" @click="logout">
-            <LogoutOutlined /> Logout
-          </a-menu-item>
-        </a-menu>
-      </template>
-    </a-dropdown>
+    <div class="dropdown">
+      <button 
+        class="btn sneaker-btn user-btn dropdown-toggle" 
+        type="button" 
+        data-bs-toggle="dropdown" 
+        data-bs-auto-close="true"
+        data-bs-boundary="clippingParents"
+        :aria-expanded="false"
+      >
+        <i class="bi bi-person-circle me-1"></i> {{ userName }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow">
+        <li>
+          <router-link class="dropdown-item" to="/profilePage">
+            <i class="bi bi-person me-2"></i> Profile
+          </router-link>
+        </li>
+        <li>
+          <router-link class="dropdown-item" to="/settingsPage">
+            <i class="bi bi-gear me-2"></i> Settings
+          </router-link>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item text-danger" href="#" @click.prevent="logout">
+            <i class="bi bi-box-arrow-right me-2"></i> Logout
+          </a>
+        </li>
+      </ul>
+    </div>
   </template>
   <template v-else>
     <router-link to="/loginPage" class="sneaker-btn">
@@ -105,12 +112,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { ShoppingCartOutlined, UserOutlined, DownOutlined, ProfileOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons-vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-
 const isAuthenticated = ref(false);
 const userName = ref('');
 const cartCount = ref(2);
@@ -130,7 +136,7 @@ const navItems = [
 
 // Watch for authentication state changes
 watch(() => {
-  const token = localStorage.getItem('userToken');
+  const token = localStorage.getItem('username');
   isAuthenticated.value = !!token;
   if (isAuthenticated.value) {
     userName.value = localStorage.getItem('username') || 'User';
@@ -139,11 +145,32 @@ watch(() => {
 
 // Xử lý sự kiện scroll
 const handleScroll = () => {
-  isScrolled.value = window.scrollY > 50; // Thay đổi trạng thái khi scroll quá 50px
+  isScrolled.value = window.scrollY > 50;
+};
+
+const initDropdowns = async () => {
+  if (process.client) {
+    try {
+      const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
+      const dropdownElements = document.querySelectorAll('.dropdown-toggle');
+      dropdownElements.forEach(element => {
+        new bootstrap.Dropdown(element, {
+          offset: [0, 10],
+          boundary: 'clippingParents'
+        });
+      });
+    } catch (error) {
+      console.error('Error initializing dropdowns:', error);
+    }
+  }
 };
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
+  // Initialize dropdowns after DOM is ready
+  nextTick(() => {
+    initDropdowns();
+  });
 });
 
 onUnmounted(() => {
@@ -381,22 +408,86 @@ body.light-theme .sneaker-header.scrolled {
 }
 
 /* User Dropdown & Login Button */
-.user-dropdown .sneaker-btn.user-btn,
-.sneaker-btn {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+.user-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: background 0.3s ease;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  color: #fff;
+  transition: all 0.3s ease;
+  border-radius: 8px;
 }
 
-.user-dropdown .sneaker-btn.user-btn:hover,
-.sneaker-btn:hover {
+.user-btn:hover {
   background: linear-gradient(45deg, #2c3e50, #3498db);
+  opacity: 0.9;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  min-width: 200px;
+  padding: 0.5rem;
+  border: none;
+  background: #fff;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  z-index: 1050;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  transform-origin: top right;
+  animation: dropdownFade 0.2s ease;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  color: #333;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #2196f3;
+  transform: translateX(5px);
+}
+
+.dropdown-item i {
+  width: 20px;
+  text-align: center;
+}
+
+.dropdown-divider {
+  margin: 0.5rem 0;
+  border-color: #dee2e6;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-danger:hover {
+  color: #fff !important;
+  background-color: #dc3545 !important;
 }
 
 /* Theme Toggle Button */
@@ -429,6 +520,16 @@ body.light-theme .sneaker-header.scrolled {
   .sneaker-btn-icon {
     padding: 0.4rem;
   }
+
+  .dropdown-menu {
+    position: fixed !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100%;
+    margin-top: 0.5rem;
+    border-radius: 0;
+  }
 }
 
 body.light-theme .sneaker-btn-icon.search-btn {
@@ -439,8 +540,7 @@ body.light-theme .sneaker-btn-icon.cart-btn {
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
-body.light-theme .user-dropdown .sneaker-btn.user-btn,
-body.light-theme .sneaker-btn {
+body.light-theme .user-btn {
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
@@ -448,4 +548,17 @@ body.light-theme .sneaker-btn-icon.theme-btn {
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
+body.light-theme .dropdown-menu {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .dropdown-item {
+  color: #333;
+}
+
+body.light-theme .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #2196f3;
+}
 </style>

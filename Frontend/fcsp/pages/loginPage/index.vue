@@ -27,7 +27,7 @@
             <label class="form-label">Password</label>
             <div class="input-group">
               <LockOutlined class="input-icon" />
-               <input
+              <input
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 class="form-control"
@@ -35,10 +35,12 @@
                 placeholder="Enter your password"
                 required
               />
-
-              <button type="button" class="toggle-password" @click="togglePassword">
-                <EyeOutlined v-if="!showPassword" />
-                <EyeInvisibleOutlined v-else />
+              <button 
+                type="button" 
+                class="toggle-password" 
+                @click="togglePassword"
+              >
+                <component :is="showPassword ? EyeInvisibleOutlined : EyeOutlined" />
               </button>
             </div>
             <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
@@ -63,9 +65,11 @@
 
 <script setup>
 import { ref } from 'vue';
-import { ElNotification } from 'element-plus'; 
-import { loginUser } from '@/server/auth/login-service';
 import { useRouter } from 'vue-router';
+import { loginUser } from '@/server/auth/login-service';
+import { ElNotification } from 'element-plus'
+
+// Import Ant Design Icons
 import {
   MailOutlined,
   LockOutlined,
@@ -88,35 +92,57 @@ const validateInputs = () => {
   return !emailError.value && !passwordError.value;
 };
 
-const togglePassword = () => showPassword.value = !showPassword.value;
+const togglePassword = () => {
+  showPassword.value = !showPassword.value;
+};
 
 // Login handler
 const login = async () => {
   if (!validateInputs()) return;
   
-  const routeMap = {
-    "Admin login": '/adminPage',
-    "Login successful": '/homePage',
-    "Failed": null,
-    "Error": null
-  };
-
-  const result = await loginUser(email.value, password.value);
-  const route = routeMap[result];
-
-  if (route) {
-    console.log(`Redirecting to ${route.substring(1)}...`);
-    router.push(route);
-  } else {
+  try {
+    const result = await loginUser(email.value, password.value);
+    
+    // Get the role from localStorage
+    const role = localStorage.getItem("role");
+    
+    // Define route mapping based on role
+    let redirectRoute = '/homePage'; // Default route
+    
+    if (role === "Admin") {
+      redirectRoute = '/adminDashboard';
+    } else if (role === "Manufacturer") {
+      redirectRoute = '/ManufacturerPage';
+    }
+    
+    if (result === "Login successful" || result === "Admin login") {
+      ElNotification({
+        title: 'Success',
+        message: 'Login successful! Redirecting...',
+        type: 'success',
+      });
+      
+      // Add a small delay before redirecting
+      setTimeout(() => {
+        router.push(redirectRoute);
+      }, 500);
+    } else {
+      ElNotification({
+        title: 'Error',
+        message: 'Login failed. Please check your credentials.',
+        type: 'error',
+      });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
     ElNotification({
       title: 'Error',
-      message: 'Login failed. Please try again.',
+      message: 'An error occurred during login. Please try again.',
       type: 'error',
     });
   }
 };
 </script>
-
 
 <style scoped>
 /* 🌟 Background */
@@ -273,4 +299,7 @@ input:focus {
     height: 40vh;
   }
 }
+
+/* Import Element Plus base styles */
+@import 'element-plus/dist/index.css';
 </style>
