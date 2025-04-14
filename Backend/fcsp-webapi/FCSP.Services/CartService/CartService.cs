@@ -47,7 +47,6 @@ namespace FCSP.Services.CartService
                         CustomShoeDesignId = ci.CustomShoeDesignId,
                         CustomShoeDesignName = ci.CustomShoeDesign?.Name ?? "Unknown Design",
                         Quantity = ci.Quantity,
-                        Price = ci.Price
                     }).ToList()
                 };
 
@@ -114,7 +113,6 @@ namespace FCSP.Services.CartService
                         CartId = cart.Id,
                         CustomShoeDesignId = request.CustomShoeDesignId,
                         Quantity = request.Quantity,
-                        Price = design.TotalAmount,
                         IsDeleted = false
                     };
                     cartItem = await _cartItemRepository.AddAsync(cartItem);
@@ -174,8 +172,8 @@ namespace FCSP.Services.CartService
                     await RemoveCartItemAsync(request.CartItemId);
                     
                     // Recalculate cart totals
-                    var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                    float cartTotal = updatedCart?.CartItems.Sum(i => i.Price * i.Quantity) ?? 0;
+                        var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
+                        float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
                     
                     response.Data = new UpdateCartItemResponse
                     {
@@ -192,11 +190,11 @@ namespace FCSP.Services.CartService
                     cartItem.Quantity = request.Quantity;
                     await _cartItemRepository.UpdateAsync(cartItem);
                     
-                    float subtotal = cartItem.Price * cartItem.Quantity;
+                    float subtotal = cartItem.CustomShoeDesign.TotalAmount * cartItem.Quantity;
                     
                     // Calculate total cart value
                     var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                    float cartTotal = updatedCart.CartItems.Sum(i => i.Price * i.Quantity);
+                    float cartTotal = updatedCart.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity);
                     
                     response.Data = new UpdateCartItemResponse
                     {
@@ -253,7 +251,7 @@ namespace FCSP.Services.CartService
                 // Recalculate cart totals
                 var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
                 int remainingItems = updatedCart?.CartItems.Sum(i => i.Quantity) ?? 0;
-                float cartTotal = updatedCart?.CartItems.Sum(i => i.Price * i.Quantity) ?? 0;
+                float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
                 
                 response.Data = new RemoveFromCartResponse
                 {

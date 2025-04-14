@@ -2,6 +2,6 @@ namespace FCSP.Models.Entities;
 
 public class Size : BaseEntity
 {
-    public string Value { get; set; } = null!;
+    public int SizeValue { get; set; }
     public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
 } 
