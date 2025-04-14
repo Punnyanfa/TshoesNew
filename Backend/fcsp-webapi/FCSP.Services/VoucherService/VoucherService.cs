@@ -20,23 +20,22 @@ namespace FCSP.Services.VoucherService
             _voucherRepository = voucherRepository;
         }
 
-        public async Task<BaseResponseModel<List<GetVoucherByIdResponse>>> GetAllVouchers()
+        public async Task<BaseResponseModel<List<GetAllVoucherResponse>>> GetAllVouchers()
         {
             try
             {
                 var vouchers = await _voucherRepository.GetAllVoucherAsync();
-                var voucherResponses = vouchers.Select(voucher => new GetVoucherByIdResponse
+                var voucherResponses = vouchers.Select(voucher => new GetAllVoucherResponse
                 {
                     Id = voucher.Id,
                     Code = voucher.VoucherName ?? string.Empty,
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
                     Status = (VoucherStatus)voucher.Status,
                     ExpiryDate = voucher.ExpirationDate,
-                    IsUsed = voucher.Orders != null && voucher.Orders.Any(),
-                    OrderIds = voucher.Orders?.Select(o => o.Id).ToList() ?? new List<long>()
+                    IsUsed = voucher.Orders != null && voucher.Orders.Any()                 
                 }).ToList();
 
-                return new BaseResponseModel<List<GetVoucherByIdResponse>>
+                return new BaseResponseModel<List<GetAllVoucherResponse>>
                 {
                     Code = 200,
                     Message = "Vouchers retrieved successfully",
@@ -45,7 +44,7 @@ namespace FCSP.Services.VoucherService
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<List<GetVoucherByIdResponse>>
+                return new BaseResponseModel<List<GetAllVoucherResponse>>
                 {
                     Code = 500,
                     Message = $"Error retrieving vouchers: {ex.Message}"

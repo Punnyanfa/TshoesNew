@@ -15,6 +15,15 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     {
         return await Entities.FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
     }
+    public async Task<User> GetEmailByUserIdAsync(long userId)
+    {
+        return await Entities.Where(u => u.Id == userId && !u.IsDeleted)
+            .Select(u => new User
+            {
+                Email = u.Email
+            })
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<User?> GetByIdAsync(long userId)
     {

@@ -8,6 +8,15 @@ namespace FCSP.DTOs.Voucher
         public long Id { get; set; }
     }
 
+    public class GetAllVoucherResponse
+    {
+        public long Id { get; set; }
+        public string Code { get; set; }
+        public float DiscountAmount { get; set; }
+        public VoucherStatus Status { get; set; }
+        public DateTime ExpiryDate { get; set; }
+        public bool IsUsed { get; set; }
+    }
     public class GetVoucherByIdResponse
     {
         public long Id { get; set; }
