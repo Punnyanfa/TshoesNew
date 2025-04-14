@@ -19,6 +19,26 @@ internal static class RelationshipConfig
             .WithMany(user => user.ShippingInfos)
             .HasForeignKey(shippingInfo => shippingInfo.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        // Cart relationships
+        modelBuilder.Entity<Cart>()
+            .HasOne(c => c.User)
+            .WithOne(u => u.Cart)
+            .HasForeignKey<Cart>(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // CartItem relationships
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Cart)
+            .WithMany(c => c.CartItems)
+            .HasForeignKey(ci => ci.CartId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.CustomShoeDesign)
+            .WithMany(csd => csd.CartItems)
+            .HasForeignKey(ci => ci.CustomShoeDesignId)
+            .OnDelete(DeleteBehavior.Restrict);
             
         // CustomShoeDesign relationships
         modelBuilder.Entity<CustomShoeDesign>()
@@ -247,8 +267,6 @@ internal static class RelationshipConfig
             .OnDelete(DeleteBehavior.NoAction);
 
         // Size relationships
-      
-
         modelBuilder.Entity<Size>()
             .HasMany(s => s.OrderDetails)
             .WithOne(d => d.Size)

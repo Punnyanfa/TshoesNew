@@ -21,6 +21,8 @@ public class FcspDbContext : DbContext
     #endregion
 
     #region Properties
+    public DbSet<Cart> Carts { get; set; }
+    public DbSet<CartItem> CartItems { get; set; }
     public DbSet<CustomShoeDesign> CustomShoeDesigns { get; set; }
     public DbSet<CustomShoeDesignTemplate> CustomShoeDesignTemplates { get; set; }
     public DbSet<CustomShoeDesignTextures> CustomShoeDesignTextures { get; set; }
@@ -59,7 +61,7 @@ public class FcspDbContext : DbContext
             .AddJsonFile($"appsettings.json", false)
             .Build();
 
-        return config.GetConnectionString("FCSP_DB");
+        return config.GetConnectionString("FCSP_DB_SOMEE");
     }
 
     private static void ConfigureModel(ModelBuilder modelBuilder)

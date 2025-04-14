@@ -15,4 +15,6 @@ public abstract class BaseEntity
 
     [Timestamp]
     public byte[]? Version { get; } = [];
+    
+    public bool IsDeleted { get; set; }
 }

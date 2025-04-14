@@ -21,8 +21,6 @@ public class User : BaseEntity
     public float? Balance { get; set; }
 
     public long? DefaultAddressId { get; set; }
-    
-    public bool IsDeleted { get; set; }
 
     // Navigation properties
     public virtual ShippingInfo? DefaultAddress { get; set; }
@@ -40,4 +38,5 @@ public class User : BaseEntity
     public virtual ICollection<Transaction> ReceivedTransactions { get; } = [];
     public virtual ICollection<Manufacturer> Manufacturers { get; } = [];
     public virtual ICollection<Designer> Designers { get; } = [];
+    public virtual Cart? Cart { get; set; }
 }

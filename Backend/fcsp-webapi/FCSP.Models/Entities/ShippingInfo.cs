@@ -23,7 +23,6 @@ public class ShippingInfo : BaseEntity
     
     public string ContactNumber { get; set; } = null!;
     public bool IsDefault { get; set; }
-    public bool IsDeleted { get; set; }
     
     // Navigation properties
     public virtual ICollection<Order> Orders { get; } = [];

@@ -2,10 +2,6 @@ namespace FCSP.Models.Entities;
 
 public class Size : BaseEntity
 {
-    public int SizeValue { get; set; }
-    public bool IsDeleted { get; set; }
-
-    // Navigation properties
-    public virtual ICollection<CustomShoeDesign> CustomShoeDesigns { get; } = [];
+    public string Value { get; set; } = null!;
     public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
 } 
