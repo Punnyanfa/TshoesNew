@@ -16,7 +16,7 @@
     "@nuxtjs/axios": "^5.13.6",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
     "@pinia/nuxt": "^0.5.5",
-    "@popperjs/core": "npm:@sxzz/popperjs-es@^2.11.7",
+    "@popperjs/core": "^2.11.8",
     "@tanstack/vue-query": "^5.62.9",
     "@vercel/speed-insights": "^1.2.0",
     "@vueuse/core": "^12.7.0",

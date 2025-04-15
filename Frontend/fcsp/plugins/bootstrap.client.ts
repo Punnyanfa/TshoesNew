@@ -1,9 +1,15 @@
 import { defineNuxtPlugin } from '#app'
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(async (nuxtApp) => {
   if (process.client) {
-    // Dynamically import Bootstrap JS
-    import('bootstrap/dist/js/bootstrap.bundle.min.js').then((bootstrap) => {
+    try {
+      // Import Popper.js correctly first
+      const popperjs = await import('@popperjs/core')
+      const { createPopper } = popperjs.default || popperjs
+
+      // Then import Bootstrap
+      const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js')
+      
       // Initialize dropdowns
       const dropdownTriggerList = document.querySelectorAll('.dropdown-toggle')
       dropdownTriggerList.forEach(dropdownToggleEl => {
@@ -13,8 +19,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         })
       })
       console.log('Bootstrap dropdowns initialized')
-    }).catch(err => {
+    } catch (err) {
       console.error('Failed to load Bootstrap:', err)
-    })
+    }
   }
 }) 
