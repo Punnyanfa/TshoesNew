@@ -12,8 +12,6 @@ public class CustomShoeDesign : BaseEntity
     public CustomShoeDesignStatus Status { get; set; }
     public float DesignerMarkup { get; set; }
     public float TotalAmount { get; set; }
-    public bool IsDeleted { get; set; }
-
 
     // Navigation properties
     public virtual User User { get; set; } = null!;
@@ -26,4 +24,5 @@ public class CustomShoeDesign : BaseEntity
     public virtual ICollection<DesignService> DesignServices { get; } = [];
     public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
     public virtual ICollection<ReturnedCustomShoe> ReturnedCustomShoes { get; } = [];
+    public virtual ICollection<CartItem> CartItems { get; } = [];
 }

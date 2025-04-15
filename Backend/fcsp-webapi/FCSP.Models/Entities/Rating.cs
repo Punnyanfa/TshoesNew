@@ -8,7 +8,6 @@ public class Rating : BaseEntity
     public long UserId { get; set; }
     public int UserRating { get; set; } 
     public string? Comment { get; set; }
-    public bool IsDeleted { get; set; }
 
     // Navigation properties
     public virtual CustomShoeDesign CustomShoeDesign { get; set; } = null!;
