@@ -8,7 +8,6 @@ using FCSP.Services.DesignServiceService;
 using FCSP.Services.NotificationService;
 using FCSP.Services.OrderDetailService;
 using FCSP.Services.OrderService;
-using FCSP.Services.PaymentGatewayService;
 using FCSP.Services.PaymentService;
 using FCSP.Services.PostService;
 using FCSP.Services.PostsCommentsService;
@@ -81,10 +80,7 @@ internal static class ServiceConfig
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IOrderDetailService, OrderDetailService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IVoucherService, VoucherService>();
-        services.AddScoped<IPaymentProcessor, PaymentProcessor>();
-
 
         // Service services
         services.AddScoped<IServiceService, ServiceService>();

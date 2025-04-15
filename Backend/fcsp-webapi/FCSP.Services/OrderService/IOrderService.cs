@@ -11,8 +11,5 @@ namespace FCSP.Services.OrderService
         Task<BaseResponseModel<List<GetOrderByIdResponse>>> GetAllOrders();
         Task<BaseResponseModel<AddOrderResponse>> AddOrder(AddOrderRequest request);
         Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrder(UpdateOrderRequest request);
-        Task<BaseResponseModel<DeleteOrderResponse>> DeleteOrder(DeleteOrderRequest request);
-        Task<BaseResponseModel<ProcessPaymentResponse>> ProcessPayment(ProcessPaymentRequest request);
-        Task<BaseResponseModel<UpdateOrderStatusResponse>> UpdateOrderStatus(UpdateOrderStatusRequest request);
     }
 }

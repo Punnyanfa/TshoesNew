@@ -8,10 +8,10 @@ namespace FCSP.Services.PaymentService
 {
     public interface IPaymentService
     {
-        Task<PaymentListResponse> GetAllPayments();
-        Task<PaymentResponse> GetPaymentById(GetPaymentByIdRequest request);
-        Task<PaymentResponse> AddPayment(AddPaymentRequest request);
-        Task<PaymentResponse> UpdatePayment(UpdatePaymentRequest request);
-        Task<PaymentResponse> DeletePayment(DeletePaymentRequest request);
+        Task<BaseResponseModel<AddPaymentResponse>> TestPayOSAsync(AddPaymentRequest request);
+        Task<BaseResponseModel<PaymentListResponse>> GetAllPayments();
+        Task<BaseResponseModel<GetPaymentByIdResponse>> GetPaymentById(GetPaymentByIdRequest request);
+        Task<BaseResponseModel<AddPaymentResponse>> AddPayment(AddPaymentRequest request);
+        Task<BaseResponseModel<UpdatePaymentResponse>> UpdatePayment(UpdatePaymentRequest request);
     }
 } 

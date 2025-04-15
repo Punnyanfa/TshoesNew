@@ -48,10 +48,7 @@ namespace FCSP.DTOs.Order
 
     public class AddOrderResponse
     {
-        public long Id { get; set; }
-        public float TotalPrice { get; set; }
-        public OrderStatus Status { get; set; }
-        public OrderShippingStatus ShippingStatus { get; set; }
+        public string? PaymentUrl { get; set; }
     }
 
     public class UpdateOrderRequest
@@ -60,37 +57,23 @@ namespace FCSP.DTOs.Order
         [Range(1, long.MaxValue, ErrorMessage = "OrderId must be greater than 0.")]
         public long Id { get; set; }
 
-        [Required(ErrorMessage = "ShippingInfoId is required.")]
-        [Range(1, long.MaxValue, ErrorMessage = "ShippingInfoId must be greater than 0.")]
-        public long ShippingInfoId { get; set; }
-
-        [Range(1, long.MaxValue, ErrorMessage = "VoucherId must be greater than 0 if provided.")]
-        public long? VoucherId { get; set; }
-
         [Required(ErrorMessage = "Status is required.")]
         public OrderStatus Status { get; set; }
-
-        [Required(ErrorMessage = "OrderDetails are required.")]
-        [MinLength(1, ErrorMessage = "Order must contain at least one OrderDetail.")]
-        public List<OrderDetailRequestDto> OrderDetails { get; set; } = [];
     }
 
     public class UpdateOrderResponse
     {
-        public long Id { get; set; }
-        public float TotalPrice { get; set; }
-        public OrderStatus Status { get; set; }
-        public OrderShippingStatus ShippingStatus { get; set; }
+        public bool Success { get; set; }
     }
 
-    public class DeleteOrderRequest
+    public class CancelOrderRequest
     {
         [Required(ErrorMessage = "OrderId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "OrderId must be greater than 0.")]
         public long Id { get; set; }
     }
 
-    public class DeleteOrderResponse
+    public class CancelOrderResponse
     {
         public bool Success { get; set; }
     }

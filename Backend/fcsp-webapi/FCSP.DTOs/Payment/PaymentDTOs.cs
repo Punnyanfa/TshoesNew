@@ -1,23 +1,11 @@
 using FCSP.DTOs;
+using FCSP.Common.Enums;
 
 namespace FCSP.DTOs.Payment
 {
-    public class PaymentDto
+    public class PaymentListResponse
     {
-        public long Id { get; set; }
-        public long OrderId { get; set; }
-        public float Amount { get; set; }
-        public int Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-
-    public class PaymentListResponse : BaseResponseModel<List<PaymentDto>>
-    {
-    }
-
-    public class PaymentResponse : BaseResponseModel<PaymentDto>
-    {
+        public List<GetPaymentByIdResponse> Payments { get; set; }
     }
 
     public class GetPaymentByIdRequest
@@ -30,51 +18,29 @@ namespace FCSP.DTOs.Payment
         public long Id { get; set; }
         public long OrderId { get; set; }
         public float Amount { get; set; }
-        public int Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public PaymentStatus Status { get; set; }
     }
 
     public class AddPaymentRequest
     {
         public long OrderId { get; set; }
-        public float Amount { get; set; }
-        public int Status { get; set; }
+        public int Amount { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
     }
 
     public class AddPaymentResponse
     {
-        public long Id { get; set; }
-        public float Amount { get; set; }
-        public int Status { get; set; }
+        public string Response { get; set; } = string.Empty;
     }
 
     public class UpdatePaymentRequest
     {
         public long Id { get; set; }
-        public float Amount { get; set; }
-        public int Status { get; set; }
+        public PaymentStatus Status { get; set; }
     }
 
     public class UpdatePaymentResponse
     {
-        public long Id { get; set; }
-        public float Amount { get; set; }
-        public int Status { get; set; }
-    }
-
-    public class DeletePaymentRequest
-    {
-        public long Id { get; set; }
-    }
-
-    public class DeletePaymentResponse
-    {
         public bool Success { get; set; }
     }
-
-    public class GetPaymentsByOrderRequest
-    {
-        public long OrderId { get; set; }
-    }
-} 
+}

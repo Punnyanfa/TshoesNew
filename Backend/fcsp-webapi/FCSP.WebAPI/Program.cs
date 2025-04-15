@@ -2,6 +2,7 @@
 using FCSP.WebAPI.Configuration;
 using Microsoft.AspNetCore.Builder;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()

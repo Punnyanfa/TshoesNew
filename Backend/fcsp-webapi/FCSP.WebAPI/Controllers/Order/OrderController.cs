@@ -58,29 +58,5 @@ namespace FCSP.Controllers
             var response = await _orderService.UpdateOrder(request);
             return StatusCode(response.Code, response);
         }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOrder(long id)
-        {
-            var request = new DeleteOrderRequest { Id = id };
-            var response = await _orderService.DeleteOrder(request);
-            return StatusCode(response.Code, response);
-        }
-
-        [HttpPost("process-payment")]
-        public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentRequest request)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var response = await _orderService.ProcessPayment(request);
-            return StatusCode(response.Code, response);
-        }
-
-        [HttpPut("update-status")]
-        public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest request)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var response = await _orderService.UpdateOrderStatus(request);
-            return StatusCode(response.Code, response);
-        }
     }
 }

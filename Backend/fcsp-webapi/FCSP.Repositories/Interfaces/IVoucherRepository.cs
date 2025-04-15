@@ -7,6 +7,5 @@ namespace FCSP.Repositories.Interfaces
         Task<IEnumerable<Voucher>> GetNonExpiredVouchersAsync();
         Task<Voucher> GetVoucherByOrderIdAsync(long orderId);
         Task<int> UpdateExpiredVouchersAsync();
-        Task<Voucher> FindByIdAsync(long id);
     }
 }

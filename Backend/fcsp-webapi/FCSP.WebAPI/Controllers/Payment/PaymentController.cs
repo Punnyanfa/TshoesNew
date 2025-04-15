@@ -16,6 +16,14 @@ public class PaymentController : ControllerBase
         _paymentService = paymentService;
     }
 
+
+    [HttpGet("test-payos")]
+    public async Task<IActionResult> TestPayOS()
+    {
+        var result = await _paymentService.TestPayOSAsync(new AddPaymentRequest { OrderId = 2, Amount = 2000 });
+        return StatusCode(result.Code, result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAllPayments()
     {
@@ -42,14 +50,6 @@ public class PaymentController : ControllerBase
     public async Task<IActionResult> UpdatePayment([FromBody] UpdatePaymentRequest request)
     {
         var result = await _paymentService.UpdatePayment(request);
-        return StatusCode(result.Code, result);
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeletePayment(int id)
-    {
-        var request = new DeletePaymentRequest { Id = id };
-        var result = await _paymentService.DeletePayment(request);
         return StatusCode(result.Code, result);
     }
 } 

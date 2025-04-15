@@ -42,11 +42,5 @@ namespace FCSP.Repositories.Implementations
             await _context.SaveChangesAsync();
             return expiredVouchers.Count; 
         }
-
-        public async Task<Voucher> FindByIdAsync(long id)
-        {
-            return await _context.Vouchers
-                .FirstOrDefaultAsync(v => v.Id == id);
-        }
     }
 }

@@ -2,8 +2,6 @@
 
 public enum PaymentMethod
 {
-    CashOnDelivery = 0,
-    Card = 1,
-    Bank = 2,
-    Wallet = 3,
+    PayOS = 0,
+    Wallet = 1,
 }

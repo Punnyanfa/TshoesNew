@@ -37,7 +37,7 @@ namespace FCSP.DTOs.Texture
 
     public class AddTextureRequest
     {
-        public IFormFile ImageFile { get; set; } = null!;
+        public IFormFile? ImageFile { get; set; } = null!;
         public string? Prompt { get; set; } = null!;
         public long OwnerId { get; set; }
         public TextureStatus Status { get; set; } = TextureStatus.Private;

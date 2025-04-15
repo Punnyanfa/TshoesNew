@@ -298,8 +298,8 @@ public class TextureService : ITextureService
             fileBytes = memoryStream.ToArray();
         }
 
-        //var imageUrl = await UploadToAzureStorage(fileName, fileBytes);
-        var imageUrl = "\"C:\\Users\\ASUS\\Pictures\\Saved Pictures\\292359128_595094968652714_9080161834328948733_n.jpg\"";
+        var imageUrl = await UploadToAzureStorage(fileName, fileBytes);
+        //var imageUrl = "\"C:\\Users\\ASUS\\Pictures\\Saved Pictures\\292359128_595094968652714_9080161834328948733_n.jpg\"";
         if (string.IsNullOrEmpty(imageUrl))
         {
             throw new InvalidOperationException("Failed to upload file to Azure Storage.");
