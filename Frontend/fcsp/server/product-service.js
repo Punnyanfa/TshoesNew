@@ -33,3 +33,21 @@ export async function getProductById(id) {
     throw error;
   }
 }
+
+export async function updateProductStatus(id, status) {
+  try {
+    const response = await instance.put(`/CustomShoeDesign/status`, {
+      id: id,
+      status: status
+    });
+    
+    if (response.data.code === 200) {
+      return response.data;
+    }
+    
+    throw new Error(response.data.message || 'Failed to update product status');
+  } catch (error) {
+    console.error("Error updating product status:", error);
+    throw error;
+  }
+}
