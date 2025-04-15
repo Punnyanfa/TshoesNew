@@ -13,7 +13,7 @@ namespace FCSP.Repositories.Implementations
         
         public async Task<Size> GetSizeEntityBySizeValueAsync(int sizeValue)
         {
-            return await Entities.FirstOrDefaultAsync(s => s.SizeValue == sizeValue);
+            return await Entities.FirstOrDefaultAsync(s => s.SizeValue == sizeValue && !s.IsDeleted);
         }
         // Implement any specific methods for Size if needed
     }

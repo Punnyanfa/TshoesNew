@@ -33,7 +33,7 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Include(s => s.SetServiceAmounts)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
     }
 }

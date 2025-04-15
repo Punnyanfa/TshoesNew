@@ -17,7 +17,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<long>> GetCustomShoeDesignIdsByTemplateAsync(long templateId)
         {
             return await _context.CustomShoeDesigns
-                .Where(d => d.CustomShoeDesignTemplateId== templateId) // Fixed to use TemplateId
+                .Where(d => d.CustomShoeDesignTemplateId== templateId && !d.IsDeleted) 
                 .Select(d => d.Id)
                 .ToListAsync();
         }
@@ -25,7 +25,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<int> GetCustomShoeDesignCountByTemplateAsync(long templateId)
         {
             return await _context.CustomShoeDesigns
-                .CountAsync(d => d.CustomShoeDesignTemplateId == templateId); // Fixed to use TemplateId
+                .CountAsync(d => d.CustomShoeDesignTemplateId == templateId && !d.IsDeleted); 
         }
     }
 }
