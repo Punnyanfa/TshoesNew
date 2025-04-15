@@ -41,7 +41,9 @@ namespace FCSP.Repositories.Implementations
 
         public async Task<IList<T>> GetAllAsync()
         {
-            return await Entities.ToListAsync();
+            return await Entities
+                .Where(x => !x.IsDeleted)
+                .ToListAsync();
         }
 
         public IQueryable<T> GetAll()

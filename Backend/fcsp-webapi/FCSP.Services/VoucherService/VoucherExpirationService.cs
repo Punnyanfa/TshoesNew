@@ -12,7 +12,7 @@ namespace FCSP.WebAPI
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<VoucherExpirationService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1); 
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1); 
 
         public VoucherExpirationService(IServiceProvider serviceProvider, ILogger<VoucherExpirationService> logger)
         {
