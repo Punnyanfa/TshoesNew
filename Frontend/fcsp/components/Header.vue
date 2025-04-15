@@ -58,16 +58,15 @@
   <template v-if="isAuthenticated">
     <div class="dropdown">
       <button 
-        class="btn sneaker-btn user-btn dropdown-toggle" 
+        class="btn dropdown-toggle d-flex align-items-center" 
         type="button" 
+        id="userDropdown"
         data-bs-toggle="dropdown" 
-        data-bs-auto-close="true"
-        data-bs-boundary="clippingParents"
-        :aria-expanded="false"
+        aria-expanded="false"
       >
         <i class="bi bi-person-circle me-1"></i> {{ userName }}
       </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow">
+      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
         <li>
           <router-link class="dropdown-item" to="/profilePage">
             <i class="bi bi-person me-2"></i> Profile
@@ -154,10 +153,7 @@ const initDropdowns = async () => {
       const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
       const dropdownElements = document.querySelectorAll('.dropdown-toggle');
       dropdownElements.forEach(element => {
-        new bootstrap.Dropdown(element, {
-          offset: [0, 10],
-          boundary: 'clippingParents'
-        });
+        new bootstrap.Dropdown(element);
       });
     } catch (error) {
       console.error('Error initializing dropdowns:', error);
