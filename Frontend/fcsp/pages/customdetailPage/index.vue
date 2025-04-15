@@ -90,6 +90,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Sidebarcustom from '~/components/sidebarcustom.vue';
+import pkg from '@popperjs/core';
+const { placements, createPopper } = pkg;
 
 // Refs cho Three.js container và states
 const container = ref(null);
