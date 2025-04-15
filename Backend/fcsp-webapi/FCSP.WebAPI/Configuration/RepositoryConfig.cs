@@ -22,7 +22,11 @@ internal static class RepositoryConfig
         // Post & Comment repositories
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IPostsCommentsRepository, PostsCommentsRepository>();
-        
+
+        // Cart repositories
+        services.AddScoped<ICartRepository, CartRepository>();
+        services.AddScoped<ICartItemRepository, CartItemRepository>();
+
         // Design repositories
         services.AddScoped<ICustomShoeDesignRepository, CustomShoeDesignRepository>();
         services.AddScoped<ICustomShoeDesignTextureRepository, CustomShoeDesignTextureRepository>();

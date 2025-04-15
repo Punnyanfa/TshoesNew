@@ -1,5 +1,6 @@
 using FCSP.DTOs;
 using FCSP.DTOs.Cart;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.CartService
 {
@@ -11,4 +12,4 @@ namespace FCSP.Services.CartService
         Task<BaseResponseModel<RemoveFromCartResponse>> RemoveFromCartAsync(RemoveFromCartRequest request);
         Task<BaseResponseModel<bool>> ClearCartAsync(long userId);
     }
-} 
+}

@@ -30,6 +30,7 @@ using FCSP.Common.Configurations;
 using FCSP.Services.SizeService;
 using FCSP.Services;
 using FCSP.Services.ManufacturerService;
+using FCSP.Services.CartService;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -64,7 +65,8 @@ internal static class ServiceConfig
         // User services
         services.AddScoped<IUserActivityService, UserActivityService>();
         services.AddScoped<IUserRecommendationService, UserRecommendationService>();
-
+        //Cart services
+        services.AddScoped<ICartService, CartService>();
         // Post & Comment services
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPostsCommentsService, PostsCommentsService>();
