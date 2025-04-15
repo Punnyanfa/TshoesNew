@@ -3,6 +3,7 @@ using FCSP.DTOs;
 using FCSP.DTOs.Manufacturer;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using Microsoft.AspNet.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace FCSP.Services.ManufacturerService
@@ -27,8 +28,12 @@ namespace FCSP.Services.ManufacturerService
                 _logger.LogInformation("Fetching all manufacturers with details");
                 var manufacturers = await _manufacturerRepository.GetAllWithDetailsAsync();
 
-                var detailedManufacturers = manufacturers.Select(m => MapToDetailResponse(m)).ToList();
-
+                var detailedManufacturers = new List<GetManufacturerDetailResponse>();
+                foreach (var manufacturer in manufacturers)
+                {
+                    var response = await MapToDetailResponse(manufacturer);
+                    detailedManufacturers.Add(response);
+                }
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>>
                 {
                     Code = 200,
@@ -69,7 +74,7 @@ namespace FCSP.Services.ManufacturerService
                 {
                     Code = 200,
                     Message = "Success",
-                    Data = MapToDetailResponse(manufacturer)
+                    Data = await MapToDetailResponse(manufacturer)
                 };
             }
             catch (Exception ex)
@@ -111,7 +116,7 @@ namespace FCSP.Services.ManufacturerService
                     UserId = request.UserId,
                     Name = request.Name,
                     CommissionRate = request.CommissionRate,
-                    Status = (ManufacturerStatus)request.Status, // Removed commission rate < 40 condition
+                    Status = (ManufacturerStatus)request.Status,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -157,7 +162,7 @@ namespace FCSP.Services.ManufacturerService
 
                 manufacturer.Name = request.Name;
                 manufacturer.CommissionRate = request.CommissionRate;
-                manufacturer.Status = (ManufacturerStatus)request.Status; // Removed commission rate < 40 condition
+                manufacturer.Status = (ManufacturerStatus)request.Status;
                 manufacturer.UpdatedAt = DateTime.UtcNow;
 
                 await _manufacturerRepository.UpdateAsync(manufacturer);
@@ -231,7 +236,7 @@ namespace FCSP.Services.ManufacturerService
                     return new BaseResponseModel<List<GetManufacturerDetailResponse>> { Code = 404, Message = "No manufacturers found for this user" };
                 }
 
-                var responseData = new List<GetManufacturerDetailResponse> { MapToDetailResponse(manufacturer) };
+                var responseData = new List<GetManufacturerDetailResponse> { await MapToDetailResponse(manufacturer) };
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>>
                 {
                     Code = 200,
@@ -246,27 +251,47 @@ namespace FCSP.Services.ManufacturerService
             }
         }
 
-        public async Task<BaseResponseModel<List<Manufacturer>>> GetActiveManufacturers()
+        public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetActiveManufacturers()
         {
             try
             {
                 _logger.LogInformation("Fetching active manufacturers");
                 var manufacturers = await _manufacturerRepository.GetManufacturersByStatusAsync((int)ManufacturerStatus.Active);
-                return new BaseResponseModel<List<Manufacturer>> { Code = 200, Message = "Success", Data = manufacturers.ToList() };
+
+                var detailedManufacturers = new List<GetManufacturerDetailResponse>();
+                foreach (var manufacturer in manufacturers)
+                {
+                    var response = await MapToDetailResponse(manufacturer);
+                    detailedManufacturers.Add(response);
+                }
+
+                return new BaseResponseModel<List<GetManufacturerDetailResponse>>
+                {
+                    Code = 200,
+                    Message = "Success",
+                    Data = detailedManufacturers
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching active manufacturers");
-                return new BaseResponseModel<List<Manufacturer>> { Code = 500, Message = ex.Message };
+                return new BaseResponseModel<List<GetManufacturerDetailResponse>>
+                {
+                    Code = 500,
+                    Message = ex.Message
+                };
             }
         }
 
-        private GetManufacturerDetailResponse MapToDetailResponse(Manufacturer manufacturer)
+        private async Task<GetManufacturerDetailResponse> MapToDetailResponse(Manufacturer manufacturer)
         {
+            var user = await _userRepository.GetUserNameByUserIdAsync(manufacturer.UserId);
+
             return new GetManufacturerDetailResponse
             {
                 Id = manufacturer.Id,
                 UserId = manufacturer.UserId,
+                UserName = user?.Name,
                 Name = manufacturer.Name,
                 CommissionRate = manufacturer.CommissionRate,
                 Status = (int)manufacturer.Status,

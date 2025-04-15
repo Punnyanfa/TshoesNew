@@ -20,21 +20,31 @@ namespace FCSP.Services.VoucherService
             _voucherRepository = voucherRepository;
         }
 
-        public async Task<BaseResponseModel<List<Voucher>>> GetAllVouchers()
+        public async Task<BaseResponseModel<List<GetAllVoucherResponse>>> GetAllVouchers()
         {
             try
             {
-                var vouchers = await _voucherRepository.GetAllAsync();
-                return new BaseResponseModel<List<Voucher>>
+                var vouchers = await _voucherRepository.GetAllVoucherAsync();
+                var voucherResponses = vouchers.Select(voucher => new GetAllVoucherResponse
+                {
+                    Id = voucher.Id,
+                    Code = voucher.VoucherName ?? string.Empty,
+                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
+                    Status = (VoucherStatus)voucher.Status,
+                    ExpiryDate = voucher.ExpirationDate,
+                    IsUsed = voucher.Orders != null && voucher.Orders.Any()                 
+                }).ToList();
+
+                return new BaseResponseModel<List<GetAllVoucherResponse>>
                 {
                     Code = 200,
                     Message = "Vouchers retrieved successfully",
-                    Data = vouchers.ToList()
+                    Data = voucherResponses
                 };
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<List<Voucher>>
+                return new BaseResponseModel<List<GetAllVoucherResponse>>
                 {
                     Code = 500,
                     Message = $"Error retrieving vouchers: {ex.Message}"
@@ -46,7 +56,7 @@ namespace FCSP.Services.VoucherService
         {
             try
             {
-                var voucher = await _voucherRepository.FindAsync(request.Id);
+                var voucher = await _voucherRepository.FindByIdAsync(request.Id);
                 if (voucher == null)
                 {
                     return new BaseResponseModel<GetVoucherByIdResponse>
@@ -63,7 +73,8 @@ namespace FCSP.Services.VoucherService
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
                     Status = (VoucherStatus)voucher.Status,
                     ExpiryDate = voucher.ExpirationDate,
-                    IsUsed = voucher.Status == (int)VoucherStatus.Used
+                    IsUsed = voucher.Orders != null && voucher.Orders.Any(),
+                    OrderIds = voucher.Orders?.Select(o => o.Id).ToList() ?? new List<long>()
                 };
 
                 return new BaseResponseModel<GetVoucherByIdResponse>
@@ -136,7 +147,6 @@ namespace FCSP.Services.VoucherService
                     ExpirationDate = request.ExpiryDate,
                     Status = (int)VoucherStatus.Active,
                     Description = request.Code
-                    // CreatedAt is set by BaseEntity
                 };
 
                 var addedVoucher = await _voucherRepository.AddAsync(voucher);
@@ -187,7 +197,6 @@ namespace FCSP.Services.VoucherService
                 voucher.VoucherName = request.Code;
                 voucher.VoucherValue = request.DiscountAmount.ToString();
                 voucher.ExpirationDate = request.ExpiryDate;
-                voucher.Status = request.IsUsed ? (int)VoucherStatus.Used : (int)VoucherStatus.Active;
                 voucher.UpdatedAt = DateTime.Now;
 
                 await _voucherRepository.UpdateAsync(voucher);
@@ -272,8 +281,10 @@ namespace FCSP.Services.VoucherService
                     Id = voucher.Id,
                     Code = voucher.VoucherName ?? string.Empty,
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
+                    Status = (VoucherStatus)voucher.Status,
                     ExpiryDate = voucher.ExpirationDate,
-                    IsUsed = voucher.Status == (int)VoucherStatus.Used
+                    IsUsed = voucher.Orders != null && voucher.Orders.Any(), 
+                    OrderIds = voucher.Orders?.Select(o => o.Id).ToList() ?? new List<long>()
                 }).ToList();
 
                 return new BaseResponseModel<List<GetVoucherByIdResponse>>

@@ -36,7 +36,7 @@ namespace FCSP.Repositories.Implementations
 
         public async Task<Manufacturer> GetManufacturerWithDetailsAsync(long id)
         {
-            return await Entities
+            return await Entities               
                 .Include(m => m.Services)
                 .ThenInclude(s => s.SetServiceAmounts)
                 .Include(m => m.ManufacturerCriterias)

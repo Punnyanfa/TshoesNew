@@ -15,7 +15,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Criteria>> GetActiveCriteriaAsync()
         {
             return await Entities
-                .Where(c => c.Status == Common.Enums.CriteriaStatus.Active) // Assuming 1 means active
+                .Where(c => c.Status == Common.Enums.CriteriaStatus.Active) 
                 .Include(c => c.ManufacturerCriterias)
                 .ToListAsync();
         }

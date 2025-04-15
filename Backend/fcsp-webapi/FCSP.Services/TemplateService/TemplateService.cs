@@ -54,6 +54,8 @@ namespace FCSP.Services.TemplateService
                         Id = template.Id,
                         Name = template.Name,
                         Description = template.Description ?? string.Empty,
+                        Gender = template.Gender,
+                        Color = template.Color,
                         PreviewImageUrl = template.TwoDImageUrl ?? string.Empty,
                         Model3DUrl = template.ThreeDFileUrl ?? string.Empty,
                         BasePrice = (decimal)template.Price,
@@ -194,8 +196,8 @@ namespace FCSP.Services.TemplateService
                     (string.IsNullOrEmpty(request.Name) || t.Name.Contains(request.Name, StringComparison.OrdinalIgnoreCase)) &&
                     (string.IsNullOrEmpty(request.Gender) || t.Gender == request.Gender) &&
                     (string.IsNullOrEmpty(request.Color) || t.Color == request.Color) &&
-                    (!request.MinPrice.HasValue || (decimal)t.Price >= request.MinPrice.Value) && // Converted t.Price to decimal
-                    (!request.MaxPrice.HasValue || (decimal)t.Price <= request.MaxPrice.Value)   // Converted t.Price to decimal
+                    (!request.MinPrice.HasValue || (decimal)t.Price >= request.MinPrice.Value) && 
+                    (!request.MaxPrice.HasValue || (decimal)t.Price <= request.MaxPrice.Value)
                 ).ToList();
 
                 return new BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>

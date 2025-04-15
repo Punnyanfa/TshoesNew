@@ -29,7 +29,7 @@ namespace FCSP.Services.CartService
             try
             {
                 var response = new BaseResponseModel<GetCartResponse>();
-                
+
                 var cart = await _cartRepository.GetCartWithItemsByUserIdAsync(userId);
                 if (cart == null)
                 {
@@ -37,17 +37,25 @@ namespace FCSP.Services.CartService
                     return response;
                 }
 
-                var cartResponse = new GetCartResponse
+                var cartItems = new List<CartItemDto>();
+                foreach (var ci in cart.CartItems)
                 {
-                    Id = cart.Id,
-                    UserId = cart.UserId,
-                    CartItems = cart.CartItems.Select(ci => new CartItemDto
+                    var price = await _customShoeDesignRepository.GetTotalAmountByIdAsync(ci.CustomShoeDesignId);
+                    cartItems.Add(new CartItemDto
                     {
                         Id = ci.Id,
                         CustomShoeDesignId = ci.CustomShoeDesignId,
                         CustomShoeDesignName = ci.CustomShoeDesign?.Name ?? "Unknown Design",
-                        Quantity = ci.Quantity,
-                    }).ToList()
+                        Price = price,
+                        Quantity = ci.Quantity
+                    });
+                }
+
+                var cartResponse = new GetCartResponse
+                {
+                    Id = cart.Id,
+                    UserId = cart.UserId,
+                    CartItems = cartItems
                 };
 
                 return new BaseResponseModel<GetCartResponse>
@@ -179,7 +187,7 @@ namespace FCSP.Services.CartService
                     {
                         Success = true,
                         CartItemId = request.CartItemId,
-                        Quantity = 0,
+                        Quantity = request.Quantity,
                         Subtotal = 0,
                         CartTotal = cartTotal
                     };

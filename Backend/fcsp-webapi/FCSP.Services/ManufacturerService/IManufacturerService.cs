@@ -12,6 +12,6 @@ namespace FCSP.Services.ManufacturerService
         Task<BaseResponseModel<UpdateManufacturerResponse>> UpdateManufacturer(UpdateManufacturerRequest request);
         Task<BaseResponseModel<bool>> DeleteManufacturer(GetManufacturerRequest request);
         Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetManufacturersByUserId(long userId);
-        Task<BaseResponseModel<List<Manufacturer>>> GetActiveManufacturers();
+        Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetActiveManufacturers();
     }
 }

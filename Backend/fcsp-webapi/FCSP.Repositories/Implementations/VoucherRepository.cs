@@ -16,21 +16,28 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Voucher>> GetNonExpiredVouchersAsync()
         {
             return await _context.Vouchers
-                 .Where(v => v.ExpirationDate >= DateTime.UtcNow && v.Status == (int)VoucherStatus.Active)
+                 .Where(v => v.ExpirationDate >= DateTime.UtcNow && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
                  .ToListAsync();
+        }
+        public async Task<IEnumerable<Voucher>> GetAllVoucherAsync()
+        {
+            return await _context.Vouchers
+                .Where(v => !v.IsDeleted)
+                .Include(v => v.Orders)
+                .ToListAsync();
         }
 
         public async Task<Voucher> GetVoucherByOrderIdAsync(long orderId)
         {
             return await _context.Vouchers
                 .Include(v => v.Orders)
-                .FirstOrDefaultAsync(v => v.Orders.Any(o => o.Id == orderId));
+                .FirstOrDefaultAsync(v => v.Orders.Any(o => o.Id == orderId) && !v.IsDeleted);
         }
 
         public async Task<int> UpdateExpiredVouchersAsync()
         {
             var expiredVouchers = await _context.Vouchers
-                .Where(v => v.ExpirationDate < DateTime.UtcNow && v.Status == (int)VoucherStatus.Active)
+                .Where(v => v.ExpirationDate < DateTime.UtcNow && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
                 .ToListAsync();
 
             foreach (var voucher in expiredVouchers)

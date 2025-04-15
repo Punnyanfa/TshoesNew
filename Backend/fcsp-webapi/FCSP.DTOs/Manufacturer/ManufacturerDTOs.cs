@@ -7,11 +7,13 @@ namespace FCSP.DTOs.Manufacturer
         [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
         public long Id { get; set; }
     }
+   
 
     public class GetManufacturerDetailResponse
     {
         public long Id { get; set; }
         public long UserId { get; set; }
+        public string UserName { get; set; }
         public string Name { get; set; } = null!;
         public float CommissionRate { get; set; }
         public int Status { get; set; }
