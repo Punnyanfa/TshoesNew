@@ -156,6 +156,63 @@ namespace FCSP.Services.CriteriaService
                 };
             }
         }
+        public async Task<BaseResponseModel<UpdateCriteriaStatusResponse>> UpdateStatusAsync(UpdateCriteriaStatusRequest request)
+        {
+            try
+            {
+                if (request.Id <= 0)
+                {
+                    return new BaseResponseModel<UpdateCriteriaStatusResponse>
+                    {
+                        Code = 400,
+                        Message = "Criteria ID must be greater than 0"
+                    };
+                }
+
+                if (!Enum.IsDefined(typeof(CriteriaStatus), request.Status))
+                {
+                    return new BaseResponseModel<UpdateCriteriaStatusResponse>
+                    {
+                        Code = 400,
+                        Message = "Invalid status value"
+                    };
+                }
+                var criteria = await _criteriaRepository.FindAsync(request.Id);
+                if (criteria == null || criteria.IsDeleted)
+                {
+                    return new BaseResponseModel<UpdateCriteriaStatusResponse>
+                    {
+                        Code = 404,
+                        Message = "Criteria not found"
+                    };
+                }
+
+                criteria.Status = request.Status;
+                criteria.UpdatedAt = DateTime.UtcNow;
+
+                await _criteriaRepository.UpdateAsync(criteria);
+
+                return new BaseResponseModel<UpdateCriteriaStatusResponse>
+                {
+                    Code = 200,
+                    Message = "Criteria status updated successfully",
+                    Data = new UpdateCriteriaStatusResponse
+                    {
+                        Id = criteria.Id,
+                        Status = criteria.Status,
+                        UpdatedAt = criteria.UpdatedAt
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateCriteriaStatusResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message
+                };
+            }
+        }
         public async Task<BaseResponseModel<bool>> DeleteAsync(long id)
         {
             try
