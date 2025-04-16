@@ -34,7 +34,8 @@ namespace FCSP.Repositories.Implementations
             var entity = await Entities.FindAsync(id);
             if (entity != null)
             {
-                Entities.Remove(entity);
+                entity.IsDeleted = true;
+                Entities.Update(entity);
                 await _context.SaveChangesAsync();
             }
         }
