@@ -38,7 +38,8 @@ namespace FCSP.Services.PaymentService
         public async Task<BaseResponseModel<AddPaymentResponse>> TestPayOSAsync(AddPaymentRequest request)
         {
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
-            PaymentData paymentData = new PaymentData(request.OrderId, request.Amount, "Payment for order " + request.OrderId, null, "https://tshoes.vercel.app", "https://tshoes.vercel.app");
+            int expireAt = (int)DateTime.Now.AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+            PaymentData paymentData = new PaymentData(request.OrderId, request.Amount, "Payment for order " + request.OrderId, null, "https://tshoes.vercel.app/homePage", "https://tshoes.vercel.app");
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return new BaseResponseModel<AddPaymentResponse>
             {
@@ -190,6 +191,66 @@ namespace FCSP.Services.PaymentService
                 };
             }
         }
+
+        public async Task<BaseResponseModel<GetPaymentInfoResponse>> GetPaymentInfoFromPayOS(GetPaymentInfoRequest request)
+        {
+            try
+            {
+                var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
+                var paymentInfo = await payOS.getPaymentLinkInformation(request.PaymentId);
+                return new BaseResponseModel<GetPaymentInfoResponse>
+                {
+                    Code = 200,
+                    Message = "Payment info retrieved successfully",
+                    Data = new GetPaymentInfoResponse
+                    {
+                        PaymentId = paymentInfo.orderCode,
+                        Status = paymentInfo.status,
+                        Amount = paymentInfo.amount,
+                        AmountPaid = paymentInfo.amountPaid,
+                        AmountRemaining = paymentInfo.amountRemaining,
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<GetPaymentInfoResponse>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving payment info: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<CancelPaymentResponse>> CancelPaymentFromPayOS(CancelPaymentRequest request)
+        {
+            try
+            {
+                var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
+                await payOS.cancelPaymentLink(request.PaymentId);
+                return new BaseResponseModel<CancelPaymentResponse>
+                {
+                    Code = 200,
+                    Message = "Payment cancelled successfully",
+                    Data = new CancelPaymentResponse
+                    {   
+                        Success = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<CancelPaymentResponse>
+                {
+                    Code = 500,
+                    Message = $"Error cancelling payment: {ex.Message}",
+                    Data = new CancelPaymentResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -260,7 +321,20 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Payment not found");
             }
-            payment.PaymentStatus = request.Status;
+            if(request.Status == "CANCELLED")
+            {
+                payment.PaymentStatus = PaymentStatus.Cancelled;
+            }
+            else if(request.Status == "PAID")
+            {
+                payment.PaymentStatus = PaymentStatus.Received;
+            }
+            else if(request.Status == "PROCESSING")
+            {
+                payment.PaymentStatus = PaymentStatus.Pending;
+            }else{
+                throw new Exception("Invalid payment status");
+            }
             payment.UpdatedAt = DateTime.UtcNow;
             return payment;
         }

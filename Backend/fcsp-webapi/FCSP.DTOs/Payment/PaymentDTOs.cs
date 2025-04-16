@@ -21,6 +21,21 @@ namespace FCSP.DTOs.Payment
         public PaymentStatus Status { get; set; }
     }
 
+
+    public class GetPaymentInfoRequest  
+    {
+        public long PaymentId { get; set; }
+    }
+
+    public class GetPaymentInfoResponse
+    {
+        public long PaymentId { get; set; }
+        public String Status { get; set; } = string.Empty;
+        public int Amount { get; set; }
+        public int AmountPaid { get; set; }
+        public int AmountRemaining { get; set; }
+    }
+
     public class AddPaymentRequest
     {
         public long OrderId { get; set; }
@@ -36,11 +51,22 @@ namespace FCSP.DTOs.Payment
     public class UpdatePaymentRequest
     {
         public long Id { get; set; }
-        public PaymentStatus Status { get; set; }
+        public String Status { get; set; } = string.Empty;
     }
 
     public class UpdatePaymentResponse
     {
         public bool Success { get; set; }
     }
+
+    public class CancelPaymentRequest
+    {
+        public long PaymentId { get; set; }
+    }
+
+    public class CancelPaymentResponse
+    {
+        public bool Success { get; set; }
+    }
+    
 }

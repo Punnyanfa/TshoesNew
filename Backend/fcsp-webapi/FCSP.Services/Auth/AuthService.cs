@@ -115,6 +115,30 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromUpdateUserStatusRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+
+            return new BaseResponseModel<UpdateUserStatusResponse>
+            {
+                Code = 200,
+                Message = "User status updated successfully",
+                Data = new UpdateUserStatusResponse { Success = true }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<UpdateUserStatusResponse>
+            {
+                Code = 500,
+                Message = ex.Message
+            };
+        }
+    }
+
     public async Task<BaseResponseModel<UpdateUserPasswordResponse>> UpdateUserPassword(UpdateUserPasswordRequest request)
     {
         try
@@ -242,6 +266,19 @@ public class AuthService : IAuthService
             Balance = 0,
             UserRole = UserRole.Customer
         };
+    }
+
+    private async Task<User> GetUserEntityFromUpdateUserStatusRequestAsync(UpdateUserStatusRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
+        }
+
+        user.IsDeleted = request.IsDeleted;
+        user.UpdatedAt = DateTime.Now;
+        return user;
     }
 
     private async Task<User> GetUserEntityFromUpdateUserPasswordRequestAsync(UpdateUserPasswordRequest request)

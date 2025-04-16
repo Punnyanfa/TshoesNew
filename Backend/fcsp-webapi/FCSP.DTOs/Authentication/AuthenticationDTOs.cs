@@ -48,6 +48,19 @@ public class UserRegisterRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class UpdateUserStatusRequest
+{
+    public long Id { get; set; }
+    public bool IsDeleted { get; set; }
+}
+
+public class UpdateUserStatusResponse
+{
+    public bool Success { get; set; }
+}
+
+
+
 public class UserRegisterResponse
 {
     public bool Success { get; set; }
