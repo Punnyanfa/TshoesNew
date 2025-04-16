@@ -56,7 +56,7 @@ namespace FCSP.Services.VoucherService
         {
             try
             {
-                var voucher = await _voucherRepository.FindByIdAsync(request.Id);
+                var voucher = await _voucherRepository.FindAsync(request.Id);
                 if (voucher == null)
                 {
                     return new BaseResponseModel<GetVoucherByIdResponse>
