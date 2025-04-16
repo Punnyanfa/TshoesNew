@@ -47,7 +47,7 @@ namespace FCSP.WebAPI.Controllers.CriteriaController
         {
             var response = await _criteriaService.UpdateStatusAsync(request);
             return StatusCode(response.Code, response);
-        }
+        }  
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
