@@ -416,7 +416,7 @@ const navigateToProduct = (productId) => {
 <style scoped>
   /* Hero Section Styles */
   .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s');
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s');
     background-size: cover;
     background-position: center;
     color: #fff;
@@ -425,22 +425,21 @@ const navigateToProduct = (productId) => {
     overflow: hidden;
   }
 
- .text-sneaker-orange {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+  .text-sneaker-orange {
+    background: linear-gradient(45deg, #3498db, #00bcd4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .text-sneaker-star {
-  background: linear-gradient(45deg, #f39c12, #f1c40f);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
+    background: linear-gradient(45deg, #ffd700, #ffa726);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
   .sneaker-hero-img {
     max-width: 70%;
-    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 15px 30px rgba(0, 188, 212, 0.4));
     transition: transform 0.4s ease;
   }
 
@@ -449,7 +448,7 @@ const navigateToProduct = (productId) => {
   }
 
   .btn-sneaker {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #3498db, #00bcd4);
     color: #fff;
     border: none;
     border-radius: 50px;
@@ -457,7 +456,7 @@ const navigateToProduct = (productId) => {
   }
 
   .btn-sneaker:hover {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #00bcd4, #3498db);
     transform: scale(1.1);
   }
 
@@ -467,335 +466,106 @@ const navigateToProduct = (productId) => {
   }
 
   .btn-outline-light:hover {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #3498db, #00bcd4);
     transform: scale(1.1);
   }
 
   /* Features Section Styles */
   .feature-box {
     background: #fff;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 20px rgba(0, 188, 212, 0.1);
     transition: all 0.3s ease;
   }
 
   .feature-box:hover {
     transform: translateY(-15px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 188, 212, 0.2);
   }
 
   .feature-icon {
     font-size: 2.8rem;
-    color: #8bc34a;
+    color: #00bcd4;
   }
 
-  /* How It Works Section Styles */
-  .how-it-works-section {
-    background: #f8f9fa;
-  }
-
+  /* How It Works Section */
   .step-box {
-    position: relative;
     background: #fff;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 188, 212, 0.1);
     transition: all 0.3s ease;
   }
 
   .step-box:hover {
     transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 188, 212, 0.15);
   }
 
   .step-number {
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #3498db, #00bcd4);
     color: #fff;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    border-radius: 50%;
-    font-size: 1.2rem;
   }
 
-  /* Featured Designs Section Styles */
-  .design-card img {
-    transition: transform 0.3s ease;
-  }
-
-  .design-card:hover img {
-    transform: scale(1.05);
-  }
-
-  /* Testimonials Section Styles */
-  .testimonial-box {
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-  }
-
-  .testimonial-box:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-  }
-
-  /* Blog Teaser Section Styles */
-  .blog-teaser-section {
-    background: #fff;
-  }
-
-  .blog-card img {
-    transition: transform 0.3s ease;
-  }
-
-  .blog-card:hover img {
-    transform: scale(1.05);
-  }
-
-  /* CTA Section Styles */
-  .cta-section {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
-    color: #fff;
-    padding: 80px 0;
-  }
-
-  /* Best Seller Section Styles */
-  .best-seller-swiper {
-    padding: 20px 40px;
-    margin: 0 -20px;
-  }
-
+  /* Best Seller Section */
   .product-card {
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    padding: 1rem;
-    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0, 188, 212, 0.08);
+    transition: all 0.3s ease;
   }
 
   .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .product-image {
-    overflow: hidden;
-    border-radius: 8px;
-  }
-
-  .product-image img {
-    transition: transform 0.3s ease;
-  }
-
-  .product-card:hover .product-image img {
-    transform: scale(1.05);
-  }
-
-  .btn-add-cart {
-    z-index: 2;
-    position: relative;
-  }
-
-  .product-info {
-    padding: 1rem 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 188, 212, 0.15);
   }
 
   .price {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: #00bcd4;
+    background: linear-gradient(45deg, #3498db, #00bcd4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .rating {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  /* CTA Section */
+  .cta-section {
+    background: linear-gradient(45deg, #3498db, #00bcd4);
+    color: #fff;
   }
 
-  .rating i {
-    color: #f1c40f;
+  /* Notification Toast */
+  .notification-toast {
+    background: linear-gradient(45deg, #3498db, #00bcd4);
+    color: white;
   }
 
-  /* Swiper Navigation Styles */
+  /* Swiper Navigation */
   .swiper-button-next,
   .swiper-button-prev {
-    color: #2c3e50;
+    color: #00bcd4;
     background: white;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: all 0.3s ease;
-  }
-
-  .swiper-button-next:hover,
-  .swiper-button-prev:hover {
-    background: #f8f9fa;
-    transform: scale(1.1);
-  }
-
-  .swiper-button-next:after,
-  .swiper-button-prev:after {
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  /* Swiper Pagination Styles */
-  .swiper-pagination {
-    margin-top: 20px;
-  }
-
-  .swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    background: #2c3e50;
-    opacity: 0.5;
-    transition: all 0.3s ease;
   }
 
   .swiper-pagination-bullet-active {
-    background: #3498db;
-    opacity: 1;
-    width: 24px;
-    border-radius: 5px;
+    background: #00bcd4;
   }
 
   /* Loading Effect */
   .image-skeleton {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 10px;
+    background: linear-gradient(90deg, #f5f5f5 25%, #e0f7fa 50%, #f5f5f5 75%);
   }
 
-  @keyframes loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+  /* Testimonials */
+  .testimonial-box {
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0, 188, 212, 0.1);
   }
 
-  /* Responsive Adjustments */
+  .testimonial-box:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 188, 212, 0.15);
+  }
+
   @media (max-width: 768px) {
-    .hero-section {
-      padding: 80px 0;
-    }
-    .display-3 {
-      font-size: 2.2rem;
-    }
-    .sneaker-hero-img {
-      max-width: 85%;
-    }
-    .btn-sneaker,
-    .btn-outline-light {
-      padding: 10px 20px;
-      font-size: 0.9rem;
-    }
-    .feature-box,
-    .step-box,
-    .testimonial-box {
-      padding: 20px;
-    }
-    .design-card,
-    .blog-card {
-      text-align: center;
-    }
-    .blog-card img {
-      max-width: 100%;
-      margin-bottom: 15px;
-    }
-    .blog-card .ms-3 {
-      margin-left: 0 !important;
-    }
-    .product-card {
-      margin-bottom: 20px;
-    }
-    
     .product-overlay {
-      opacity: 1;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 188, 212, 0.3);
     }
-    
-    .btn-add-cart {
-      padding: 8px 15px;
-      font-size: 0.9rem;
-    }
-  }
-
-  /* Slider Styles */
-  .best-seller-swiper {
-    padding: 20px;
-  }
-
-  .swiper-button-next,
-  .swiper-button-prev {
-    display: none;
-  }
-
-  .swiper-pagination-bullet {
-    background: #2c3e50;
-  }
-
-  .swiper-pagination-bullet-active {
-    background: #3498db;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .best-seller-swiper {
-      padding: 20px;
-    }
-    
-    .swiper-button-next,
-    .swiper-button-prev {
-      display: none;
-    }
-  }
-
-  /* Notification Toast Styles */
-  .notification-toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: linear-gradient(45deg, #2c3e50, #3498db);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transform: translateY(100px);
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 1000;
-  }
-
-  .notification-toast.show {
-    transform: translateY(0);
-    opacity: 1;
-  }
-
-  /* Product Title Hover Effect */
-  .product-title {
-    color: #2c3e50;
-    transition: color 0.3s ease;
-  }
-
-  .product-title:hover {
-    color: #3498db;
-  }
-
-  /* Image Loading Animation */
-  .image-loaded {
-    animation: fadeIn 0.5s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
   }
 </style>

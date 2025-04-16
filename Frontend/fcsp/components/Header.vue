@@ -87,7 +87,7 @@
     </div>
   </template>
   <template v-else>
-    <router-link to="/loginPage" class="sneaker-btn">
+    <router-link to="/loginPage" class="login-btn">
       <UserOutlined /> Login
     </router-link>
   </template>
@@ -426,18 +426,48 @@ body.light-theme .sneaker-header.scrolled {
   display: inline-block;
 }
 
-.dropdown-menu {
-  position: absolute;
-  min-width: 200px;
-  padding: 0.5rem;
+.btn.dropdown-toggle {
+  background: linear-gradient(45deg, #3498db, #00bcd4);
+  color: white;
   border: none;
-  background: #fff;
-  border-radius: 8px;
-  margin-top: 0.5rem;
-  z-index: 1050;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  transform-origin: top right;
-  animation: dropdownFade 0.2s ease;
+  padding: 8px 16px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0, 188, 212, 0.2);
+}
+
+.btn.dropdown-toggle:hover {
+  background: linear-gradient(45deg, #00bcd4, #3498db);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+}
+
+.btn.dropdown-toggle:active,
+.btn.dropdown-toggle:focus {
+  background: linear-gradient(45deg, #00bcd4, #3498db);
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.25);
+  transform: translateY(0);
+}
+
+.btn.dropdown-toggle i {
+  font-size: 1.2rem;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.btn.dropdown-toggle:hover i {
+  transform: scale(1.1);
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 188, 212, 0.15);
+  margin-top: 10px;
+  background: white;
+  animation: dropdownFade 0.3s ease;
 }
 
 @keyframes dropdownFade {
@@ -451,25 +481,16 @@ body.light-theme .sneaker-header.scrolled {
   }
 }
 
-.dropdown-item {
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  color: #333;
+.dropdown-menu .dropdown-item {
+  padding: 8px 20px;
+  color: #2c3e50;
   transition: all 0.2s ease;
-  border-radius: 4px;
-  font-weight: 500;
 }
 
-.dropdown-item:hover {
-  background-color: #f8f9fa;
-  color: #2196f3;
+.dropdown-menu .dropdown-item:hover {
+  background: linear-gradient(45deg, rgba(52, 152, 219, 0.1), rgba(0, 188, 212, 0.1));
+  color: #00bcd4;
   transform: translateX(5px);
-}
-
-.dropdown-item i {
-  width: 20px;
-  text-align: center;
 }
 
 .dropdown-divider {
@@ -556,5 +577,50 @@ body.light-theme .dropdown-item {
 body.light-theme .dropdown-item:hover {
   background-color: #f8f9fa;
   color: #2196f3;
+}
+
+/* Cập nhật style cho nút Login */
+.login-btn {
+  background: linear-gradient(45deg, #3498db, #00bcd4);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 188, 212, 0.2);
+}
+
+.login-btn:hover {
+  background: linear-gradient(45deg, #00bcd4, #3498db);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+  color: white;
+}
+
+.login-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.25);
+}
+
+.login-btn .anticon {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.login-btn:hover .anticon {
+  transform: scale(1.1);
+}
+
+/* Responsive styles for login button */
+@media (max-width: 991px) {
+  .login-btn {
+    padding: 6px 16px;
+    font-size: 0.9rem;
+  }
 }
 </style>
