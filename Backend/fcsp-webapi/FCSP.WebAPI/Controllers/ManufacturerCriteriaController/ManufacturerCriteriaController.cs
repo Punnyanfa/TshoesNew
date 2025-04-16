@@ -1,5 +1,5 @@
 ﻿using FCSP.DTOs;
-using FCSP.DTOs.Criteria;
+using FCSP.DTOs.ManufacturerCriteria;
 using FCSP.Services.ManufacturerCriteriaService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,79 +19,79 @@ namespace FCSP.WebAPI.Controllers.ManufacturerCriteriaController
         }
 
         /// <summary>
-        /// Adds a new criteria.
+        /// Adds a new manufacturer-criteria relationship.
         /// </summary>
-        /// <param name="request">The criteria details.</param>
-        /// <returns>The added criteria details.</returns>
+        /// <param name="request">The manufacturer-criteria details.</param>
+        /// <returns>The added manufacturer-criteria details.</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<BaseResponseModel<AddCriteriaResponse>>> AddCriteria([FromBody] AddCriteriaRequest request)
+        public async Task<ActionResult<BaseResponseModel<AddManufacturerCriteriaResponse>>> AddManufacturerCriteria([FromBody] AddManufacturerCriteriaRequest request)
         {
-            var response = await _manufacturerCriteriaService.AddCriteriaAsync(request);
+            var response = await _manufacturerCriteriaService.AddManufacturerCriteriaAsync(request);
             return StatusCode(response.Code, response);
         }
 
         /// <summary>
-        /// Gets a criteria by ID.
+        /// Gets a manufacturer-criteria by ID.
         /// </summary>
-        /// <param name="id">The criteria ID.</param>
-        /// <returns>The criteria details.</returns>
+        /// <param name="id">The manufacturer-criteria ID.</param>
+        /// <returns>The manufacturer-criteria details.</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<BaseResponseModel<GetCriteriaResponse>>> GetCriteria(long id)
+        public async Task<ActionResult<BaseResponseModel<GetManufacturerCriteriaResponse>>> GetManufacturerCriteria(long id)
         {
-            var request = new GetCriteriaRequest { Id = id };
-            var response = await _manufacturerCriteriaService.GetCriteriaAsync(request);
+            var request = new GetManufacturerCriteriaRequest { Id = id };
+            var response = await _manufacturerCriteriaService.GetManufacturerCriteriaAsync(request);
             return StatusCode(response.Code, response);
         }
 
         /// <summary>
-        /// Updates an existing criteria.
+        /// Updates an existing manufacturer-criteria.
         /// </summary>
-        /// <param name="request">The updated criteria details.</param>
-        /// <returns>The updated criteria details.</returns>
+        /// <param name="request">The updated manufacturer-criteria details.</param>
+        /// <returns>The updated manufacturer-criteria details.</returns>
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<BaseResponseModel<UpdateCriteriaResponse>>> UpdateCriteria([FromBody] UpdateCriteriaRequest request)
+        public async Task<ActionResult<BaseResponseModel<UpdateManufacturerCriteriaResponse>>> UpdateManufacturerCriteria([FromBody] UpdateManufacturerCriteriaRequest request)
         {
-            var response = await _manufacturerCriteriaService.UpdateCriteriaAsync(request);
+            var response = await _manufacturerCriteriaService.UpdateManufacturerCriteriaAsync(request);
             return StatusCode(response.Code, response);
         }
 
         /// <summary>
-        /// Deletes a criteria by ID.
+        /// Deletes a manufacturer-criteria by ID.
         /// </summary>
-        /// <param name="id">The criteria ID.</param>
+        /// <param name="id">The manufacturer-criteria ID.</param>
         /// <returns>Whether the deletion was successful.</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<BaseResponseModel<bool>>> DeleteCriteria(long id)
+        public async Task<ActionResult<BaseResponseModel<bool>>> DeleteManufacturerCriteria(long id)
         {
-            var response = await _manufacturerCriteriaService.DeleteCriteriaAsync(id);
+            var response = await _manufacturerCriteriaService.DeleteManufacturerCriteriaAsync(id);
             return StatusCode(response.Code, response);
         }
 
         /// <summary>
-        /// Gets all active criteria.
+        /// Gets all manufacturer-criteria relationships.
         /// </summary>
-        /// <returns>A list of active criteria.</returns>
-        [HttpGet("active")]
+        /// <returns>A list of manufacturer-criteria relationships.</returns>
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<BaseResponseModel<List<GetCriteriaResponse>>>> GetAllActiveCriteria()
+        public async Task<ActionResult<BaseResponseModel<List<GetManufacturerCriteriaResponse>>>> GetAllManufacturerCriteria()
         {
-            var response = await _manufacturerCriteriaService.GetAllActiveCriteriaAsync();
+            var response = await _manufacturerCriteriaService.GetAllManufacturerCriteriaAsync();
             return StatusCode(response.Code, response);
         }
     }

@@ -37,18 +37,19 @@ namespace FCSP.Repositories.Implementations
 
         public async Task<int> UpdateExpiredVouchersAsync()
         {
-            var expiredVouchers = await _context.Vouchers
-                .Where(v => v.ExpirationDate < DateTime.UtcNow && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
+            var now = DateTime.UtcNow;
+            var vouchersToUpdate = await _context.Vouchers
+                .Where(v => v.ExpirationDate < now && v.Status == (int)VoucherStatus.Active)
                 .ToListAsync();
 
-            foreach (var voucher in expiredVouchers)
+            foreach (var voucher in vouchersToUpdate)
             {
                 voucher.Status = (int)VoucherStatus.Expired;
-                voucher.UpdatedAt = DateTime.Now;
+                voucher.UpdatedAt = DateTime.UtcNow;
             }
 
-            await _context.SaveChangesAsync();
-            return expiredVouchers.Count; 
+             await _context.SaveChangesAsync();
+            return vouchersToUpdate.Count; 
         }
     }
 }

@@ -1,3 +1,5 @@
+using FCSP.Common.Enums;
+
 namespace FCSP.DTOs.ManufacturerCriteria
 {
     public class GetManufacturerCriteriaRequest
@@ -8,9 +10,9 @@ namespace FCSP.DTOs.ManufacturerCriteria
     public class GetManufacturerCriteriaResponse
     {
         public long Id { get; set; }
-        public long ManufacturerId { get; set; }
+        public long ManufacturerId { get; set; }     
         public long CriteriaId { get; set; }
-        public int Status { get; set; }
+        public ManufacturerCriteriaStatus Status { get; set; }
         public string ManufacturerName { get; set; } = null!;
         public string CriteriaName { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
@@ -21,7 +23,7 @@ namespace FCSP.DTOs.ManufacturerCriteria
     {
         public long ManufacturerId { get; set; }
         public long CriteriaId { get; set; }
-        public int Status { get; set; }
+        public ManufacturerCriteriaStatus Status { get; set; }
     }
 
     public class AddManufacturerCriteriaResponse
@@ -35,13 +37,13 @@ namespace FCSP.DTOs.ManufacturerCriteria
     public class UpdateManufacturerCriteriaRequest
     {
         public long Id { get; set; }
-        public int Status { get; set; }
+        public ManufacturerCriteriaStatus Status { get; set; }
     }
 
     public class UpdateManufacturerCriteriaResponse
     {
         public long Id { get; set; }
-        public int Status { get; set; }
+        public ManufacturerCriteriaStatus Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
-} 
+}

@@ -1,48 +1,55 @@
 ﻿using FCSP.Services.VoucherService;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace FCSP.WebAPI
+public class VoucherExpirationService : BackgroundService
 {
-    public class VoucherExpirationService : BackgroundService
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<VoucherExpirationService> _logger;
+    private readonly TimeSpan _checkInterval;
+
+    public VoucherExpirationService(
+        IServiceProvider serviceProvider,
+        ILogger<VoucherExpirationService> logger,
+        IConfiguration configuration) 
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<VoucherExpirationService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1); 
+        _serviceProvider = serviceProvider;
+        _logger = logger;     
+        var intervalMinutes = configuration.GetValue<int>("VoucherExpirationCheckIntervalMinutes", 1);
+        _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
+    }
 
-        public VoucherExpirationService(IServiceProvider serviceProvider, ILogger<VoucherExpirationService> logger)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("VoucherExpirationService started.");
+
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _serviceProvider = serviceProvider;
-            _logger = logger;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("VoucherExpirationService started.");
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
+                _logger.LogInformation("Checking for expired vouchers at {Time}", DateTime.UtcNow);
+                using var scope = _serviceProvider.CreateScope();
+                var voucherService = scope.ServiceProvider.GetRequiredService<IVoucherService>();
+                var response = await voucherService.UpdateExpiredVouchers();
+                if (response.Code == 200)
                 {
-                    _logger.LogInformation("Checking for expired vouchers at {Time}", DateTime.UtcNow);
-                    using var scope = _serviceProvider.CreateScope();
-                    var voucherService = scope.ServiceProvider.GetRequiredService<IVoucherService>();
-                    var updatedCount = await voucherService.UpdateExpiredVouchers();
-                    _logger.LogInformation("Updated {Count} expired vouchers.", updatedCount);
+                    _logger.LogInformation("Updated {Count} expired vouchers.", response.Data);
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogError(ex, "Error occurred while updating expired vouchers.");
+                    _logger.LogWarning("Failed to update expired vouchers: {Message}", response.Message);
                 }
-
-                await Task.Delay(_checkInterval, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating expired vouchers at {Time}.", DateTime.UtcNow);
             }
 
-            _logger.LogInformation("VoucherExpirationService stopped.");
+            await Task.Delay(_checkInterval, stoppingToken);
         }
+
+        _logger.LogInformation("VoucherExpirationService stopped.");
     }
 }

@@ -1,8 +1,9 @@
 ﻿using FCSP.Common.Enums;
 using FCSP.DTOs;
-using FCSP.DTOs.Criteria;
+using FCSP.DTOs.ManufacturerCriteria;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,59 +14,71 @@ namespace FCSP.Services.ManufacturerCriteriaService
 {
     public class ManufacturerCriteriaService : IManufacturerCriteriaService
     {
-        private readonly ICriteriaRepository _criteriaRepository;
+        private readonly IManufacturerCriteriaRepository _manufacturerCriteriaRepository;
         private readonly ILogger<ManufacturerCriteriaService> _logger;
 
         public ManufacturerCriteriaService(
-            ICriteriaRepository criteriaRepository,
+            IManufacturerCriteriaRepository manufacturerCriteriaRepository,
             ILogger<ManufacturerCriteriaService> logger)
         {
-            _criteriaRepository = criteriaRepository ?? throw new ArgumentNullException(nameof(criteriaRepository));
+            _manufacturerCriteriaRepository = manufacturerCriteriaRepository ?? throw new ArgumentNullException(nameof(manufacturerCriteriaRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<BaseResponseModel<AddCriteriaResponse>> AddCriteriaAsync(AddCriteriaRequest request)
+        public async Task<BaseResponseModel<AddManufacturerCriteriaResponse>> AddManufacturerCriteriaAsync(AddManufacturerCriteriaRequest request)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Name))
+                if (request.ManufacturerId <= 0 || request.CriteriaId <= 0)
                 {
-                    _logger.LogWarning("Invalid criteria name: Name is empty");
-                    return new BaseResponseModel<AddCriteriaResponse>
+                    _logger.LogWarning("Invalid ManufacturerId: {ManufacturerId} or CriteriaId: {CriteriaId}", request.ManufacturerId, request.CriteriaId);
+                    return new BaseResponseModel<AddManufacturerCriteriaResponse>
                     {
                         Code = 400,
-                        Message = "Criteria name cannot be empty"
+                        Message = "ManufacturerId and CriteriaId must be greater than 0"
                     };
                 }
 
-                _logger.LogInformation("Adding new criteria: {Name}", request.Name);
-                var criteria = new Criteria
+                if (!Enum.IsDefined(typeof(ManufacturerCriteriaStatus), request.Status))
                 {
-                    Name = request.Name,
-                    Status = (CriteriaStatus)request.Status,
+                    _logger.LogWarning("Invalid status: {Status}", request.Status);
+                    return new BaseResponseModel<AddManufacturerCriteriaResponse>
+                    {
+                        Code = 400,
+                        Message = "Invalid status value"
+                    };
+                }
+
+                _logger.LogInformation("Adding new manufacturer-criteria: ManufacturerId={ManufacturerId}, CriteriaId={CriteriaId}", request.ManufacturerId, request.CriteriaId);
+                var manufacturerCriteria = new ManufacturerCriteria
+                {
+                    ManufacturerId = request.ManufacturerId,
+                    CriteriaId = request.CriteriaId,
+                    Status = (ManufacturerCriteriaStatus)request.Status,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                var addedCriteria = await _criteriaRepository.AddAsync(criteria);
-                _logger.LogInformation("Criteria added with ID: {Id}", addedCriteria.Id);
+                var addedManufacturerCriteria = await _manufacturerCriteriaRepository.AddAsync(manufacturerCriteria);
+                _logger.LogInformation("ManufacturerCriteria added with ID: {Id}", addedManufacturerCriteria.Id);
 
-                return new BaseResponseModel<AddCriteriaResponse>
+                return new BaseResponseModel<AddManufacturerCriteriaResponse>
                 {
                     Code = 201,
-                    Message = "Criteria added successfully",
-                    Data = new AddCriteriaResponse
+                    Message = "ManufacturerCriteria added successfully",
+                    Data = new AddManufacturerCriteriaResponse
                     {
-                        Id = addedCriteria.Id,
-                        Name = addedCriteria.Name,
-                        CreatedAt = addedCriteria.CreatedAt
+                        Id = addedManufacturerCriteria.Id,
+                        ManufacturerId = addedManufacturerCriteria.ManufacturerId,
+                        CriteriaId = addedManufacturerCriteria.CriteriaId,
+                        CreatedAt = addedManufacturerCriteria.CreatedAt
                     }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding criteria: {Name}", request.Name);
-                return new BaseResponseModel<AddCriteriaResponse>
+                _logger.LogError(ex, "Error adding manufacturer-criteria: ManufacturerId={ManufacturerId}, CriteriaId={CriteriaId}", request.ManufacturerId, request.CriteriaId);
+                return new BaseResponseModel<AddManufacturerCriteriaResponse>
                 {
                     Code = 500,
                     Message = ex.Message
@@ -73,50 +86,47 @@ namespace FCSP.Services.ManufacturerCriteriaService
             }
         }
 
-        public async Task<BaseResponseModel<GetCriteriaResponse>> GetCriteriaAsync(GetCriteriaRequest request)
+        public async Task<BaseResponseModel<GetManufacturerCriteriaResponse>> GetManufacturerCriteriaAsync(GetManufacturerCriteriaRequest request)
         {
             try
             {
                 if (request.Id <= 0)
                 {
-                    _logger.LogWarning("Invalid criteria ID: {Id}", request.Id);
-                    return new BaseResponseModel<GetCriteriaResponse>
+                    _logger.LogWarning("Invalid ManufacturerCriteria ID: {Id}", request.Id);
+                    return new BaseResponseModel<GetManufacturerCriteriaResponse>
                     {
                         Code = 400,
-                        Message = "Criteria ID must be greater than 0"
+                        Message = "ManufacturerCriteria ID must be greater than 0"
                     };
                 }
 
-                _logger.LogInformation("Fetching criteria with ID: {Id}", request.Id);
-                var criteria = await _criteriaRepository.FindAsync(request.Id);
-                if (criteria == null || criteria.IsDeleted)
+                _logger.LogInformation("Fetching ManufacturerCriteria with ID: {Id}", request.Id);
+                var manufacturerCriteria = await _manufacturerCriteriaRepository.GetAll()
+                    .Include(mc => mc.Manufacturer)
+                    .Include(mc => mc.Criteria)
+                    .FirstOrDefaultAsync(mc => mc.Id == request.Id && !mc.IsDeleted);
+
+                if (manufacturerCriteria == null)
                 {
-                    _logger.LogWarning("Criteria not found for ID: {Id}", request.Id);
-                    return new BaseResponseModel<GetCriteriaResponse>
+                    _logger.LogWarning("ManufacturerCriteria not found for ID: {Id}", request.Id);
+                    return new BaseResponseModel<GetManufacturerCriteriaResponse>
                     {
                         Code = 404,
-                        Message = "Criteria not found"
+                        Message = "ManufacturerCriteria not found"
                     };
                 }
 
-                return new BaseResponseModel<GetCriteriaResponse>
+                return new BaseResponseModel<GetManufacturerCriteriaResponse>
                 {
                     Code = 200,
                     Message = "Success",
-                    Data = new GetCriteriaResponse
-                    {
-                        Id = criteria.Id,
-                        Name = criteria.Name,
-                        Status = (int)criteria.Status,
-                        CreatedAt = criteria.CreatedAt,
-                        UpdatedAt = criteria.UpdatedAt
-                    }
+                    Data = MapToDetailResponse(manufacturerCriteria)
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching criteria with ID: {Id}", request.Id);
-                return new BaseResponseModel<GetCriteriaResponse>
+                _logger.LogError(ex, "Error fetching ManufacturerCriteria with ID: {Id}", request.Id);
+                return new BaseResponseModel<GetManufacturerCriteriaResponse>
                 {
                     Code = 500,
                     Message = ex.Message
@@ -124,66 +134,64 @@ namespace FCSP.Services.ManufacturerCriteriaService
             }
         }
 
-        public async Task<BaseResponseModel<UpdateCriteriaResponse>> UpdateCriteriaAsync(UpdateCriteriaRequest request)
+        public async Task<BaseResponseModel<UpdateManufacturerCriteriaResponse>> UpdateManufacturerCriteriaAsync(UpdateManufacturerCriteriaRequest request)
         {
             try
             {
                 if (request.Id <= 0)
                 {
-                    _logger.LogWarning("Invalid criteria ID: {Id}", request.Id);
-                    return new BaseResponseModel<UpdateCriteriaResponse>
+                    _logger.LogWarning("Invalid ManufacturerCriteria ID: {Id}", request.Id);
+                    return new BaseResponseModel<UpdateManufacturerCriteriaResponse>
                     {
                         Code = 400,
-                        Message = "Criteria ID must be greater than 0"
+                        Message = "ManufacturerCriteria ID must be greater than 0"
                     };
                 }
 
-                if (string.IsNullOrWhiteSpace(request.Name))
+                if (!Enum.IsDefined(typeof(ManufacturerCriteriaStatus), request.Status))
                 {
-                    _logger.LogWarning("Invalid criteria name: Name is empty for ID: {Id}", request.Id);
-                    return new BaseResponseModel<UpdateCriteriaResponse>
+                    _logger.LogWarning("Invalid status: {Status}", request.Status);
+                    return new BaseResponseModel<UpdateManufacturerCriteriaResponse>
                     {
                         Code = 400,
-                        Message = "Criteria name cannot be empty"
+                        Message = "Invalid status value"
                     };
                 }
 
-                _logger.LogInformation("Updating criteria with ID: {Id}", request.Id);
-                var criteria = await _criteriaRepository.FindAsync(request.Id);
-                if (criteria == null || criteria.IsDeleted)
+                _logger.LogInformation("Updating ManufacturerCriteria with ID: {Id}", request.Id);
+                var manufacturerCriteria = await _manufacturerCriteriaRepository.FindAsync(request.Id);
+                if (manufacturerCriteria == null || manufacturerCriteria.IsDeleted)
                 {
-                    _logger.LogWarning("Criteria not found for ID: {Id}", request.Id);
-                    return new BaseResponseModel<UpdateCriteriaResponse>
+                    _logger.LogWarning("ManufacturerCriteria not found for ID: {Id}", request.Id);
+                    return new BaseResponseModel<UpdateManufacturerCriteriaResponse>
                     {
                         Code = 404,
-                        Message = "Criteria not found"
+                        Message = "ManufacturerCriteria not found"
                     };
                 }
 
-                criteria.Name = request.Name;
-                criteria.Status = (CriteriaStatus)request.Status;
-                criteria.UpdatedAt = DateTime.UtcNow;
+                manufacturerCriteria.Status = (ManufacturerCriteriaStatus)request.Status;
+                manufacturerCriteria.UpdatedAt = DateTime.UtcNow;
 
-                await _criteriaRepository.UpdateAsync(criteria);
-                _logger.LogInformation("Criteria updated with ID: {Id}", criteria.Id);
+                await _manufacturerCriteriaRepository.UpdateAsync(manufacturerCriteria);
+                _logger.LogInformation("ManufacturerCriteria updated with ID: {Id}", manufacturerCriteria.Id);
 
-                return new BaseResponseModel<UpdateCriteriaResponse>
+                return new BaseResponseModel<UpdateManufacturerCriteriaResponse>
                 {
                     Code = 200,
-                    Message = "Criteria updated successfully",
-                    Data = new UpdateCriteriaResponse
+                    Message = "ManufacturerCriteria updated successfully",
+                    Data = new UpdateManufacturerCriteriaResponse
                     {
-                        Id = criteria.Id,
-                        Name = criteria.Name,
-                        Status = (int)criteria.Status,
-                        UpdatedAt = criteria.UpdatedAt
+                        Id = manufacturerCriteria.Id,
+                        Status = manufacturerCriteria.Status,
+                        UpdatedAt = manufacturerCriteria.UpdatedAt
                     }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating criteria with ID: {Id}", request.Id);
-                return new BaseResponseModel<UpdateCriteriaResponse>
+                _logger.LogError(ex, "Error updating ManufacturerCriteria with ID: {Id}", request.Id);
+                return new BaseResponseModel<UpdateManufacturerCriteriaResponse>
                 {
                     Code = 500,
                     Message = ex.Message
@@ -191,47 +199,45 @@ namespace FCSP.Services.ManufacturerCriteriaService
             }
         }
 
-        public async Task<BaseResponseModel<bool>> DeleteCriteriaAsync(long id)
+        public async Task<BaseResponseModel<bool>> DeleteManufacturerCriteriaAsync(long id)
         {
             try
             {
                 if (id <= 0)
                 {
-                    _logger.LogWarning("Invalid criteria ID: {Id}", id);
+                    _logger.LogWarning("Invalid ManufacturerCriteria ID: {Id}", id);
                     return new BaseResponseModel<bool>
                     {
                         Code = 400,
-                        Message = "Criteria ID must be greater than 0"
+                        Message = "ManufacturerCriteria ID must be greater than 0"
                     };
                 }
 
-                _logger.LogInformation("Deleting criteria with ID: {Id}", id);
-                var criteria = await _criteriaRepository.FindAsync(id);
-                if (criteria == null || criteria.IsDeleted)
+                _logger.LogInformation("Deleting ManufacturerCriteria with ID: {Id}", id);
+                var manufacturerCriteria = await _manufacturerCriteriaRepository.FindAsync(id);
+                if (manufacturerCriteria == null || manufacturerCriteria.IsDeleted)
                 {
-                    _logger.LogWarning("Criteria not found for ID: {Id}", id);
+                    _logger.LogWarning("ManufacturerCriteria not found for ID: {Id}", id);
                     return new BaseResponseModel<bool>
                     {
                         Code = 404,
-                        Message = "Criteria not found"
+                        Message = "ManufacturerCriteria not found"
                     };
                 }
 
-                criteria.IsDeleted = true;
-                criteria.UpdatedAt = DateTime.UtcNow;
-                await _criteriaRepository.UpdateAsync(criteria);
-                _logger.LogInformation("Criteria marked as deleted with ID: {Id}", id);
+                await _manufacturerCriteriaRepository.DeleteAsync(id);
+                _logger.LogInformation("ManufacturerCriteria deleted with ID: {Id}", id);
 
                 return new BaseResponseModel<bool>
                 {
                     Code = 200,
-                    Message = "Criteria deleted successfully",
+                    Message = "ManufacturerCriteria deleted successfully",
                     Data = true
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting criteria with ID: {Id}", id);
+                _logger.LogError(ex, "Error deleting ManufacturerCriteria with ID: {Id}", id);
                 return new BaseResponseModel<bool>
                 {
                     Code = 500,
@@ -241,26 +247,20 @@ namespace FCSP.Services.ManufacturerCriteriaService
             }
         }
 
-        public async Task<BaseResponseModel<List<GetCriteriaResponse>>> GetAllActiveCriteriaAsync()
+        public async Task<BaseResponseModel<List<GetManufacturerCriteriaResponse>>> GetAllManufacturerCriteriaAsync()
         {
             try
             {
-                _logger.LogInformation("Fetching all active criteria");
-                var criteriaList = await _criteriaRepository.GetActiveCriteriaAsync();
+                _logger.LogInformation("Fetching all ManufacturerCriteria");
+                var manufacturerCriteriaList = await _manufacturerCriteriaRepository.GetAll()
+                    .Include(mc => mc.Manufacturer)
+                    .Include(mc => mc.Criteria)
+                    .Where(mc => !mc.IsDeleted)
+                    .ToListAsync();
 
-                var responseData = criteriaList
-                    .Where(c => !c.IsDeleted) // Ensure no deleted criteria
-                    .Select(c => new GetCriteriaResponse
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        Status = (int)c.Status,
-                        CreatedAt = c.CreatedAt,
-                        UpdatedAt = c.UpdatedAt
-                    })
-                    .ToList();
+                var responseData = manufacturerCriteriaList.Select(MapToDetailResponse).ToList();
 
-                return new BaseResponseModel<List<GetCriteriaResponse>>
+                return new BaseResponseModel<List<GetManufacturerCriteriaResponse>>
                 {
                     Code = 200,
                     Message = "Success",
@@ -269,13 +269,28 @@ namespace FCSP.Services.ManufacturerCriteriaService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching active criteria");
-                return new BaseResponseModel<List<GetCriteriaResponse>>
+                _logger.LogError(ex, "Error fetching all ManufacturerCriteria");
+                return new BaseResponseModel<List<GetManufacturerCriteriaResponse>>
                 {
                     Code = 500,
                     Message = ex.Message
                 };
             }
+        }
+
+        private GetManufacturerCriteriaResponse MapToDetailResponse(ManufacturerCriteria manufacturerCriteria)
+        {
+            return new GetManufacturerCriteriaResponse
+            {
+                Id = manufacturerCriteria.Id,
+                ManufacturerId = manufacturerCriteria.ManufacturerId,
+                CriteriaId = manufacturerCriteria.CriteriaId,
+                Status = manufacturerCriteria.Status,
+                ManufacturerName = manufacturerCriteria.Manufacturer?.Name ?? "Unknown",
+                CriteriaName = manufacturerCriteria.Criteria?.Name ?? "Unknown",
+                CreatedAt = manufacturerCriteria.CreatedAt,
+                UpdatedAt = manufacturerCriteria.UpdatedAt
+            };
         }
     }
 }

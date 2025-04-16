@@ -287,14 +287,12 @@ namespace FCSP.Services.ManufacturerService
         {
             var user = await _userRepository.GetUserNameByUserIdAsync(manufacturer.UserId);
 
-            return new GetManufacturerDetailResponse
+            return new GetManufacturerDetailResponse(status: manufacturer.Status)
             {
-                Id = manufacturer.Id,
-                UserId = manufacturer.UserId,
+                Id = manufacturer.Id,                
                 UserName = user?.Name,
                 Name = manufacturer.Name,
-                CommissionRate = manufacturer.CommissionRate,
-                Status = (int)manufacturer.Status,
+                CommissionRate = manufacturer.CommissionRate,              
                 Services = manufacturer.Services?.Select(s => new ServiceDto
                 {
                     Id = s.Id,
