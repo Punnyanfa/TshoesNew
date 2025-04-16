@@ -17,6 +17,7 @@ namespace FCSP.Repositories.Implementations
         {
             return await _context.Vouchers
                  .Where(v => v.ExpirationDate >= DateTime.UtcNow && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
+                 .Include(v => v.Orders)
                  .ToListAsync();
         }
         public async Task<IEnumerable<Voucher>> GetAllVoucherAsync()

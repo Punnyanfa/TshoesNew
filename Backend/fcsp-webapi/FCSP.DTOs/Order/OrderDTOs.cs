@@ -12,14 +12,24 @@ namespace FCSP.DTOs.Order
 
     public class GetOrderByIdResponse
     {
-        public long Id { get; set; }
-        public long UserId { get; set; }
-        public long ShippingInfoId { get; set; }
-        public long? VoucherId { get; set; }
-        public float TotalPrice { get; set; }
-        public OrderStatus Status { get; set; }
-        public OrderShippingStatus ShippingStatus { get; set; }
-        public PaymentMethod PaymentMethod { get; set; }
+        private readonly OrderStatus _status;
+        private readonly OrderShippingStatus _shippingStatus;
+        private readonly PaymentMethod _paymentMethod;
+
+        public GetOrderByIdResponse(OrderStatus status, OrderShippingStatus shippingStatus, PaymentMethod paymentMethod)
+        {
+            _status = status;
+            _shippingStatus = shippingStatus;
+            _paymentMethod = paymentMethod;
+        }
+        public long Id { get; set; }       
+        public string UserName { get; set; }
+        public long ShippingInfoId { get; set; }       
+        public string VoucherCode { get; set; }
+        public float TotalPrice { get; set; }     
+        public string StatusName => EnumHelper.GetEnumName<OrderStatus>((int)_status);
+        public string ShippingStatusName => EnumHelper.GetEnumName<OrderShippingStatus>((int)_shippingStatus);     
+        public string PaymentMethodName => EnumHelper.GetEnumName<PaymentMethod>((int)_paymentMethod);
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public List<OrderDetailResponseDto> OrderDetails { get; set; } = [];
@@ -87,14 +97,24 @@ namespace FCSP.DTOs.Order
 
     public class GetOrderByUserIdResponse
     {
-        public long Id { get; set; }
-        public long UserId { get; set; }
-        public long ShippingInfoId { get; set; }
-        public long? VoucherId { get; set; }
-        public float TotalPrice { get; set; }
-        public OrderStatus Status { get; set; }
-        public OrderShippingStatus ShippingStatus { get; set; }
-        public PaymentMethod PaymentMethod { get; set; }
+        private readonly OrderStatus _status;
+        private readonly OrderShippingStatus _shippingStatus;
+        private readonly PaymentMethod _paymentMethod;
+
+        public GetOrderByUserIdResponse(OrderStatus status, OrderShippingStatus shippingStatus, PaymentMethod paymentMethod)
+        {
+            _status = status;
+            _shippingStatus = shippingStatus;
+            _paymentMethod = paymentMethod;
+        }
+        public long Id { get; set; }     
+        public string UserName { get; set; }
+        public long ShippingInfoId { get; set; }    
+        public string VoucherCode { get; set; }
+        public float TotalPrice { get; set; }      
+        public string StatusName => EnumHelper.GetEnumName<OrderStatus>((int)_status);     
+        public string ShippingStatusName => EnumHelper.GetEnumName<OrderShippingStatus>((int)_shippingStatus);      
+        public string PaymentMethodName => EnumHelper.GetEnumName<PaymentMethod>((int)_paymentMethod);
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public List<OrderDetailResponseDto> OrderDetails { get; set; } = [];
@@ -122,7 +142,7 @@ namespace FCSP.DTOs.Order
         public long CustomShoeDesignId { get; set; }
         public int Quantity { get; set; }
         public float UnitPrice { get; set; }
-        public long SizeId { get; set; }
+        public long SizeValue { get; set; }
     }
 
     public class ProcessPaymentRequest

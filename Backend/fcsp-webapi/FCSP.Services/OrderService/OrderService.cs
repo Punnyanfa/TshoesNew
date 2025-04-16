@@ -4,6 +4,8 @@ using FCSP.DTOs.Order;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
+using Microsoft.AspNet.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,8 @@ namespace FCSP.Services.OrderService
         private readonly IPaymentRepository _paymentRepository;
         private readonly IVoucherRepository _voucherRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ISizeRepository _sizeRepository;
 
         public OrderService(
             IOrderRepository orderRepository,
@@ -27,7 +31,10 @@ namespace FCSP.Services.OrderService
             IPaymentService paymentService,
             IPaymentRepository paymentRepository,
             IVoucherRepository voucherRepository,
-            ICustomShoeDesignRepository customShoeDesignRepository)
+            ICustomShoeDesignRepository customShoeDesignRepository,
+            IUserRepository userRepository,
+            ISizeRepository sizeRepository)
+
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -35,6 +42,8 @@ namespace FCSP.Services.OrderService
             _paymentRepository = paymentRepository;
             _voucherRepository = voucherRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
+            _userRepository = userRepository;
+            _sizeRepository = sizeRepository;
         }
 
         #region Public Methods
@@ -185,19 +194,22 @@ namespace FCSP.Services.OrderService
             var result = new List<GetOrderByUserIdResponse>();
             foreach (var order in orders)
             {
+                var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
+                var voucher = await _voucherRepository.FindAsync(order.VoucherId);              
                 var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
                 var payment = payments.FirstOrDefault();
 
-                result.Add(new GetOrderByUserIdResponse
+                result.Add(new GetOrderByUserIdResponse(
+                    status: order.Status,
+                    shippingStatus: order.ShippingStatus,
+                    paymentMethod: payment?.PaymentMethod ?? PaymentMethod.Wallet
+                )
                 {
                     Id = order.Id,
-                    UserId = order.UserId,
+                    UserName = user?.Name,
                     ShippingInfoId = order.ShippingInfoId,
-                    VoucherId = order.VoucherId,
+                    VoucherCode = voucher?.VoucherName,
                     TotalPrice = order.TotalPrice,
-                    Status = order.Status,
-                    ShippingStatus = order.ShippingStatus,
-                    PaymentMethod = payment?.PaymentMethod ?? PaymentMethod.Wallet,
                     CreatedAt = order.CreatedAt,
                     UpdatedAt = order.UpdatedAt,
                     OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
@@ -205,7 +217,7 @@ namespace FCSP.Services.OrderService
                         CustomShoeDesignId = od.CustomShoeDesignId,
                         Quantity = od.Quantity,
                         UnitPrice = od.Price,
-                        SizeId = od.SizeId
+                        SizeValue = od.Size.SizeValue,
                     }).ToList() ?? new List<OrderDetailResponseDto>()
                 });
             }
@@ -215,25 +227,31 @@ namespace FCSP.Services.OrderService
 
         private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
         {
-            var order = await _orderRepository.FindAsync(request.Id);
+            var order = await _orderRepository.GetAll()
+                                              .Include(o => o.OrderDetails)
+                                              .FirstOrDefaultAsync(o => o.Id == request.Id);
             if (order == null)
             {
                 throw new InvalidOperationException($"Order with ID {request.Id} not found");
             }
-
+            var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
+            var voucher = await _voucherRepository.FindAsync(order.VoucherId);
+            var size = await _sizeRepository.FindAsync(order.OrderDetails.FirstOrDefault().SizeId);
             var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
             var payment = payments.FirstOrDefault();
 
             return new GetOrderByIdResponse
+            (
+            status: order.Status,
+            shippingStatus: order.ShippingStatus,
+            paymentMethod: payment?.PaymentMethod ?? PaymentMethod.Wallet
+             )
             {
-                Id = order.Id,
-                UserId = order.UserId,
-                ShippingInfoId = order.ShippingInfoId,
-                VoucherId = order.VoucherId,
-                TotalPrice = order.TotalPrice,
-                Status = order.Status,
-                ShippingStatus = order.ShippingStatus,
-                PaymentMethod = payment?.PaymentMethod ?? PaymentMethod.Wallet,
+                Id = order.Id,               
+                UserName = user?.Name,
+                ShippingInfoId = order.ShippingInfoId,          
+                VoucherCode = voucher?.VoucherName,
+                TotalPrice = order.TotalPrice,            
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
@@ -241,14 +259,19 @@ namespace FCSP.Services.OrderService
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     Quantity = od.Quantity,
                     UnitPrice = od.Price,
-                    SizeId = od.SizeId
+                    SizeValue = size.SizeValue,
                 }).ToList() ?? new List<OrderDetailResponseDto>()
             };
         }
 
         private async Task<List<GetOrderByIdResponse>> GetAllOrdersAsync()
         {
-            var orders = await _orderRepository.GetAllAsync();
+            var orders = await _orderRepository.GetAll()
+                                                .Include(o => o.OrderDetails)
+                                                .ThenInclude(od => od.Size)
+                                                .ToListAsync();
+
+
             if (orders == null || !orders.Any())
             {
                 throw new InvalidOperationException("No orders found");
@@ -257,19 +280,22 @@ namespace FCSP.Services.OrderService
             var result = new List<GetOrderByIdResponse>();
             foreach (var order in orders)
             {
+                var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
+                var voucher = await _voucherRepository.FindAsync(order.VoucherId);
                 var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
                 var payment = payments.FirstOrDefault();
 
-                result.Add(new GetOrderByIdResponse
-                {
-                    Id = order.Id,
-                    UserId = order.UserId,
-                    ShippingInfoId = order.ShippingInfoId,
-                    VoucherId = order.VoucherId,
-                    TotalPrice = order.TotalPrice,
-                    Status = order.Status,
-                    ShippingStatus = order.ShippingStatus,
-                    PaymentMethod = payment?.PaymentMethod ?? PaymentMethod.Wallet,
+                result.Add(new GetOrderByIdResponse(
+                               status: order.Status,
+                               shippingStatus: order.ShippingStatus,
+                               paymentMethod: payment?.PaymentMethod ?? PaymentMethod.Wallet
+                                                    )
+                     {
+                    Id = order.Id,                
+                    UserName = user?.Name,
+                    ShippingInfoId = order.ShippingInfoId,                    
+                    VoucherCode = voucher?.VoucherName,
+                    TotalPrice = order.TotalPrice,                
                     CreatedAt = order.CreatedAt,
                     UpdatedAt = order.UpdatedAt,
                     OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
@@ -277,7 +303,7 @@ namespace FCSP.Services.OrderService
                         CustomShoeDesignId = od.CustomShoeDesignId,
                         Quantity = od.Quantity,
                         UnitPrice = od.Price,
-                        SizeId = od.SizeId
+                        SizeValue = od.Size.SizeValue,
                     }).ToList() ?? new List<OrderDetailResponseDto>()
                 });
             }

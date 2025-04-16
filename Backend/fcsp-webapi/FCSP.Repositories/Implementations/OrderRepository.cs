@@ -19,6 +19,7 @@ namespace FCSP.Repositories.Implementations
             return await _context.Orders
                 .Where(x => x.UserId == userId)
                 .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Size)
                 .ToListAsync();
         }
 

@@ -37,7 +37,7 @@ namespace FCSP.Services.OrderDetailService
                     {
                         Id = orderDetail.Id,
                         OrderId = orderDetail.OrderId,
-                        CustomShoeDesignId = orderDetail.CustomShoeDesignId,
+                        CustomShoeDesignName = orderDetail.CustomShoeDesign.Name,
                         Quantity = orderDetail.Quantity,
                         UnitPrice = orderDetail.Price,
                         SizeId = orderDetail.SizeId,
@@ -148,8 +148,8 @@ namespace FCSP.Services.OrderDetailService
                     Data = new GetOrderDetailByIdResponse
                     {
                         Id = orderDetails.Id,
-                        OrderId = orderDetails.OrderId,
-                        CustomShoeDesignId = orderDetails.CustomShoeDesignId,
+                        OrderId = orderDetails.OrderId,            
+                        CustomShoeDesignName = orderDetails.CustomShoeDesign.Name,
                         Quantity = orderDetails.Quantity,
                         UnitPrice = orderDetails.Price,
                         SizeId = orderDetails.SizeId,

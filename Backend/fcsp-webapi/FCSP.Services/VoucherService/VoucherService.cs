@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.VoucherService
 {
@@ -25,12 +26,14 @@ namespace FCSP.Services.VoucherService
             try
             {
                 var vouchers = await _voucherRepository.GetAllVoucherAsync();
-                var voucherResponses = vouchers.Select(voucher => new GetAllVoucherResponse
+                var voucherResponses = vouchers.Select(voucher => new GetAllVoucherResponse(
+                    status: (VoucherStatus)voucher.Status
+                    )
                 {
                     Id = voucher.Id,
                     Code = voucher.VoucherName ?? string.Empty,
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
-                    Status = (VoucherStatus)voucher.Status,
+                 
                     ExpiryDate = voucher.ExpirationDate,
                     IsUsed = voucher.Orders != null && voucher.Orders.Any()                 
                 }).ToList();
@@ -56,7 +59,9 @@ namespace FCSP.Services.VoucherService
         {
             try
             {
-                var voucher = await _voucherRepository.FindAsync(request.Id);
+                var voucher = await _voucherRepository.GetAll()
+                                                      .Include(v => v.Orders)
+                                                      .FirstOrDefaultAsync(o => o.Id == request.Id);
                 if (voucher == null)
                 {
                     return new BaseResponseModel<GetVoucherByIdResponse>
@@ -66,12 +71,11 @@ namespace FCSP.Services.VoucherService
                     };
                 }
 
-                var response = new GetVoucherByIdResponse
+                var response = new GetVoucherByIdResponse(status: (VoucherStatus)voucher.Status)
                 {
                     Id = voucher.Id,
                     Code = voucher.VoucherName ?? string.Empty,
-                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
-                    Status = (VoucherStatus)voucher.Status,
+                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,                   
                     ExpiryDate = voucher.ExpirationDate,
                     IsUsed = voucher.Orders != null && voucher.Orders.Any(),
                     OrderIds = voucher.Orders?.Select(o => o.Id).ToList() ?? new List<long>()
@@ -108,13 +112,13 @@ namespace FCSP.Services.VoucherService
                     };
                 }
 
-                var response = new GetVoucherByOrderIdResponse
+                var response = new GetVoucherByOrderIdResponse(status: (VoucherStatus)voucher.Status)
                 {
                     Id = voucher.Id,
                     Code = voucher.VoucherName ?? string.Empty,
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
                     ExpiryDate = voucher.ExpirationDate,
-                    Status = (VoucherStatus)voucher.Status
+                   
                 };
 
                 return new BaseResponseModel<GetVoucherByOrderIdResponse>
@@ -276,12 +280,11 @@ namespace FCSP.Services.VoucherService
             try
             {
                 var vouchers = await _voucherRepository.GetNonExpiredVouchersAsync();
-                var voucherResponses = vouchers.Select(voucher => new GetVoucherByIdResponse
+                var voucherResponses = vouchers.Select(voucher => new GetVoucherByIdResponse(status: (VoucherStatus)voucher.Status)
                 {
                     Id = voucher.Id,
                     Code = voucher.VoucherName ?? string.Empty,
-                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
-                    Status = (VoucherStatus)voucher.Status,
+                    DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,                  
                     ExpiryDate = voucher.ExpirationDate,
                     IsUsed = voucher.Orders != null && voucher.Orders.Any(), 
                     OrderIds = voucher.Orders?.Select(o => o.Id).ToList() ?? new List<long>()
