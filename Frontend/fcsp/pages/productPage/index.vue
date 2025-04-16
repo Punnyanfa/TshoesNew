@@ -116,12 +116,13 @@ const itemsPerPage = 12;
 const fetchProducts = async () => {
   try {
     loading.value = true;
-    const response = await getAllProducts();  // Lấy dữ liệu từ getAllProducts
+    const response = await getAllProducts();
 
-    // Kiểm tra nếu response.data và response.data.designs tồn tại
+    // Kiểm tra và lọc chỉ lấy sản phẩm có status = 1
     if (response.data && Array.isArray(response.data.designs)) {
-      products.value = response.data.designs;  // Truy cập vào designs
-      filteredProducts.value = response.data.designs;
+      const activeProducts = response.data.designs.filter(product => product.status === 1);
+      products.value = activeProducts;
+      filteredProducts.value = activeProducts;
     } else {
       products.value = [];
       filteredProducts.value = [];
@@ -173,6 +174,8 @@ const formatPrice = (price) => {
 
 const handleFilterChange = (filters) => {
   filteredProducts.value = products.value.filter((product) => {
+    // Chỉ xét các sản phẩm có status = 1
+    const isActive = product.status === 1;
     const matchesSearch = !filters.searchTerm || product.name.toLowerCase().includes(filters.searchTerm.toLowerCase());
     const matchesPrice = product.price <= filters.priceRange.max;
     const matchesCategory =
@@ -182,7 +185,7 @@ const handleFilterChange = (filters) => {
     const matchesSize = filters.size.length === 0 || filters.size.includes(product.size);
     const matchesRating = filters.rating.length === 0 || filters.rating.includes(product.rating);
 
-    return matchesSearch && matchesPrice && matchesCategory && matchesBrand && matchesColor && matchesSize && matchesRating;
+    return isActive && matchesSearch && matchesPrice && matchesCategory && matchesBrand && matchesColor && matchesSize && matchesRating;
   });
   currentPage.value = 1; // Reset về trang 1 khi lọc
 };

@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   },
   css: [
     '~/assets/css/swiper.css',
+    '~/assets/css/style.css',
     'element-plus/dist/index.css',
     'bootstrap/dist/css/bootstrap.min.css',
     'bootstrap-icons/font/bootstrap-icons.css'

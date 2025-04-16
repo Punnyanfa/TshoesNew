@@ -3,9 +3,9 @@
     <AdminSidebar />
     <div class="content">
       <div class="header">
-        <h1>Quản lý sản phẩm</h1>
+        <h1>Manage Products</h1>
         <button class="add-btn" @click="showAddModal = true">
-          <i class="fas fa-plus"></i> Thêm sản phẩm
+          <i class="fas fa-plus"></i> Add Product
         </button>
       </div>
 
@@ -15,15 +15,15 @@
           <input 
             type="text" 
             v-model="searchQuery" 
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder="Search products..."
           />
           <i class="fas fa-search"></i>
         </div>
         <div class="filter-box">
           <select v-model="categoryFilter">
-            <option value="">Tất cả trạng thái</option>
-            <option value="1">Hoạt động</option>
-            <option value="0">Ngừng bán</option>
+            <option value="">All Status</option>
+            <option value="1">Active</option>
+            <option value="2">Inactive</option>
           </select>
         </div>
       </div>
@@ -34,13 +34,13 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Hình ảnh</th>
-              <th>Tên sản phẩm</th>
-              <th>Giá</th>
-              <th>Đánh giá</th>
-              <th>Lượt đánh giá</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
+              <th>Image</th>
+              <th>Product Name</th>
+              <th>Price</th>
+              <th>Rating</th>
+              <th>Rating Count</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -54,9 +54,19 @@
               <td>{{ product.rating }}/5</td>
               <td>{{ product.ratingCount }}</td>
               <td>
-                <span :class="['status', product.status === 1 ? 'active' : 'inactive']">
-                  {{ getStatusText(product.status) }}
-                </span>
+                <div class="status-toggle">
+                  <label class="switch">
+                    <input 
+                      type="checkbox" 
+                      :checked="product.status === 1"
+                      @change="toggleStatus(product)"
+                    >
+                    <span class="slider round"></span>
+                  </label>
+                  <span :class="['status-text', product.status === 1 ? 'active' : 'inactive']">
+                    {{ getStatusText(product.status) }}
+                  </span>
+                </div>
               </td>
               <td class="actions">
                 <button class="edit-btn" @click="editProduct(product)">
@@ -123,37 +133,37 @@
       <div v-if="showAddModal || showEditModal" class="modal">
         <div class="modal-content">
           <span class="close" @click="closeModal">&times;</span>
-          <h2>{{ showAddModal ? 'Thêm sản phẩm mới' : 'Chỉnh sửa sản phẩm' }}</h2>
+          <h2>{{ showAddModal ? 'Add New Product' : 'Edit Product' }}</h2>
           <form @submit.prevent="showAddModal ? addProduct() : updateProduct()">
             <div class="form-group">
-              <label>Tên sản phẩm</label>
+              <label>Product Name</label>
               <input type="text" v-model="productForm.name" required>
             </div>
             <div class="form-group">
-              <label>Giá</label>
+              <label>Price</label>
               <input type="number" v-model="productForm.price" required>
             </div>
             <div class="form-group">
-              <label>Mô tả</label>
+              <label>Description</label>
               <textarea v-model="productForm.description" required></textarea>
             </div>
             <div class="form-group">
-              <label>Hình ảnh</label>
+              <label>Image</label>
               <input type="file" @change="handleImageUpload" accept="image/*">
               <img v-if="productForm.previewImageUrl" :src="productForm.previewImageUrl" class="preview-image">
             </div>
             <div class="form-group">
-              <label>Trạng thái</label>
+              <label>Status</label>
               <select v-model="productForm.status">
-                <option :value="1">Hoạt động</option>
-                <option :value="0">Ngừng bán</option>
+                <option :value="1">Active</option>
+                <option :value="2">Inactive</option>
               </select>
             </div>
             <div class="form-actions">
               <button type="submit" class="submit-btn">
-                {{ showAddModal ? 'Thêm' : 'Cập nhật' }}
+                {{ showAddModal ? 'Add' : 'Update' }}
               </button>
-              <button type="button" class="cancel-btn" @click="closeModal">Hủy</button>
+              <button type="button" class="cancel-btn" @click="closeModal">Cancel</button>
             </div>
           </form>
         </div>
@@ -162,11 +172,11 @@
       <!-- Delete Confirmation Modal -->
       <div v-if="showDeleteModal" class="modal">
         <div class="modal-content delete-modal">
-          <h2>Xác nhận xóa</h2>
-          <p>Bạn có chắc chắn muốn xóa sản phẩm này?</p>
+          <h2>Confirm Delete</h2>
+          <p>Are you sure you want to delete this product?</p>
           <div class="delete-actions">
-            <button class="confirm-delete-btn" @click="deleteProduct">Xóa</button>
-            <button class="cancel-btn" @click="showDeleteModal = false">Hủy</button>
+            <button class="confirm-delete-btn" @click="deleteProduct">Delete</button>
+            <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
           </div>
         </div>
       </div>
@@ -176,7 +186,7 @@
 
 <script>
 import AdminSidebar from '@/components/AdminSidebar.vue'
-import { getAllProducts } from '@/server/product-service'
+import { getAllProducts, updateProductStatus } from '@/server/product-service'
 
 export default {
   name: 'ManageProduct',
@@ -279,7 +289,7 @@ export default {
       }).format(price)
     },
     getStatusText(status) {
-      return status === 1 ? 'Hoạt động' : 'Ngừng bán'
+      return status === 1 ? 'Active' : 'Inactive'
     },
     handleImageUpload(event) {
       const file = event.target.files[0]
@@ -302,9 +312,24 @@ export default {
       this.showEditModal = true
     },
     async updateProduct() {
-      // TODO: Implement update API call
-      this.closeModal()
-      await this.fetchProducts()
+      try {
+        if (this.selectedProduct) {
+          // Update the product status
+          const response = await updateProductStatus(this.selectedProduct.id, this.productForm.status);
+          
+          if (response && response.code === 200) {
+            // Show success message or notification
+            alert('Product status updated successfully!');
+            this.closeModal();
+            await this.fetchProducts(); // Refresh the product list
+          } else {
+            throw new Error('Failed to update product status');
+          }
+        }
+      } catch (error) {
+        console.error('Error updating product:', error);
+        alert('An error occurred while updating the product!');
+      }
     },
     confirmDelete(product) {
       this.selectedProduct = product
@@ -342,6 +367,26 @@ export default {
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++
+      }
+    },
+    async toggleStatus(product) {
+      try {
+        const newStatus = product.status === 1 ? 2 : 1;
+        const response = await updateProductStatus(product.id, newStatus);
+        
+        if (response && response.code === 200) {
+          // Update the local product status
+          product.status = newStatus;
+          // Show success message
+          alert('Product status updated successfully!');
+        } else {
+          throw new Error('Failed to update product status');
+        }
+      } catch (error) {
+        console.error('Error updating product status:', error);
+        alert('An error occurred while updating product status!');
+        // Revert the checkbox state
+        product.status = product.status === 1 ? 2 : 1;
       }
     }
   },
@@ -421,12 +466,19 @@ export default {
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 th, td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+th:last-child, td:last-child {
+  width: 120px;
+  text-align: center;
 }
 
 th {
@@ -441,32 +493,99 @@ th {
   border-radius: 4px;
 }
 
-.status {
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-size: 12px;
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.status.active {
-  background-color: #e6f7e6;
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #4CAF50;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #4CAF50;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 24px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-text.active {
   color: #4CAF50;
 }
 
-.status.inactive {
-  background-color: #ffe6e6;
+.status-text.inactive {
   color: #f44336;
 }
 
 .actions {
   display: flex;
   gap: 10px;
+  padding: 12px 15px;
+  white-space: nowrap;
+  min-width: 100px;
+  justify-content: center;
+  padding-top: 35px;
 }
 
 .edit-btn, .delete-btn {
-  padding: 5px 10px;
+  padding: 6px 12px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
 }
 
 .edit-btn {

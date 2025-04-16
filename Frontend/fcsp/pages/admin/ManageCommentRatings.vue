@@ -32,7 +32,7 @@
               </div>
               <div class="stat-content">
                 <h6 class="stat-label">Đánh giá trung bình</h6>
-                <h2 class="stat-value">4.2/5</h2>
+                <h2 class="stat-value">{{ averageRating }}/5</h2>
               </div>
             </div>
           </div>
@@ -112,32 +112,31 @@
             <div v-for="comment in filteredComments" :key="comment.id" class="comment-card">
               <div class="comment-header">
                 <div class="product-info">
-                  <img :src="comment.productImage" class="product-img" alt="Product">
+                  <img :src="comment.designPreviewUrl" class="product-img" alt="Product">
                   <div>
-                    <div class="product-name">{{ comment.productName }}</div>
-                    <div class="product-sku">SKU: {{ comment.productSku }}</div>
+                    <div class="product-name">{{ comment.designName }}</div>
                   </div>
                 </div>
-                <div class="comment-status">
+                <!-- <div class="comment-status">
                   <span :class="['status-badge', getStatusClass(comment.status)]">
                     {{ getStatusText(comment.status) }}
                   </span>
-                </div>
+                </div> -->
               </div>
               
               <div class="comment-body">
                 <div class="user-info">
-                  <img :src="comment.userAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(comment.userName) + '&background=random'" 
+                  <img :src="'https://ui-avatars.com/api/?name=' + encodeURIComponent(comment.userName) + '&background=random'" 
                        class="user-avatar" alt="User">
                   <div>
                     <div class="user-name">{{ comment.userName }}</div>
                     <div class="rating-stars">
                       <i v-for="i in 5" :key="i" class="bi" 
-                         :class="i <= comment.rating ? 'bi-star-fill' : 'bi-star'"></i>
+                         :class="i <= comment.userRating ? 'bi-star-fill' : 'bi-star'"></i>
                     </div>
                   </div>
                   <div class="comment-date">
-                    <i class="bi bi-calendar3"></i> {{ formatDate(comment.date) }}
+                    <i class="bi bi-calendar3"></i> {{ formatDate(comment.createdAt) }}
                   </div>
                 </div>
                 
@@ -194,20 +193,18 @@
                 <div class="view-layout" v-if="selectedComment">
                   <div class="product-section">
                     <div class="product-card">
-                      <img :src="selectedComment.productImage" class="product-image">
-                      <h6 class="product-title">{{ selectedComment.productName }}</h6>
-                      <p class="product-code">SKU: {{ selectedComment.productSku }}</p>
+                      <img :src="selectedComment.designPreviewUrl" class="product-image">
+                      <h6 class="product-title">{{ selectedComment.designName }}</h6>
                     </div>
                   </div>
                   
                   <div class="comment-section">
                     <div class="comment-card-detail">
                       <div class="user-header">
-                        <img :src="selectedComment.userAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedComment.userName) + '&background=random'" 
+                        <img :src="'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedComment.userName) + '&background=random'" 
                              class="user-pic">
                         <div>
                           <div class="user-title">{{ selectedComment.userName }}</div>
-                          <div class="user-email">{{ selectedComment.userEmail }}</div>
                         </div>
                         <div class="status-tag" :class="getStatusClass(selectedComment.status)">
                           {{ getStatusText(selectedComment.status) }}
@@ -216,8 +213,8 @@
                       
                       <div class="rating-display">
                         <i v-for="i in 5" :key="i" class="bi" 
-                           :class="i <= selectedComment.rating ? 'bi-star-fill' : 'bi-star'"></i>
-                        <span>{{ selectedComment.rating }}/5</span>
+                           :class="i <= selectedComment.userRating ? 'bi-star-fill' : 'bi-star'"></i>
+                        <span>{{ selectedComment.userRating }}/5</span>
                       </div>
                       
                       <div class="comment-text">
@@ -280,11 +277,11 @@
                       <input type="checkbox" :id="'comment-' + comment.id" v-model="selectedIds" :value="comment.id">
                     </div>
                     <div class="comment-info">
-                      <div class="product-name">{{ comment.productName }}</div>
+                      <div class="product-name">{{ comment.designName }}</div>
                       <div class="user-name">{{ comment.userName }}</div>
                       <div class="rating-stars">
                         <i v-for="i in 5" :key="i" class="bi" 
-                           :class="i <= comment.rating ? 'bi-star-fill' : 'bi-star'"></i>
+                           :class="i <= comment.userRating ? 'bi-star-fill' : 'bi-star'"></i>
                       </div>
                       <div class="comment-preview">{{ comment.comment }}</div>
                     </div>
@@ -344,6 +341,7 @@
 
 <script>
 import AdminSidebar from '@/components/AdminSidebar.vue';
+import { getAllRating } from '@/server/rating-service';
 
 export default {
   name: 'ManageCommentRatings',
@@ -364,78 +362,7 @@ export default {
       selectedIds: [],
       modalType: 'view',
       commentModal: null,
-      comments: [
-        {
-          id: 'CMT001',
-          productName: 'Nike Air Max 270',
-          productSku: 'NKE-AM270-BLK',
-          productImage: 'https://via.placeholder.com/100x100.png?text=Nike+Air+Max+270',
-          userName: 'Nguyễn Văn A',
-          userEmail: 'nguyenvana@example.com',
-          userAvatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=0D8ABC&color=fff',
-          rating: 5,
-          comment: 'Giày rất đẹp và thoải mái, đúng như mô tả. Tôi rất hài lòng với sản phẩm này!',
-          status: 'approved',
-          date: '2024-03-25',
-          response: 'Cảm ơn bạn đã đánh giá tích cực về sản phẩm của chúng tôi!'
-        },
-        {
-          id: 'CMT002',
-          productName: 'Adidas Ultra Boost',
-          productSku: 'ADS-UB21-WHT',
-          productImage: 'https://via.placeholder.com/100x100.png?text=Adidas+Ultra+Boost',
-          userName: 'Trần Thị B',
-          userEmail: 'tranthib@example.com',
-          userAvatar: null,
-          rating: 4,
-          comment: 'Giày chạy bộ rất tốt, đệm êm ái. Tuy nhiên size hơi rộng một chút so với chân tôi.',
-          status: 'approved',
-          date: '2024-03-24',
-          response: 'Cảm ơn bạn đã đánh giá. Về vấn đề size, bạn có thể liên hệ với chúng tôi để được tư vấn.'
-        },
-        {
-          id: 'CMT003',
-          productName: 'Puma RS-X',
-          productSku: 'PMA-RSX-BLU',
-          productImage: 'https://via.placeholder.com/100x100.png?text=Puma+RS-X',
-          userName: 'Lê Văn C',
-          userEmail: 'levanc@example.com',
-          userAvatar: null,
-          rating: 2,
-          comment: 'Giày không đúng như mô tả, màu sắc khác xa so với hình ảnh trên website. Rất thất vọng!',
-          status: 'approved',
-          date: '2024-03-23',
-          response: 'Chúng tôi rất tiếc về trải nghiệm không tốt của bạn. Vui lòng liên hệ với bộ phận CSKH.'
-        },
-        {
-          id: 'CMT004',
-          productName: 'Jordan 1 Retro High',
-          productSku: 'JRD-1RH-RED',
-          productImage: 'https://via.placeholder.com/100x100.png?text=Jordan+1+Retro+High',
-          userName: 'Phạm Thị D',
-          userEmail: 'phamthid@example.com',
-          userAvatar: null,
-          rating: 5,
-          comment: 'Giày đẹp tuyệt vời, đúng chất Jordan. Giao hàng nhanh, đóng gói cẩn thận!',
-          status: 'pending',
-          date: '2024-03-28',
-          response: null
-        },
-        {
-          id: 'CMT005',
-          productName: 'Converse Chuck 70',
-          productSku: 'CNV-C70-BLK',
-          productImage: 'https://via.placeholder.com/100x100.png?text=Converse+Chuck+70',
-          userName: 'Hoàng Văn E',
-          userEmail: 'hoangvane@example.com',
-          userAvatar: null,
-          rating: 4,
-          comment: 'Giày Converse Chuck 70 chất lượng tốt hơn bản thường rất nhiều. Đáng đồng tiền bát gạo!',
-          status: 'pending',
-          date: '2024-03-27',
-          response: null
-        }
-      ]
+      comments: []
     }
   },
   computed: {
@@ -443,11 +370,11 @@ export default {
       let result = [...this.comments];
       
       if (this.productFilter) {
-        result = result.filter(c => c.productName === this.productFilter);
+        result = result.filter(c => c.designName === this.productFilter);
       }
       
       if (this.ratingFilter) {
-        result = result.filter(c => c.rating === parseInt(this.ratingFilter));
+        result = result.filter(c => c.userRating === parseInt(this.ratingFilter));
       }
       
       if (this.statusFilter) {
@@ -457,7 +384,7 @@ export default {
       if (this.search) {
         const searchLower = this.search.toLowerCase();
         result = result.filter(c => 
-          c.productName.toLowerCase().includes(searchLower) ||
+          c.designName.toLowerCase().includes(searchLower) ||
           c.userName.toLowerCase().includes(searchLower) ||
           c.comment.toLowerCase().includes(searchLower)
         );
@@ -466,13 +393,18 @@ export default {
       return result;
     },
     uniqueProducts() {
-      return [...new Set(this.comments.map(c => c.productName))];
+      return [...new Set(this.comments.map(c => c.designName))];
     },
     pendingComments() {
       return this.comments.filter(c => c.status === 'pending');
     },
     pendingCount() {
       return this.pendingComments.length;
+    },
+    averageRating() {
+      if (this.comments.length === 0) return 0;
+      const totalRating = this.comments.reduce((total, comment) => total + comment.userRating, 0);
+      return (totalRating / this.comments.length).toFixed(1);
     }
   },
   methods: {
@@ -585,7 +517,7 @@ export default {
       `;
       
       toastContainer.appendChild(toastEl);
-      // const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
+      const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
       toast.show();
     },
     createToastContainer() {
@@ -599,14 +531,30 @@ export default {
     async fetchComments() {
       this.loading = true;
       try {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const data = await getAllRating();
+        if (data) {
+          this.comments = data.map(rating => ({
+            id: rating.id,
+            designName: rating.designName,
+            designPreviewUrl: rating.designPreviewUrl,
+            userName: rating.userName,
+            userRating: rating.userRating,
+            comment: rating.comment,
+            createdAt: rating.createdAt,
+            status: 'pending', // Mặc định là pending, có thể thay đổi tùy theo API trả về
+            response: null
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching ratings:', error);
+        this.showToast('Có lỗi xảy ra khi tải dữ liệu', 'error');
       } finally {
         this.loading = false;
       }
     }
   },
   mounted() {
-  //   this.commentModal = new bootstrap.Modal(this.$refs.commentModal);
+    this.commentModal = new bootstrap.Modal(this.$refs.commentModal);
     this.fetchComments();
   }
 }
@@ -817,11 +765,6 @@ export default {
 .product-name {
   font-weight: 600;
   margin-bottom: 0.25rem;
-}
-
-.product-sku {
-  font-size: 0.75rem;
-  color: var(--gray);
 }
 
 .comment-status {

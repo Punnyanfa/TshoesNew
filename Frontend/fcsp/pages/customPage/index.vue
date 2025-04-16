@@ -91,115 +91,51 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { getAllTemplate } from "~/server/custom-service";
 
 const router = useRouter();
-const products = ref([
-  {
-    id: 1,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 59.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 2,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 99.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 3,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 9.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 4,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 49.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 5,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 69.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 6,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 79.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 7,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 19.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 8,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 29.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 9,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 39.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 10,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 89.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 11,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 15.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 12,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 25.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-  {
-    id: 13,
-    name: "Classic Leather Sneakers",
-    description: "Your perfect everyday kicks, tailored to your style.",
-    price: 55.99,
-    image: "https://th.bing.com/th/id/OIP.w-ECg912T4CjOEeicqw1iwHaE8?rs=1&pid=ImgDetMain"
-  },
-]);
-
-const loading = ref(false);
+const products = ref([]);
+const loading = ref(true);
 const currentPage = ref(1);
-const itemsPerPage = 12; // Adjusted to 8 (2 rows of 4 cards)
+const itemsPerPage = 12;
 const sortOption = ref("featured");
+const error = ref(null);
+
+// Fetch templates from API
+const fetchTemplates = async () => {
+  try {
+    loading.value = true;
+    const response = await getAllTemplate();
+    if (response.data) {
+      products.value = response.data.map(template => ({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        price: template.price,
+        image: template.twoImageUrl
+      }));
+    }
+  } catch (err) {
+    console.error("Error fetching templates:", err);
+    error.value = "Failed to load templates. Please try again later.";
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Call fetchTemplates when component mounts
+onMounted(() => {
+  fetchTemplates();
+});
 
 // Computed property for sorted products
 const sortedProducts = computed(() => {
   return [...products.value].sort((a, b) => {
     if (sortOption.value === "price-low") return a.price - b.price;
     if (sortOption.value === "price-high") return b.price - a.price;
-    return 0; // Default to original order
+    return 0;
   });
 });
 
