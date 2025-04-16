@@ -33,6 +33,7 @@ using FCSP.Services.CartService;
 using FCSP.Repositories.Implementations;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.ManufacturerCriteriaService;
+using FCSP.Services.CriteriaService;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -100,6 +101,7 @@ internal static class ServiceConfig
         // Manufacturer services 
         services.AddScoped<IManufacturerService, ManufacturerService>();
         services.AddScoped<IManufacturerCriteriaService, ManufacturerCriteriaService>();
+        services.AddScoped<ICriteriaService, CriteriaService>();
   
 
         // Shipping service

@@ -21,8 +21,8 @@ namespace FCSP.Services.ManufacturerCriteriaService
             IManufacturerCriteriaRepository manufacturerCriteriaRepository,
             ILogger<ManufacturerCriteriaService> logger)
         {
-            _manufacturerCriteriaRepository = manufacturerCriteriaRepository ?? throw new ArgumentNullException(nameof(manufacturerCriteriaRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _manufacturerCriteriaRepository = manufacturerCriteriaRepository;
+            _logger = logger;
         }
 
         public async Task<BaseResponseModel<AddManufacturerCriteriaResponse>> AddManufacturerCriteriaAsync(AddManufacturerCriteriaRequest request)
@@ -279,7 +279,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
         }
 
         private GetManufacturerCriteriaResponse MapToDetailResponse(ManufacturerCriteria manufacturerCriteria)
-        {
+        { 
             return new GetManufacturerCriteriaResponse
             {
                 Id = manufacturerCriteria.Id,

@@ -1,3 +1,5 @@
+using FCSP.Common.Enums;
+
 namespace FCSP.DTOs.Criteria
 {
     public class GetCriteriaRequest
@@ -7,9 +9,16 @@ namespace FCSP.DTOs.Criteria
 
     public class GetCriteriaResponse
     {
+        private readonly CriteriaStatus status;
+        public GetCriteriaResponse(CriteriaStatus status)
+        {
+            this.status = status;
+        }
+
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public int Status { get; set; }
+    
+        public string StatusName => EnumHelper.GetEnumName<CriteriaStatus>((int)status);
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -17,7 +26,7 @@ namespace FCSP.DTOs.Criteria
     public class AddCriteriaRequest
     {
         public string Name { get; set; } = null!;
-        public int Status { get; set; }
+      
     }
 
     public class AddCriteriaResponse
@@ -31,14 +40,32 @@ namespace FCSP.DTOs.Criteria
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public int Status { get; set; }
+        public CriteriaStatus Status { get; set; }
     }
 
     public class UpdateCriteriaResponse
     {
+        private readonly CriteriaStatus status;
+        public UpdateCriteriaResponse(CriteriaStatus status)
+        {
+            this.status = status;
+        }
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public int Status { get; set; }
+       
+        public string StatusName => EnumHelper.GetEnumName<CriteriaStatus>((int)status);
+        public DateTime UpdatedAt { get; set; }
+    }
+    public class UpdateCriteriaStatusRequest
+    {
+        public long Id { get; set; }
+        public CriteriaStatus Status { get; set; }
+    }
+
+    public class UpdateCriteriaStatusResponse
+    {
+        public long Id { get; set; }
+        public CriteriaStatus Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 } 

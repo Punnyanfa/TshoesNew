@@ -60,6 +60,7 @@ internal static class RepositoryConfig
         // Manufacturer repository
         services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
         services.AddScoped<IManufacturerCriteriaRepository, ManufacturerCriteriaRepository>();
+        services.AddScoped<ICriteriaRepository, CriteriaRepository>();
 
         // Shipping repository
         services.AddScoped<IShippingInfoRepository, ShippingInfoRepository>();
