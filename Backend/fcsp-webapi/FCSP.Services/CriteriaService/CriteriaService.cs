@@ -48,7 +48,7 @@ namespace FCSP.Services.CriteriaService
                 var criteria = new Criteria
                 {
                     Name = request.Name,
-                    Status = CriteriaStatus.Active, // Default to Active
+                    Status = CriteriaStatus.Active, 
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -96,16 +96,7 @@ namespace FCSP.Services.CriteriaService
                         Code = 400,
                         Message = "Criteria name cannot be empty"
                     };
-                }
-               
-                if (!Enum.IsDefined(typeof(CriteriaStatus), request.Status))
-                {                   
-                    return new BaseResponseModel<UpdateCriteriaResponse>
-                    {
-                        Code = 400,
-                        Message = "Invalid status value"
-                    };
-                }                          
+                }                                                 
                 var criteria = await _criteriaRepository.FindAsync(request.Id);
                 if (criteria == null || criteria.IsDeleted)
                 {                   
@@ -128,8 +119,7 @@ namespace FCSP.Services.CriteriaService
                     };
                 }
 
-                criteria.Name = request.Name;
-                criteria.Status = request.Status;
+                criteria.Name = request.Name;              
                 criteria.UpdatedAt = DateTime.UtcNow;
 
                 await _criteriaRepository.UpdateAsync(criteria);
@@ -156,11 +146,11 @@ namespace FCSP.Services.CriteriaService
                 };
             }
         }
-        public async Task<BaseResponseModel<UpdateCriteriaStatusResponse>> UpdateStatusAsync(UpdateCriteriaStatusRequest request)
+        public async Task<BaseResponseModel<UpdateCriteriaStatusResponse>> UpdateStatusAsync(long id)
         {
             try
             {
-                if (request.Id <= 0)
+                if (id <= 0)
                 {
                     return new BaseResponseModel<UpdateCriteriaStatusResponse>
                     {
@@ -168,17 +158,8 @@ namespace FCSP.Services.CriteriaService
                         Message = "Criteria ID must be greater than 0"
                     };
                 }
-
-                if (!Enum.IsDefined(typeof(CriteriaStatus), request.Status))
-                {
-                    return new BaseResponseModel<UpdateCriteriaStatusResponse>
-                    {
-                        Code = 400,
-                        Message = "Invalid status value"
-                    };
-                }
-                var criteria = await _criteriaRepository.FindAsync(request.Id);
-                if (criteria == null || criteria.IsDeleted)
+                var criteria = await _criteriaRepository.FindAsync(id);
+                if (criteria == null)
                 {
                     return new BaseResponseModel<UpdateCriteriaStatusResponse>
                     {
@@ -186,8 +167,8 @@ namespace FCSP.Services.CriteriaService
                         Message = "Criteria not found"
                     };
                 }
-
-                criteria.Status = request.Status;
+                criteria.IsDeleted = false;
+                criteria.Status = CriteriaStatus.Active;
                 criteria.UpdatedAt = DateTime.UtcNow;
 
                 await _criteriaRepository.UpdateAsync(criteria);
@@ -234,6 +215,7 @@ namespace FCSP.Services.CriteriaService
                         Message = "Criteria not found"
                     };
                 }
+                criteria.Status = CriteriaStatus.Inactive;
                 await _criteriaRepository.DeleteAsync(id);
                 return new BaseResponseModel<bool>
                 {
@@ -256,7 +238,7 @@ namespace FCSP.Services.CriteriaService
         {
             try
             {
-                var criteriaList = await _criteriaRepository.GetAllAsync();
+                var criteriaList = await _criteriaRepository.GetActiveCriteriaAsync();
                 var responseData = criteriaList.Select(MapToDetailResponse).ToList();
                 return new BaseResponseModel<IList<GetCriteriaResponse>>
                 {

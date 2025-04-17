@@ -45,7 +45,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                     return new BaseResponseModel<AddManufacturerCriteriaResponse>
                     {
                         Code = 400,
-                        Message = "Invalid status value"
+                        Message = "Invalid status value  NotMet = 0,   Met = 1,    Pending = 2"
                     };
                 }
 
@@ -154,7 +154,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                     return new BaseResponseModel<UpdateManufacturerCriteriaResponse>
                     {
                         Code = 400,
-                        Message = "Invalid status value"
+                        Message = "Invalid status value  NotMet = 0,   Met = 1,    Pending = 2"
                     };
                 }
 

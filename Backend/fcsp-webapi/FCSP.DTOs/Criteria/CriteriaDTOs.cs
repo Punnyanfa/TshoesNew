@@ -40,7 +40,7 @@ namespace FCSP.DTOs.Criteria
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public CriteriaStatus Status { get; set; }
+       
     }
 
     public class UpdateCriteriaResponse
@@ -59,7 +59,7 @@ namespace FCSP.DTOs.Criteria
     public class UpdateCriteriaStatusRequest
     {
         public long Id { get; set; }
-        public CriteriaStatus Status { get; set; }
+       
     }
 
     public class UpdateCriteriaStatusResponse

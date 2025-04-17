@@ -32,7 +32,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<ShippingInfo>> GetAllAsync()
         {
             return await _context.ShippingInfos
-        .Include(si => si.User) // Fetch User data
+        .Include(si => si.User)
         .Where(si => !si.IsDeleted)
         .ToListAsync();
         }

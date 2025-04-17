@@ -8,7 +8,7 @@ namespace FCSP.Services.CriteriaService
     {
         Task<BaseResponseModel<AddCriteriaResponse>> AddAsync(AddCriteriaRequest request);
         Task<BaseResponseModel<UpdateCriteriaResponse>> UpdateAsync(UpdateCriteriaRequest request);
-        Task<BaseResponseModel<UpdateCriteriaStatusResponse>> UpdateStatusAsync(UpdateCriteriaStatusRequest request);
+        Task<BaseResponseModel<UpdateCriteriaStatusResponse>> UpdateStatusAsync(long id);
         Task<BaseResponseModel<bool>> DeleteAsync(long id);
         Task<BaseResponseModel<IList<GetCriteriaResponse>>> GetAllAsync();
         Task<BaseResponseModel<GetCriteriaResponse>> GetByIdAsync(long id);

@@ -38,14 +38,14 @@ namespace FCSP.WebAPI.Controllers.CriteriaController
             var response = await _criteriaService.UpdateAsync(request);
             return StatusCode(response.Code, response);
         }
-        [HttpPut("status")]
+        [HttpPut("{id}/restore")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateCriteriaStatus([FromBody] UpdateCriteriaStatusRequest request)
+        public async Task<IActionResult> UpdateCriteriaStatus(long id)
         {
-            var response = await _criteriaService.UpdateStatusAsync(request);
+            var response = await _criteriaService.UpdateStatusAsync(id);
             return StatusCode(response.Code, response);
         }  
 
