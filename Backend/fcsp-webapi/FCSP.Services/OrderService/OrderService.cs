@@ -176,22 +176,17 @@ namespace FCSP.Services.OrderService
         #endregion
 
         #region Private Methods
-        private async Task<GetOrderByIdResponse> MapToDetailResponse(Order order)
+        private GetOrderByIdResponse MapToDetailResponse(Order order)
         {
-            var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
-            var voucher = await _voucherRepository.FindAsync(order.VoucherId);
-            var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
-            var payment = payments.FirstOrDefault();
-
             return new GetOrderByIdResponse
             {
                 Id = order.Id,
-                UserName = user?.Name,
+                UserName = order.User?.Name,
                 ShippingInfoId = order.ShippingInfoId,
-                VoucherCode = voucher?.VoucherName,
+                VoucherCode = order.Voucher?.VoucherName,
                 Status = order.Status.ToString(),
                 ShippingStatus = order.ShippingStatus.ToString(),
-                PaymentMethod = payment?.PaymentMethod.ToString(),
+                PaymentMethod = order.Payments?.FirstOrDefault()?.PaymentMethod.ToString(),
                 TotalPrice = order.TotalPrice,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
@@ -213,22 +208,25 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
             }
 
-            var tasks = orders.Select(MapToDetailResponse);
-            return (await Task.WhenAll(tasks)).ToList();
+            return orders.Select(MapToDetailResponse).ToList();
         }
 
         private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
         {
             var order = await _orderRepository.GetAll()
+                                              .Include(o => o.User)
+                                              .Include(o => o.Voucher)
                                               .Include(o => o.OrderDetails)
+                                             
                                               .ThenInclude(od => od.Size)
+                                              .Include(o => o.Payments)
                                               .FirstOrDefaultAsync(o => o.Id == request.Id);
             if (order == null)
             {
                 throw new InvalidOperationException($"Order with ID {request.Id} not found");
             }
 
-            return await MapToDetailResponse(order);
+            return MapToDetailResponse(order);
         }
 
         private async Task<List<GetOrderByIdResponse>> GetAllOrdersAsync()
@@ -236,6 +234,9 @@ namespace FCSP.Services.OrderService
             var orders = await _orderRepository.GetAll()
                                                .Include(o => o.OrderDetails)
                                                .ThenInclude(od => od.Size)
+                                               .Include(o => o.User)
+                                               .Include(o => o.Voucher)
+                                               .Include(o => o.Payments)
                                                .ToListAsync();
 
             if (orders == null || !orders.Any())
@@ -243,9 +244,8 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException("No orders found");
             }
 
-            var tasks = orders.Select(MapToDetailResponse);
-            return (await Task.WhenAll(tasks)).ToList();
-        }
+            return orders.Select(MapToDetailResponse).ToList();
+        } 
 
         private async Task<Order> GetEntityFromAddOrderRequest(AddOrderRequest request)
         {
