@@ -95,9 +95,11 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getProductById } from '~/server/product-service';
+import { useCart } from '~/composables/useCart';
 
 const route = useRoute();
 const router = useRouter();
+const { updateCartCount } = useCart();
 const product = ref(null);
 const loading = ref(true);
 const selectedSize = ref('');
@@ -160,6 +162,9 @@ const addToCart = () => {
 
       // Save updated cart back to sessionStorage
       sessionStorage.setItem('cart', JSON.stringify(cart));
+
+      // Update cart count
+      updateCartCount(cart.length);
 
       console.log('Product added to cart:', productToAdd);
       console.log('Updated cart stored in session:', cart);

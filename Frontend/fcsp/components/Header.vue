@@ -114,11 +114,12 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons-vue';
 import { useRouter } from 'vue-router';
+import { useCart } from '~/composables/useCart';
 
 const router = useRouter();
+const { cartCount } = useCart();
 const isAuthenticated = ref(false);
 const userName = ref('');
-const cartCount = ref(2);
 const isNavOpen = ref(false);
 const isSearchOpen = ref(false);
 const searchQuery = ref('');

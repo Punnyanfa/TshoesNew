@@ -8,48 +8,48 @@
     <section class="hero-section text-center">
       <div class="container py-5">
         <h1 class="display-3 fw-bold text-sneaker-orange animate__animated animate__fadeInDown">
-          Tạo Nên Phong Cách Riêng Của Bạn
+          Create Your Unique Style
         </h1>
         <p class="lead text-white mt-3 animate__animated animate__fadeInUp">
-          Thiết kế giày độc đáo với công nghệ AI - Phong cách của bạn, câu chuyện của bạn.
+          Design unique sneakers with AI technology - Your style, your story.
         </p>
         <div class="mt-4 d-flex justify-content-center gap-3">
           <NuxtLink to="/customPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn">
-            Thiết Kế Ngay
+            Design Now
           </NuxtLink>
           <NuxtLink to="/gallery" class="btn btn-outline-light px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn">
-            Khám Phá Bộ Sưu Tập
+            Explore Collection
           </NuxtLink>
         </div>
         <div class="hero-img-container mt-5">
-          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s" alt="Giày Tùy Chỉnh" class="img-fluid sneaker-hero-img animate__animated animate__pulse" />
+          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s" alt="Custom Sneakers" class="img-fluid sneaker-hero-img animate__animated animate__pulse" />
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
     <section class="container py-5">
-      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Tại Sao Chọn Chúng Tôi?</h2>
+      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Why Choose Us?</h2>
       <div class="row g-4 text-center">
         <div class="col-md-4">
           <div class="feature-box p-4 rounded">
             <i class="bi bi-gear-fill feature-icon"></i>
-            <h4 class="mt-3 fw-bold">Thiết Kế Bằng AI</h4>
-            <p class="text-muted">Công nghệ thông minh tạo ra đôi giày phù hợp hoàn hảo với bạn.</p>
+            <h4 class="mt-3 fw-bold">AI-Powered Design</h4>
+            <p class="text-muted">Smart technology creates sneakers that perfectly match your style.</p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="feature-box p-4 rounded">
             <i class="bi bi-brush-fill feature-icon"></i>
-            <h4 class="mt-3 fw-bold">Sáng Tạo Không Giới Hạn</h4>
-            <p class="text-muted">Tùy chỉnh mọi chi tiết - màu sắc, chất liệu và nhiều hơn nữa.</p>
+            <h4 class="mt-3 fw-bold">Unlimited Creativity</h4>
+            <p class="text-muted">Customize every detail - colors, materials, and more.</p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="feature-box p-4 rounded">
             <i class="bi bi-truck feature-icon"></i>
-            <h4 class="mt-3 fw-bold">Giao Hàng Nhanh</h4>
-            <p class="text-muted">Nhận giày tùy chỉnh của bạn trong thời gian ngắn nhất.</p>
+            <h4 class="mt-3 fw-bold">Fast Delivery</h4>
+            <p class="text-muted">Receive your custom sneakers in the shortest time.</p>
           </div>
         </div>
       </div>
@@ -58,34 +58,34 @@
     <!-- How It Works Section -->
     <section class="how-it-works-section py-5 bg-light">
       <div class="container">
-        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Quy Trình Hoạt Động</h2>
+        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">How It Works</h2>
         <div class="row g-4 text-center">
           <div class="col-md-3">
             <div class="step-box p-4">
               <span class="step-number">1</span>
-              <h5 class="mt-3 fw-bold">Chọn Mẫu Cơ Bản</h5>
-              <p class="text-muted">Lựa chọn kiểu giày phù hợp với phong cách của bạn.</p>
+              <h5 class="mt-3 fw-bold">Choose Base Design</h5>
+              <p class="text-muted">Select a sneaker style that matches your taste.</p>
             </div>
           </div>
           <div class="col-md-3">
             <div class="step-box p-4">
               <span class="step-number">2</span>
-              <h5 class="mt-3 fw-bold">Tùy Chỉnh</h5>
-              <p class="text-muted">Sử dụng công cụ AI để thiết kế mọi chi tiết.</p>
+              <h5 class="mt-3 fw-bold">Customize</h5>
+              <p class="text-muted">Use AI tools to design every detail.</p>
             </div>
           </div>
           <div class="col-md-3">
             <div class="step-box p-4">
               <span class="step-number">3</span>
-              <h5 class="mt-3 fw-bold">Xem Trước & Đặt Hàng</h5>
-              <p class="text-muted">Xem thiết kế 3D và đặt hàng.</p>
+              <h5 class="mt-3 fw-bold">Preview & Order</h5>
+              <p class="text-muted">View 3D design and place your order.</p>
             </div>
           </div>
           <div class="col-md-3">
             <div class="step-box p-4">
               <span class="step-number">4</span>
-              <h5 class="mt-3 fw-bold">Mang Tác Phẩm Của Bạn</h5>
-              <p class="text-muted">Nhận giày độc đáo và tự tin bước đi.</p>
+              <h5 class="mt-3 fw-bold">Wear Your Creation</h5>
+              <p class="text-muted">Receive your unique sneakers and step out in style.</p>
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@
 
     <!-- Best Seller Sneakers Section -->
     <section class="best-sellers-section container py-5">
-      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Giày Bán Chạy Nhất</h2>
+      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Best Selling Sneakers</h2>
       
       <Swiper
         v-bind="swiperOptions"
@@ -149,7 +149,6 @@
                   class="btn btn-add-cart"
                   @click.stop="addToCart(product)"
                 >
-                
                 </button>
               </div>
             </div>
@@ -181,7 +180,7 @@
 
       <div class="text-center mt-5">
         <NuxtLink to="/productPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
-          Xem Tất Cả Sản Phẩm
+          View All Products
         </NuxtLink>
       </div>
     </section>
@@ -189,12 +188,12 @@
     <!-- Testimonials Section -->
     <section class="testimonials-section py-5 bg-light">
       <div class="container">
-        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Khách Hàng Nói Gì?</h2>
+        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">What Our Customers Say</h2>
         <div class="row g-4">
           <div class="col-md-4">
             <div class="testimonial-box p-4 rounded">
-              <p class="text-muted">"Công cụ tùy chỉnh thật tuyệt vời! Đôi giày của tôi hoàn toàn như mong đợi."</p>
-              <h6 class="mt-3 fw-bold">Nguyễn Văn A</h6>
+              <p class="text-muted">"The customization tool is amazing! My sneakers turned out exactly as I wanted."</p>
+              <h6 class="mt-3 fw-bold">John D.</h6>
               <span class="text-sneaker-star">★★★★★</span>
             </div>
           </div>
@@ -301,10 +300,10 @@
     <!-- Call to Action Section -->
     <section class="cta-section text-center py-5">
       <div class="container">
-        <h2 class="fw-bold text-white">Sẵn Sàng Nâng Tầm Phong Cách?</h2>
-        <p class="text-light mt-3">Tham gia cùng hàng nghìn người yêu giày đã biến ước mơ thành hiện thực.</p>
+        <h2 class="fw-bold text-white">Ready to Elevate Your Style?</h2>
+        <p class="text-light mt-3">Join thousands of sneaker enthusiasts who have turned their dreams into reality.</p>
         <NuxtLink to="/customPage" class="btn btn-sneaker px-5 py-3 mt-4 fw-bold text-uppercase">
-          Bắt Đầu Thiết Kế
+          Start Designing
         </NuxtLink>
       </div>
     </section>
@@ -395,7 +394,7 @@ const addToCart = (product) => {
     quantity: 1
   })
   
-  notificationMessage.value = `Đã thêm ${product.name} vào giỏ hàng!`
+  notificationMessage.value = `${product.name} has been added to cart!`
   showNotification.value = true
   
   setTimeout(() => {
@@ -414,158 +413,291 @@ const navigateToProduct = (productId) => {
 </script>
 
 <style scoped>
+  /* Global Styles */
+  .home-wrapper {
+    background-color: #f8f9fa;
+  }
+
   /* Hero Section Styles */
   .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s');
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDqac8qPp6UPCFaPYroGCkAmNeJfp6sAcAzg&s');
     background-size: cover;
     background-position: center;
+    background-attachment: fixed;
     color: #fff;
-    padding: 120px 0;
+    padding: 150px 0;
     position: relative;
     overflow: hidden;
   }
 
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(52, 152, 219, 0.1), rgba(0, 188, 212, 0.1));
+    z-index: 1;
+  }
+
+  .hero-section .container {
+    position: relative;
+    z-index: 2;
+  }
+
   .text-sneaker-orange {
-    background: linear-gradient(45deg, #3498db, #00bcd4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #00bcd4;
+    font-weight: bold;
   }
 
   .text-sneaker-star {
-    background: linear-gradient(45deg, #ffd700, #ffa726);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffd700;
   }
 
   .sneaker-hero-img {
     max-width: 70%;
-    filter: drop-shadow(0 15px 30px rgba(0, 188, 212, 0.4));
-    transition: transform 0.4s ease;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+    transition: all 0.4s ease;
   }
 
   .sneaker-hero-img:hover {
-    transform: scale(1.08) rotate(2deg);
+    transform: scale(1.05);
+    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));
   }
 
   .btn-sneaker {
-    background: linear-gradient(45deg, #3498db, #00bcd4);
+    background: #00bcd4;
     color: #fff;
     border: none;
-    border-radius: 50px;
+    border-radius: 8px;
+    padding: 12px 30px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
   }
 
   .btn-sneaker:hover {
-    background: linear-gradient(45deg, #00bcd4, #3498db);
-    transform: scale(1.1);
+    background: #008ba3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
 
   .btn-outline-light {
-    border-radius: 50px;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 12px 30px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
   }
 
   .btn-outline-light:hover {
-    background: linear-gradient(45deg, #3498db, #00bcd4);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
   }
 
   /* Features Section Styles */
   .feature-box {
     background: #fff;
-    box-shadow: 0 5px 20px rgba(0, 188, 212, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
   }
 
   .feature-box:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 20px 40px rgba(0, 188, 212, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
 
   .feature-icon {
-    font-size: 2.8rem;
+    font-size: 2.5rem;
     color: #00bcd4;
+    margin-bottom: 15px;
   }
 
   /* How It Works Section */
   .step-box {
     background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 188, 212, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
   }
 
-  .step-box:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 188, 212, 0.15);
+  .step-number {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background: #00bcd4;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
   }
 
-  .step-number {
-    background: linear-gradient(45deg, #3498db, #00bcd4);
-    color: #fff;
+  .step-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
 
   /* Best Seller Section */
   .product-card {
     background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 188, 212, 0.08);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
   }
 
   .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 188, 212, 0.15);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .product-image {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .product-image img {
+    transition: transform 0.3s ease;
+  }
+
+  .product-card:hover .product-image img {
+    transform: scale(1.05);
   }
 
   .price {
+    font-size: 1.1rem;
+    font-weight: bold;
     color: #00bcd4;
-    background: linear-gradient(45deg, #3498db, #00bcd4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
   }
 
   /* CTA Section */
   .cta-section {
-    background: linear-gradient(45deg, #3498db, #00bcd4);
+    background: #00bcd4;
     color: #fff;
+    padding: 80px 0;
   }
 
   /* Notification Toast */
   .notification-toast {
-    background: linear-gradient(45deg, #3498db, #00bcd4);
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #00bcd4;
     color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .notification-toast.show {
+    transform: translateY(0);
+    opacity: 1;
   }
 
   /* Swiper Navigation */
   .swiper-button-next,
   .swiper-button-prev {
-    color: #00bcd4;
-    background: white;
+    background: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .swiper-button-next:hover,
+  .swiper-button-prev:hover {
+    background: #00bcd4;
+    color: #fff;
+  }
+
+  .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    background: #ccc;
+    opacity: 0.5;
   }
 
   .swiper-pagination-bullet-active {
     background: #00bcd4;
+    opacity: 1;
   }
 
   /* Loading Effect */
   .image-skeleton {
-    background: linear-gradient(90deg, #f5f5f5 25%, #e0f7fa 50%, #f5f5f5 75%);
+    background: #f5f5f5;
   }
 
   /* Testimonials */
   .testimonial-box {
     background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 188, 212, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
   }
 
   .testimonial-box:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 188, 212, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
 
+  /* Blog Cards */
+  .blog-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .blog-card img {
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  .blog-card:hover img {
+    transform: scale(1.03);
+  }
+
+  /* Responsive Styles */
   @media (max-width: 768px) {
-    .product-overlay {
-      background: rgba(0, 188, 212, 0.3);
+    .hero-section {
+      padding: 80px 0;
+    }
+
+    .sneaker-hero-img {
+      max-width: 90%;
+    }
+
+    .feature-box,
+    .step-box,
+    .product-card,
+    .testimonial-box,
+    .blog-card {
+      margin-bottom: 20px;
+    }
+
+    .btn-sneaker,
+    .btn-outline-light {
+      width: 100%;
+      margin-bottom: 10px;
     }
   }
 </style>
