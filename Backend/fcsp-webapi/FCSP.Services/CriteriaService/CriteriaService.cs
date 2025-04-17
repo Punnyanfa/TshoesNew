@@ -129,10 +129,11 @@ namespace FCSP.Services.CriteriaService
                 {
                     Code = 200,
                     Message = "Criteria updated successfully",
-                    Data = new UpdateCriteriaResponse(status: criteria.Status)
+                    Data = new UpdateCriteriaResponse
                     {
                         Id = criteria.Id,
-                        Name = criteria.Name,                      
+                        Name = criteria.Name,
+                        Status = criteria.Status.ToString(),
                         UpdatedAt = criteria.UpdatedAt
                     }
                 };
@@ -180,7 +181,7 @@ namespace FCSP.Services.CriteriaService
                     Data = new UpdateCriteriaStatusResponse
                     {
                         Id = criteria.Id,
-                        Status = criteria.Status,
+                        Status = criteria.Status.ToString(),
                         UpdatedAt = criteria.UpdatedAt
                     }
                 };
@@ -296,10 +297,11 @@ namespace FCSP.Services.CriteriaService
         }
         private GetCriteriaResponse MapToDetailResponse(Criteria criteria)
         {
-            return new GetCriteriaResponse(status: criteria.Status)
+            return new GetCriteriaResponse
             {
                 Id = criteria.Id,
                 Name = criteria.Name,
+                Status = criteria.Status.ToString(),
                 CreatedAt = criteria.CreatedAt,
                 UpdatedAt = criteria.UpdatedAt
             };

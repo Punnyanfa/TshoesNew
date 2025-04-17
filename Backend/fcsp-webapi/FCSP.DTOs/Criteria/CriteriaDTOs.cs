@@ -8,17 +8,11 @@ namespace FCSP.DTOs.Criteria
     }
 
     public class GetCriteriaResponse
-    {
-        private readonly CriteriaStatus status;
-        public GetCriteriaResponse(CriteriaStatus status)
-        {
-            this.status = status;
-        }
+    {     
 
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-    
-        public string StatusName => EnumHelper.GetEnumName<CriteriaStatus>((int)status);
+        public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -45,15 +39,10 @@ namespace FCSP.DTOs.Criteria
 
     public class UpdateCriteriaResponse
     {
-        private readonly CriteriaStatus status;
-        public UpdateCriteriaResponse(CriteriaStatus status)
-        {
-            this.status = status;
-        }
+       
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-       
-        public string StatusName => EnumHelper.GetEnumName<CriteriaStatus>((int)status);
+        public string Status { get; set; }       
         public DateTime UpdatedAt { get; set; }
     }
     public class UpdateCriteriaStatusRequest
@@ -65,7 +54,7 @@ namespace FCSP.DTOs.Criteria
     public class UpdateCriteriaStatusResponse
     {
         public long Id { get; set; }
-        public CriteriaStatus Status { get; set; }
+        public string  Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 } 

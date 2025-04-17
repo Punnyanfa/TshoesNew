@@ -183,7 +183,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                     Data = new UpdateManufacturerCriteriaResponse
                     {
                         Id = manufacturerCriteria.Id,
-                        Status = manufacturerCriteria.Status,
+                        Status = manufacturerCriteria.Status.ToString(),
                         UpdatedAt = manufacturerCriteria.UpdatedAt
                     }
                 };
@@ -285,7 +285,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                 Id = manufacturerCriteria.Id,
                 ManufacturerId = manufacturerCriteria.ManufacturerId,
                 CriteriaId = manufacturerCriteria.CriteriaId,
-                Status = manufacturerCriteria.Status,
+                Status = manufacturerCriteria.Status.ToString(),
                 ManufacturerName = manufacturerCriteria.Manufacturer?.Name ?? "Unknown",
                 CriteriaName = manufacturerCriteria.Criteria?.Name ?? "Unknown",
                 CreatedAt = manufacturerCriteria.CreatedAt,

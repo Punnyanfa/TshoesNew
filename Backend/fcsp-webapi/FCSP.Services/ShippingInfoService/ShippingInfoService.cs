@@ -53,24 +53,12 @@ namespace FCSP.Services.ShippingInfoService
             try
             {
                 var shippingInfo = await GetShippingInfoEntityById(request);
+                var response = await MapToDetailResponse(shippingInfo);
                 return new BaseResponseModel<GetShippingInfoByIdResponse>
                 {
                     Code = 200,
                     Message = "Shipping information retrieved successfully",
-                    Data = new GetShippingInfoByIdResponse
-                    {
-                        Id = shippingInfo.Id,
-                        UserId = shippingInfo.UserId,
-                        ReceiverName = await GetUserNameById(shippingInfo.UserId),
-                        PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
-                        Address = shippingInfo.StreetAddress ?? string.Empty,
-                        City = shippingInfo.City ?? string.Empty,
-                        District = shippingInfo.District ?? string.Empty,
-                        Ward = shippingInfo.Ward ?? string.Empty,
-                        IsDefault = shippingInfo.IsDefault,
-                        CreatedAt = shippingInfo.CreatedAt,
-                        UpdatedAt = shippingInfo.UpdatedAt
-                    }
+                    Data = response
                 };
             }
             catch (Exception ex)
@@ -248,39 +236,22 @@ namespace FCSP.Services.ShippingInfoService
                 };
             }
         }
-        public async Task<BaseResponseModel<GetShippingInfoByOrderIdResponse>> GetByOrderId(GetShippingInfoByOrderIdRequest request)
+        public async Task<BaseResponseModel<GetShippingInfoByIdResponse>> GetByOrderId(GetShippingInfoByOrderIdRequest request)
         {
             try
             {
                 var shippingInfo = await GetShippingInfoByOrderId(request);
-                if (shippingInfo == null)
-                {
-                    throw new InvalidOperationException($"No shipping information found for Order ID {request.OrderId}");
-                }
-
-                return new BaseResponseModel<GetShippingInfoByOrderIdResponse>
+                var response = await MapToDetailResponse(shippingInfo);
+                return new BaseResponseModel<GetShippingInfoByIdResponse>
                 {
                     Code = 200,
                     Message = "Shipping information retrieved successfully",
-                    Data = new GetShippingInfoByOrderIdResponse
-                    {
-                        Id = shippingInfo.Id,
-                        UserId = shippingInfo.UserId,
-                        ReceiverName = await GetUserNameById(shippingInfo.UserId),
-                        PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
-                        Address = shippingInfo.StreetAddress ?? string.Empty,
-                        City = shippingInfo.City ?? string.Empty,
-                        District = shippingInfo.District ?? string.Empty,
-                        Ward = shippingInfo.Ward ?? string.Empty,
-                        IsDefault = shippingInfo.IsDefault,
-                        CreatedAt = shippingInfo.CreatedAt,
-                        UpdatedAt = shippingInfo.UpdatedAt
-                    }
+                    Data = response 
                 };
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<GetShippingInfoByOrderIdResponse>
+                return new BaseResponseModel<GetShippingInfoByIdResponse>
                 {
                     Code = 500,
                     Message = ex.Message,
@@ -295,28 +266,14 @@ namespace FCSP.Services.ShippingInfoService
         public async Task<string> GetUserNameById(long userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            return user?.Name ?? "N/A"; // Return UserName or "N/A" if user not found
+            return user?.Name ?? "N/A"; 
         }
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetAllShippingInfos()
         {
             var shippingInfos = await _shippingInfoRepository.GetAllAsync();
-            var tasks = shippingInfos.Select(async si => new GetShippingInfoByIdResponse
-            {
-                Id = si.Id,
-                UserId = si.UserId,
-                ReceiverName = si.User?.Name ?? "N/A",
-                PhoneNumber = si.PhoneNumber ?? string.Empty,
-                Address = si.StreetAddress ?? string.Empty,
-                City = si.City ?? string.Empty,
-                District = si.District ?? string.Empty,
-                Ward = si.Ward ?? string.Empty,
-                IsDefault = si.IsDefault,
-                CreatedAt = si.CreatedAt,
-                UpdatedAt = si.UpdatedAt
-            });
+            var tasks = shippingInfos.Select(MapToDetailResponse);          
             return await Task.WhenAll(tasks); 
         }
-
         private async Task<ShippingInfo> GetShippingInfoEntityById(GetShippingInfoByIdRequest request)
         {
             var shippingInfo = await _shippingInfoRepository.FindAsync(request.Id);
@@ -330,22 +287,9 @@ namespace FCSP.Services.ShippingInfoService
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetShippingInfosByUser(GetShippingInfosByUserRequest request)
         {
             var shippingInfos = await _shippingInfoRepository.GetByUserIdAsync(request.UserId);
-            return shippingInfos.Select(si => new GetShippingInfoByIdResponse
-            {
-                Id = si.Id,
-                UserId = si.UserId,
-                ReceiverName = si.User?.Name ?? "N/A",
-                PhoneNumber = si.PhoneNumber ?? string.Empty,
-                Address = si.StreetAddress ?? string.Empty,
-                City = si.City ?? string.Empty,
-                District = si.District ?? string.Empty,
-                Ward = si.Ward ?? string.Empty,
-                IsDefault = si.IsDefault,
-                CreatedAt = si.CreatedAt,
-                UpdatedAt = si.UpdatedAt
-            });
+            var tasks = shippingInfos.Select(MapToDetailResponse);
+            return await Task.WhenAll(tasks);
         }
-
         private ShippingInfo GetShippingInfoFromAddRequest(AddShippingInfoRequest request)
         {
             return new ShippingInfo
@@ -412,6 +356,23 @@ namespace FCSP.Services.ShippingInfoService
                 throw new InvalidOperationException($"Shipping information for Order ID {request.OrderId} not found");
             }
             return shippingInfo;
+        }
+        private async Task<GetShippingInfoByIdResponse> MapToDetailResponse(ShippingInfo shippingInfo)
+        {
+            return new GetShippingInfoByIdResponse
+            {
+                Id = shippingInfo.Id,
+                UserId = shippingInfo.UserId,
+                ReceiverName = await GetUserNameById(shippingInfo.UserId),
+                PhoneNumber = shippingInfo.PhoneNumber ?? string.Empty,
+                Address = shippingInfo.StreetAddress ?? string.Empty,
+                City = shippingInfo.City ?? string.Empty,
+                District = shippingInfo.District ?? string.Empty,
+                Ward = shippingInfo.Ward ?? string.Empty,
+                IsDefault = shippingInfo.IsDefault,
+                CreatedAt = shippingInfo.CreatedAt,
+                UpdatedAt = shippingInfo.UpdatedAt
+            };
         }
 
         #endregion

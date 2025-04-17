@@ -4,9 +4,7 @@ using FCSP.DTOs.Order;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
-using Microsoft.AspNet.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +32,6 @@ namespace FCSP.Services.OrderService
             ICustomShoeDesignRepository customShoeDesignRepository,
             IUserRepository userRepository,
             ISizeRepository sizeRepository)
-
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -47,12 +44,12 @@ namespace FCSP.Services.OrderService
         }
 
         #region Public Methods
-        public async Task<BaseResponseModel<List<GetOrderByUserIdResponse>>> GetOrdersByUserId(GetOrdersByUserIdRequest request)
+        public async Task<BaseResponseModel<List<GetOrderByIdResponse>>> GetOrdersByUserId(GetOrdersByUserIdRequest request)
         {
             try
             {
                 var orders = await GetOrdersByUserIdAsync(request);
-                return new BaseResponseModel<List<GetOrderByUserIdResponse>>
+                return new BaseResponseModel<List<GetOrderByIdResponse>>
                 {
                     Code = 200,
                     Message = "Orders retrieved successfully",
@@ -61,7 +58,7 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<List<GetOrderByUserIdResponse>>
+                return new BaseResponseModel<List<GetOrderByIdResponse>>
                 {
                     Code = 500,
                     Message = $"Error retrieving orders by user ID: {ex.Message}",
@@ -121,11 +118,8 @@ namespace FCSP.Services.OrderService
             try
             {
                 var order = await GetEntityFromAddOrderRequest(request);
-                
                 var addedOrder = await _orderRepository.AddAsync(order);
-
                 await AddOrderDetailsAsync(addedOrder, request.OrderDetails);
-
                 var paymentUrl = await AddPaymentAsync(addedOrder, request.PaymentMethod);
 
                 return new BaseResponseModel<AddOrderResponse>
@@ -154,7 +148,6 @@ namespace FCSP.Services.OrderService
             try
             {
                 var order = await GetEntityFromUpdateOrderRequest(request);
-
                 await _orderRepository.UpdateAsync(order);
 
                 return new BaseResponseModel<UpdateOrderResponse>
@@ -183,75 +176,23 @@ namespace FCSP.Services.OrderService
         #endregion
 
         #region Private Methods
-        private async Task<List<GetOrderByUserIdResponse>> GetOrdersByUserIdAsync(GetOrdersByUserIdRequest request)
+        private async Task<GetOrderByIdResponse> MapToDetailResponse(Order order)
         {
-            var orders = await _orderRepository.GetOrdersByUserIdAsync(request.UserId);
-            if (orders == null || !orders.Any())
-            {
-                throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
-            }
-
-            var result = new List<GetOrderByUserIdResponse>();
-            foreach (var order in orders)
-            {
-                var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
-                var voucher = await _voucherRepository.FindAsync(order.VoucherId);              
-                var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
-                var payment = payments.FirstOrDefault();
-
-                result.Add(new GetOrderByUserIdResponse(
-                    status: order.Status,
-                    shippingStatus: order.ShippingStatus,
-                    paymentMethod: payment?.PaymentMethod ?? PaymentMethod.Wallet
-                )
-                {
-                    Id = order.Id,
-                    UserName = user?.Name,
-                    ShippingInfoId = order.ShippingInfoId,
-                    VoucherCode = voucher?.VoucherName,
-                    TotalPrice = order.TotalPrice,
-                    CreatedAt = order.CreatedAt,
-                    UpdatedAt = order.UpdatedAt,
-                    OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
-                    {
-                        CustomShoeDesignId = od.CustomShoeDesignId,
-                        Quantity = od.Quantity,
-                        UnitPrice = od.Price,
-                        SizeValue = od.Size.SizeValue,
-                    }).ToList() ?? new List<OrderDetailResponseDto>()
-                });
-            }
-
-            return result;
-        }
-
-        private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
-        {
-            var order = await _orderRepository.GetAll()
-                                              .Include(o => o.OrderDetails)
-                                              .FirstOrDefaultAsync(o => o.Id == request.Id);
-            if (order == null)
-            {
-                throw new InvalidOperationException($"Order with ID {request.Id} not found");
-            }
             var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
             var voucher = await _voucherRepository.FindAsync(order.VoucherId);
-            var size = await _sizeRepository.FindAsync(order.OrderDetails.FirstOrDefault().SizeId);
             var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
             var payment = payments.FirstOrDefault();
 
             return new GetOrderByIdResponse
-            (
-            status: order.Status,
-            shippingStatus: order.ShippingStatus,
-            paymentMethod: payment?.PaymentMethod ?? PaymentMethod.Wallet
-             )
             {
-                Id = order.Id,               
+                Id = order.Id,
                 UserName = user?.Name,
-                ShippingInfoId = order.ShippingInfoId,          
+                ShippingInfoId = order.ShippingInfoId,
                 VoucherCode = voucher?.VoucherName,
-                TotalPrice = order.TotalPrice,            
+                Status = order.Status.ToString(),
+                ShippingStatus = order.ShippingStatus.ToString(),
+                PaymentMethod = payment?.PaymentMethod.ToString(),
+                TotalPrice = order.TotalPrice,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
@@ -259,56 +200,51 @@ namespace FCSP.Services.OrderService
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     Quantity = od.Quantity,
                     UnitPrice = od.Price,
-                    SizeValue = size.SizeValue,
+                    SizeValue = od.Size.SizeValue
                 }).ToList() ?? new List<OrderDetailResponseDto>()
             };
+        }
+
+        private async Task<List<GetOrderByIdResponse>> GetOrdersByUserIdAsync(GetOrdersByUserIdRequest request)
+        {
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(request.UserId);
+            if (orders == null || !orders.Any())
+            {
+                throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
+            }
+
+            var tasks = orders.Select(MapToDetailResponse);
+            return (await Task.WhenAll(tasks)).ToList();
+        }
+
+        private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
+        {
+            var order = await _orderRepository.GetAll()
+                                              .Include(o => o.OrderDetails)
+                                              .ThenInclude(od => od.Size)
+                                              .FirstOrDefaultAsync(o => o.Id == request.Id);
+            if (order == null)
+            {
+                throw new InvalidOperationException($"Order with ID {request.Id} not found");
+            }
+
+            return await MapToDetailResponse(order);
         }
 
         private async Task<List<GetOrderByIdResponse>> GetAllOrdersAsync()
         {
             var orders = await _orderRepository.GetAll()
-                                                .Include(o => o.OrderDetails)
-                                                .ThenInclude(od => od.Size)
-                                                .ToListAsync();
-
+                                               .Include(o => o.OrderDetails)
+                                               .ThenInclude(od => od.Size)
+                                               .ToListAsync();
 
             if (orders == null || !orders.Any())
             {
                 throw new InvalidOperationException("No orders found");
             }
 
-            var result = new List<GetOrderByIdResponse>();
-            foreach (var order in orders)
-            {
-                var user = await _userRepository.GetUserNameByUserIdAsync(order.UserId);
-                var voucher = await _voucherRepository.FindAsync(order.VoucherId);
-                var payments = await _paymentRepository.GetByOrderIdAsync(order.Id);
-                var payment = payments.FirstOrDefault();
-
-                result.Add(new GetOrderByIdResponse(
-                               status: order.Status,
-                               shippingStatus: order.ShippingStatus,
-                               paymentMethod: payment?.PaymentMethod ?? PaymentMethod.Wallet
-                                                    )
-                     {
-                    Id = order.Id,                
-                    UserName = user?.Name,
-                    ShippingInfoId = order.ShippingInfoId,                    
-                    VoucherCode = voucher?.VoucherName,
-                    TotalPrice = order.TotalPrice,                
-                    CreatedAt = order.CreatedAt,
-                    UpdatedAt = order.UpdatedAt,
-                    OrderDetails = order.OrderDetails?.Select(od => new OrderDetailResponseDto
-                    {
-                        CustomShoeDesignId = od.CustomShoeDesignId,
-                        Quantity = od.Quantity,
-                        UnitPrice = od.Price,
-                        SizeValue = od.Size.SizeValue,
-                    }).ToList() ?? new List<OrderDetailResponseDto>()
-                });
-            }
-
-            return result;
+            var tasks = orders.Select(MapToDetailResponse);
+            return (await Task.WhenAll(tasks)).ToList();
         }
 
         private async Task<Order> GetEntityFromAddOrderRequest(AddOrderRequest request)
@@ -332,7 +268,8 @@ namespace FCSP.Services.OrderService
                 if (voucher == null)
                 {
                     throw new InvalidOperationException("Voucher not found");
-                }else if(IsVoucherValid(voucher).isValid == false)
+                }
+                else if (IsVoucherValid(voucher).isValid == false)
                 {
                     throw new InvalidOperationException(IsVoucherValid(voucher).message);
                 }
@@ -360,13 +297,12 @@ namespace FCSP.Services.OrderService
 
             return order;
         }
-        
+
         private async Task AddOrderDetailsAsync(Order order, List<OrderDetailRequestDto> orderDetails)
         {
             foreach (var od in orderDetails)
             {
                 var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
-
                 if (customShoeDesign == null)
                 {
                     throw new InvalidOperationException($"CustomShoeDesign with ID {od.CustomShoeDesignId} not found.");
@@ -414,19 +350,16 @@ namespace FCSP.Services.OrderService
 
         private (bool isValid, string message) IsVoucherValid(Voucher voucher)
         {
-            // Kiểm tra trạng thái
-            if (voucher.Status != 0) // Giả định 0 là Active
+            if (voucher.Status != 0)
             {
                 return (false, "Voucher is not active.");
             }
 
-            // Kiểm tra ngày hết hạn
             if (voucher.ExpirationDate < DateTime.UtcNow)
             {
                 return (false, "Voucher has expired.");
             }
 
-            // Kiểm tra VoucherValue
             if (string.IsNullOrWhiteSpace(voucher.VoucherValue) || !float.TryParse(voucher.VoucherValue, out float discount) || discount <= 0)
             {
                 return (false, "Invalid voucher value.");

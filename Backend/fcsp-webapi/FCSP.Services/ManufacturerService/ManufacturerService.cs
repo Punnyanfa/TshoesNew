@@ -16,9 +16,8 @@ namespace FCSP.Services.ManufacturerService
 
         public ManufacturerService(IManufacturerRepository manufacturerRepository, IUserRepository userRepository, ILogger<ManufacturerService> logger)
         {
-            _manufacturerRepository = manufacturerRepository ?? throw new ArgumentNullException(nameof(manufacturerRepository));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _manufacturerRepository = manufacturerRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetAllManufacturers()
@@ -175,7 +174,7 @@ namespace FCSP.Services.ManufacturerService
                     {
                         Id = manufacturer.Id,
                         Name = manufacturer.Name,
-                        Status = (int)manufacturer.Status,
+                        Status = manufacturer.Status.ToString(),
                         UpdatedAt = manufacturer.UpdatedAt
                     }
                 };
@@ -287,11 +286,12 @@ namespace FCSP.Services.ManufacturerService
         {
             var user = await _userRepository.GetUserNameByUserIdAsync(manufacturer.UserId);
 
-            return new GetManufacturerDetailResponse(status: manufacturer.Status)
+            return new GetManufacturerDetailResponse
             {
                 Id = manufacturer.Id,                
                 UserName = user?.Name,
                 Name = manufacturer.Name,
+                Status = manufacturer.Status.ToString(),
                 CommissionRate = manufacturer.CommissionRate,              
                 Services = manufacturer.Services?.Select(s => new ServiceDto
                 {

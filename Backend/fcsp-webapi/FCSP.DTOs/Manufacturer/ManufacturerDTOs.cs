@@ -12,16 +12,13 @@ namespace FCSP.DTOs.Manufacturer
 
     public class GetManufacturerDetailResponse
     {
-        private readonly ManufacturerStatus _status;
-        public GetManufacturerDetailResponse(ManufacturerStatus status)
-        {
-            _status = status;
-        }
+        
         public long Id { get; set; }
         public string UserName { get; set; }
         public string Name { get; set; } = null!;
-        public float CommissionRate { get; set; }      
-        public string StatusName => EnumHelper.GetEnumName<ManufacturerStatus>((int)_status);
+        public float CommissionRate { get; set; }  
+        public string Status { get; set; }
+       
         public List<ServiceDto> Services { get; set; }
         public List<CriteriaDto> Criterias { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -84,7 +81,7 @@ namespace FCSP.DTOs.Manufacturer
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public int Status { get; set; }
+        public string Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 }
