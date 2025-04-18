@@ -938,11 +938,59 @@ const addToCart = () => {
 const saveAsDraft = () => {
   showCompleteModal.value = false
   
-  // Lưu thiết kế hiện tại vào bản nháp
-  // Ở đây có thể thêm code để lưu thiết kế vào localStorage hoặc gửi lên server
+  // Thu thập dữ liệu thiết kế
+  const designData = {
+    productName: 'Adidas Running Shoes (Tùy chỉnh)',
+    price: '2.500.000 ₫',
+    components: {},
+    textureParams: {...textureParams},
+    customText: customText.value,
+    cameraPosition: camera ? {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z
+    } : null,
+    timestamp: new Date().toISOString()
+  }
+  
+  // Lưu thông tin về các thay đổi trên từng component
+  for (const comp of components) {
+    const partName = comp.value
+    if (materials[partName]) {
+      const material = materials[partName]
+      designData.components[partName] = {
+        name: comp.name,
+        color: '#' + material.color.getHexString(),
+        hasTexture: !!material.map
+      }
+      
+      // Kiểm tra và lưu thông tin về texture
+      if (customTextures[partName]) {
+        designData.components[partName].textureInfo = {
+          type: customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image',
+          // Không thể lưu trực tiếp texture vì quá lớn, chỉ lưu thông tin
+          textContent: customText.value
+        }
+      }
+    }
+  }
+  
+  // Chuyển đổi thành chuỗi JSON
+  const jsonString = JSON.stringify(designData, null, 2)
+  
+  // Tạo và tải xuống file
+  const blob = new Blob([jsonString], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'adidas-custom-design.json'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
   
   // Thông báo đã lưu bản nháp
-  alert('Thiết kế đã được lưu vào bản nháp!')
+  alert('Thiết kế đã được lưu vào bản nháp và tải xuống thành công!')
 }
 
 // Khởi tạo Three.js
