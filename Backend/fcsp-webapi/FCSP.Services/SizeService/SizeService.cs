@@ -29,7 +29,7 @@ namespace FCSP.Services.SizeService
             {
                 Code = 200,
                 Message = "Size retrieved successfully",
-                Data = MapToDto(size)
+                Data = MapToDetail(size)
             };
         }
 
@@ -40,7 +40,7 @@ namespace FCSP.Services.SizeService
             {
                 Code = 200,
                 Message = "Sizes retrieved successfully",
-                Data = sizes.Select(s => MapToDto(s)).ToList()
+                Data = sizes.Select(s => MapToDetail(s)).ToList()
             };
         }
 
@@ -57,7 +57,7 @@ namespace FCSP.Services.SizeService
             {
                 Code = 201,
                 Message = "Size created successfully",
-                Data = MapToDto(createdSize)
+                Data = MapToDetail(createdSize)
             };
         }
 
@@ -81,7 +81,7 @@ namespace FCSP.Services.SizeService
             {
                 Code = 200,
                 Message = "Size updated successfully",
-                Data = MapToDto(size)
+                Data = MapToDetail(size)
             };
         }
 
@@ -105,7 +105,7 @@ namespace FCSP.Services.SizeService
             };
         }
 
-        private SizeDto MapToDto(Size size)
+        private SizeDto MapToDetail(Size size)
         {
             return new SizeDto
             {

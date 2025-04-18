@@ -19,15 +19,13 @@ namespace FCSP.Repositories.Implementations
             return await _context.Orders
                 .Where(x => x.UserId == userId)
                 .Include(o => o.User)
-                 .Include(o => o.User)
-                                              .Include(o => o.Voucher)
-                                              .Include(o => o.OrderDetails)
-
-                                              .ThenInclude(od => od.Size)
-                                              .Include(o => o.Payments)
+                .Include(o => o.User)
+                .Include(o => o.Voucher)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Size)
+                .Include(o => o.Payments)
                 .ToListAsync();
         }
-
         public async Task<IEnumerable<Order>> GetAllPublicOrderAsync()
         {
             return await _context.Orders
