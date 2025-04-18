@@ -129,17 +129,26 @@
                     :disabled="voucherApplied"
                   >
                   <button 
+                    v-if="!voucherApplied"
                     class="btn btn-outline-primary" 
                     @click="applyVoucher"
-                    :disabled="!voucherCode || voucherApplied"
+                    :disabled="!voucherCode"
                   >
                     Áp dụng
                   </button>
+                  <button 
+                    v-else
+                    class="btn btn-outline-danger" 
+                    @click="removeVoucher"
+                  >
+                    Xóa mã
+                  </button>
                 </div>
-                <div v-if="voucherError" class="text-danger small mt-1">{{ voucherError }}</div>
-                <div v-if="voucherApplied" class="text-success small mt-1">
-                  Mã giảm giá đã được áp dụng: -{{ formatPrice(voucherDiscount) }}
-                  <button class="btn btn-link btn-sm p-0 ms-2" @click="removeVoucher">Xóa</button>
+                <div v-if="errorMessage" class="mt-2 text-danger">
+                  {{ errorMessage }}
+                </div>
+                <div v-if="voucherApplied" class="mt-2 text-success">
+                  Đã áp dụng mã giảm giá: -{{ discountAmount.toLocaleString() }}đ
                 </div>
               </div>
 
@@ -167,7 +176,7 @@
   import Header from '@/components/Header.vue';
   import Footer from '@/components/Footer.vue';
   import { useRouter } from 'vue-router';
- 
+  import { getAllVouchers } from '@/server/ManageVoucher-service';
   const order = ref(null);
   const loading = ref(true);
   const selectedAddress = ref(null);
@@ -178,13 +187,15 @@
   
   const voucherCode = ref('');
   const voucherApplied = ref(false);
-  const voucherError = ref('');
-  const voucherDiscount = ref(0);
+  const discountAmount = ref(0);
+  const errorMessage = ref('');
+  const totalBeforeDiscount = ref(0);
+  const availableVouchers = ref([]);
 
   // Computed property for final total after voucher discount
   const finalTotal = computed(() => {
     if (!order.value) return 0;
-    return order.value.totalPayment - voucherDiscount.value;
+    return calculateTotal();
   });
   
   const fetchOrder = async () => {
@@ -345,30 +356,93 @@
     }).format(price);
   };
   
-  // Function to apply voucher
-  const applyVoucher = async () => {
+  // Add function to load vouchers
+  const loadAvailableVouchers = async () => {
     try {
-      voucherError.value = '';
-      // TODO: Gọi API kiểm tra voucher
-      // Giả sử voucher hợp lệ và giảm 10% tổng tiền
-      voucherDiscount.value = order.value.totalPayment * 0.1;
-      voucherApplied.value = true;
-    } catch (err) {
-      console.error('Error applying voucher:', err);
-      voucherError.value = 'Mã giảm giá không hợp lệ hoặc đã hết hạn';
+      const response = await getAllVouchers();
+      if (response.code === 200) {
+        availableVouchers.value = response.data;
+      }
+    } catch (error) {
+      console.error('Error loading vouchers:', error);
     }
   };
 
-  // Function to remove voucher
+  // Update the applyVoucher function
+  const applyVoucher = async () => {
+    try {
+      errorMessage.value = '';
+      
+      if (!voucherCode.value) {
+        errorMessage.value = 'Vui lòng nhập mã giảm giá';
+        return;
+      }
+
+      // Find the voucher in available vouchers
+      const voucher = availableVouchers.value.find(v => 
+        v.code.toLowerCase() === voucherCode.value.toLowerCase() && 
+        !v.isUsed && 
+        new Date(v.expiryDate) > new Date()
+      );
+
+      if (voucher) {
+        voucherApplied.value = true;
+        discountAmount.value = voucher.discountAmount;
+        // Recalculate the total
+        calculateTotal();
+        alert('Áp dụng mã giảm giá thành công!');
+      } else {
+        // Check specific reasons why voucher is invalid
+        const existingVoucher = availableVouchers.value.find(v => 
+          v.code.toLowerCase() === voucherCode.value.toLowerCase()
+        );
+
+        if (!existingVoucher) {
+          errorMessage.value = 'Mã giảm giá không tồn tại';
+        } else if (existingVoucher.isUsed) {
+          errorMessage.value = 'Mã giảm giá đã được sử dụng';
+        } else if (new Date(existingVoucher.expiryDate) <= new Date()) {
+          errorMessage.value = 'Mã giảm giá đã hết hạn';
+        } else {
+          errorMessage.value = 'Mã giảm giá không hợp lệ';
+        }
+      }
+    } catch (error) {
+      console.error('Error applying voucher:', error);
+      errorMessage.value = 'Có lỗi xảy ra khi áp dụng mã giảm giá';
+    }
+  };
+
+  // Update the removeVoucher function
   const removeVoucher = () => {
     voucherCode.value = '';
     voucherApplied.value = false;
-    voucherDiscount.value = 0;
-    voucherError.value = '';
+    discountAmount.value = 0;
+    errorMessage.value = '';
+    calculateTotal();
+  };
+  
+  const calculateTotal = () => {
+    if (!order.value) return 0;
+    
+    // Calculate total before discount
+    totalBeforeDiscount.value = order.value.totalPrice + (order.value.shippingCost || 0);
+    
+    // Calculate final total after discount
+    const final = totalBeforeDiscount.value - discountAmount.value;
+    
+    // Update the order's total payment
+    order.value.totalPayment = Math.max(0, final);
+    
+    return order.value.totalPayment;
   };
   
   onMounted(() => {
-    Promise.all([fetchOrder(), fetchShippingAddress()]).catch(err => {
+    Promise.all([
+      fetchOrder(), 
+      fetchShippingAddress(),
+      loadAvailableVouchers() // Add this
+    ]).catch(err => {
       console.error('Error during initialization:', err);
       error.value = 'Đã có lỗi xảy ra khi khởi tạo trang';
     });

@@ -13,65 +13,40 @@
               <div class="row mb-3">
                 <div class="col-md-6">
                   <div class="form-group mb-3">
-                    <label for="voucherName">Voucher Name</label>
+                    <label for="code">Voucher Code</label>
                     <input 
                       type="text" 
                       class="form-control" 
-                      id="voucherName" 
-                      v-model="voucher.voucherName"
-                      placeholder="Enter voucher name"
+                      id="code" 
+                      v-model="voucher.code"
+                      placeholder="Enter voucher code"
                       required
                     >
                   </div>
                   
                   <div class="form-group mb-3">
-                    <label for="voucherValue">Voucher Value</label>
+                    <label for="discountAmount">Discount Amount</label>
                     <input 
-                      type="text" 
+                      type="number" 
                       class="form-control" 
-                      id="voucherValue" 
-                      v-model="voucher.voucherValue"
-                      placeholder="Enter voucher value"
+                      id="discountAmount" 
+                      v-model="voucher.discountAmount"
+                      placeholder="Enter discount amount"
                       required
                     >
-                  </div>
-                  
-                  <div class="form-group mb-3">
-                    <label for="description">Description</label>
-                    <textarea 
-                      class="form-control" 
-                      id="description" 
-                      v-model="voucher.description"
-                      placeholder="Enter description"
-                      rows="3"
-                    ></textarea>
                   </div>
                 </div>
                 
                 <div class="col-md-6">
                   <div class="form-group mb-3">
-                    <label for="expirationDate">Expiration Date</label>
+                    <label for="expiryDate">Expiry Date</label>
                     <input 
                       type="datetime-local" 
                       class="form-control" 
-                      id="expirationDate" 
-                      v-model="voucher.expirationDate"
+                      id="expiryDate" 
+                      v-model="voucher.expiryDate"
                       required
                     >
-                  </div>
-                  
-                  <div class="form-group mb-3">
-                    <label for="status">Status</label>
-                    <select 
-                      class="form-select" 
-                      id="status" 
-                      v-model="voucher.status"
-                      required
-                    >
-                      <option value="1">Active</option>
-                      <option value="0">Inactive</option>
-                      <option value="2">Expired</option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -89,37 +64,37 @@
               <table class="table table-striped table-hover">
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Value</th>
-                    <th>Description</th>
-                    <th>Expiration Date</th>
+                    
+                    <th>Code</th>
+                    <th>Discount Amount</th>
+                    <th>Expiry Date</th>
                     <th>Status</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
+                    <th>Is Used</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="v in vouchers" :key="v.id">
-                    <td>{{ v.id }}</td>
-                    <td>{{ v.voucherName }}</td>
-                    <td>{{ v.voucherValue }}</td>
-                    <td>{{ v.description }}</td>
-                    <td>{{ formatDate(v.expirationDate) }}</td>
+                   
+                    <td>{{ v.code }}</td>
+                    <td>{{ v.discountAmount }}</td>
+                    <td>{{ formatDate(v.expiryDate) }}</td>
                     <td>
                       <span 
                         :class="{
-                          'badge bg-success': v.status === 1,
-                          'badge bg-danger': v.status === 0,
-                          'badge bg-warning': v.status === 2
+                          'badge bg-success': v.voucherStatusName === 'Active',
+                          'badge bg-danger': v.voucherStatusName === 'Inactive',
+                          'badge bg-warning': v.voucherStatusName === 'Expired'
                         }"
                       >
-                        {{ getStatusText(v.status) }}
+                        {{ v.voucherStatusName }}
                       </span>
                     </td>
-                    <td>{{ formatDate(v.createdAt) }}</td>
-                    <td>{{ formatDate(v.updatedAt) }}</td>
+                    <td>
+                      <span :class="{'text-success': !v.isUsed, 'text-danger': v.isUsed}">
+                        {{ v.isUsed ? 'Used' : 'Not Used' }}
+                      </span>
+                    </td>
                     <td>
                       <button class="btn btn-sm btn-info me-1" @click="editVoucher(v)">
                         <i class="bi bi-pencil"></i>
@@ -130,7 +105,7 @@
                     </td>
                   </tr>
                   <tr v-if="vouchers.length === 0">
-                    <td colspan="9" class="text-center">No vouchers found</td>
+                    <td colspan="7" class="text-center">No vouchers found</td>
                   </tr>
                 </tbody>
               </table>
@@ -143,7 +118,7 @@
 </template>
 
 <script>
-import { getAllVouchers } from '@/server/ManageVoucher-service';
+import { getAllVouchers, postVoucher, deleteVoucher } from '@/server/ManageVoucher-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 
 export default {
@@ -154,16 +129,9 @@ export default {
   data() {
     return {
       voucher: {
-        id: null,
-        voucherName: '',
-        voucherValue: '',
-        description: '',
-        expirationDate: '',
-        status: 0,
-        orders: [],
-        createdAt: null,
-        updatedAt: null,
-        version: ''
+        code: '',
+        discountAmount: 0,
+        expiryDate: ''
       },
       vouchers: [],
       isEditing: false
@@ -176,72 +144,74 @@ export default {
     async loadVouchers() {
       try {
         const response = await getAllVouchers();
-        this.vouchers = response;
+        if (response.code === 200) {
+          this.vouchers = response.data;
+          console.log('Loaded vouchers:', this.vouchers);
+        } else {
+          throw new Error(response.message || 'Failed to load vouchers');
+        }
       } catch (error) {
         console.error('Error loading vouchers:', error);
-        // You might want to show an error message to the user here
+        alert('Error loading vouchers: ' + (error.message || 'Unknown error'));
       }
     },
-    saveVoucher() {
-      if (this.isEditing) {
-        // Update existing voucher
-        const index = this.vouchers.findIndex(v => v.id === this.voucher.id)
-        if (index !== -1) {
-          this.voucher.updatedAt = new Date().toISOString()
-          this.vouchers[index] = { ...this.voucher }
+    async saveVoucher() {
+      try {
+        if (this.isEditing) {
+          console.log('Update functionality not implemented yet');
+          return;
         }
-      } else {
-        // Create new voucher
-        const now = new Date().toISOString()
-        const newVoucher = {
-          ...this.voucher,
-          id: this.vouchers.length > 0 ? Math.max(...this.vouchers.map(v => v.id)) + 1 : 1,
-          createdAt: now,
-          updatedAt: now,
-          orders: [],
-          version: ''
+
+        const response = await postVoucher(this.voucher);
+        if (response.code === 200) {
+          // Add new voucher to the list
+          await this.loadVouchers(); // Reload the list to get fresh data
+          this.resetForm();
+          alert('Voucher created successfully!');
+        } else {
+          throw new Error(response.message || 'Failed to create voucher');
         }
-        this.vouchers.push(newVoucher)
+      } catch (error) {
+        console.error('Error saving voucher:', error);
+        alert(error.message || 'An error occurred while saving the voucher');
       }
-      
-      this.resetForm()
     },
     editVoucher(voucher) {
-      this.voucher = { ...voucher }
+      this.voucher = {
+        code: voucher.code,
+        discountAmount: voucher.discountAmount,
+        expiryDate: voucher.expiryDate
+      }
       this.isEditing = true
     },
-    deleteVoucher(id) {
+    async deleteVoucher(id) {
       if (confirm('Are you sure you want to delete this voucher?')) {
-        this.vouchers = this.vouchers.filter(v => v.id !== id)
+        try {
+          const response = await deleteVoucher(id);
+          if (response.code === 200) {
+            await this.loadVouchers(); // Reload the list to get fresh data
+            alert('Voucher deleted successfully!');
+          } else {
+            throw new Error(response.message || 'Failed to delete voucher');
+          }
+        } catch (error) {
+          console.error('Error deleting voucher:', error);
+          alert(error.message || 'An error occurred while deleting the voucher');
+        }
       }
     },
     resetForm() {
       this.voucher = {
-        id: null,
-        voucherName: '',
-        voucherValue: '',
-        description: '',
-        expirationDate: '',
-        status: 0,
-        orders: [],
-        createdAt: null,
-        updatedAt: null,
-        version: ''
-      }
-      this.isEditing = false
+        code: '',
+        discountAmount: 0,
+        expiryDate: new Date().toISOString().slice(0, 16) // Set default to current date-time
+      };
+      this.isEditing = false;
     },
     formatDate(dateString) {
       if (!dateString) return ''
       const date = new Date(dateString)
       return date.toLocaleString()
-    },
-    getStatusText(status) {
-      switch (status) {
-        case 0: return 'Inactive'
-        case 1: return 'Active'
-        case 2: return 'Expired'
-        default: return 'Unknown'
-      }
     }
   }
 }
