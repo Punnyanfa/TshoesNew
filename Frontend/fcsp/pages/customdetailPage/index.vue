@@ -684,6 +684,8 @@ const applyImageToMesh = () => {
       texture.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 1
       texture.wrapS = THREE.RepeatWrapping
       texture.wrapT = THREE.RepeatWrapping
+      texture.flipY = false
+      texture.encoding = THREE.sRGBEncoding
       
       // Đặt các thông số texture từ textureParams
       texture.repeat.set(textureParams.repeatX, textureParams.repeatY)
@@ -716,6 +718,11 @@ const applyImageToMesh = () => {
       material.needsUpdate = true
       
       console.log(`Đã áp dụng ảnh "${selectedImageName.value}" lên ${selectedPart}`)
+      
+      // Cập nhật renderer để thấy thay đổi ngay lập tức
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera)
+      }
       
       // Giải phóng URL để tránh rò rỉ bộ nhớ
       URL.revokeObjectURL(imageUrl)
@@ -1047,8 +1054,8 @@ const initThree = () => {
   controls.enableDamping = true
   controls.dampingFactor = 0.05
   controls.rotateSpeed = 0.7
-  controls.minDistance = 3
-  controls.maxDistance = 20
+  controls.minDistance = 6
+  controls.maxDistance = 15
 
   // Tải model
   loadModel()
@@ -1157,10 +1164,15 @@ const onModelLoaded = (gltf) => {
   // Lưu trữ tất cả materials và đảm bảo chúng hiển thị đúng
   console.log('Phân tích các mesh trong mô hình:');
   let meshCount = 0;
+  
+  // Tạo danh sách mesh tìm thấy để debug
+  const foundMeshes = [];
+  
   model.traverse((node) => {
     if (node.isMesh) {
       meshCount++;
       console.log(`- Mesh ${meshCount}: ${node.name}`);
+      foundMeshes.push(node.name);
       
       // Đảm bảo tất cả vật liệu đều hiển thị đúng
       materials[node.name] = node.material;
@@ -1183,6 +1195,12 @@ const onModelLoaded = (gltf) => {
     }
   });
   
+  // Log tất cả mesh đã tìm thấy để debug
+  console.log('Danh sách tất cả các mesh trong mô hình:', foundMeshes.join(', '));
+  
+  // Kiểm tra các mesh có trong danh sách partGroups
+  checkPartGroups(foundMeshes);
+  
   if (meshCount === 0) {
     console.warn('CẢNH BÁO: Mô hình không chứa mesh nào!');
     return;
@@ -1191,6 +1209,32 @@ const onModelLoaded = (gltf) => {
   // Thêm vào scene
   scene.add(model);
   console.log('Đã thêm mô hình vào scene thành công');
+}
+
+// Hàm kiểm tra và cập nhật partGroups
+const checkPartGroups = (foundMeshes) => {
+  // Kiểm tra tất cả các phần trong các nhóm
+  let missingMeshes = [];
+  
+  for (const groupName in partGroups) {
+    const group = partGroups[groupName];
+    console.log(`Kiểm tra nhóm ${groupName}:`);
+    
+    group.forEach(partName => {
+      if (!foundMeshes.includes(partName)) {
+        console.warn(`  - Không tìm thấy phần "${partName}" trong mô hình!`);
+        missingMeshes.push(partName);
+      } else {
+        console.log(`  - Xác nhận phần "${partName}" tồn tại trong mô hình`);
+      }
+    });
+  }
+  
+  if (missingMeshes.length > 0) {
+    console.warn('Các phần không tìm thấy trong mô hình:', missingMeshes.join(', '));
+  } else {
+    console.log('Tất cả các nhóm phần đều hợp lệ!');
+  }
 }
 
 // Hàm theo dõi tiến độ tải
@@ -1222,12 +1266,13 @@ const components = reactive([
   { name: 'Base', value: 'Base' },
   { name: 'Heel', value: 'Heel' },
   { name: 'Lace', value: 'Lace' },
-  { name: 'Outsole', value: 'OutSode' },
-  { name: 'Midsole', value: 'MidSode001' },
+  { name: 'Outsode', value: 'OutSode' },
+  { name: 'MidSode', value: 'MidSode001' },
   { name: 'Tip', value: 'Tip' },
-  { name: 'Accent', value: 'Accent' }, // Grouped: Accent_inside, Accent_outside, Line_inside, Line_outside
-  { name: 'Logo', value: 'Logo' }, // Grouped: Logo_inside, Logo_outside
-  { name: 'Details', value: 'Details' }, // Grouped: Cylinder, Cylinder001, Plane012, Plane012_1, Plane005, Plane005_1
+  { name: 'Line', value: 'Line' },
+  { name: 'Accent', value: 'Accent' }, // Nhóm: Accent_inside, Accent_outside, Line_inside, Line_outside
+  { name: 'Logo', value: 'Logo' }, // Nhóm: Logo_inside, Logo_outside
+  { name: 'Details', value: 'Details' }, // Nhóm: Cylinder, Cylinder001, Plane012, Plane012_1, Plane005, Plane005_1
 ])
 
 // State để theo dõi chỉ số thành phần đã chọn
@@ -1254,6 +1299,35 @@ const customColorValue = ref('#ff0000')
 // Đánh dấu khi màu tùy chỉnh được áp dụng
 const customColorApplied = ref(false)
 
+// Danh sách các thành phần riêng lẻ của giày
+const individualParts = reactive({
+  Accent_inside: 'Accent_inside',
+  Accent_outside: 'Accent_outside',
+  Base: 'Base',
+  Cylinder: 'Cylinder',
+  Cylinder001: 'Cylinder001',
+  Heel: 'Heel',
+  Lace: 'Lace',
+  Line_inside: 'Line_inside',
+  Line_outside: 'Line_outside',
+  Logo: 'Logo',
+  MidSode001: 'MidSode001',
+  OutSode: 'OutSode',
+  Tip: 'Tip',
+  Plane012: 'Plane012',
+  Plane012_1: 'Plane012_1',
+  Plane005: 'Plane005',
+  Plane005_1: 'Plane005_1',
+})
+
+// Ánh xạ các nhóm thành phần
+const partGroups = reactive({
+  Accent: ['Accent_inside', 'Accent_outside'],
+  Line: ['Line_inside', 'Line_outside'],
+  Logo: ['Logo'],
+  Details: ['Cylinder', 'Cylinder001', 'Plane012', 'Plane012_1', 'Plane005', 'Plane005_1']
+})
+
 // Cập nhật màu của phần đã chọn
 const handleColorClick = (colorValue) => {
   selectedColor.value = colorValue
@@ -1279,13 +1353,52 @@ const applyCustomColor = () => {
 // Hàm cập nhật màu sắc
 const updatePartColor = (color) => {
   const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && materials[selectedPart]) {
-    materials[selectedPart].color.set(color)
-    
-    // Đảm bảo văn bản vẫn hiển thị đúng sau khi thay đổi màu
-    if (materials[selectedPart].map && materials[selectedPart].transparent) {
-      materials[selectedPart].needsUpdate = true
-    }
+  
+  console.log(`Cập nhật màu ${color} cho phần ${selectedPart}`);
+  
+  // Xử lý các nhóm thành phần
+  if (selectedPart === 'Accent') {
+    partGroups.Accent.forEach(part => {
+      if (materials[part]) {
+        console.log(`  - Thay đổi màu cho ${part}`);
+        materials[part].color.set(color);
+        materials[part].needsUpdate = true;
+      } else {
+        console.warn(`  - Không tìm thấy materials cho ${part}`);
+      }
+    });
+  } else if (selectedPart === 'Logo') {
+    partGroups.Logo.forEach(part => {
+      if (materials[part]) {
+        console.log(`  - Thay đổi màu cho ${part}`);
+        materials[part].color.set(color);
+        materials[part].needsUpdate = true;
+      } else {
+        console.warn(`  - Không tìm thấy materials cho ${part}`);
+      }
+    });
+  } else if (selectedPart === 'Details') {
+    partGroups.Details.forEach(part => {
+      if (materials[part]) {
+        console.log(`  - Thay đổi màu cho ${part}`);
+        materials[part].color.set(color);
+        materials[part].needsUpdate = true;
+      } else {
+        console.warn(`  - Không tìm thấy materials cho ${part}`);
+      }
+    });
+  } else if (selectedPart && materials[selectedPart]) {
+    // Cập nhật một thành phần riêng lẻ
+    console.log(`  - Thay đổi màu cho thành phần riêng lẻ ${selectedPart}`);
+    materials[selectedPart].color.set(color);
+    materials[selectedPart].needsUpdate = true;
+  } else {
+    console.warn(`  - Không tìm thấy materials cho ${selectedPart}`);
+  }
+  
+  // Render lại để thấy sự thay đổi ngay lập tức
+  if (renderer && scene && camera) {
+    renderer.render(scene, camera);
   }
 }
 

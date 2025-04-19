@@ -128,10 +128,10 @@ const isScrolled = ref(false);
 
 const navItems = [
   { path: '/homePage', label: 'Home', icon: 'home' },
-  { path: '/aboutPage', label: 'About', icon: 'info-circle' },
   { path: '/productPage', label: 'Products', icon: 'shop' },
-  { path: '/contactPage', label: 'Contact', icon: 'mail' },
   { path: '/customPage', label: 'Customize', icon: 'edit', highlight: true },
+  { path: '/contactPage', label: 'Contact', icon: 'mail' },
+  { path: '/aboutPage', label: 'About', icon: 'info-circle' },
 ];
 
 // Watch for authentication state changes
