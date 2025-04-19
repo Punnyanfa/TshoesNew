@@ -365,19 +365,17 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 
-// Container tham chiếu
+// Container reference
 const container = ref(null)
 
-// State cho canvas size
+// State for canvas size
 const isCanvasExpanded = ref(false)
 
-// State cho modal chụp ảnh
+// State for modals
 const showCaptureModal = ref(false)
-// State cho modal hoàn thành
 const showCompleteModal = ref(false)
 const selectedAngleIndex = ref(0)
 const captureAngles = reactive([
-  //{ name: 'Mặt trước', preview: null, position: { x: 0, y: 0, z: 8 } },
   { name: 'Mặt sau', preview: null, position: { x: -6, y: 2, z: -6 } },
   { name: 'Bên trái', preview: null, position: { x: -4, y: 0, z: 6 } },
   { name: 'Bên phải', preview: null, position: { x: 4, y: 0, z: -6 } },
@@ -385,301 +383,424 @@ const captureAngles = reactive([
   { name: 'Góc nhìn dưới', preview: null, position: { x: -4, y: -12, z: 4 } }
 ])
 
-// Lưu trữ vị trí camera hiện tại để khôi phục sau khi chụp
+// Camera position storage
 let originalCameraPosition = null
 
-// Mở modal chụp ảnh
+// Three.js objects
+let scene, camera, renderer, controls, model
+const materials = reactive({})
+const customTextures = reactive({})
+
+// State for customization
+const customText = ref('')
+const activeTab = ref('color')
+const selectedTextColor = ref('#ffffff')
+const textureParams = reactive({
+  scale: 1.0,
+  repeatX: 1.1,
+  repeatY: 1.6,
+  offsetX: -0.01,
+  offsetY: -0.08,
+  rotation: 0.24,
+  brightness: 2.0
+})
+
+// Image upload state
+const imageInput = ref(null)
+const selectedImage = ref(null)
+const selectedImageName = ref('')
+const previewImageUrl = ref('')
+
+// Part colors and textures
+const partColors = reactive({
+  Accent_inside: '#ffffff',
+  Accent_outside: '#ffffff',
+  Base: '#ffffff',
+  Cover: '#ffffff',
+  Cylinder: '#ffffff',
+  Cylinder001: '#ffffff',
+  Heel: '#ffffff',
+  Lace: '#ffffff',
+  Line_inside: '#ffffff',
+  Line_outside: '#ffffff',
+  Logo_inside: '#ffffff',
+  Logo_outside: '#ffffff',
+  MidSode: '#ffffff',
+  MidSode001: '#ffffff',
+  OutSode: '#ffffff',
+  Tip: '#ffffff',
+  Plane012: '#ffffff',
+  Plane012_1: '#ffffff',
+  Plane005: '#ffffff',
+  Tongue: '#ffffff'
+})
+
+const partTextures = reactive({
+  Accent_inside: null,
+  Accent_outside: null,
+  Base: null,
+  Cover: null,
+  Cylinder: null,
+  Cylinder001: null,
+  Heel: null,
+  Lace: null,
+  Line_inside: null,
+  Line_outside: null,
+  Logo_inside: null,
+  Logo_outside: null,
+  MidSode: null,
+  MidSode001: null,
+  OutSode: null,
+  Tip: null,
+  Plane012: null,
+  Plane012_1: null,
+  Plane005: null,
+  Tongue: null
+})
+
+// Components list
+const components = reactive([
+  { name: 'Base', value: 'Base' },
+  { name: 'Heel', value: 'Heel' },
+  { name: 'Lace', value: 'Lace' },
+  { name: 'Outsole', value: 'OutSode' },
+  { name: 'Midsole', value: 'MidSole' },
+  
+  { name: 'Tip', value: 'Tip' },
+  { name: 'Accent', value: 'Accent' },
+  { name: 'Logo', value: 'Logo' },
+  { name: 'Details', value: 'Details' }
+])
+
+// Part groups
+const partGroups = reactive({
+  Accent: ['Accent_inside', 'Accent_outside', 'Line_inside', 'Line_outside'],
+  Logo: ['Logo_inside', 'Logo_outside'],
+  MidSole: ['MidSode','Plane012', 'Plane012_1'],
+  Details: ['Cylinder', 'Cylinder001',  'Plane005']
+})
+
+// Selected component and color
+const selectedComponentIndex = ref(0)
+const selectedColor = ref('#000000')
+const customColorValue = ref('#ff0000')
+const customColorApplied = ref(false)
+
+// Modal handlers
 const openCaptureModal = () => {
-  console.log('Mở modal chụp ảnh')
-  // Lưu vị trí camera hiện tại
   originalCameraPosition = {
-    position: camera ? new THREE.Vector3().copy(camera.position) : null,
+    position: camera ? camera.position.clone() : null,
     rotation: controls ? controls.target.clone() : null
   }
-  
   showCaptureModal.value = true
-  
-  // Tự động chụp ảnh khi mở modal
   captureAllAngles()
 }
 
-// Chọn góc chụp
 const selectAngle = (index) => {
   selectedAngleIndex.value = index
-  
-  // Di chuyển camera đến vị trí của góc nhìn đã chọn
   if (camera && controls) {
     const anglePosition = captureAngles[index].position
-    
-    // Tạo animation di chuyển camera đến vị trí mới
     const startPosition = camera.position.clone()
     const targetPosition = new THREE.Vector3(anglePosition.x, anglePosition.y, anglePosition.z)
-    
-    // Reset target của controls về trung tâm
     controls.target.set(0, 0, 0)
-    
-    // Animation di chuyển camera
-    const duration = 500 // milliseconds
+    const duration = 500
     const startTime = Date.now()
-    
+
     function animateCamera() {
-      const now = Date.now()
-      const elapsed = now - startTime
+      const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-      
-      // Sử dụng easing function để làm mượt chuyển động
       const easeProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
-      
-      // Di chuyển camera theo nội suy
       camera.position.lerpVectors(startPosition, targetPosition, easeProgress)
-      
-      // Cập nhật controls
       controls.update()
-      
       if (progress < 1) {
         requestAnimationFrame(animateCamera)
       } else {
-        // Tự động chụp ảnh sau khi camera đã di chuyển đến vị trí
         captureCurrentAngle()
       }
     }
-    
     animateCamera()
   }
 }
 
-// Xoay camera
-const rotateCamera = (direction) => {
-  if (!camera || !controls) return
-  
-  const rotationSpeed = 0.3
-  
-  switch(direction) {
-    case 'left':
-      controls.rotateLeft(rotationSpeed)
-      break;
-    case 'right':
-      controls.rotateLeft(-rotationSpeed)
-      break;
-    case 'up':
-      controls.rotateUp(rotationSpeed)
-      break;
-    case 'down':
-      controls.rotateUp(-rotationSpeed)
-      break;
-  }
-  
-  controls.update()
-}
-
-// Chụp ảnh góc hiện tại
 const captureCurrentAngle = () => {
-  if (!renderer) return
-  
-  // Render scene một lần nữa để đảm bảo ảnh mới nhất
-  renderer.render(scene, camera)
-  
-  // Lấy dữ liệu hình ảnh từ canvas
-  const imageData = renderer.domElement.toDataURL('image/png')
-  
-  // Lưu ảnh vào góc nhìn đã chọn
-  captureAngles[selectedAngleIndex.value].preview = imageData
+  if (renderer) {
+    renderer.render(scene, camera)
+    captureAngles[selectedAngleIndex.value].preview = renderer.domElement.toDataURL('image/png')
+  }
 }
 
-// Chụp ảnh tất cả các góc
 const captureAllAngles = async () => {
-  // Lưu vị trí camera ban đầu
   const initialPosition = camera.position.clone()
   const initialTarget = controls.target.clone()
-  
-  // Đặt lại target về trung tâm
   controls.target.set(0, 0, 0)
-  
-  // Duyệt qua từng góc và chụp
+
   for (let i = 0; i < captureAngles.length; i++) {
-    // Chọn góc hiện tại
     selectedAngleIndex.value = i
-    
-    // Di chuyển camera đến góc đó
     const anglePosition = captureAngles[i].position
     camera.position.set(anglePosition.x, anglePosition.y, anglePosition.z)
-    
-    // Cập nhật controls
     controls.update()
-    
-    // Đợi một chút để camera ổn định
     await new Promise(resolve => setTimeout(resolve, 300))
-    
-    // Render scene và chụp ảnh
     renderer.render(scene, camera)
-    const imageData = renderer.domElement.toDataURL('image/png')
-    captureAngles[i].preview = imageData
+    captureAngles[i].preview = renderer.domElement.toDataURL('image/png')
   }
-  
-  // Khôi phục vị trí camera ban đầu
+
   camera.position.copy(initialPosition)
   controls.target.copy(initialTarget)
   controls.update()
-  
-  // Chọn lại góc đầu tiên
   selectedAngleIndex.value = 0
 }
 
-// Tải xuống tất cả các ảnh đã chụp
-const downloadAllAngles = () => {
-  // Kiểm tra xem có ảnh nào chưa chụp không
-  const missingAngles = captureAngles.filter(angle => !angle.preview)
-  
-  // Nếu có góc chưa chụp, chụp tất cả trước
-  if (missingAngles.length > 0) {
-    captureAllAngles().then(() => {
-      // Sau khi chụp xong, tải từng ảnh
-      downloadImages()
-    })
-  } else {
-    // Nếu đã có đủ ảnh, tải xuống ngay
-    downloadImages()
-  }
-  
-  function downloadImages() {
-    captureAngles.forEach((angle, index) => {
-      const link = document.createElement('a')
-      link.href = angle.preview
-      link.download = `adidas-custom-shoe-${angle.name}.png`
-      
-      // Thêm delay để tránh trình duyệt chặn nhiều lần tải xuống
-      setTimeout(() => {
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        console.log(`Đã tải ảnh từ góc nhìn: ${angle.name}`)
-      }, index * 500)
-    })
-  }
-}
-
-// Tải ảnh đã chọn
 const downloadSelectedAngle = () => {
   const selectedAngle = captureAngles[selectedAngleIndex.value]
-  
-  // Nếu chưa có ảnh, chụp trước khi tải
   if (!selectedAngle.preview) {
     captureCurrentAngle()
   }
-  
-  // Tạo một element a để tải xuống
   const link = document.createElement('a')
   link.href = selectedAngle.preview
   link.download = `adidas-custom-shoe-${selectedAngle.name}.png`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  
-  console.log(`Đã tải ảnh từ góc nhìn: ${selectedAngle.name}`)
 }
 
-// Hàm xử lý khi nhấn nút tải ảnh (giữ lại để tương thích ngược)
-const handleDownloadImage = () => {
-  if (!renderer) return
-  
-  // Render scene một lần nữa để đảm bảo hình ảnh mới nhất
-  renderer.render(scene, camera)
-  
-  // Lấy dữ liệu hình ảnh từ canvas
-  const imageData = renderer.domElement.toDataURL('image/png')
-  
-  // Tạo một element a để tải xuống
+const handleDone = () => {
+  originalCameraPosition = {
+    position: camera ? camera.position.clone() : null,
+    rotation: controls ? controls.target.clone() : null
+  }
+  captureAllAngles().then(() => {
+    showCompleteModal.value = true
+  })
+}
+
+const addToCart = () => {
+  showCompleteModal.value = false
+  alert('Sản phẩm đã được thêm vào giỏ hàng thành công!')
+  window.location.href = '/customPage'
+}
+
+const saveAsDraft = () => {
+  showCompleteModal.value = false
+  const designData = {
+    productName: 'Adidas Running Shoes (Tùy chỉnh)',
+    price: '2.500.000 ₫',
+    components: {},
+    textureParams: { ...textureParams },
+    customText: customText.value,
+    cameraPosition: camera ? { x: camera.position.x, y: camera.position.y, z: camera.position.z } : null,
+    timestamp: new Date().toISOString()
+  }
+
+  for (const comp of components) {
+    const partName = comp.value
+    if (materials[partName]) {
+      designData.components[partName] = {
+        name: comp.name,
+        color: '#' + materials[partName].color.getHexString(),
+        hasTexture: !!materials[partName].map
+      }
+      if (customTextures[partName]) {
+        designData.components[partName].textureInfo = {
+          type: customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image',
+          textContent: customText.value
+        }
+      }
+    }
+  }
+
+  const jsonString = JSON.stringify(designData, null, 2)
+  const blob = new Blob([jsonString], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
-  link.href = imageData
-  link.download = 'adidas-custom-shoe.png'
+  link.href = url
+  link.download = 'adidas-custom-design.json'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  
-  console.log('Đã tải ảnh mô hình 3D')
+  URL.revokeObjectURL(url)
+  alert('Thiết kế đã được lưu vào bản nháp và tải xuống thành công!')
 }
 
-// Hàm toggle kích thước canvas
-const toggleCanvasSize = () => {
-  isCanvasExpanded.value = !isCanvasExpanded.value
-  setTimeout(() => {
-    if (renderer && camera) {
-      onWindowResize()
+// Three.js initialization
+const initThree = () => {
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0xf0f0f0)
+
+  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
+  camera.position.set(1.5, 0.5, 1.5) // Moved closer to the model
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  container.value.appendChild(renderer.domElement)
+
+  // Lighting setup
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+  scene.add(ambientLight)
+
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.2)
+  mainLight.position.set(5, 10, 5)
+  mainLight.castShadow = true
+  mainLight.shadow.mapSize.width = 1024
+  mainLight.shadow.mapSize.height = 1024
+  scene.add(mainLight)
+
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5)
+  fillLight.position.set(-5, 3, -5)
+  scene.add(fillLight)
+
+  const topLight = new THREE.DirectionalLight(0xffffff, 0.4)
+  topLight.position.set(0, 10, 0)
+  scene.add(topLight)
+
+  controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.05
+  controls.rotateSpeed = 0.7
+  controls.minDistance = 1 // Allow closer zoom
+  controls.maxDistance = 3 // Reduced max distance to keep model large
+  controls.target.set(0, 0.5, 0) // Focus slightly below the model's center
+
+  loadModel()
+  animate()
+  window.addEventListener('resize', onWindowResize)
+}
+
+const loadModel = () => {
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+
+  const modelPath = '/Adidasrunningshoes.glb'
+  loader.load(
+    modelPath,
+    (gltf) => onModelLoaded(gltf),
+    (xhr) => console.log(`Tiến độ tải: ${Math.floor((xhr.loaded / xhr.total) * 100)}%`),
+    (error) => console.error('Lỗi khi tải mô hình:', error)
+  )
+}
+
+const onModelLoaded = (gltf) => {
+  if (model) {
+    scene.remove(model)
+  }
+
+  model = gltf.scene
+  model.scale.set(5, 5, 5) // Increased scale to make the model larger
+  model.position.set(0, -0.5, 0) // Lowered the model slightly
+  model.rotation.y = Math.PI / 4
+
+  const foundMeshes = []
+  const meshMaterialMap = {}
+  model.traverse((node) => {
+    if (node.isMesh) {
+      foundMeshes.push(node.name)
+      node.castShadow = true
+      node.receiveShadow = true
+      if (node.material) {
+        meshMaterialMap[node.name] = node.material
+      } else {
+        node.material = new THREE.MeshStandardMaterial({ color: 0x808080 })
+        meshMaterialMap[node.name] = node.material
+      }
     }
-  }, 300)
+  })
+
+  console.log('Found meshes:', foundMeshes)
+  console.log('Mesh material map:', meshMaterialMap)
+
+  Object.keys(partColors).forEach((partName) => {
+    const matchingMesh = foundMeshes.find(meshName => meshName.toLowerCase().includes(partName.toLowerCase()))
+    const originalMaterial = matchingMesh ? meshMaterialMap[matchingMesh] : new THREE.MeshStandardMaterial({ color: 0x808080 })
+
+    const texture = partTextures[partName]
+    if (texture) {
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+      texture.offset.set(textureParams.offsetX, textureParams.offsetY)
+      texture.rotation = textureParams.rotation
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+      texture.needsUpdate = true
+    }
+
+    materials[partName] = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(partColors[partName]),
+      map: texture,
+      normalMap: originalMaterial.normalMap || null,
+      roughnessMap: originalMaterial.roughnessMap || null,
+      metalness: originalMaterial.metalness || 0.2,
+      roughness: originalMaterial.roughness || 0.6,
+      envMap: scene.environment,
+      envMapIntensity: 1.0
+    })
+
+    model.traverse((node) => {
+      if (node.isMesh && node.name.toLowerCase().includes(partName.toLowerCase())) {
+        node.material = materials[partName]
+        node.material.needsUpdate = true
+      }
+    })
+  })
+
+  checkPartGroups(foundMeshes)
+  scene.add(model)
 }
 
-// Three.js objects
-let scene, camera, renderer, controls, model
-const materials = {}
-const customTextures = {}
+const checkPartGroups = (foundMeshes) => {
+  const missingMeshes = []
+  for (const groupName in partGroups) {
+    partGroups[groupName].forEach(partName => {
+      if (!foundMeshes.some(mesh => mesh.toLowerCase().includes(partName.toLowerCase()))) {
+        console.warn(`Phần "${partName}" không tìm thấy trong mô hình!`)
+        missingMeshes.push(partName)
+      }
+    })
+  }
+  if (missingMeshes.length) {
+    console.warn('Các phần không tìm thấy:', missingMeshes.join(', '))
+  }
+}
 
-// State cho văn bản tùy chỉnh
-const customText = ref('')
+const animate = () => {
+  requestAnimationFrame(animate)
+  controls.update()
+  renderer.render(scene, camera)
+}
 
-// State cho tab đang active
-const activeTab = ref('color')
+const onWindowResize = () => {
+  if (camera && renderer && container.value) {
+    camera.aspect = container.value.clientWidth / container.value.clientHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+  }
+}
 
-// State cho màu văn bản đã chọn
-const selectedTextColor = ref('#ffffff') // Mặc định là màu trắng
-
-// State cho các tham số texture
-const textureParams = reactive({
-  scale: 1.0,
-  repeatX: 1.1,
-  repeatY: 1.6,
-  offsetX: 0,
-  offsetY: 0,
-  rotation: 0.91,
-  brightness: 2.0
-})
-
-// State cho upload ảnh
-const imageInput = ref(null)
-const selectedImage = ref(null)
-const selectedImageName = ref('')
-const previewImageUrl = ref('')
-
-// Hàm xử lý khi người dùng chọn ảnh
 const onImageSelected = (event) => {
   const file = event.target.files[0]
   if (file) {
     selectedImage.value = file
-    selectedImageName.value = file.name.length > 20 
-      ? file.name.substring(0, 17) + '...' 
-      : file.name
-    
-    // Tạo URL cho hình ảnh xem trước
+    selectedImageName.value = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name
     previewImageUrl.value = URL.createObjectURL(file)
   }
 }
 
-// Hàm áp dụng ảnh đã upload làm texture cho mesh
 const applyImageToMesh = () => {
   if (!selectedImage.value) {
     alert('Vui lòng chọn ảnh trước khi áp dụng')
     return
   }
-  
+
   const selectedPart = components[selectedComponentIndex.value].value
-  if (!selectedPart || !materials[selectedPart]) {
-    alert('Không tìm thấy phần đã chọn')
-    return
-  }
-  
-  const material = materials[selectedPart]
-  
-  // Lưu lại màu hiện tại của mesh
-  const currentColor = material.color.clone()
-  
-  // Tạo đường dẫn URL cho ảnh đã chọn
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
   const imageUrl = URL.createObjectURL(selectedImage.value)
-  
-  // Tạo texture từ ảnh đã upload
   const textureLoader = new THREE.TextureLoader()
   textureLoader.load(
     imageUrl,
     (texture) => {
+<<<<<<< Updated upstream
       // Cấu hình texture
       texture.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 1
       texture.wrapS = THREE.RepeatWrapping
@@ -687,16 +808,34 @@ const applyImageToMesh = () => {
       
       // Đặt các thông số texture từ textureParams
       texture.repeat.set(textureParams.repeatX, textureParams.repeatY)
+=======
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+      texture.flipY = false
+      texture.encoding = THREE.sRGBEncoding
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+>>>>>>> Stashed changes
       texture.offset.set(textureParams.offsetX, textureParams.offsetY)
       texture.rotation = textureParams.rotation
-      
-      // Lưu texture cũ nếu chưa lưu
-      if (!customTextures[selectedPart]) {
-        customTextures[selectedPart] = {
-          originalMap: material.map,
-          originalColor: material.color.clone(),
-          texture: texture
+
+      partsToUpdate.forEach((part) => {
+        if (materials[part]) {
+          if (!customTextures[part]) {
+            customTextures[part] = {
+              originalMap: materials[part].map,
+              originalColor: materials[part].color.clone(),
+              texture
+            }
+          } else {
+            customTextures[part].texture = texture
+          }
+          partTextures[part] = texture
+          materials[part].map = texture
+          materials[part].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness))
+          materials[part].transparent = true
+          materials[part].needsUpdate = true
         }
+<<<<<<< Updated upstream
       } else {
         customTextures[selectedPart].texture = texture
       }
@@ -718,6 +857,11 @@ const applyImageToMesh = () => {
       console.log(`Đã áp dụng ảnh "${selectedImageName.value}" lên ${selectedPart}`)
       
       // Giải phóng URL để tránh rò rỉ bộ nhớ
+=======
+      })
+
+      renderer.render(scene, camera)
+>>>>>>> Stashed changes
       URL.revokeObjectURL(imageUrl)
     },
     undefined,
@@ -729,289 +873,116 @@ const applyImageToMesh = () => {
   )
 }
 
-// Hàm cập nhật các tham số texture
-const updateTextureParameters = () => {
-  const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && customTextures[selectedPart] && customTextures[selectedPart].texture) {
-    const texture = customTextures[selectedPart].texture
-    const material = materials[selectedPart]
-    
-    // Cập nhật các tham số texture
-    texture.repeat.set(textureParams.repeatX, textureParams.repeatY)
-    texture.offset.set(textureParams.offsetX, textureParams.offsetY)
-    texture.rotation = textureParams.rotation
-    
-    // Cập nhật độ sáng
-    const brightness = textureParams.brightness
-    material.color.set(new THREE.Color(brightness, brightness, brightness))
-    
-    // Cập nhật material
-    material.needsUpdate = true
-  }
-}
-
-// Watch các thay đổi trong textureParams để cập nhật texture
-watch(textureParams, () => {
-  updateTextureParameters()
-}, { deep: true })
-
-// Hàm áp dụng văn bản lên mesh đã chọn
 const applyTextToMesh = () => {
   if (!customText.value.trim()) {
     alert('Vui lòng nhập văn bản trước khi áp dụng')
     return
   }
-  
+
   const selectedPart = components[selectedComponentIndex.value].value
-  if (!selectedPart || !materials[selectedPart]) {
-    alert('Không tìm thấy phần đã chọn')
-    return
-  }
-  
-  const material = materials[selectedPart]
-  
-  // Lưu lại màu hiện tại của mesh
-  const currentColor = material.color.clone()
-  
-  // Tạo texture từ canvas chứa text
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
   const canvas = document.createElement('canvas')
-  const context = canvas.getContext('2d')
-  
-  // Kích thước canvas
   canvas.width = 1024
   canvas.height = 1024
-  
-  // Vẽ nền với màu tương tự như màu hiện tại của mesh
-  context.fillStyle = `rgb(${Math.floor(currentColor.r * 255)}, ${Math.floor(currentColor.g * 255)}, ${Math.floor(currentColor.b * 255)})`
-  context.fillRect(0, 0, canvas.width, canvas.height)
-  
-  // Tính kích thước văn bản phù hợp với độ dài
-  const textLength = customText.value.length
-  const fontSize = Math.min(150, 600 / Math.max(1, textLength / 3))
-  
-  // Lưu trạng thái canvas hiện tại
-  context.save()
-  
-  // Xoay canvas 180 độ và lật ngang để văn bản hiển thị đúng
-  context.translate(canvas.width / 2, canvas.height / 2)
-  context.rotate(Math.PI) // Xoay 180 độ (π radian)
-  context.scale(-1, 1) // Lật ngược chiều ngang
-  context.translate(-canvas.width / 2, -canvas.height / 2)
-  
-  // Vẽ text với màu đã chọn nhưng với viền đen để dễ nhìn trên mọi nền
-  context.font = `bold ${fontSize}px Arial, sans-serif`
-  
-  // Vẽ viền
-  context.strokeStyle = 'black'
-  context.lineWidth = fontSize / 8 // Tăng độ đậm của viền
-  context.textAlign = 'center'
-  context.textBaseline = 'middle'
-  context.strokeText(customText.value, canvas.width / 2, canvas.height / 2)
-  
-  // Vẽ text với màu trắng cố định
-  context.fillStyle = '#ffffff' // Màu trắng cố định
-  // Giảm hiệu ứng shadow hoặc loại bỏ nó để text rõ nét hơn
-  context.shadowColor = 'rgba(0, 0, 0, 0.7)' // Tăng độ đậm của shadow
-  context.shadowBlur = 3 // Giảm độ mờ
-  context.shadowOffsetX = 1 // Giảm độ lệch
-  context.shadowOffsetY = 1 // Giảm độ lệch
-  context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
-  
-  // Vẽ lại văn bản một lần nữa không có shadow để tăng độ rõ nét
-  context.shadowColor = 'transparent'
-  context.shadowBlur = 0
-  context.shadowOffsetX = 0
-  context.shadowOffsetY = 0
-  context.fillStyle = '#ffffff' // Màu trắng cố định
-  context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
-  
-  // Khôi phục trạng thái canvas ban đầu
-  context.restore()
-  
-  // Tạo texture từ canvas
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 1
-  
-  // Thiết lập các tham số cho texture
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(1, 1)
-  
-  // Lưu texture cũ nếu chưa lưu
-  if (!customTextures[selectedPart]) {
-    customTextures[selectedPart] = {
-      originalMap: materials[selectedPart].map,
-      originalColor: materials[selectedPart].color.clone(),
-      texture: texture
+  const context = canvas.getContext('2d')
+
+  partsToUpdate.forEach((part) => {
+    if (materials[part]) {
+      const currentColor = materials[part].color.clone()
+      context.fillStyle = `#${currentColor.getHexString()}`
+      context.fillRect(0, 0, canvas.width, canvas.height)
+
+      context.save()
+      context.translate(canvas.width / 2, canvas.height / 2)
+      context.rotate(Math.PI)
+      context.scale(-1, 1)
+      context.translate(-canvas.width / 2, -canvas.height / 2)
+
+      const textLength = customText.value.length
+      const fontSize = Math.min(150, 600 / Math.max(1, textLength / 3))
+      context.font = `bold ${fontSize}px Arial, sans-serif`
+      context.strokeStyle = 'black'
+      context.lineWidth = fontSize / 8
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      context.strokeText(customText.value, canvas.width / 2, canvas.height / 2)
+      context.fillStyle = '#ffffff'
+      context.shadowColor = 'rgba(0, 0, 0, 0.7)'
+      context.shadowBlur = 3
+      context.shadowOffsetX = 1
+      context.shadowOffsetY = 1
+      context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
+      context.shadowColor = 'transparent'
+      context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
+
+      context.restore()
+
+      const texture = new THREE.CanvasTexture(canvas)
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+      texture.repeat.set(1, 1)
+
+      if (!customTextures[part]) {
+        customTextures[part] = {
+          originalMap: materials[part].map,
+          originalColor: materials[part].color.clone(),
+          texture
+        }
+      } else {
+        customTextures[part].texture = texture
+      }
+      partTextures[part] = texture
+      materials[part].map = texture
+      materials[part].color.copy(currentColor)
+      materials[part].needsUpdate = true
     }
-  } else {
-    customTextures[selectedPart].texture = texture
-  }
-  
-  // Áp dụng texture mới
-  material.map = texture
-  
-  // Sử dụng blending mode bình thường thay vì custom
-  material.blending = THREE.NormalBlending
-  
-  // Giữ nguyên màu hiện tại của material
-  material.color.copy(currentColor)
-  
-  // Thiết lập các thuộc tính material để hiển thị đúng
-  material.needsUpdate = true
-  
-  console.log(`Đã áp dụng văn bản "${customText.value}" vào ${selectedPart}`)
+  })
+
+  renderer.render(scene, camera)
 }
 
-// Thêm hàm để xóa texture và phục hồi màu ban đầu
 const removeTextFromMesh = () => {
   const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && customTextures[selectedPart]) {
-    const material = materials[selectedPart]
-    
-    // Khôi phục texture gốc
-    material.map = customTextures[selectedPart].originalMap
-    
-    // Khôi phục màu gốc nếu người dùng muốn
-    if (customTextures[selectedPart].originalColor) {
-      material.color.copy(customTextures[selectedPart].originalColor)
-    }
-    
-    // Phục hồi blending mode
-    material.blending = THREE.NormalBlending
-    
-    // Cập nhật material
-    material.transparent = material.map ? true : false
-    material.needsUpdate = true
-    
-    // Reset input file và preview image
-    if (imageInput.value) {
-      imageInput.value.value = ''
-    }
-    
-    // Xóa preview image khi đang ở tab image
-    if (activeTab.value === 'image') {
-      if (previewImageUrl.value) {
-        URL.revokeObjectURL(previewImageUrl.value)
-        previewImageUrl.value = ''
-      }
-      selectedImage.value = null
-      selectedImageName.value = ''
-    }
-    
-    console.log(`Đã xóa texture khỏi ${selectedPart}`)
-  }
-}
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
 
-// Hàm xử lý khi nhấn nút hoàn thành
-const handleDone = () => {
-  console.log('Mở modal hoàn thành')
-  // Lưu vị trí camera hiện tại
-  originalCameraPosition = {
-    position: camera ? new THREE.Vector3().copy(camera.position) : null,
-    rotation: controls ? controls.target.clone() : null
-  }
-  
-  // Chụp tất cả các góc
-  captureAllAngles().then(() => {
-    console.log('Đã chụp tất cả các góc, hiển thị modal hoàn thành')
-    // Hiển thị modal hoàn thành
-    showCompleteModal.value = true
+  partsToUpdate.forEach((part) => {
+    if (materials[part] && customTextures[part]) {
+      materials[part].map = customTextures[part].originalMap
+      materials[part].color.copy(customTextures[part].originalColor)
+      materials[part].transparent = materials[part].map ? true : false
+      materials[part].needsUpdate = true
+      partTextures[part] = null
+      delete customTextures[part]
+    }
   })
-}
 
-// Thêm hàm thêm vào giỏ hàng
-const addToCart = () => {
-  showCompleteModal.value = false
-  
-  // Xử lý thêm vào giỏ hàng ở đây
-  // Ví dụ: gửi dữ liệu thiết kế lên server
-  
-  // Thông báo đã thêm vào giỏ hàng
-  alert('Sản phẩm đã được thêm vào giỏ hàng thành công!')
-  
-  // Chuyển hướng về trang customPage sau khi đóng alert
-  window.location.href = '/customPage'
-}
-
-// Thêm hàm lưu nháp
-const saveAsDraft = () => {
-  showCompleteModal.value = false
-  
-  // Thu thập dữ liệu thiết kế
-  const designData = {
-    productName: 'Adidas Running Shoes (Tùy chỉnh)',
-    price: '2.500.000 ₫',
-    components: {},
-    textureParams: {...textureParams},
-    customText: customText.value,
-    cameraPosition: camera ? {
-      x: camera.position.x,
-      y: camera.position.y,
-      z: camera.position.z
-    } : null,
-    timestamp: new Date().toISOString()
+  if (imageInput.value) {
+    imageInput.value.value = ''
   }
-  
-  // Lưu thông tin về các thay đổi trên từng component
-  for (const comp of components) {
-    const partName = comp.value
-    if (materials[partName]) {
-      const material = materials[partName]
-      designData.components[partName] = {
-        name: comp.name,
-        color: '#' + material.color.getHexString(),
-        hasTexture: !!material.map
-      }
-      
-      // Kiểm tra và lưu thông tin về texture
-      if (customTextures[partName]) {
-        designData.components[partName].textureInfo = {
-          type: customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image',
-          // Không thể lưu trực tiếp texture vì quá lớn, chỉ lưu thông tin
-          textContent: customText.value
-        }
-      }
+  if (activeTab.value === 'image') {
+    if (previewImageUrl.value) {
+      URL.revokeObjectURL(previewImageUrl.value)
+      previewImageUrl.value = ''
     }
+    selectedImage.value = null
+    selectedImageName.value = ''
   }
-  
-  // Chuyển đổi thành chuỗi JSON
-  const jsonString = JSON.stringify(designData, null, 2)
-  
-  // Tạo và tải xuống file
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'adidas-custom-design.json'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-  
-  // Thông báo đã lưu bản nháp
-  alert('Thiết kế đã được lưu vào bản nháp và tải xuống thành công!')
+
+  renderer.render(scene, camera)
 }
 
-// Khởi tạo Three.js
-const initThree = () => {
-  // Log kích thước container để debug
-  console.log('Container dimensions:', container.value.clientWidth, container.value.clientHeight)
-  
-  // Tạo scene
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xf0f0f0)
+const updatePartColor = (color) => {
+  const selectedPart = components[selectedComponentIndex.value].value
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
 
-  // Tạo camera
-  camera = new THREE.PerspectiveCamera(
-    75, 
-    container.value.clientWidth / container.value.clientHeight, 
-    0.1, 
-    1000
-  )
-  // Đặt vị trí camera để nhìn thấy mô hình tốt nhất
-  camera.position.set(0, 1, 8)
+  partsToUpdate.forEach((part) => {
+    if (materials[part]) {
+      partColors[part] = color
+      materials[part].color.set(color)
+      materials[part].needsUpdate = true
 
+<<<<<<< Updated upstream
   // Tạo renderer với chất lượng cao
   renderer = new THREE.WebGLRenderer({ 
     antialias: true, 
@@ -1088,35 +1059,15 @@ const loadModel = () => {
         if (!response.ok) {
           console.error(`File không tồn tại tại đường dẫn ${relativeModelPath}, mã lỗi: ${response.status}`);
           throw new Error(`HTTP error! status: ${response.status}`);
+=======
+      model.traverse((node) => {
+        if (node.isMesh && node.name.toLowerCase().includes(part.toLowerCase())) {
+          node.material = materials[part]
+          node.material.needsUpdate = true
+>>>>>>> Stashed changes
         }
-        
-        console.log('Fetch: File tồn tại, kích thước:', response.headers.get('content-length'), 'bytes');
-        console.log('Fetch: Loại nội dung:', response.headers.get('content-type'));
-        
-        // Tải mô hình
-        console.log('Bắt đầu tải mô hình...');
-        loader.load(
-          relativeModelPath,
-          (gltf) => onModelLoaded(gltf),
-          onLoadProgress,
-          (error) => {
-            console.error('Lỗi khi tải với đường dẫn tương đối:', error);
-            console.error('Chi tiết lỗi:', error.message);
-            
-            // Thử tải với đường dẫn tuyệt đối
-            console.log('Thử tải với đường dẫn tuyệt đối...');
-            loader.load(
-              absoluteModelPath,
-              (gltf) => onModelLoaded(gltf),
-              onLoadProgress,
-              (absoluteError) => {
-                console.error('Lỗi khi tải với đường dẫn tuyệt đối:', absoluteError);
-                console.error('Chi tiết lỗi:', absoluteError.message);
-              }
-            );
-          }
-        );
       })
+<<<<<<< Updated upstream
       .catch(error => {
         console.error('Lỗi khi kiểm tra tồn tại file:', error);
         
@@ -1255,27 +1206,59 @@ const customColorValue = ref('#ff0000')
 const customColorApplied = ref(false)
 
 // Cập nhật màu của phần đã chọn
+=======
+    } else {
+      console.warn(`Material for ${part} not found`)
+    }
+  })
+
+  renderer.render(scene, camera)
+}
+
+const updateTextureParameters = () => {
+  const selectedPart = components[selectedComponentIndex.value].value
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
+  partsToUpdate.forEach((part) => {
+    if (partTextures[part] && materials[part]) {
+      const texture = partTextures[part]
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+      texture.offset.set(textureParams.offsetX, textureParams.offsetY)
+      texture.rotation = textureParams.rotation
+      texture.needsUpdate = true
+      materials[part].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness))
+      materials[part].needsUpdate = true
+
+      model.traverse((node) => {
+        if (node.isMesh && node.name.toLowerCase().includes(part.toLowerCase())) {
+          node.material = materials[part]
+          node.material.needsUpdate = true
+        }
+      })
+    }
+  })
+}
+
+watch(textureParams, updateTextureParameters, { deep: true })
+
+>>>>>>> Stashed changes
 const handleColorClick = (colorValue) => {
   selectedColor.value = colorValue
   customColorApplied.value = false
   updatePartColor(colorValue)
-  checkTextContrast()
 }
 
-// Xử lý khi người dùng thay đổi màu trong color picker
 const handleCustomColorChange = (event) => {
-  // Chỉ cập nhật giá trị màu, không áp dụng ngay
   customColorValue.value = event.target.value
 }
 
-// Áp dụng màu tùy chỉnh khi người dùng bấm nút Áp dụng
 const applyCustomColor = () => {
   selectedColor.value = customColorValue.value
   customColorApplied.value = true
   updatePartColor(customColorValue.value)
-  checkTextContrast()
 }
 
+<<<<<<< Updated upstream
 // Hàm cập nhật màu sắc
 const updatePartColor = (color) => {
   const selectedPart = components[selectedComponentIndex.value].value
@@ -1287,116 +1270,36 @@ const updatePartColor = (color) => {
       materials[selectedPart].needsUpdate = true
     }
   }
+=======
+const handleComponentChange = () => {
+  console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
+>>>>>>> Stashed changes
 }
 
-// Xử lý điều hướng của mũi tên
-const handlePrevComponent = () => {
-  selectedComponentIndex.value = selectedComponentIndex.value === 0 
-    ? components.length - 1 
-    : selectedComponentIndex.value - 1
-}
-
-const handleNextComponent = () => {
-  selectedComponentIndex.value = selectedComponentIndex.value === components.length - 1 
-    ? 0 
-    : selectedComponentIndex.value + 1
-}
-
-// Xử lý khi chọn một thành phần từ danh sách
-const handleComponentClick = (index) => {
-  selectedComponentIndex.value = index
-}
-
-// Khởi tạo Three.js sau khi component được mount
 onMounted(() => {
   initThree()
 })
 
-// Dọn dẹp khi component bị unmount
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
-  
-  // Dừng animation loop
-  if (typeof cancelAnimationFrame === 'function') {
-    cancelAnimationFrame(animate)
-  }
-  
-  // Xóa model từ scene và dọn dẹp tài nguyên
   if (model) {
     scene.remove(model)
     model.traverse((node) => {
       if (node.isMesh) {
         if (node.geometry) node.geometry.dispose()
-        if (node.material) {
-          if (Array.isArray(node.material)) {
-            node.material.forEach(material => material.dispose())
-          } else {
-            node.material.dispose()
-          }
-        }
+        if (node.material) node.material.dispose()
       }
     })
   }
-  
-  // Xóa renderer
   if (renderer) {
     renderer.dispose()
-    if (container.value) {
-      container.value.removeChild(renderer.domElement)
-    }
+    if (container.value) container.value.removeChild(renderer.domElement)
   }
-  
-  // Dọn dẹp controls
-  if (controls) {
-    controls.dispose()
-  }
-  
-  // Dọn dẹp scene
-  if (scene) {
-    scene.clear()
-  }
-
-  // Cleanup URL khi component unmount
-  if (previewImageUrl.value) {
-    URL.revokeObjectURL(previewImageUrl.value)
-  }
+  if (controls) controls.dispose()
+  if (scene) scene.clear()
+  if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
 })
-
-// Xử lý khi component trong dropdown thay đổi
-const handleComponentChange = () => {
-  // Không cần làm gì vì v-model đã tự động cập nhật selectedComponentIndex
-  console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
-}
-
-// Hàm kiểm tra tương phản màu giữa chữ và nền
-const checkTextContrast = () => {
-  const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && materials[selectedPart]) {
-    const backgroundColorHex = selectedColor.value;
-    const textColorHex = selectedTextColor.value;
-    
-    // Chuyển màu từ hex sang rgb
-    const getRGBFromHex = (hex) => {
-      const r = parseInt(hex.substring(1, 3), 16);
-      const g = parseInt(hex.substring(3, 5), 16);
-      const b = parseInt(hex.substring(5, 7), 16);
-      return [r, g, b];
-    }
-    
-    const bgRGB = getRGBFromHex(backgroundColorHex);
-    const textRGB = getRGBFromHex(textColorHex);
-    
-    // Tính khoảng cách Euclidean giữa 2 màu
-    const distance = Math.sqrt(
-      Math.pow(bgRGB[0] - textRGB[0], 2) +
-      Math.pow(bgRGB[1] - textRGB[1], 2) +
-      Math.pow(bgRGB[2] - textRGB[2], 2)
-    );
-    
-  }
-}
 </script>
-
 <style>
 .custom-detail-page {
   height: 100vh;
