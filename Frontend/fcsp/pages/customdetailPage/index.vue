@@ -411,7 +411,7 @@ const selectedImage = ref(null)
 const selectedImageName = ref('')
 const previewImageUrl = ref('')
 
-// Part colors and textures
+// Part colors and textures (fixed typos and aligned with components)
 const partColors = reactive({
   Accent_inside: '#ffffff',
   Accent_outside: '#ffffff',
@@ -425,9 +425,9 @@ const partColors = reactive({
   Line_outside: '#ffffff',
   Logo_inside: '#ffffff',
   Logo_outside: '#ffffff',
-  MidSode: '#ffffff',
-  MidSode001: '#ffffff',
-  OutSode: '#ffffff',
+  MidSode: '#ffffff', 
+  MidSode001: '#ffffff', 
+  OutSode: '#ffffff', 
   Tip: '#ffffff',
   Plane012: '#ffffff',
   Plane012_1: '#ffffff',
@@ -448,9 +448,9 @@ const partTextures = reactive({
   Line_outside: null,
   Logo_inside: null,
   Logo_outside: null,
-  MidSode: null,
-  MidSode001: null,
-  OutSode: null,
+  MidSode: null, 
+  MidSode001: null, 
+  OutSode: null, 
   Tip: null,
   Plane012: null,
   Plane012_1: null,
@@ -464,20 +464,19 @@ const components = reactive([
   { name: 'Heel', value: 'Heel' },
   { name: 'Lace', value: 'Lace' },
   { name: 'Outsole', value: 'OutSode' },
-  { name: 'Midsole', value: 'MidSole' },
-  
+  { name: 'MidSole', value: 'MidSole' }, 
   { name: 'Tip', value: 'Tip' },
   { name: 'Accent', value: 'Accent' },
   { name: 'Logo', value: 'Logo' },
   { name: 'Details', value: 'Details' }
 ])
 
-// Part groups
+// Part groups 
 const partGroups = reactive({
   Accent: ['Accent_inside', 'Accent_outside', 'Line_inside', 'Line_outside'],
   Logo: ['Logo_inside', 'Logo_outside'],
-  MidSole: ['MidSode','Plane012', 'Plane012_1'],
-  Details: ['Cylinder', 'Cylinder001',  'Plane005']
+  MidSole: ['MidSode', 'Plane012', 'Plane012_1'], 
+  Details: ['Cylinder', 'Cylinder001', 'Plane005']
 })
 
 // Selected component and color
@@ -502,7 +501,7 @@ const selectAngle = (index) => {
     const anglePosition = captureAngles[index].position
     const startPosition = camera.position.clone()
     const targetPosition = new THREE.Vector3(anglePosition.x, anglePosition.y, anglePosition.z)
-    controls.target.set(0, 0, 0)
+    controls.target.set(0, 1.5, 0)
     const duration = 500
     const startTime = Date.now()
 
@@ -627,7 +626,7 @@ const initThree = () => {
   scene.background = new THREE.Color(0xf0f0f0)
 
   camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
-  camera.position.set(1.5, 0.5, 1.5) // Moved closer to the model
+  camera.position.set(1.5, 0.5, 1.5)
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
   renderer.setPixelRatio(window.devicePixelRatio)
@@ -659,9 +658,9 @@ const initThree = () => {
   controls.enableDamping = true
   controls.dampingFactor = 0.05
   controls.rotateSpeed = 0.7
-  controls.minDistance = 1 // Allow closer zoom
-  controls.maxDistance = 3 // Reduced max distance to keep model large
-  controls.target.set(0, 0.5, 0) // Focus slightly below the model's center
+  controls.minDistance = 1
+  controls.maxDistance = 3
+  controls.target.set(0, 0.5, 0)
 
   loadModel()
   animate()
@@ -689,8 +688,8 @@ const onModelLoaded = (gltf) => {
   }
 
   model = gltf.scene
-  model.scale.set(5, 5, 5) // Increased scale to make the model larger
-  model.position.set(0, -0.5, 0) // Lowered the model slightly
+  model.scale.set(5, 5, 5)
+  model.position.set(0, -0.5, 0)
   model.rotation.y = Math.PI / 4
 
   const foundMeshes = []
@@ -800,23 +799,14 @@ const applyImageToMesh = () => {
   textureLoader.load(
     imageUrl,
     (texture) => {
-<<<<<<< Updated upstream
-      // Cấu hình texture
-      texture.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 1
-      texture.wrapS = THREE.RepeatWrapping
-      texture.wrapT = THREE.RepeatWrapping
-      
-      // Đặt các thông số texture từ textureParams
-      texture.repeat.set(textureParams.repeatX, textureParams.repeatY)
-=======
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping
       texture.flipY = false
       texture.encoding = THREE.sRGBEncoding
       texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
->>>>>>> Stashed changes
       texture.offset.set(textureParams.offsetX, textureParams.offsetY)
       texture.rotation = textureParams.rotation
+      texture.needsUpdate = true
 
       partsToUpdate.forEach((part) => {
         if (materials[part]) {
@@ -835,40 +825,16 @@ const applyImageToMesh = () => {
           materials[part].transparent = true
           materials[part].needsUpdate = true
         }
-<<<<<<< Updated upstream
-      } else {
-        customTextures[selectedPart].texture = texture
-      }
-      
-      // Áp dụng texture mới với blending
-      material.map = texture
-      
-      // Thiết lập blending mode để có thể kết hợp texture với màu
-      material.blending = THREE.NormalBlending
-      
-      // Đặt màu phù hợp với độ sáng
-      const brightness = textureParams.brightness
-      material.color.set(new THREE.Color(brightness, brightness, brightness))
-      
-      // Thiết lập các thuộc tính material để hiển thị đúng
-      material.transparent = true
-      material.needsUpdate = true
-      
-      console.log(`Đã áp dụng ảnh "${selectedImageName.value}" lên ${selectedPart}`)
-      
-      // Giải phóng URL để tránh rò rỉ bộ nhớ
-=======
       })
 
       renderer.render(scene, camera)
->>>>>>> Stashed changes
       URL.revokeObjectURL(imageUrl)
     },
     undefined,
     (error) => {
       console.error('Lỗi khi tải ảnh:', error)
       alert('Đã xảy ra lỗi khi tải ảnh, vui lòng thử lại')
-      URL.revokeObjectURL(imageUrl)
+      URL.reviteObjectURL(imageUrl)
     }
   )
 }
@@ -982,231 +948,12 @@ const updatePartColor = (color) => {
       materials[part].color.set(color)
       materials[part].needsUpdate = true
 
-<<<<<<< Updated upstream
-  // Tạo renderer với chất lượng cao
-  renderer = new THREE.WebGLRenderer({ 
-    antialias: true, 
-    alpha: true,
-    preserveDrawingBuffer: true 
-  })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-  container.value.appendChild(renderer.domElement)
-
-  // Thêm đèn
-  // Ánh sáng môi trường
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
-  scene.add(ambientLight)
-
-  // Ánh sáng chính (để tạo bóng)
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
-  mainLight.position.set(5, 10, 7)
-  mainLight.castShadow = true
-  mainLight.shadow.mapSize.width = 1024
-  mainLight.shadow.mapSize.height = 1024
-  scene.add(mainLight)
-  
-  // Ánh sáng điền (để chiếu sáng các góc tối)
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
-  fillLight.position.set(-5, 0, -5)
-  scene.add(fillLight)
-
-  // Thêm controls
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-  controls.dampingFactor = 0.05
-  controls.rotateSpeed = 0.7
-  controls.minDistance = 3
-  controls.maxDistance = 20
-
-  // Tải model
-  loadModel()
-
-  // Animation loop
-  animate()
-
-  // Handle resize
-  window.addEventListener('resize', onWindowResize)
-}
-
-// Tải mô hình 3D
-const loadModel = () => {
-  console.log('Bắt đầu tải mô hình GLB...')
-  
-  // Tạo DRACOLoader
-  const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/') // Sử dụng CDN của Google
-  console.log('Đã thiết lập DRACOLoader với decoder từ CDN')
-  
-  // Tạo GLTFLoader và gán DRACOLoader vào
-  const loader = new GLTFLoader()
-  loader.setDRACOLoader(dracoLoader)
-  
-  try {
-    // Đường dẫn tương đối và tuyệt đối
-    const relativeModelPath = '/Adidasrunningshoes.glb';
-    const baseUrl = window.location.origin;
-    const absoluteModelPath = `${baseUrl}/Adidasrunningshoes.glb`;
-    
-    console.log('Đường dẫn tương đối:', relativeModelPath);
-    console.log('Đường dẫn tuyệt đối:', absoluteModelPath);
-    
-    // Kiểm tra xem file có tồn tại không
-    fetch(relativeModelPath)
-      .then(response => {
-        if (!response.ok) {
-          console.error(`File không tồn tại tại đường dẫn ${relativeModelPath}, mã lỗi: ${response.status}`);
-          throw new Error(`HTTP error! status: ${response.status}`);
-=======
       model.traverse((node) => {
         if (node.isMesh && node.name.toLowerCase().includes(part.toLowerCase())) {
           node.material = materials[part]
           node.material.needsUpdate = true
->>>>>>> Stashed changes
         }
       })
-<<<<<<< Updated upstream
-      .catch(error => {
-        console.error('Lỗi khi kiểm tra tồn tại file:', error);
-        
-        // Thử tải trực tiếp nếu fetch không thành công
-        console.log('Thử tải trực tiếp mà không kiểm tra tồn tại...');
-        loader.load(
-          absoluteModelPath,
-          (gltf) => onModelLoaded(gltf),
-          onLoadProgress,
-          (directError) => {
-            console.error('Lỗi khi tải trực tiếp:', directError);
-            console.error('Chi tiết lỗi:', directError.message);
-          }
-        );
-      });
-  } catch (e) {
-    console.error('Ngoại lệ khi tải mô hình:', e);
-    console.error('Stack trace:', e.stack);
-  }
-}
-
-// Hàm xử lý khi mô hình tải thành công
-const onModelLoaded = (gltf) => {
-  console.log('Mô hình đã tải thành công!', gltf);
-  
-  // Xóa mô hình hiện tại nếu có
-  if (model) {
-    scene.remove(model);
-  }
-  
-  model = gltf.scene;
-  
-  // Thay đổi kích thước và vị trí
-  model.scale.set(50, 50, 50);
-  model.position.set(0, -2, 0);
-  model.rotation.y = Math.PI / 4;
-  
-  // Lưu trữ tất cả materials và đảm bảo chúng hiển thị đúng
-  console.log('Phân tích các mesh trong mô hình:');
-  let meshCount = 0;
-  model.traverse((node) => {
-    if (node.isMesh) {
-      meshCount++;
-      console.log(`- Mesh ${meshCount}: ${node.name}`);
-      
-      // Đảm bảo tất cả vật liệu đều hiển thị đúng
-      materials[node.name] = node.material;
-      node.castShadow = true;
-      node.receiveShadow = true;
-      
-      // Kiểm tra và cập nhật material
-      if (!node.material) {
-        console.log(`  Mesh ${node.name} không có material, tạo material mặc định`);
-        node.material = new THREE.MeshStandardMaterial({ color: 0x808080 });
-      } else {
-        console.log(`  Mesh ${node.name} có material:`, node.material.type);
-        
-        // Điều chỉnh material để hiển thị tốt hơn
-        if (node.material.type === 'MeshStandardMaterial') {
-          node.material.metalness = 0.3;
-          node.material.roughness = 0.4;
-        }
-      }
-    }
-  });
-  
-  if (meshCount === 0) {
-    console.warn('CẢNH BÁO: Mô hình không chứa mesh nào!');
-    return;
-  }
-  
-  // Thêm vào scene
-  scene.add(model);
-  console.log('Đã thêm mô hình vào scene thành công');
-}
-
-// Hàm theo dõi tiến độ tải
-const onLoadProgress = (xhr) => {
-  const progress = Math.floor((xhr.loaded / xhr.total) * 100);
-  console.log(`Tiến độ tải: ${progress}% (${xhr.loaded} / ${xhr.total} bytes)`);
-}
-
-// Animation loop
-const animate = () => {
-  requestAnimationFrame(animate)
-  if (controls) controls.update()
-  if (renderer && scene && camera) {
-    renderer.render(scene, camera)
-  }
-}
-
-// Xử lý thay đổi kích thước cửa sổ
-const onWindowResize = () => {
-  if (camera && renderer && container.value) {
-    camera.aspect = container.value.clientWidth / container.value.clientHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-  }
-}
-
-// Danh sách các thành phần của UI
-const components = reactive([
-  { name: 'Base', value: 'Base' },
-  { name: 'Heel', value: 'Heel' },
-  { name: 'Lace', value: 'Lace' },
-  { name: 'Outsole', value: 'OutSode' },
-  { name: 'Midsole', value: 'MidSode001' },
-  { name: 'Tip', value: 'Tip' },
-  { name: 'Accent', value: 'Accent' }, // Grouped: Accent_inside, Accent_outside, Line_inside, Line_outside
-  { name: 'Logo', value: 'Logo' }, // Grouped: Logo_inside, Logo_outside
-  { name: 'Details', value: 'Details' }, // Grouped: Cylinder, Cylinder001, Plane012, Plane012_1, Plane005, Plane005_1
-])
-
-// State để theo dõi chỉ số thành phần đã chọn
-const selectedComponentIndex = ref(0)
-
-// Định nghĩa các mẫu màu với nhãn của chúng
-const colors = reactive([
-  { name: 'Black', value: '#000000' },
-  { name: 'White', value: '#ffffff' },
-  { name: 'Off-White', value: '#f5f5f5' },
-  { name: 'Gray', value: '#808080' },
-  { name: 'Brown', value: '#4a3728' },
-  { name: 'Navy Blue', value: '#1c2526' },
-  { name: 'Light Blue', value: '#a3c1d4' },
-  { name: 'Orange', value: '#ff4500' },
-  { name: 'Pink', value: '#ff69b4' },
-  { name: 'University Red', value: '#c8102e' },
-])
-
-// State để theo dõi màu đã chọn cho phản hồi UI
-const selectedColor = ref(colors[0].value)
-// Biến để lưu trữ màu tùy chỉnh
-const customColorValue = ref('#ff0000')
-// Đánh dấu khi màu tùy chỉnh được áp dụng
-const customColorApplied = ref(false)
-
-// Cập nhật màu của phần đã chọn
-=======
     } else {
       console.warn(`Material for ${part} not found`)
     }
@@ -1241,7 +988,6 @@ const updateTextureParameters = () => {
 
 watch(textureParams, updateTextureParameters, { deep: true })
 
->>>>>>> Stashed changes
 const handleColorClick = (colorValue) => {
   selectedColor.value = colorValue
   customColorApplied.value = false
@@ -1258,22 +1004,8 @@ const applyCustomColor = () => {
   updatePartColor(customColorValue.value)
 }
 
-<<<<<<< Updated upstream
-// Hàm cập nhật màu sắc
-const updatePartColor = (color) => {
-  const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && materials[selectedPart]) {
-    materials[selectedPart].color.set(color)
-    
-    // Đảm bảo văn bản vẫn hiển thị đúng sau khi thay đổi màu
-    if (materials[selectedPart].map && materials[selectedPart].transparent) {
-      materials[selectedPart].needsUpdate = true
-    }
-  }
-=======
 const handleComponentChange = () => {
   console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
->>>>>>> Stashed changes
 }
 
 onMounted(() => {
