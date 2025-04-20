@@ -35,7 +35,6 @@
             </div>
 
             <div class="cart-item-actions">
-              <button class="btn btn-primary edit-btn" @click="editDesign(item)">Sửa</button>
               <button class="btn btn-danger" @click="removeFromCart(item.id)">Xóa</button>
             </div>
           </div>
@@ -55,7 +54,7 @@
       <div class="cart-footer mt-4">
         <h4>Tổng tiền: <strong>{{ formatPrice(totalPrice) }}</strong></h4>
         <div class="cart-actions">
-          <NuxtLink to="/customdetailPage" class="btn btn-outline-primary">Tiếp tục mua sắm</NuxtLink>
+          <NuxtLink to="/productPage" class="btn btn-outline-primary">Tiếp tục mua sắm</NuxtLink>
           <NuxtLink to="/checkout" class="btn btn-success checkout-btn">Tiến hành thanh toán</NuxtLink>
         </div>
       </div>
@@ -71,28 +70,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 
-// 🛒 Dữ liệu giỏ hàng giả
-const fakeCartData = [
-  { id: 1, name: 'Sneaker A', price: 59.99 },
-  { id: 2, name: 'Sneaker B', price: 79.99 },
-  { id: 3, name: 'Sneaker C', price: 89.99 }
-];
-
 // 🛒 Load cart từ localStorage
 const cart = ref([]);
 
 // Hiển thị/ẩn các góc nhìn
 const togglePreviewImages = (item) => {
   item.showPreviews = !item.showPreviews;
-};
-
-// Chỉnh sửa thiết kế
-const editDesign = (item) => {
-  // Lưu thông tin sản phẩm đang chỉnh sửa vào localStorage
-  localStorage.setItem('editingDesign', JSON.stringify(item));
-  
-  // Chuyển hướng đến trang thiết kế
-  window.location.href = '/customdetailPage?edit=true&id=' + item.id;
 };
 
 // Định dạng giá tiền VND
@@ -155,6 +138,8 @@ h1 {
   font-weight: bold;
   color: #007bff;
   margin-bottom: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* 🛒 Giỏ hàng */
@@ -170,6 +155,7 @@ h1 {
   overflow: hidden;
   background-color: #fff;
   transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .cart-item-card:hover {
@@ -184,13 +170,19 @@ h1 {
 }
 
 .cart-item-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 8px;
+  width: 140px;
+  height: 140px;
+  border-radius: 10px;
   overflow: hidden;
   background-color: #f8f9fa;
-  margin-right: 20px;
+  margin-right: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.cart-item-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .product-image {
@@ -205,56 +197,84 @@ h1 {
 
 .cart-item-details h4 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #333;
+  font-weight: 600;
 }
 
 .price {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #e74c3c;
-  margin: 8px 0;
+  margin: 10px 0;
+  letter-spacing: 0.5px;
 }
 
 .design-info {
-  margin-top: 10px;
-  font-size: 0.9rem;
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: #555;
 }
 
 .custom-text {
   background-color: #f8f9fa;
-  padding: 6px 10px;
-  border-radius: 4px;
-  margin: 5px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  border-left: 3px solid #007bff;
 }
 
 .timestamp {
   color: #777;
-  margin: 5px 0;
+  margin: 8px 0;
+  font-style: italic;
 }
 
 .cart-item-actions {
-  margin-left: 15px;
+  margin-left: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.edit-btn {
-  background-color: #007bff;
-  border-color: #007bff;
+.btn {
+  border-radius: 50px;
+  font-weight: 600;
+  padding: 10px 20px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
 }
 
-.edit-btn:hover {
-  background-color: #0069d9;
-  border-color: #0062cc;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545, #bd2130);
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #c82333, #a71d2a);
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
 }
 
 /* Phần hiển thị hình ảnh xem trước */
 .preview-images-container {
-  padding: 15px;
+  padding: 20px;
   background-color: #f8f9fa;
   border-top: 1px solid #eee;
   transition: all 0.3s ease;
@@ -263,17 +283,24 @@ h1 {
 .preview-images {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-start;
 }
 
 .preview-image-item {
-  width: 90px;
-  height: 90px;
-  border-radius: 8px;
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
   overflow: hidden;
   background-color: white;
   border: 1px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.preview-image-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
 }
 
 .preview-image {
@@ -284,9 +311,9 @@ h1 {
 
 /* 📦 Phần footer giỏ hàng */
 .cart-footer {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 12px;
+  background: linear-gradient(to right, #f9f9f9, #ffffff);
+  padding: 25px;
+  border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   margin-top: 30px;
   display: flex;
@@ -294,10 +321,11 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .cart-footer h4 {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: bold;
   color: #333;
   margin: 0;
@@ -308,48 +336,74 @@ h1 {
   gap: 15px;
 }
 
-.checkout-btn {
-  background-color: #28a745;
-  font-weight: bold;
-  color: white;
-  padding: 10px 25px;
-  border-radius: 25px;
+.btn-outline-primary {
+  background: transparent;
+  border: 2px solid #007bff;
+  color: #007bff;
+  font-weight: 600;
   transition: all 0.3s ease;
 }
 
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
+}
+
+.checkout-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  font-weight: bold;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
 .checkout-btn:hover {
-  background-color: #218838;
+  background: linear-gradient(135deg, #218838, #1aa179);
   transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 7px 20px rgba(40, 167, 69, 0.4);
 }
 
 /* 🛒 Trường hợp giỏ hàng trống */
 .empty-cart {
   color: #555;
-  padding: 40px 0;
+  padding: 60px 0;
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
 }
 
 .empty-cart h4 {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: bold;
   color: #e74c3c;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .empty-cart .btn {
-  background-color: #3498db;
+  background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
-  border-radius: 25px;
+  border-radius: 50px;
   padding: 12px 30px;
   text-transform: uppercase;
   font-weight: bold;
   transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
 .empty-cart .btn:hover {
-  background-color: #2980b9;
+  background: linear-gradient(135deg, #2980b9, #2471a3);
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
 }
 
 /* Responsive */
@@ -369,11 +423,13 @@ h1 {
     margin: 15px 0 0 0;
     align-self: flex-end;
     flex-direction: row;
+    gap: 10px;
   }
   
   .cart-footer {
     flex-direction: column;
     align-items: center;
+    text-align: center;
   }
   
   .cart-actions {
@@ -384,6 +440,11 @@ h1 {
   .checkout-btn, .cart-actions .btn {
     width: 100%;
     text-align: center;
+  }
+  
+  .preview-image-item {
+    width: 80px;
+    height: 80px;
   }
 }
 </style>

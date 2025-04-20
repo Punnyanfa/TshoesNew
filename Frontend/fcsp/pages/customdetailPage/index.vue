@@ -80,7 +80,7 @@
           <div class="product-summary">
             <h4>Chi tiết sản phẩm</h4>
             <div class="summary-info">
-              <p><strong>Tên sản phẩm:</strong> Adidas Running Shoes (Tùy chỉnh)</p>
+              <p><strong>Tên sản phẩm:</strong> Adidas Running Shoes</p>
               <p><strong>Giá:</strong> 2.500.000 ₫</p>
             </div>
           </div>
@@ -755,7 +755,7 @@ const addToCart = () => {
   // Tạo dữ liệu sản phẩm với thiết kế tùy chỉnh
   const productData = {
     id: isEditing && editId ? parseInt(editId) : Date.now(), // Sử dụng ID hiện có nếu đang chỉnh sửa
-    name: 'Adidas Running Shoes (Tùy chỉnh)',
+    name: 'Adidas Running Shoes',
     price: 2500000,
     image: captureAngles[1].preview, // Lưu hình ảnh mặc định (mặt sau)
     designData: {
@@ -811,7 +811,7 @@ const addToCart = () => {
   } else {
     // Thêm sản phẩm mới vào giỏ hàng
     cart.push(productData)
-    alert('Sản phẩm đã được thêm vào giỏ hàng thành công!')
+    alert('Sản phẩm thiết kế đã được thêm vào trang sáng tạo thành công!')
   }
   
   // Lưu giỏ hàng vào localStorage
@@ -821,45 +821,62 @@ const addToCart = () => {
 }
 
 const saveAsDraft = () => {
-  showCompleteModal.value = false
-  const designData = {
-    productName: 'Adidas Running Shoes (Tùy chỉnh)',
-    price: '2.500.000 ₫',
-    components: {},
-    textureParams: { ...textureParams },
-    customText: customText.value,
-    cameraPosition: camera ? { x: camera.position.x, y: camera.position.y, z: camera.position.z } : null,
-    timestamp: new Date().toISOString()
-  }
-
+  showCompleteModal.value = false;
+  
+  // Tạo đối tượng thiết kế với ID mới
+  const productData = {
+    id: Date.now(),
+    name: 'Adidas Running Shoes (Nháp)',
+    price: 2500000,
+    image: captureAngles[1].preview, // Lưu hình ảnh mặc định
+    designData: {
+      colors: {},
+      textures: {},
+      imagesData: {},
+      customText: customText.value,
+      textureParams: { ...textureParams },
+      timestamp: new Date().toISOString()
+    },
+    previewImages: captureAngles.map(angle => angle.preview) // Lưu tất cả các góc nhìn
+  };
+  
+  // Lưu thông tin màu sắc và texture
   for (const comp of components) {
-    const partName = comp.value
+    const partName = comp.value;
     if (materials[partName]) {
-      designData.components[partName] = {
-        name: comp.name,
-        color: '#' + materials[partName].color.getHexString(),
-        hasTexture: !!materials[partName].map
-      }
+      productData.designData.colors[partName] = '#' + materials[partName].color.getHexString();
+      
       if (customTextures[partName]) {
-        designData.components[partName].textureInfo = {
-          type: customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image',
+        const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
+        
+        productData.designData.textures[partName] = {
+          type: textureType,
           textContent: customText.value
+        };
+        
+        // Lưu trữ dữ liệu ảnh base64 nếu có
+        if (textureType === 'image' && customTextures[partName].imageData) {
+          productData.designData.imagesData[partName] = customTextures[partName].imageData;
         }
       }
     }
   }
-
-  const jsonString = JSON.stringify(designData, null, 2)
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'adidas-custom-design.json'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-  alert('Thiết kế đã được lưu vào bản nháp và tải xuống thành công!')
+  
+  // Lấy danh sách nháp hiện tại từ localStorage
+  let drafts = [];
+  const savedDrafts = localStorage.getItem('designDrafts');
+  if (savedDrafts) {
+    drafts = JSON.parse(savedDrafts);
+  }
+  
+  // Thêm thiết kế mới vào danh sách nháp
+  drafts.push(productData);
+  
+  // Lưu danh sách nháp vào localStorage
+  localStorage.setItem('designDrafts', JSON.stringify(drafts));
+  
+  alert('Thiết kế đã được lưu vào bản nháp!');
+  window.location.href = '/mycustomPage';
 }
 
 // Three.js initialization
