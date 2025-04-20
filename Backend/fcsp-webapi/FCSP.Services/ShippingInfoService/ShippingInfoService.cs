@@ -271,8 +271,12 @@ namespace FCSP.Services.ShippingInfoService
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetAllShippingInfos()
         {
             var shippingInfos = await _shippingInfoRepository.GetAllAsync();
-            var tasks = shippingInfos.Select(MapToDetailResponse);          
-            return await Task.WhenAll(tasks); 
+            var result = new List<GetShippingInfoByIdResponse>();
+            foreach (var shippingInfo in shippingInfos)
+            {
+                result.Add(await MapToDetailResponse(shippingInfo));
+            }
+            return result;
         }
         private async Task<ShippingInfo> GetShippingInfoEntityById(GetShippingInfoByIdRequest request)
         {
@@ -287,8 +291,12 @@ namespace FCSP.Services.ShippingInfoService
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetShippingInfosByUser(GetShippingInfosByUserRequest request)
         {
             var shippingInfos = await _shippingInfoRepository.GetByUserIdAsync(request.UserId);
-            var tasks = shippingInfos.Select(MapToDetailResponse);
-            return await Task.WhenAll(tasks);
+            var result = new List<GetShippingInfoByIdResponse>();
+            foreach (var shippingInfo in shippingInfos)
+            {
+                result.Add(await MapToDetailResponse(shippingInfo));
+            }
+            return result;
         }
         private ShippingInfo GetShippingInfoFromAddRequest(AddShippingInfoRequest request)
         {

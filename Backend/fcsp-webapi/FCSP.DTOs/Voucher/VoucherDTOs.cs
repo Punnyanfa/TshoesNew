@@ -11,30 +11,23 @@ namespace FCSP.DTOs.Voucher
 
     public class GetAllVoucherResponse        
     {
-        private readonly VoucherStatus _status;
-        public GetAllVoucherResponse(VoucherStatus status)
-        {
-            _status = status;
-        }
+       
         public long Id { get; set; }
         public string Code { get; set; }
         public float DiscountAmount { get; set; }
-        public string VoucherStatusName => EnumHelper.GetEnumName<VoucherStatus>((int)_status);
+        public string Status { get; set; }
+       
         public DateTime ExpiryDate { get; set; }
         public bool IsUsed { get; set; }
     }
     public class GetVoucherByIdResponse
     {
-        private readonly VoucherStatus _status;
-        public GetVoucherByIdResponse(VoucherStatus status)
-        {
-            _status = status;
-        }
+        
         public long Id { get; set; }
         public string Code { get; set; }
         public float DiscountAmount { get; set; }
+        public string Status { get; set; }
        
-        public string VoucherStatusName => EnumHelper.GetEnumName<VoucherStatus>((int)_status);
         public DateTime ExpiryDate { get; set; }
         public bool IsUsed { get; set; }
         public List<long> OrderIds { get; set; } = new List<long>();
@@ -47,16 +40,13 @@ namespace FCSP.DTOs.Voucher
 
     public class GetVoucherByOrderIdResponse
     {
-        private readonly VoucherStatus _status;
-        public GetVoucherByOrderIdResponse(VoucherStatus status)
-        {
-            _status = status;
-        }
+      
         public long Id { get; set; }
         public string Code { get; set; }
         public float DiscountAmount { get; set; }
-        public DateTime ExpiryDate { get; set; }     
-        public string VoucherStatusName => EnumHelper.GetEnumName<VoucherStatus>((int)_status);
+        public DateTime ExpiryDate { get; set; }   
+        public string Status { get; set; }
+      
     }
 
     public class AddVoucherRequest
