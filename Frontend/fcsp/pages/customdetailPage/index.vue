@@ -1023,6 +1023,37 @@ const handleComponentChange = () => {
   console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
 }
 
+// Thêm hàm xử lý thay đổi màu từ color picker
+const handleCustomColorChange = () => {
+  // Cập nhật màu đã chọn khi người dùng thay đổi màu trong color picker
+  selectedColor.value = customColorValue.value
+}
+
+// Hàm áp dụng màu đã chọn cho phần đã chọn
+const applyCustomColor = () => {
+  const selectedPart = components[selectedComponentIndex.value].value
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+  
+  partsToUpdate.forEach((part) => {
+    if (materials[part]) {
+      materials[part].color.set(customColorValue.value)
+      materials[part].needsUpdate = true
+      partColors[part] = customColorValue.value
+      
+      // Nếu phần này đang có texture, xóa texture
+      if (partTextures[part] && customTextures[part]) {
+        materials[part].map = null
+        materials[part].needsUpdate = true
+        partTextures[part] = null
+        delete customTextures[part]
+      }
+    }
+  })
+  
+  // Cập nhật renderer để hiển thị thay đổi
+  renderer.render(scene, camera)
+}
+
 // Thêm hàm để toggle kích thước canvas
 const toggleCanvasSize = () => {
   isCanvasExpanded.value = !isCanvasExpanded.value;
