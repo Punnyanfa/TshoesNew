@@ -42,9 +42,38 @@ const cart = ref([]);
 const totalPrice = computed(() => cart.value.reduce((sum, item) => sum + item.price, 0));
 
 // 🗑 Xóa sản phẩm khỏi giỏ hàng
-const removeFromCart = (id) => {
+function removeFromCart(id) {
+  // Xóa khỏi mảng cart hiện tại
   cart.value = cart.value.filter(item => item.id !== id);
-};
+  
+  // Xóa khỏi designDrafts nếu tồn tại
+  try {
+    const designDrafts = JSON.parse(localStorage.getItem('designDrafts') || '[]');
+    const updatedDrafts = designDrafts.filter(draft => draft.id !== id);
+    localStorage.setItem('designDrafts', JSON.stringify(updatedDrafts));
+    
+    // Xóa khỏi localStorage cart
+    const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const updatedCart = storedCart.filter(item => item.id !== id);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
+    // Xóa các key khác có thể lưu trữ sản phẩm
+    const products = JSON.parse(localStorage.getItem('products') || '[]');
+    const updatedProducts = products.filter(product => product.id !== id);
+    localStorage.setItem('products', JSON.stringify(updatedProducts));
+    
+    // Làm mới trang sau khi xóa để đảm bảo dữ liệu được cập nhật
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+  } catch (e) {
+    console.error('Lỗi khi cập nhật dữ liệu sau khi xóa:', e);
+    alert('Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.');
+  }
+  
+  // Thông báo xóa thành công
+  console.log(`Đã xóa sản phẩm có ID: ${id}`);
+}
 
 // 🏗 Lưu giỏ hàng vào localStorage khi thay đổi
 watch(cart, () => {

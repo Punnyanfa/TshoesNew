@@ -1,128 +1,179 @@
 <template>
-  <div class="container mt-5">
-    <h1 class="text-center text-primary">Thiết kế của bạn</h1>
+  <div>
+    <Header />
+    <div class="container mt-5">
+      <h1 class="text-center text-primary">Thiết kế của bạn</h1>
 
-    <div v-if="cart.length > 0">
-      <!-- Giỏ hàng có sản phẩm -->
-      <div class="cart-items mt-4">
-        <div v-for="item in cart" :key="item.id" class="cart-item-card">
-          <div class="cart-item-content">
-            <!-- Hiển thị hình ảnh thiết kế -->
-            <div class="cart-item-image">
-              <img :src="item.image" alt="Thiết kế giày" class="product-image" />
+      <div v-if="cart.length > 0">
+        <!-- Tiêu đề và nút xóa hết -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5>Danh sách thiết kế ({{ cart.length }})</h5>
+          <button class="btn btn-outline-danger btn-sm" @click="clearAllDesigns">
+            <i class="fas fa-trash-alt mr-1"></i> Xóa tất cả
+          </button>
+        </div>
+        
+        <!-- Giỏ hàng có sản phẩm -->
+        <div class="cart-items mt-4">
+          <div v-for="item in cart" :key="item.id" class="cart-item-card">
+            <div class="cart-item-content">
+              <!-- Hiển thị hình ảnh thiết kế -->
+              <div class="cart-item-image">
+                <img :src="item.image" alt="Thiết kế giày" class="product-image" />
+              </div>
+              
+              <div class="cart-item-details">
+                <h4>{{ item.name }}</h4>
+                <p class="price">{{ formatPrice(item.price) }}</p>
+                
+                <!-- Hiển thị thông tin thiết kế nếu có -->
+                <div v-if="item.designData" class="design-info">
+                  <p v-if="item.designData.customText" class="custom-text">
+                    <strong>Văn bản tùy chỉnh:</strong> {{ item.designData.customText }}
+                  </p>
+                  <p class="timestamp">
+                    <small>Thiết kế vào: {{ formatDate(item.designData.timestamp) }}</small>
+                  </p>
+                </div>
+                
+                <!-- Nút hiển thị thêm ảnh từ các góc khác -->
+                <div v-if="item.previewImages && item.previewImages.length > 1" class="mt-2">
+                  <button class="btn btn-sm btn-outline-secondary" @click="togglePreviewImages(item)">
+                    {{ item.showPreviews ? 'Ẩn' : 'Xem' }} tất cả góc nhìn
+                  </button>
+                </div>
+              </div>
+
+              <div class="cart-item-actions">
+                <button class="btn btn-primary edit-btn" @click="editDesign(item)">Sửa</button>
+                <button class="btn btn-success add-to-cart-btn" @click="duplicateToCart(item)">Thêm vào giỏ hàng</button>
+                <button class="btn btn-info add-to-product-btn" @click="addToProduct(item)">Thêm vào sản phẩm</button>
+                <button class="btn btn-danger delete-btn" @click="removeFromCart(item.id)">Xóa</button>
+              </div>
             </div>
             
-            <div class="cart-item-details">
-              <h4>{{ item.name }}</h4>
-              <p class="price">{{ formatPrice(item.price) }}</p>
-              
-              <!-- Hiển thị thông tin thiết kế nếu có -->
-              <div v-if="item.designData" class="design-info">
-                <p v-if="item.designData.customText" class="custom-text">
-                  <strong>Văn bản tùy chỉnh:</strong> {{ item.designData.customText }}
-                </p>
-                <p class="timestamp">
-                  <small>Thiết kế vào: {{ formatDate(item.designData.timestamp) }}</small>
-                </p>
-              </div>
-              
-              <!-- Nút hiển thị thêm ảnh từ các góc khác -->
-              <div v-if="item.previewImages && item.previewImages.length > 1" class="mt-2">
-                <button class="btn btn-sm btn-outline-secondary" @click="togglePreviewImages(item)">
-                  {{ item.showPreviews ? 'Ẩn' : 'Xem' }} tất cả góc nhìn
-                </button>
-              </div>
-            </div>
-
-            <div class="cart-item-actions">
-              <button class="btn btn-primary edit-btn" @click="editDesign(item)">Sửa</button>
-              <button class="btn btn-success add-to-cart-btn" @click="duplicateToCart(item)">Thêm vào giỏ hàng</button>
-              <button class="btn btn-info add-to-product-btn" @click="addToProduct(item)">Thêm vào sản phẩm</button>
-              <button class="btn btn-danger delete-btn" @click="removeFromCart(item.id)">Xóa</button>
-            </div>
-          </div>
-          
-          <!-- Hiển thị các góc nhìn khác khi được nhấp -->
-          <div v-if="item.showPreviews && item.previewImages" class="preview-images-container">
-            <div class="preview-images">
-              <div v-for="(preview, index) in item.previewImages" :key="index" class="preview-image-item">
-                <img :src="preview" alt="Góc nhìn" class="preview-image" />
+            <!-- Hiển thị các góc nhìn khác khi được nhấp -->
+            <div v-if="item.showPreviews && item.previewImages" class="preview-images-container">
+              <div class="preview-images">
+                <div v-for="(preview, index) in item.previewImages" :key="`preview_${item.id}_${index}`" class="preview-image-item">
+                  <img :src="preview" alt="Góc nhìn" class="preview-image" />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div v-else class="text-center mt-5 empty-cart">
-      <h4>Bạn chưa có thiết kế nào!</h4>
-      <NuxtLink to="/customdetailPage" class="btn btn-primary mt-3">Bắt đầu thiết kế giày</NuxtLink>
-    </div>
-  </div>
-
-  <!-- Modal cập nhật thông tin sản phẩm -->
-  <div class="product-modal" v-if="showProductModal">
-    <div class="product-modal-content">
-      <div class="product-modal-header">
-        <h3>Tạo sản phẩm từ thiết kế</h3>
-        <button class="close-button" @click="showProductModal = false">×</button>
+      <div v-else class="text-center mt-5 empty-cart">
+        <h4>Bạn chưa có thiết kế nào!</h4>
+        <NuxtLink to="/customdetailPage" class="btn btn-primary mt-3">Bắt đầu thiết kế giày</NuxtLink>
       </div>
-      <div class="product-modal-body">
-        <div class="product-preview">
-          <img :src="selectedProduct.image" alt="Hình ảnh sản phẩm" class="product-preview-image" />
-          
-          <!-- Thêm phần xem trước các góc nhìn -->
-          <div class="preview-angles-section" v-if="selectedProduct.previewImages && selectedProduct.previewImages.length > 1">
-            <h4>Các góc nhìn</h4>
-            <div class="preview-angles-container">
-              <div v-for="(preview, index) in selectedProduct.previewImages" :key="index" 
-                   class="preview-angle-item"
-                   @click="selectedProduct.image = preview">
-                <img :src="preview" alt="Góc nhìn" class="preview-angle-image" />
+    </div>
+
+    <!-- Modal cập nhật thông tin sản phẩm -->
+    <div class="product-modal" v-if="showProductModal">
+      <div class="product-modal-content">
+        <div class="product-modal-header">
+          <h3>Tạo sản phẩm từ thiết kế</h3>
+          <button class="close-button" @click="showProductModal = false">×</button>
+        </div>
+        <div class="product-modal-body">
+          <div class="product-preview">
+            <img :src="selectedProduct.image" alt="Hình ảnh sản phẩm" class="product-preview-image" />
+            
+            <!-- Thêm phần xem trước các góc nhìn -->
+            <div class="preview-angles-section" v-if="selectedProduct.previewImages && selectedProduct.previewImages.length > 1">
+              <h4>Các góc nhìn</h4>
+              <div class="preview-angles-container">
+                <div v-for="(preview, index) in selectedProduct.previewImages" :key="`modal_preview_${index}`" 
+                     class="preview-angle-item"
+                     @click="selectedProduct.image = preview">
+                  <img :src="preview" alt="Góc nhìn" class="preview-angle-image" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="product-form">
-          <div class="form-group">
-            <label for="productName">Tên sản phẩm:</label>
-            <input type="text" id="productName" v-model="selectedProduct.name" class="form-control" />
+          
+          <div class="product-form">
+            <div class="form-group">
+              <label for="productName">Tên sản phẩm:</label>
+              <input type="text" id="productName" v-model="selectedProduct.name" class="form-control" />
+            </div>
+            
+            <div class="form-group">
+              <label for="productPrice">Giá (VNĐ):</label>
+              <input type="number" id="productPrice" v-model="selectedProduct.price" class="form-control" />
+            </div>
+            
+            <div class="form-group">
+              <label for="productDescription">Mô tả:</label>
+              <textarea id="productDescription" v-model="selectedProduct.description" class="form-control" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group" v-if="selectedProduct.designData && selectedProduct.designData.customText">
+              <label for="customText">Văn bản tùy chỉnh:</label>
+              <input type="text" id="customText" v-model="selectedProduct.designData.customText" class="form-control" />
+            </div>
           </div>
           
-          <div class="form-group">
-            <label for="productPrice">Giá (VNĐ):</label>
-            <input type="number" id="productPrice" v-model="selectedProduct.price" class="form-control" />
+          <div class="product-modal-actions">
+            <button class="btn btn-secondary" @click="showProductModal = false">Hủy</button>
+            <button class="btn btn-primary" @click="saveToProduct">Tạo sản phẩm</button>
           </div>
-          
-          <div class="form-group">
-            <label for="productDescription">Mô tả:</label>
-            <textarea id="productDescription" v-model="selectedProduct.description" class="form-control" rows="3"></textarea>
-          </div>
-          
-          <div class="form-group" v-if="selectedProduct.designData && selectedProduct.designData.customText">
-            <label for="customText">Văn bản tùy chỉnh:</label>
-            <input type="text" id="customText" v-model="selectedProduct.designData.customText" class="form-control" />
-          </div>
-        </div>
-        
-        <div class="product-modal-actions">
-          <button class="btn btn-secondary" @click="showProductModal = false">Hủy</button>
-          <button class="btn btn-primary" @click="saveToProduct">Tạo sản phẩm</button>
         </div>
       </div>
     </div>
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import Header from '~/components/Header.vue';
+import Footer from '~/components/Footer.vue';
+
+// Hàm giới hạn kích thước dữ liệu của giỏ hàng
+const limitCartSize = (cartData) => {
+  // Tạo bản sao để không ảnh hưởng đến dữ liệu gốc
+  const limitedCart = JSON.parse(JSON.stringify(cartData));
+  
+  // Giới hạn số lượng phần tử trong giỏ hàng nếu quá lớn
+  if (limitedCart.length > 10) {
+    console.warn('Giỏ hàng có quá nhiều mục. Giữ 10 mục mới nhất.');
+    limitedCart.splice(0, limitedCart.length - 10);
+  }
+  
+  // Tối ưu dữ liệu của mỗi mục để giảm kích thước
+  limitedCart.forEach(item => {
+    // Giới hạn kích thước của previewImages thành tối đa 1 ảnh
+    if (item.previewImages && item.previewImages.length > 1) {
+      item.previewImages = [item.previewImages[0]];
+    }
+    
+    // Loại bỏ các thuộc tính không cần thiết nếu có
+    if (item.designData) {
+      // Chỉ giữ lại các thuộc tính cần thiết
+      const minimalDesignData = {
+        customText: item.designData.customText || '',
+        timestamp: item.designData.timestamp || new Date().toISOString()
+      };
+      item.designData = minimalDesignData;
+    }
+    
+    // Loại bỏ các dữ liệu tạm thời không cần thiết
+    delete item.showPreviews;
+    delete item.selected;
+    delete item.expanded;
+    delete item.temporary;
+  });
+  
+  return limitedCart;
+};
 
 // 🛒 Load cart và drafts từ localStorage
 const cart = ref([]);
 const showProductModal = ref(false);
 const selectedProduct = ref({
-  id: 0,
   name: '',
   price: 0,
   image: '',
@@ -161,10 +212,150 @@ const formatDate = (dateString) => {
   return date.toLocaleString('vi-VN');
 };
 
-// 🗑 Xóa sản phẩm khỏi giỏ hàng
-const removeFromCart = (id) => {
-  cart.value = cart.value.filter(item => item.id !== id);
+// 🏗 Lưu giỏ hàng vào localStorage khi thay đổi
+watch(cart, () => {
+  try {
+    // Nếu giỏ hàng trống, xóa sạch localStorage
+    if (cart.value.length === 0) {
+      localStorage.removeItem('cart');
+      console.log('Đã xóa dữ liệu giỏ hàng trong localStorage');
+      return;
+    }
+    
+    // Xóa localStorage trước để đảm bảo không bị tràn bộ nhớ
+    localStorage.removeItem('cart');
+    
+    // Áp dụng giới hạn kích thước và lưu
+    const limitedCartData = limitCartSize(cart.value);
+    localStorage.setItem('cart', JSON.stringify(limitedCartData));
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      alert('Lỗi: Bộ nhớ cục bộ đã đầy. Vui lòng xóa bớt các thiết kế không cần thiết.');
+      console.error('Lỗi lưu trữ: Đã vượt quá quota localStorage', error);
+      
+      // Cố gắng lưu với dữ liệu tối thiểu
+      try {
+        // Xóa dữ liệu cũ
+        localStorage.removeItem('cart');
+        
+        // Tạo phiên bản tối thiểu của giỏ hàng
+        const minimalCart = cart.value.slice(-5).map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          image: item.image
+        }));
+        
+        // Lưu phiên bản tối thiểu
+        localStorage.setItem('cart', JSON.stringify(minimalCart));
+      } catch (e) {
+        console.error('Không thể lưu giỏ hàng ngay cả với dữ liệu tối thiểu', e);
+      }
+    } else {
+      console.error('Lỗi lưu trữ cart:', error);
+    }
+  }
+}, { deep: true });
+
+// Hàm làm mới dữ liệu từ localStorage
+const refreshDataFromStorage = () => {
+  // Xóa cart hiện tại
+  cart.value = [];
+  
+  // Tải lại dữ liệu từ localStorage
+  const savedCart = localStorage.getItem('cart');
+  if (savedCart) {
+    try {
+      const parsedCart = JSON.parse(savedCart);
+      cart.value = parsedCart.map(item => ({
+        ...item,
+        showPreviews: false
+      }));
+    } catch (e) {
+      console.error('Lỗi khi làm mới dữ liệu giỏ hàng:', e);
+    }
+  }
+  
+  // Kiểm tra dữ liệu bản nháp
+  const savedDrafts = localStorage.getItem('designDrafts');
+  if (savedDrafts) {
+    try {
+      const parsedDrafts = JSON.parse(savedDrafts);
+      if (parsedDrafts && Array.isArray(parsedDrafts) && parsedDrafts.length > 0) {
+        const existingIds = new Set(cart.value.map(item => item.id));
+        const uniqueDrafts = parsedDrafts
+          .filter(item => item && !existingIds.has(item.id))
+          .map(item => ({
+            ...item,
+            id: item.id || `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            showPreviews: false
+          }));
+          
+        cart.value = [...cart.value, ...uniqueDrafts];
+      }
+    } catch (e) {
+      console.error('Lỗi khi làm mới dữ liệu bản nháp:', e);
+    }
+  }
+  
+  console.log(`Đã làm mới dữ liệu: ${cart.value.length} thiết kế`);
 };
+
+// 🗑 Xóa sản phẩm khỏi giỏ hàng
+function removeFromCart(id) {
+  try {
+    // Xóa sản phẩm khỏi cart trong state
+    cart.value = cart.value.filter(item => item.id !== id);
+    
+    // Xóa khỏi tất cả local storage liên quan
+    
+    // 1. Xóa khỏi designDrafts
+    const designDrafts = JSON.parse(localStorage.getItem('designDrafts') || '[]');
+    const updatedDrafts = designDrafts.filter(draft => draft.id !== id);
+    localStorage.setItem('designDrafts', JSON.stringify(updatedDrafts));
+    
+    // 2. Xóa khỏi cart trong localStorage
+    const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const updatedCart = storedCart.filter(item => item.id !== id);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
+    // 3. Xóa khỏi products trong localStorage
+    const products = JSON.parse(localStorage.getItem('products') || '[]');
+    const updatedProducts = products.filter(product => product.id !== id);
+    localStorage.setItem('products', JSON.stringify(updatedProducts));
+    
+    // 4. Xóa bất kỳ key nào có chứa ID sản phẩm
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '{}');
+        // Nếu key chứa mảng, kiểm tra xem có phần tử nào có ID cần xóa không
+        if (Array.isArray(value)) {
+          const updated = value.filter(item => item.id !== id);
+          if (updated.length !== value.length) {
+            localStorage.setItem(key, JSON.stringify(updated));
+          }
+        }
+        // Nếu key chứa object và có thuộc tính id trùng khớp
+        else if (value && typeof value === 'object' && value.id === id) {
+          localStorage.removeItem(key);
+        }
+      } catch (e) {
+        // Bỏ qua nếu không phải JSON
+      }
+    }
+    
+    console.log(`Đã xóa sản phẩm ID: ${id} khỏi tất cả bộ nhớ`);
+    
+    // Làm mới trang sau khi xóa để đảm bảo dữ liệu được cập nhật
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+  } catch (e) {
+    console.error('Lỗi khi xóa sản phẩm:', e);
+    alert('Có lỗi xảy ra khi xóa sản phẩm. Vui lòng thử lại.');
+  }
+}
 
 // Tạo bản sao của thiết kế và thêm vào giỏ hàng
 const duplicateToCart = (item) => {
@@ -182,7 +373,6 @@ const duplicateToCart = (item) => {
 const addToProduct = (item) => {
   // Chuẩn bị sản phẩm để hiển thị trong modal
   selectedProduct.value = {
-    id: Date.now(),
     name: item.name,
     price: item.price,
     image: item.image,
@@ -198,57 +388,126 @@ const addToProduct = (item) => {
 
 // Lưu thiết kế vào danh sách sản phẩm sau khi cập nhật thông tin
 const saveToProduct = () => {
-  // Lưu vào localStorage để có thể sử dụng trong trang sản phẩm
-  const products = JSON.parse(localStorage.getItem('products') || '[]');
-  
-  // Thêm sản phẩm đã cập nhật vào danh sách
-  products.push(selectedProduct.value);
-  localStorage.setItem('products', JSON.stringify(products));
-  
-  // Đóng modal và hiển thị thông báo
-  showProductModal.value = false;
-  alert('Đã thêm thiết kế vào danh sách sản phẩm!');
+  try {
+    // Lưu vào localStorage để có thể sử dụng trong trang sản phẩm
+    const products = JSON.parse(localStorage.getItem('products') || '[]');
+    
+    // Tối ưu hóa sản phẩm trước khi lưu
+    const optimizedProduct = {
+      name: selectedProduct.value.name,
+      price: selectedProduct.value.price,
+      image: selectedProduct.value.image,
+      description: selectedProduct.value.description || '',
+      designData: {
+        customText: selectedProduct.value.designData?.customText || '',
+        timestamp: selectedProduct.value.designData?.timestamp || new Date().toISOString()
+      },
+      // Chỉ lưu tối đa 1 hình ảnh xem trước
+      previewImages: selectedProduct.value.previewImages && selectedProduct.value.previewImages.length > 0 
+        ? [selectedProduct.value.previewImages[0]] 
+        : [],
+      isCustomDesign: true,
+      id: Date.now() // Thêm ID duy nhất
+    };
+    
+    // Thêm sản phẩm đã tối ưu vào danh sách
+    products.push(optimizedProduct);
+    
+    // Giới hạn kích thước trước khi lưu để tránh vượt quá quota
+    const limitedProducts = products.slice(-10); // Giới hạn 10 sản phẩm mới nhất
+    
+    // Xóa dữ liệu cũ trước khi lưu để tránh vượt quá quota
+    localStorage.removeItem('products');
+    
+    // Lưu dữ liệu mới
+    localStorage.setItem('products', JSON.stringify(limitedProducts));
+    
+    // Đóng modal và hiển thị thông báo
+    showProductModal.value = false;
+    alert('Đã thêm thiết kế vào danh sách sản phẩm!');
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      alert('Lỗi: Bộ nhớ cục bộ đã đầy. Vui lòng xóa bớt các sản phẩm không cần thiết trước khi thêm mới.');
+      console.error('Lỗi lưu trữ: Đã vượt quá quota localStorage', error);
+      
+      // Cố gắng xóa dữ liệu cũ và lưu lại với ít sản phẩm hơn
+      try {
+        // Xóa dữ liệu cũ
+        localStorage.removeItem('products');
+        
+        // Tạo mảng chỉ có sản phẩm mới
+        const singleProduct = [{
+          name: selectedProduct.value.name,
+          price: selectedProduct.value.price,
+          image: selectedProduct.value.image,
+          description: selectedProduct.value.description || '',
+          id: Date.now()
+        }];
+        
+        // Lưu chỉ sản phẩm mới
+        localStorage.setItem('products', JSON.stringify(singleProduct));
+        showProductModal.value = false;
+        alert('Đã lưu sản phẩm với thông tin tối thiểu do bộ nhớ hạn chế.');
+      } catch (e) {
+        console.error('Không thể lưu ngay cả với dữ liệu tối thiểu', e);
+        alert('Không thể lưu sản phẩm do bộ nhớ đã đầy. Vui lòng xóa dữ liệu trình duyệt và thử lại.');
+      }
+    } else {
+      console.error('Lỗi lưu trữ sản phẩm:', error);
+      alert('Có lỗi khi lưu sản phẩm. Vui lòng thử lại.');
+    }
+  }
 };
 
-// 🏗 Lưu giỏ hàng vào localStorage khi thay đổi
-watch(cart, () => {
-  localStorage.setItem('cart', JSON.stringify(cart.value));
-}, { deep: true });
+// Chức năng xóa tất cả thiết kế
+const clearAllDesigns = () => {
+  // Xác nhận trước khi xóa
+  if (!confirm('Bạn có chắc chắn muốn xóa tất cả thiết kế không?')) {
+    return;
+  }
+  
+  // Xóa khỏi mảng cart hiện tại
+  cart.value = [];
+  
+  // Xóa khỏi localStorage
+  localStorage.removeItem('cart');
+  localStorage.removeItem('designDrafts');
+  
+  // Làm mới dữ liệu từ localStorage (đảm bảo mọi thứ đã được xóa)
+  refreshDataFromStorage();
+  
+  // Thông báo xóa thành công
+  alert('Đã xóa tất cả thiết kế!');
+};
+
+// Xóa dữ liệu cũ trong localStorage khi không cần thiết
+const cleanupStorage = () => {
+  try {
+    // Xóa các dữ liệu tạm thời hoặc không cần thiết
+    const keysToClean = ['tempDesign', 'lastViewedItems', 'viewHistory', 'recentlyViewed'];
+    keysToClean.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    // Giới hạn kích thước của các dữ liệu đã lưu
+    const designDrafts = JSON.parse(localStorage.getItem('designDrafts') || '[]');
+    if (designDrafts.length > 5) {
+      localStorage.setItem('designDrafts', JSON.stringify(designDrafts.slice(-5)));
+    }
+    
+    console.log('Đã dọn dẹp localStorage để giảm nguy cơ vượt quota');
+  } catch (e) {
+    console.error('Lỗi khi dọn dẹp localStorage:', e);
+  }
+};
 
 // 🔄 Khởi tạo cart và drafts từ localStorage
 onMounted(() => {
-  // Load cart
-  const savedCart = localStorage.getItem('cart');
-  if (savedCart) {
-    try {
-      const parsedCart = JSON.parse(savedCart);
-      // Thêm thuộc tính showPreviews cho mỗi item
-      cart.value = parsedCart.map(item => ({
-        ...item,
-        showPreviews: false
-      }));
-    } catch (e) {
-      console.error('Lỗi khi phân tích giỏ hàng:', e);
-      cart.value = [];
-    }
-  }
+  // Dọn dẹp localStorage trước khi load dữ liệu
+  cleanupStorage();
   
-  // Load drafts
-  const savedDrafts = localStorage.getItem('designDrafts');
-  if (savedDrafts) {
-    try {
-      const parsedDrafts = JSON.parse(savedDrafts);
-      // Thêm thuộc tính showPreviews cho mỗi item
-      const draftsWithPreviews = parsedDrafts.map(item => ({
-        ...item,
-        showPreviews: false
-      }));
-      // Thêm drafts vào cart để hiển thị
-      cart.value = [...cart.value, ...draftsWithPreviews];
-    } catch (e) {
-      console.error('Lỗi khi phân tích bản nháp:', e);
-    }
-  }
+  // Gọi hàm làm mới dữ liệu để tải từ localStorage
+  refreshDataFromStorage();
 });
 </script>
 
@@ -375,57 +634,6 @@ h1 {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Thêm hiệu ứng gợn sóng khi click */
-.btn::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
-  transform-origin: 50% 50%;
-}
-
-.btn:active::after {
-  animation: ripple-effect 0.6s ease-out;
-}
-
-@keyframes ripple-effect {
-  0% {
-    transform: scale(0, 0);
-    opacity: 0.5;
-  }
-  20% {
-    transform: scale(25, 25);
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(40, 40);
-  }
-}
-
-/* Thêm hiệu ứng shining effect */
-.btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 100%);
-  transform: skewX(-25deg);
-  transition: all 0.75s;
-}
-
-.btn:hover::before {
-  left: 125%;
-}
-
 /* Nút chỉnh sửa */
 .edit-btn {
   background: linear-gradient(135deg, #007bff, #0056b3);
@@ -435,11 +643,6 @@ h1 {
 
 .edit-btn:hover {
   background: linear-gradient(135deg, #0069d9, #00489e);
-}
-
-.edit-btn::before {
-  content: "";
-  display: none;
 }
 
 /* Nút thêm vào giỏ hàng */
@@ -453,11 +656,6 @@ h1 {
   background: linear-gradient(135deg, #218838, #186429);
 }
 
-.add-to-cart-btn::before {
-  content: "";
-  display: none;
-}
-
 /* Nút thêm vào sản phẩm */
 .add-to-product-btn {
   background: linear-gradient(135deg, #17a2b8, #117a8b);
@@ -469,11 +667,6 @@ h1 {
   background: linear-gradient(135deg, #138496, #0f6674);
 }
 
-.add-to-product-btn::before {
-  content: "";
-  display: none;
-}
-
 /* Nút xóa */
 .delete-btn {
   background: linear-gradient(135deg, #dc3545, #bd2130);
@@ -482,11 +675,6 @@ h1 {
 
 .delete-btn:hover {
   background: linear-gradient(135deg, #c82333, #a71d2a);
-}
-
-.delete-btn::before {
-  content: "";
-  display: none;
 }
 
 /* Nút hiển thị góc nhìn */
@@ -501,31 +689,6 @@ h1 {
 .btn-outline-secondary:hover {
   background-color: #6c757d;
   color: white;
-}
-
-/* Nút checkout */
-.checkout-btn {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  font-weight: bold;
-  color: white;
-  padding: 12px 30px;
-  border-radius: 50px;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-  transition: all 0.3s ease;
-  border: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.checkout-btn:hover {
-  background: linear-gradient(135deg, #218838, #1aa179);
-  transform: translateY(-3px);
-  box-shadow: 0 7px 20px rgba(40, 167, 69, 0.4);
-}
-
-.checkout-btn::before {
-  content: "";
-  display: none;
 }
 
 /* Phần hiển thị hình ảnh xem trước */
@@ -615,44 +778,6 @@ h1 {
   background: linear-gradient(135deg, #2980b9, #2471a3);
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
-}
-
-.empty-cart .btn::before {
-  content: "";
-  display: none;
-}
-
-.empty-cart .btn::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
-  transform-origin: 50% 50%;
-}
-
-.empty-cart .btn:hover::after {
-  animation: ripple 1s ease-out;
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0, 0);
-    opacity: 0.5;
-  }
-  20% {
-    transform: scale(25, 25);
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(40, 40);
-  }
 }
 
 /* Responsive */
@@ -765,17 +890,10 @@ h1 {
   line-height: 1;
   color: #999;
   cursor: pointer;
-  transition: all 0.3s ease;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.close-button:hover {
-  color: #333;
-  background-color: #f0f0f0;
-  transform: rotate(90deg);
 }
 
 .product-modal-body {
@@ -920,11 +1038,6 @@ h1 {
   transform: translateY(-3px);
 }
 
-.product-modal-actions .btn-primary::before {
-  content: "";
-  display: none;
-}
-
 .product-modal-actions .btn-secondary {
   background: linear-gradient(135deg, #6c757d, #545b62);
   color: white;
@@ -936,11 +1049,6 @@ h1 {
   background: linear-gradient(135deg, #5a6268, #4e555b);
   box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
   transform: translateY(-3px);
-}
-
-.product-modal-actions .btn-secondary::before {
-  content: "";
-  display: none;
 }
 
 /* Responsive */

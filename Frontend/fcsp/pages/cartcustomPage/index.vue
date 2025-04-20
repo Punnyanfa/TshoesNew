@@ -1,74 +1,80 @@
 <template>
-  <div class="container mt-5">
-    <h1 class="text-center text-primary">Giỏ hàng của bạn</h1>
+  <div>
+    <Header />
+    <div class="container mt-5">
+      <h1 class="text-center text-primary">Giỏ hàng của bạn</h1>
 
-    <div v-if="cart.length > 0">
-      <!-- Giỏ hàng có sản phẩm -->
-      <div class="cart-items mt-4">
-        <div v-for="item in cart" :key="item.id" class="cart-item-card">
-          <div class="cart-item-content">
-            <!-- Hiển thị hình ảnh thiết kế -->
-            <div class="cart-item-image">
-              <img :src="item.image" alt="Thiết kế giày" class="product-image" />
+      <div v-if="cart.length > 0">
+        <!-- Giỏ hàng có sản phẩm -->
+        <div class="cart-items mt-4">
+          <div v-for="item in cart" :key="item.id" class="cart-item-card">
+            <div class="cart-item-content">
+              <!-- Hiển thị hình ảnh thiết kế -->
+              <div class="cart-item-image">
+                <img :src="item.image" alt="Thiết kế giày" class="product-image" />
+              </div>
+              
+              <div class="cart-item-details">
+                <h4>{{ item.name }}</h4>
+                <p class="price">{{ formatPrice(item.price) }}</p>
+                
+                <!-- Hiển thị thông tin thiết kế nếu có -->
+                <div v-if="item.designData" class="design-info">
+                  <p v-if="item.designData.customText" class="custom-text">
+                    <strong>Văn bản tùy chỉnh:</strong> {{ item.designData.customText }}
+                  </p>
+                  <p class="timestamp">
+                    <small>Thiết kế vào: {{ formatDate(item.designData.timestamp) }}</small>
+                  </p>
+                </div>
+                
+                <!-- Nút hiển thị thêm ảnh từ các góc khác -->
+                <div v-if="item.previewImages && item.previewImages.length > 1" class="mt-2">
+                  <button class="btn btn-sm btn-outline-secondary" @click="togglePreviewImages(item)">
+                    {{ item.showPreviews ? 'Ẩn' : 'Xem' }} tất cả góc nhìn
+                  </button>
+                </div>
+              </div>
+
+              <div class="cart-item-actions">
+                <button class="btn btn-danger" @click="removeFromCart(item.id)">Xóa</button>
+              </div>
             </div>
             
-            <div class="cart-item-details">
-              <h4>{{ item.name }}</h4>
-              <p class="price">{{ formatPrice(item.price) }}</p>
-              
-              <!-- Hiển thị thông tin thiết kế nếu có -->
-              <div v-if="item.designData" class="design-info">
-                <p v-if="item.designData.customText" class="custom-text">
-                  <strong>Văn bản tùy chỉnh:</strong> {{ item.designData.customText }}
-                </p>
-                <p class="timestamp">
-                  <small>Thiết kế vào: {{ formatDate(item.designData.timestamp) }}</small>
-                </p>
-              </div>
-              
-              <!-- Nút hiển thị thêm ảnh từ các góc khác -->
-              <div v-if="item.previewImages && item.previewImages.length > 1" class="mt-2">
-                <button class="btn btn-sm btn-outline-secondary" @click="togglePreviewImages(item)">
-                  {{ item.showPreviews ? 'Ẩn' : 'Xem' }} tất cả góc nhìn
-                </button>
-              </div>
-            </div>
-
-            <div class="cart-item-actions">
-              <button class="btn btn-danger" @click="removeFromCart(item.id)">Xóa</button>
-            </div>
-          </div>
-          
-          <!-- Hiển thị các góc nhìn khác khi được nhấp -->
-          <div v-if="item.showPreviews && item.previewImages" class="preview-images-container">
-            <div class="preview-images">
-              <div v-for="(preview, index) in item.previewImages" :key="index" class="preview-image-item">
-                <img :src="preview" alt="Góc nhìn" class="preview-image" />
+            <!-- Hiển thị các góc nhìn khác khi được nhấp -->
+            <div v-if="item.showPreviews && item.previewImages" class="preview-images-container">
+              <div class="preview-images">
+                <div v-for="(preview, index) in item.previewImages" :key="index" class="preview-image-item">
+                  <img :src="preview" alt="Góc nhìn" class="preview-image" />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Tổng tiền và nút thanh toán -->
-      <div class="cart-footer mt-4">
-        <h4>Tổng tiền: <strong>{{ formatPrice(totalPrice) }}</strong></h4>
-        <div class="cart-actions">
-          <NuxtLink to="/productPage" class="btn btn-outline-primary">Tiếp tục mua sắm</NuxtLink>
-          <NuxtLink to="/checkout" class="btn btn-success checkout-btn">Tiến hành thanh toán</NuxtLink>
+        <!-- Tổng tiền và nút thanh toán -->
+        <div class="cart-footer mt-4">
+          <h4>Tổng tiền: <strong>{{ formatPrice(totalPrice) }}</strong></h4>
+          <div class="cart-actions">
+            <NuxtLink to="/productPage" class="btn btn-outline-primary">Tiếp tục mua sắm</NuxtLink>
+            <NuxtLink to="/checkout" class="btn btn-success checkout-btn">Tiến hành thanh toán</NuxtLink>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div v-else class="text-center mt-5 empty-cart">
-      <h4>Giỏ hàng của bạn đang trống!</h4>
-      <NuxtLink to="/customdetailPage" class="btn btn-primary mt-3">Bắt đầu thiết kế giày</NuxtLink>
+      <div v-else class="text-center mt-5 empty-cart">
+        <h4>Giỏ hàng của bạn đang trống!</h4>
+        <NuxtLink to="/customdetailPage" class="btn btn-primary mt-3">Bắt đầu thiết kế giày</NuxtLink>
+      </div>
     </div>
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import Header from '~/components/Header.vue';
+import Footer from '~/components/Footer.vue';
 
 // 🛒 Load cart từ localStorage
 const cart = ref([]);
