@@ -1,4 +1,6 @@
-﻿namespace FCSP.Models.Entities;
+﻿using FCSP.Common.Enums;
+
+namespace FCSP.Models.Entities;
 
 public class CustomShoeDesignTemplate : BaseEntity
 {
@@ -7,6 +9,7 @@ public class CustomShoeDesignTemplate : BaseEntity
     public string? Gender { get; set; }
     public string? Color { get; set; }
     public float Price { get; set; }
+    public TemplateStatus Status { get; set; }
     [System.ComponentModel.DataAnnotations.Schema.Column("2DImageUrl")]
     public string? TwoDImageUrl { get; set; }
     [System.ComponentModel.DataAnnotations.Schema.Column("3DFileUrl")]

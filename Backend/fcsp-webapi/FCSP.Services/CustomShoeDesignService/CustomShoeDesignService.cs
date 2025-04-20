@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+
 
 namespace FCSP.Services.CustomShoeDesignService;
 
@@ -23,6 +27,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private readonly ISetServiceAmountRepository _setServiceAmountRepository;
     private readonly IServiceRepository _serviceRepository;
     private readonly ISizeRepository _sizeRepository;
+    private readonly IConfiguration _configuration;
+    private readonly string? _azureConnectionString;
+    private readonly string? _azureContainerName;
 
     public CustomShoeDesignService(
         ICustomShoeDesignRepository customShoeDesignRepository,
@@ -34,7 +41,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         IDesignServiceRepository designServiceRepository,
         ISetServiceAmountRepository setServiceAmountRepository,
         IServiceRepository serviceRepository,
-        ISizeRepository sizeRepository)
+        ISizeRepository sizeRepository,
+        IConfiguration configuration)
     {
         _customShoeDesignRepository = customShoeDesignRepository;
         _orderDetailRepository = orderDetailRepository;
@@ -46,6 +54,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         _setServiceAmountRepository = setServiceAmountRepository;
         _serviceRepository = serviceRepository;
         _sizeRepository = sizeRepository;
+        _configuration = configuration;
+        _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
+        _azureContainerName = _configuration["AzureStorage:ContainerName"];
     }
 
     #region Public Methods
@@ -194,9 +205,16 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         
             var addedDesign = await _customShoeDesignRepository.AddAsync(design);
 
+            var designPreviewImages = await GetDesignPreviewImagesFromAddDesignRequest(request, addedDesign.Id);
+
             var designTextures = GetDesignTexturesFromAddDesignRequest(request, addedDesign.Id);
 
             var designServices = GetDesignServicesFromAddDesignRequest(request, addedDesign.Id);
+
+            if(designPreviewImages.Any())
+            {
+                await _designPreviewRepository.AddRangeAsync(designPreviewImages);
+            }
 
             if(designTextures.Any())
             {
@@ -323,7 +341,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     #endregion
 
     #region Private Methods
-    
     private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetAllPublicCustomShoeDesigns()
     {
         var designs = await _customShoeDesignRepository.GetAllPublicCustomShoeDesignsAsync();
@@ -459,6 +476,37 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return design;
     }
 
+    private async Task<IEnumerable<DesignPreview>> GetDesignPreviewImagesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
+    {
+        if(request.CustomShoeDesignPreviewImages == null || !request.CustomShoeDesignPreviewImages.Any())
+        {
+            return new List<DesignPreview>();
+        }
+        List<DesignPreview> previewImages = new List<DesignPreview>();
+        foreach (var previewImage in request.CustomShoeDesignPreviewImages)
+        {
+            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+            string fileName = $"previewImage_{formattedDateTime}.jpeg";
+            byte[] fileBytes;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await previewImage.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+            var previewImagePath = await UploadToAzureStorage(fileName, fileBytes);
+            previewImages.Add(new DesignPreview{
+                CustomShoeDesignId = designId,
+                PreviewImageUrl = previewImagePath,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+
+        return previewImages;
+    }
+
     private IEnumerable<CustomShoeDesignTextures> GetDesignTexturesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
     {
         if(request.TextureIds == null || !request.TextureIds.Any())
@@ -574,6 +622,33 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         design.Status = Common.Enums.CustomShoeDesignStatus.Archived;
         
         return design;
+    }
+
+    private async Task<string> UploadToAzureStorage(string fileName, byte[] fileBytes)
+    {
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+            var blobClient = containerClient.GetBlobClient(fileName);
+
+            using (var stream = new MemoryStream(fileBytes))
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = "image/jpeg"
+                });
+            }
+
+            return blobClient.Uri.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+        }
     }
     #endregion
 }

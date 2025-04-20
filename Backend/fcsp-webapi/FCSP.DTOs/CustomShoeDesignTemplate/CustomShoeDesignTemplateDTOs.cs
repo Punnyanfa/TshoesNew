@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using FCSP.Common.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace FCSP.DTOs.CustomShoeDesignTemplate
 {
@@ -60,13 +62,11 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Color must be between 2 and 50 characters")]
         public string Color { get; set; } = null!;
 
-        [Required(ErrorMessage = "PreviewImageUrl is required")]
-        [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
-        public string PreviewImageUrl { get; set; } = null!;
+        [Required(ErrorMessage = "PreviewImage is required")]
+        public IFormFile PreviewImage { get; set; } = null!;
 
-        [Required(ErrorMessage = "Model3DUrl is required")]
-        [Url(ErrorMessage = "Invalid URL format for Model3DUrl")]
-        public string Model3DUrl { get; set; } = null!;
+        [Required(ErrorMessage = "Model3DFile is required")]
+        public IFormFile Model3DFile { get; set; } = null!;
 
         [Range(0, double.MaxValue, ErrorMessage = "BasePrice cannot be negative")]
         public decimal BasePrice { get; set; }
@@ -76,16 +76,7 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
 
     public class AddTemplateResponse
     {
-        [Required(ErrorMessage = "Id is required")]
-        [Range(1, long.MaxValue, ErrorMessage = "Id must be greater than 0")]
-        public long Id { get; set; }
-
-        [Required(ErrorMessage = "Name is required")]
-        public string Name { get; set; } = null!;
-
-        [Required(ErrorMessage = "PreviewImageUrl is required")]
-        [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
-        public string PreviewImageUrl { get; set; } = null!;
+        public bool Success { get; set; }
     }
 
     public class UpdateTemplateRequest
@@ -112,11 +103,11 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
 
         [Required(ErrorMessage = "PreviewImageUrl is required")]
         [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
-        public string PreviewImageUrl { get; set; } = null!;
+        public IFormFile PreviewImage { get; set; } = null!;
 
         [Required(ErrorMessage = "Model3DUrl is required")]
         [Url(ErrorMessage = "Invalid URL format for Model3DUrl")]
-        public string Model3DUrl { get; set; } = null!;
+        public IFormFile Model3DFile { get; set; } = null!;
 
         [Range(0, double.MaxValue, ErrorMessage = "BasePrice cannot be negative")]
         public decimal BasePrice { get; set; }
@@ -126,16 +117,7 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
 
     public class UpdateTemplateResponse
     {
-        [Required(ErrorMessage = "Id is required")]
-        [Range(1, long.MaxValue, ErrorMessage = "Id must be greater than 0")]
-        public long Id { get; set; }
-
-        [Required(ErrorMessage = "Name is required")]
-        public string Name { get; set; } = null!;
-
-        [Required(ErrorMessage = "PreviewImageUrl is required")]
-        [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
-        public string PreviewImageUrl { get; set; } = null!;
+        public bool Success { get; set; }
     }
 
     public class DeleteTemplateRequest
@@ -183,23 +165,17 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
         public bool? IsAvailable { get; set; } = true; // Mặc định chỉ lấy các template available
     }
 
-    public class RestoreTemplateRequest
+    public class UpdateTemplateStatusRequest
     {
         [Required(ErrorMessage = "Id is required")]
         [Range(1, long.MaxValue, ErrorMessage = "Id must be greater than 0")]
         public long Id { get; set; }
+        public TemplateStatus Status { get; set; }
     }
 
-    public class RestoreTemplateResponse
+    public class UpdateTemplateStatusResponse
     {
-        [Required(ErrorMessage = "Id is required")]
-        [Range(1, long.MaxValue, ErrorMessage = "Id must be greater than 0")]
-        public long Id { get; set; }
-
         public bool Success { get; set; }
-
-        [Required(ErrorMessage = "Message is required")]
-        public string Message { get; set; } = null!;
     }
 
     public class GetTemplateStatsRequest

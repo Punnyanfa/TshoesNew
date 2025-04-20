@@ -1,5 +1,5 @@
 ﻿using FCSP.Common.Enums;
-
+using Microsoft.AspNetCore.Http;
 namespace FCSP.DTOs.Authentication;
 
 public class GetAllUsersResponse
@@ -28,6 +28,7 @@ public class GetUserByIdResponse
     public string Email { get; set; } = string.Empty;
     public string Dob { get; set; } = string.Empty;
     public string Gender { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
 }
 
 public class UserLoginRequest
@@ -48,18 +49,38 @@ public class UserRegisterRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class UpdateUserBalanceRequest
+{
+    public long Id { get; set; }
+    public float Balance { get; set; }
+}
+
+public class UpdateUserBalanceResponse
+{
+    public bool Success { get; set; }
+}
+
+public class UpdateUserAvatarRequest
+{
+    public long Id { get; set; }
+    public IFormFile Avatar { get; set; } = null!;
+}
+
+public class UpdateUserAvatarResponse
+{
+    public bool Success { get; set; }
+}
+
 public class UpdateUserStatusRequest
 {
     public long Id { get; set; }
-    public bool IsDeleted { get; set; }
+    public bool IsBanned { get; set; }
 }
 
 public class UpdateUserStatusResponse
 {
     public bool Success { get; set; }
 }
-
-
 
 public class UserRegisterResponse
 {
@@ -92,9 +113,10 @@ public class UserDeleteResponse
 public class UpdateUserInformationRequest
 {
     public long Id { get; set; }
-    public string Name { get; set; } = null!;
-    public string Gender { get; set; } = null!;
-    public string Dob { get; set; } = null!;
+    public string? Name { get; set; }
+    public string? Gender { get; set; }
+    public string? Dob { get; set; }
+    public string? PhoneNumber { get; set; }
 }
 
 public class UpdateUserInformationResponse
