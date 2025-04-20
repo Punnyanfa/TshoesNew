@@ -4,7 +4,6 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.CartService
 {
@@ -80,7 +79,7 @@ namespace FCSP.Services.CartService
             try
             {
                 var response = new BaseResponseModel<AddToCartResponse>();
-                
+
                 // Check if the design exists
                 var design = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
                 if (design == null || design.IsDeleted)
@@ -157,7 +156,7 @@ namespace FCSP.Services.CartService
             try
             {
                 var response = new BaseResponseModel<UpdateCartItemResponse>();
-                
+
                 // Get cart for user
                 var cart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
                 if (cart == null)
@@ -178,11 +177,11 @@ namespace FCSP.Services.CartService
                 {
                     // If quantity is 0 or negative, remove the item
                     await RemoveCartItemAsync(request.CartItemId);
-                    
+
                     // Recalculate cart totals
-                        var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                        float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
-                    
+                    var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
+                    float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
+
                     response.Data = new UpdateCartItemResponse
                     {
                         Success = true,
@@ -197,13 +196,13 @@ namespace FCSP.Services.CartService
                     // Update the quantity
                     cartItem.Quantity = request.Quantity;
                     await _cartItemRepository.UpdateAsync(cartItem);
-                    
+
                     float subtotal = cartItem.CustomShoeDesign.TotalAmount * cartItem.Quantity;
-                    
+
                     // Calculate total cart value
                     var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
                     float cartTotal = updatedCart.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity);
-                    
+
                     response.Data = new UpdateCartItemResponse
                     {
                         Success = true,
@@ -213,7 +212,7 @@ namespace FCSP.Services.CartService
                         CartTotal = cartTotal
                     };
                 }
-                
+
                 return new BaseResponseModel<UpdateCartItemResponse>
                 {
                     Code = 200,
@@ -236,7 +235,7 @@ namespace FCSP.Services.CartService
             try
             {
                 var response = new BaseResponseModel<RemoveFromCartResponse>();
-                
+
                 // Get cart for user
                 var cart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
                 if (cart == null)
@@ -255,19 +254,19 @@ namespace FCSP.Services.CartService
 
                 // Remove the item
                 await RemoveCartItemAsync(request.CartItemId);
-                
+
                 // Recalculate cart totals
                 var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
                 int remainingItems = updatedCart?.CartItems.Sum(i => i.Quantity) ?? 0;
                 float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
-                
+
                 response.Data = new RemoveFromCartResponse
                 {
                     Success = true,
                     RemainingItems = remainingItems,
                     CartTotal = cartTotal
                 };
-                
+
                 return new BaseResponseModel<RemoveFromCartResponse>
                 {
                     Code = 200,
@@ -290,7 +289,7 @@ namespace FCSP.Services.CartService
             try
             {
                 var response = new BaseResponseModel<bool>();
-                
+
                 // Get cart for user
                 var cart = await _cartRepository.GetCartWithItemsByUserIdAsync(userId);
                 if (cart == null)
@@ -304,7 +303,7 @@ namespace FCSP.Services.CartService
                 {
                     await RemoveCartItemAsync(item.Id);
                 }
-                
+
                 return new BaseResponseModel<bool>
                 {
                     Code = 200,
@@ -332,4 +331,4 @@ namespace FCSP.Services.CartService
             }
         }
     }
-} 
+}

@@ -1,12 +1,11 @@
-﻿using FCSP.DTOs;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using FCSP.DTOs;
 using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace FCSP.Services.TemplateService
 {
@@ -26,7 +25,7 @@ namespace FCSP.Services.TemplateService
         }
 
         private BaseResponseModel<T> HandleException<T>(Exception ex, string action) =>
-            new BaseResponseModel<T> { Code = 500, Message = $"Error {action}: {ex.Message}"};
+            new BaseResponseModel<T> { Code = 500, Message = $"Error {action}: {ex.Message}" };
 
         public async Task<BaseResponseModel<List<CustomShoeDesignTemplate>>> GetAllTemplate()
         {
@@ -138,7 +137,7 @@ namespace FCSP.Services.TemplateService
                 {
                     Code = 500,
                     Message = $"Error updating template: {ex.Message}"
-                    
+
                 };
             }
         }
@@ -209,7 +208,7 @@ namespace FCSP.Services.TemplateService
                     (string.IsNullOrEmpty(request.Name) || t.Name.Contains(request.Name, StringComparison.OrdinalIgnoreCase)) &&
                     (string.IsNullOrEmpty(request.Gender) || t.Gender == request.Gender) &&
                     (string.IsNullOrEmpty(request.Color) || t.Color == request.Color) &&
-                    (!request.MinPrice.HasValue || (decimal)t.Price >= request.MinPrice.Value) && 
+                    (!request.MinPrice.HasValue || (decimal)t.Price >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || (decimal)t.Price <= request.MaxPrice.Value)
                 ).ToList();
 
@@ -267,7 +266,7 @@ namespace FCSP.Services.TemplateService
                     Code = 200,
                     Message = "Template restored successfully",
                     Data = new UpdateTemplateStatusResponse
-                    {    
+                    {
                         Success = true
                     }
                 };
@@ -301,7 +300,7 @@ namespace FCSP.Services.TemplateService
             catch (Exception ex) { return HandleException<GetTemplateStatsResponse>(ex, "retrieving template stats"); }
         }
 
-        private async Task<CustomShoeDesignTemplate> GetEntityFromAddRequest(AddTemplateRequest request) 
+        private async Task<CustomShoeDesignTemplate> GetEntityFromAddRequest(AddTemplateRequest request)
         {
             var previewImageUrl = await UploadPreviewImage(request.PreviewImage);
             var model3DUrl = await Upload3DModel(request.Model3DFile);
@@ -334,7 +333,7 @@ namespace FCSP.Services.TemplateService
                 await previewImage.CopyToAsync(memoryStream);
                 fileBytes = memoryStream.ToArray();
             }
-            var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
+            var avatarPath = await UploadPreviewImageToAzureStorage(fileName, fileBytes);
 
             return avatarPath;
         }
@@ -351,36 +350,63 @@ namespace FCSP.Services.TemplateService
                 await model3DFile.CopyToAsync(memoryStream);
                 fileBytes = memoryStream.ToArray();
             }
-            var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
+            var avatarPath = await Upload3DModelToAzureStorage(fileName, fileBytes);
 
             return avatarPath;
         }
 
-        private async Task<string> UploadToAzureStorage(string fileName, byte[] fileBytes)
+        private async Task<string> Upload3DModelToAzureStorage(string fileName, byte[] fileBytes)
         {
-        try
-        {
-            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
-
-            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
-            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
-
-            var blobClient = containerClient.GetBlobClient(fileName);
-
-            using (var stream = new MemoryStream(fileBytes))
+            try
             {
-                await blobClient.UploadAsync(stream, new BlobHttpHeaders
-                {
-                    ContentType = "model/gltf-binary"
-                });
-            }
+                var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
-            return blobClient.Uri.ToString();
+                var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+                await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+                var blobClient = containerClient.GetBlobClient(fileName);
+
+                using (var stream = new MemoryStream(fileBytes))
+                {
+                    await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                    {
+                        ContentType = "model/gltf-binary"
+                    });
+                }
+
+                return blobClient.Uri.ToString();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+
+        private async Task<string> UploadPreviewImageToAzureStorage(string fileName, byte[] fileBytes)
         {
-            throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
-        }
+            try
+            {
+                var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+
+                var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+                await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+                var blobClient = containerClient.GetBlobClient(fileName);
+
+                using (var stream = new MemoryStream(fileBytes))
+                {
+                    await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                    {
+                        ContentType = "image/jpeg"
+                    });
+                }
+
+                return blobClient.Uri.ToString();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 using FCSP.DTOs.PostsComments;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.PostsCommentsService
 {
@@ -13,4 +12,4 @@ namespace FCSP.Services.PostsCommentsService
         Task<UpdatePostsCommentResponse> UpdatePostsComment(UpdatePostsCommentRequest request);
         Task<DeletePostsCommentResponse> DeletePostsComment(DeletePostsCommentRequest request);
     }
-} 
+}

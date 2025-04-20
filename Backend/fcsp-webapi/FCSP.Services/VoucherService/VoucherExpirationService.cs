@@ -13,10 +13,10 @@ public class VoucherExpirationService : BackgroundService
     public VoucherExpirationService(
         IServiceProvider serviceProvider,
         ILogger<VoucherExpirationService> logger,
-        IConfiguration configuration) 
+        IConfiguration configuration)
     {
         _serviceProvider = serviceProvider;
-        _logger = logger;     
+        _logger = logger;
         var intervalMinutes = configuration.GetValue<int>("VoucherExpirationCheckIntervalMinutes", 1);
         _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
     }

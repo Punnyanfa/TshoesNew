@@ -1,16 +1,13 @@
-using FCSP.DTOs.CustomShoeDesign;
-using FCSP.DTOs.CustomShoeDesignTexture;
-using FCSP.Models.Entities;
-using FCSP.Repositories.Interfaces;
-using FCSP.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using FCSP.DTOs;
+using FCSP.DTOs.CustomShoeDesign;
+using FCSP.Models.Entities;
+using FCSP.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Linq;
 
 
 namespace FCSP.Services.CustomShoeDesignService;
@@ -62,9 +59,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     #region Public Methods
     public async Task<BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>> GetAllPublicDesigns()
     {
-        try{
+        try
+        {
             var designs = await GetAllPublicCustomShoeDesigns();
-            if(designs == null || !designs.Any())
+            if (designs == null || !designs.Any())
             {
                 return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
                 {
@@ -84,7 +82,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 }
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
             {
@@ -100,7 +98,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         try
         {
             var designs = await GetTopFiveBestSellingDesigns();
-            if(designs == null || !designs.Any())
+            if (designs == null || !designs.Any())
             {
                 return new BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>
                 {
@@ -133,9 +131,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     public async Task<BaseResponseModel<GetCustomShoeDesignByIdResponse>> GetDesignById(GetCustomShoeDesignByIdRequest request)
     {
-        try{
+        try
+        {
             var design = await GetCustomShoeDesignById(request);
-            if(design == null)
+            if (design == null)
             {
                 return new BaseResponseModel<GetCustomShoeDesignByIdResponse>
                 {
@@ -152,7 +151,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Data = design
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<GetCustomShoeDesignByIdResponse>
             {
@@ -165,9 +164,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     public async Task<BaseResponseModel<GetListCustomShoeDesignsResponse>> GetDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
     {
-        try{
+        try
+        {
             var designs = await GetCustomShoeDesignsByUserId(request);
-            if(designs == null || !designs.Any())
+            if (designs == null || !designs.Any())
             {
                 return new BaseResponseModel<GetListCustomShoeDesignsResponse>
                 {
@@ -187,7 +187,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 }
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<GetListCustomShoeDesignsResponse>
             {
@@ -200,9 +200,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     public async Task<BaseResponseModel<AddCustomShoeDesignResponse>> AddCustomShoeDesign(AddCustomShoeDesignRequest request)
     {
-        try{
+        try
+        {
             var design = await GetCustomShoeDesignFromAddDesignRequest(request);
-        
+
             var addedDesign = await _customShoeDesignRepository.AddAsync(design);
 
             var designPreviewImages = await GetDesignPreviewImagesFromAddDesignRequest(request, addedDesign.Id);
@@ -211,32 +212,32 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
             var designServices = GetDesignServicesFromAddDesignRequest(request, addedDesign.Id);
 
-            if(designPreviewImages.Any())
+            if (designPreviewImages.Any())
             {
                 await _designPreviewRepository.AddRangeAsync(designPreviewImages);
             }
 
-            if(designTextures.Any())
+            if (designTextures.Any())
             {
                 await _customShoeDesignTextureRepository.AddRangeAsync(designTextures);
             }
 
-            if(designServices.Any())
+            if (designServices.Any())
             {
                 await _designServiceRepository.AddRangeAsync(designServices);
             }
 
-            return new BaseResponseModel<AddCustomShoeDesignResponse> 
-            { 
+            return new BaseResponseModel<AddCustomShoeDesignResponse>
+            {
                 Code = 200,
                 Message = "Custom shoe design added successfully",
-                Data = new AddCustomShoeDesignResponse 
-                { 
+                Data = new AddCustomShoeDesignResponse
+                {
                     Success = true
                 }
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<AddCustomShoeDesignResponse>
             {
@@ -251,23 +252,24 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     }
 
     public async Task<BaseResponseModel<UpdateCustomShoeDesignStatusResponse>> UpdateCustomShoeDesignStatus(UpdateCustomShoeDesignStatusRequest request)
-    { 
-        try{
+    {
+        try
+        {
             var design = await GetCustomShoeDesignFromUpdateDesignStatusRequest(request);
 
             await _customShoeDesignRepository.UpdateAsync(design);
 
-            return new BaseResponseModel<UpdateCustomShoeDesignStatusResponse> 
-            { 
+            return new BaseResponseModel<UpdateCustomShoeDesignStatusResponse>
+            {
                 Code = 200,
                 Message = "Custom shoe design status updated successfully",
-                Data = new UpdateCustomShoeDesignStatusResponse 
-                { 
+                Data = new UpdateCustomShoeDesignStatusResponse
+                {
                     Success = true
                 }
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<UpdateCustomShoeDesignStatusResponse>
             {
@@ -282,25 +284,26 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     }
 
     public async Task<BaseResponseModel<UpdateCustomShoeDesignResponse>> UpdateCustomShoeDesign(UpdateCustomShoeDesignRequest request)
-    { 
-        try{
+    {
+        try
+        {
             var design = await GetCustomShoeDesignFromUpdateDesignRequest(request);
 
             await _customShoeDesignRepository.UpdateAsync(design);
 
             await UpdateCustomShoeDesignTextures(request);
 
-            return new BaseResponseModel<UpdateCustomShoeDesignResponse> 
-            { 
+            return new BaseResponseModel<UpdateCustomShoeDesignResponse>
+            {
                 Code = 200,
                 Message = "Custom shoe design updated successfully",
-                Data = new UpdateCustomShoeDesignResponse 
-                { 
+                Data = new UpdateCustomShoeDesignResponse
+                {
                     Success = true
                 }
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<UpdateCustomShoeDesignResponse>
             {
@@ -316,19 +319,20 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     public async Task<BaseResponseModel<DeleteCustomShoeDesignResponse>> DeleteCustomShoeDesign(DeleteCustomShoeDesignRequest request)
     {
-        try{
+        try
+        {
             var design = await GetCustomShoeDesignFromDeleteDesignRequest(request);
 
-        await _customShoeDesignRepository.UpdateAsync(design);
+            await _customShoeDesignRepository.UpdateAsync(design);
 
-        return new BaseResponseModel<DeleteCustomShoeDesignResponse>
-        {
-            Code = 200,
-            Message = "Custom shoe design deleted successfully",
+            return new BaseResponseModel<DeleteCustomShoeDesignResponse>
+            {
+                Code = 200,
+                Message = "Custom shoe design deleted successfully",
                 Data = new DeleteCustomShoeDesignResponse { Success = true }
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new BaseResponseModel<DeleteCustomShoeDesignResponse>
             {
@@ -344,7 +348,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetAllPublicCustomShoeDesigns()
     {
         var designs = await _customShoeDesignRepository.GetAllPublicCustomShoeDesignsAsync();
-        if(designs == null || !designs.Any())
+        if (designs == null || !designs.Any())
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
         }
@@ -366,7 +370,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         var designIds = await _orderDetailRepository.GetTopFiveBestSellingDesignsAsync();
         var designs = await _customShoeDesignRepository.GetDesignsByIdsAsync(designIds);
-        if(designs == null || !designs.Any())
+        if (designs == null || !designs.Any())
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
         }
@@ -385,7 +389,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private async Task<GetCustomShoeDesignByIdResponse> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
     {
-        var design = await _customShoeDesignRepository.GetAll() 
+        var design = await _customShoeDesignRepository.GetAll()
                                                         .Include(d => d.CustomShoeDesignTemplate)
                                                         .Include(d => d.CustomShoeDesignTextures)
                                                             .ThenInclude(t => t.Texture)
@@ -419,11 +423,11 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             })
         };
     }
-    
+
     private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
     {
         var designs = await _customShoeDesignRepository.GetDesignsByUserIdAsync(request.UserId);
-        if(designs == null || !designs.Any())
+        if (designs == null || !designs.Any())
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
         }
@@ -442,10 +446,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromAddDesignRequest(AddCustomShoeDesignRequest request)
     {
-        
+
         var template = await _customShoeDesignTemplateRepository.FindAsync(request.CustomShoeDesignTemplateId ?? 0);
         var templatePrice = template?.Price ?? 0;
-        
+
         float servicesPrice = 0;
         if (request.ServiceIds != null && request.ServiceIds.Any())
         {
@@ -458,13 +462,25 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 }
             }
         }
-        
+
+        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+        string fileName = $"designData_{formattedDateTime}.json";
+        byte[] fileBytes;
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await request.DesignData.CopyToAsync(memoryStream);
+            fileBytes = memoryStream.ToArray();
+        }
+        var designDataPath = await UploadDesignDataToAzureStorage(fileName, fileBytes);
+
         var totalAmount = templatePrice + servicesPrice + request.DesignerMarkup.Value;
         var design = new CustomShoeDesign
         {
             UserId = request.UserId ?? 0,
             CustomShoeDesignTemplateId = request.CustomShoeDesignTemplateId ?? 0,
-            DesignData = request.DesignData,
+            DesignData = designDataPath,
             Description = request.Description,
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
@@ -478,7 +494,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private async Task<IEnumerable<DesignPreview>> GetDesignPreviewImagesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
     {
-        if(request.CustomShoeDesignPreviewImages == null || !request.CustomShoeDesignPreviewImages.Any())
+        if (request.CustomShoeDesignPreviewImages == null || !request.CustomShoeDesignPreviewImages.Any())
         {
             return new List<DesignPreview>();
         }
@@ -495,8 +511,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 await previewImage.CopyToAsync(memoryStream);
                 fileBytes = memoryStream.ToArray();
             }
-            var previewImagePath = await UploadToAzureStorage(fileName, fileBytes);
-            previewImages.Add(new DesignPreview{
+            var previewImagePath = await UploadImageToAzureStorage(fileName, fileBytes);
+            previewImages.Add(new DesignPreview
+            {
                 CustomShoeDesignId = designId,
                 PreviewImageUrl = previewImagePath,
                 CreatedAt = DateTime.UtcNow,
@@ -509,7 +526,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private IEnumerable<CustomShoeDesignTextures> GetDesignTexturesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
     {
-        if(request.TextureIds == null || !request.TextureIds.Any())
+        if (request.TextureIds == null || !request.TextureIds.Any())
         {
             return new List<CustomShoeDesignTextures>();
         }
@@ -524,7 +541,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
     private IEnumerable<DesignService> GetDesignServicesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)
     {
-        if(request.ServiceIds == null || !request.ServiceIds.Any())
+        if (request.ServiceIds == null || !request.ServiceIds.Any())
         {
             return new List<DesignService>();
         }
@@ -545,7 +562,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             throw new InvalidOperationException($"Custom shoe design with ID {request.Id} not found");
         }
 
-        if(design.Status == request.Status)
+        if (design.Status == request.Status)
         {
             throw new InvalidOperationException($"Custom shoe design with ID {request.Id} is already {request.Status}");
         }
@@ -568,12 +585,12 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             throw new InvalidOperationException($"Custom shoe design template with ID {request.CustomShoeDesignTemplateId} not found");
         }
-        
+
         design.DesignData = request.DesignData ?? design.DesignData;
         design.UpdatedAt = DateTime.UtcNow;
         return design;
     }
-    
+
     private async Task UpdateCustomShoeDesignTextures(UpdateCustomShoeDesignRequest request)
     {
         var existingTextures = await _customShoeDesignTexturesRepository.GetByCustomShoeDesignIdAsync(request.Id);
@@ -586,14 +603,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         var removeTextureIds = existingTextureIds.Except(request.TextureIds).ToList();
-        
+
         if (removeTextureIds.Any())
         {
             await _customShoeDesignTextureRepository.RemoveRangeAsync(removeTextureIds);
         }
 
         var addTextureIds = request.TextureIds.Except(existingTextureIds).ToList();
-        
+
         if (addTextureIds.Any())
         {
             var newTextures = addTextureIds.Select(textureId => new CustomShoeDesignTextures
@@ -607,7 +624,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             await _customShoeDesignTextureRepository.AddRangeAsync(newTextures);
         }
     }
-    
+
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromDeleteDesignRequest(DeleteCustomShoeDesignRequest request)
     {
         var design = await _customShoeDesignRepository.FindAsync((object)request.Id);
@@ -620,11 +637,11 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         design.IsDeleted = true;
         design.UpdatedAt = DateTime.UtcNow;
         design.Status = Common.Enums.CustomShoeDesignStatus.Archived;
-        
+
         return design;
     }
 
-    private async Task<string> UploadToAzureStorage(string fileName, byte[] fileBytes)
+    private async Task<string> UploadImageToAzureStorage(string fileName, byte[] fileBytes)
     {
         try
         {
@@ -640,6 +657,32 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders
                 {
                     ContentType = "image/jpeg"
+                });
+            }
+
+            return blobClient.Uri.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+        }
+    }
+    private async Task<string> UploadDesignDataToAzureStorage(string fileName, byte[] fileBytes)
+    {
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+            var blobClient = containerClient.GetBlobClient(fileName);
+
+            using (var stream = new MemoryStream(fileBytes))
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = "application/json"
                 });
             }
 

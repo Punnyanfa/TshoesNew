@@ -3,9 +3,7 @@ using FCSP.DTOs.UserRecommendation;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.UserRecommendationService
 {
@@ -24,7 +22,7 @@ namespace FCSP.Services.UserRecommendationService
             {
                 var recommendations = await _userRecommendationRepository.GetAllAsync();
                 var userRecommendations = recommendations.Where(r => r.UserId == request.UserId).ToList();
-                
+
                 var recommendationDtos = userRecommendations.Select(r => new UserRecommendationDto
                 {
                     Id = r.Id,
@@ -100,7 +98,7 @@ namespace FCSP.Services.UserRecommendationService
             try
             {
                 await _userRecommendationRepository.DeleteAsync(request.Id);
-                
+
                 return new BaseResponseModel<DeleteUserRecommendationResponse>
                 {
                     Code = 200,
@@ -125,4 +123,4 @@ namespace FCSP.Services.UserRecommendationService
             }
         }
     }
-} 
+}

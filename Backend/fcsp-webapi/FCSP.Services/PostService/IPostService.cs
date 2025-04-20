@@ -1,5 +1,4 @@
 using FCSP.DTOs.Post;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.PostService
 {
@@ -12,4 +11,4 @@ namespace FCSP.Services.PostService
         Task<GetPostByIdResponse> UpdatePost(UpdatePostRequest request);
         Task<GetPostByIdResponse> DeletePost(DeletePostRequest request);
     }
-} 
+}

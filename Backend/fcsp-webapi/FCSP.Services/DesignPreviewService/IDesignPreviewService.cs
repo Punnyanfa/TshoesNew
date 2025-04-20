@@ -1,5 +1,4 @@
 using FCSP.DTOs.DesignPreview;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.DesignPreviewService
 {
@@ -12,4 +11,4 @@ namespace FCSP.Services.DesignPreviewService
         Task<UpdateDesignPreviewResponse> UpdateDesignPreview(UpdateDesignPreviewRequest request);
         Task<DeleteDesignPreviewResponse> DeleteDesignPreview(DeleteDesignPreviewRequest request);
     }
-} 
+}

@@ -3,7 +3,6 @@ using FCSP.DTOs;
 using FCSP.DTOs.Manufacturer;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using Microsoft.AspNet.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace FCSP.Services.ManufacturerService
@@ -288,11 +287,11 @@ namespace FCSP.Services.ManufacturerService
 
             return new GetManufacturerDetailResponse
             {
-                Id = manufacturer.Id,                
+                Id = manufacturer.Id,
                 UserName = user?.Name,
                 Name = manufacturer.Name,
                 Status = manufacturer.Status.ToString(),
-                CommissionRate = manufacturer.CommissionRate,              
+                CommissionRate = manufacturer.CommissionRate,
                 Services = manufacturer.Services?.Select(s => new ServiceDto
                 {
                     Id = s.Id,

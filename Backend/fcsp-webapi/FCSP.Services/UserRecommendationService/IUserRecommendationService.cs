@@ -1,6 +1,5 @@
 using FCSP.DTOs;
 using FCSP.DTOs.UserRecommendation;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.UserRecommendationService
 {
@@ -10,4 +9,4 @@ namespace FCSP.Services.UserRecommendationService
         Task<BaseResponseModel<AddUserRecommendationResponse>> AddRecommendation(AddUserRecommendationRequest request);
         Task<BaseResponseModel<DeleteUserRecommendationResponse>> DeleteRecommendation(DeleteUserRecommendationRequest request);
     }
-} 
+}

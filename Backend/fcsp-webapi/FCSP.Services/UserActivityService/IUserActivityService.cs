@@ -13,4 +13,4 @@ namespace FCSP.Services.UserActivityService
         Task<BaseResponseModel<UpdateUserActivityResponse>> UpdateUserActivity(UpdateUserActivityRequest request);
         Task<BaseResponseModel<DeleteUserActivityResponse>> DeleteUserActivity(DeleteUserActivityRequest request);
     }
-} 
+}

@@ -3,9 +3,7 @@ using FCSP.DTOs.ReturnedCustomShoe;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.ReturnedCustomShoeService
 {
@@ -67,7 +65,7 @@ namespace FCSP.Services.ReturnedCustomShoeService
             try
             {
                 var returnedShoes = await _returnedCustomShoeRepository.GetAllAsync();
-                
+
                 return new BaseResponseModel<GetReturnedCustomShoesResponse>
                 {
                     Code = 200,
@@ -130,7 +128,7 @@ namespace FCSP.Services.ReturnedCustomShoeService
             try
             {
                 var returnedShoes = await _returnedCustomShoeRepository.GetByCustomShoeDesignIdAsync(request.Id);
-                
+
                 return new BaseResponseModel<GetReturnedCustomShoesResponse>
                 {
                     Code = 200,
@@ -164,4 +162,4 @@ namespace FCSP.Services.ReturnedCustomShoeService
             };
         }
     }
-} 
+}

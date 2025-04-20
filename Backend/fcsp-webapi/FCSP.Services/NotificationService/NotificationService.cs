@@ -2,9 +2,7 @@ using FCSP.DTOs.Notification;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.NotificationService
 {
@@ -95,4 +93,4 @@ namespace FCSP.Services.NotificationService
             };
         }
     }
-} 
+}

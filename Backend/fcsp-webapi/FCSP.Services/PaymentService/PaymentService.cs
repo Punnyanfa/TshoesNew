@@ -1,16 +1,13 @@
+using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using FCSP.Common.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
-using System.Drawing;
-using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace FCSP.Services.PaymentService
 {
@@ -29,9 +26,9 @@ namespace FCSP.Services.PaymentService
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _userRepository = userRepository;
-            _clientId = configuration["PayOS:ClientId"] ?? "";
-            _apiKey = configuration["PayOS:ApiKey"] ?? "";
-            _checksumKey = configuration["PayOS:ChecksumKey"] ?? "";
+            _clientId = configuration["PayOS:ClientId"] ?? string.Empty;
+            _apiKey = configuration["PayOS:ApiKey"] ?? string.Empty;
+            _checksumKey = configuration["PayOS:ChecksumKey"] ?? string.Empty;
         }
 
         #region Public Methods
@@ -57,7 +54,7 @@ namespace FCSP.Services.PaymentService
             try
             {
                 var payments = await GetAllPaymentsFromRepository();
-                
+
                 return new BaseResponseModel<PaymentListResponse>
                 {
                     Code = 200,
@@ -133,7 +130,8 @@ namespace FCSP.Services.PaymentService
                             Response = response.checkoutUrl
                         }
                     };
-                }else if (request.PaymentMethod == PaymentMethod.Wallet)
+                }
+                else if (request.PaymentMethod == PaymentMethod.Wallet)
                 {
                     var response = await ProcessWalletPayment(payment);
                     return new BaseResponseModel<AddPaymentResponse>
@@ -145,7 +143,9 @@ namespace FCSP.Services.PaymentService
                             Response = response
                         }
                     };
-                }else {
+                }
+                else
+                {
                     throw new Exception("Payment method not supported");
                 }
             }
@@ -165,7 +165,7 @@ namespace FCSP.Services.PaymentService
             {
                 var payment = await GetEntityFromUpdateRequest(request);
                 await _paymentRepository.UpdateAsync(payment);
-                
+
                 await UpdateOrderStatus(payment);
 
                 return new BaseResponseModel<UpdatePaymentResponse>
@@ -233,7 +233,7 @@ namespace FCSP.Services.PaymentService
                     Code = 200,
                     Message = "Payment cancelled successfully",
                     Data = new CancelPaymentResponse
-                    {   
+                    {
                         Success = true
                     }
                 };
@@ -285,7 +285,7 @@ namespace FCSP.Services.PaymentService
 
         private async Task<string> ProcessWalletPayment(Payment payment)
         {
-            var paymentWithIncludes = await _paymentRepository.GetAll().Include(x=>x.Order).ThenInclude(x=>x.User).FirstOrDefaultAsync(p => p.Id == payment.Id);
+            var paymentWithIncludes = await _paymentRepository.GetAll().Include(x => x.Order).ThenInclude(x => x.User).FirstOrDefaultAsync(p => p.Id == payment.Id);
             var user = await _userRepository.FindAsync(paymentWithIncludes.Order.UserId);
             if (user == null)
             {
@@ -321,18 +321,20 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Payment not found");
             }
-            if(request.Status == "CANCELLED")
+            if (request.Status == "CANCELLED")
             {
                 payment.PaymentStatus = PaymentStatus.Cancelled;
             }
-            else if(request.Status == "PAID")
+            else if (request.Status == "PAID")
             {
                 payment.PaymentStatus = PaymentStatus.Received;
             }
-            else if(request.Status == "PROCESSING")
+            else if (request.Status == "PROCESSING")
             {
                 payment.PaymentStatus = PaymentStatus.Pending;
-            }else{
+            }
+            else
+            {
                 throw new Exception("Invalid payment status");
             }
             payment.UpdatedAt = DateTime.UtcNow;
@@ -351,7 +353,7 @@ namespace FCSP.Services.PaymentService
             {
                 order.Status = OrderStatus.Cancelled;
             }
-            else if (payment.PaymentStatus == PaymentStatus.Received)   
+            else if (payment.PaymentStatus == PaymentStatus.Received)
             {
                 order.Status = OrderStatus.Confirmed;
             }
@@ -360,4 +362,4 @@ namespace FCSP.Services.PaymentService
         }
         #endregion
     }
-} 
+}

@@ -5,9 +5,7 @@ using FCSP.Repositories.Interfaces;
 using FCSP.Services.ServiceService;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.DesignServiceService
 {

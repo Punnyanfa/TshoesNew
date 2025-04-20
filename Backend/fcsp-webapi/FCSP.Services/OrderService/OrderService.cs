@@ -5,10 +5,6 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.OrderService
 {
@@ -217,7 +213,7 @@ namespace FCSP.Services.OrderService
                                               .Include(o => o.User)
                                               .Include(o => o.Voucher)
                                               .Include(o => o.OrderDetails)
-                                             
+
                                               .ThenInclude(od => od.Size)
                                               .Include(o => o.Payments)
                                               .FirstOrDefaultAsync(o => o.Id == request.Id);
@@ -245,7 +241,7 @@ namespace FCSP.Services.OrderService
             }
 
             return orders.Select(MapToDetailResponse).ToList();
-        } 
+        }
 
         private async Task<Order> GetEntityFromAddOrderRequest(AddOrderRequest request)
         {
@@ -302,7 +298,11 @@ namespace FCSP.Services.OrderService
         {
             foreach (var od in orderDetails)
             {
-                var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
+                var customShoeDesign = await _customShoeDesignRepository.GetAll()
+                                                                        .FirstOrDefaultAsync(csd => csd.Id == od.CustomShoeDesignId 
+                                                                                        && csd.IsDeleted == false 
+                                                                                        && (csd.Status == CustomShoeDesignStatus.Public 
+                                                                                        || csd.Status == CustomShoeDesignStatus.Private));
                 if (customShoeDesign == null)
                 {
                     throw new InvalidOperationException($"CustomShoeDesign with ID {od.CustomShoeDesignId} not found.");

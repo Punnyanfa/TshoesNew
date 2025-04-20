@@ -31,7 +31,7 @@ namespace FCSP.WebAPI.Controllers.Template
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTemplate([FromBody] AddTemplateRequest request)
+        public async Task<IActionResult> AddTemplate([FromForm] AddTemplateRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await _templateService.AddTemplate(request);

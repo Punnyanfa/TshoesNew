@@ -1,11 +1,8 @@
 using FCSP.DTOs.Post;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.PostService
 {
@@ -49,7 +46,7 @@ namespace FCSP.Services.PostService
             };
 
             var addedPost = await _postRepository.AddAsync(post);
-            
+
             return new AddPostResponse
             {
                 Id = addedPost.Id,
@@ -62,24 +59,24 @@ namespace FCSP.Services.PostService
         public async Task<GetPostByIdResponse> UpdatePost(UpdatePostRequest request)
         {
             var post = await GetEntityFromUpdateRequest(request);
-            
+
             post.Title = request.Title;
             post.Content = request.Content;
             post.UpdatedAt = DateTime.UtcNow;
-            
+
             await _postRepository.UpdateAsync(post);
-            
+
             return MapToDetailedResponse(post);
         }
 
         public async Task<GetPostByIdResponse> DeletePost(DeletePostRequest request)
         {
             var post = await GetEntityFromGetByIdRequest(new GetPostByIdRequest { Id = request.Id });
-            
+
             post.IsDeleted = true;
             post.UpdatedAt = DateTime.UtcNow;
             await _postRepository.UpdateAsync(post);
-            
+
             return MapToDetailedResponse(post);
         }
 
@@ -119,4 +116,4 @@ namespace FCSP.Services.PostService
             return post;
         }
     }
-} 
+}

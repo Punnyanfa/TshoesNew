@@ -1,6 +1,5 @@
 using FCSP.DTOs;
 using FCSP.DTOs.Voucher;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.VoucherService
 {
@@ -15,4 +14,4 @@ namespace FCSP.Services.VoucherService
         Task<BaseResponseModel<int>> UpdateExpiredVouchers();
         Task<BaseResponseModel<List<GetVoucherByIdResponse>>> GetNonExpiredVouchers();
     }
-} 
+}

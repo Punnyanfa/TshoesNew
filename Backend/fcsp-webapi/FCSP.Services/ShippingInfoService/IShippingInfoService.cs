@@ -1,6 +1,5 @@
 ﻿using FCSP.DTOs;
 using FCSP.DTOs.ShippingInfo;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.ShippingInfoService
 {
@@ -14,6 +13,6 @@ namespace FCSP.Services.ShippingInfoService
         Task<BaseResponseModel<DeleteShippingInfoResponse>> DeleteShippingInfo(DeleteShippingInfoRequest request);
         Task<BaseResponseModel<GetShippingInfosByUserResponse>> GetShippingInfosByUserId(GetShippingInfosByUserRequest request);
         Task<BaseResponseModel<SetDefaultShippingInfoResponse>> SetDefaultShippingInfo(SetDefaultShippingInfoRequest request);
-        Task<BaseResponseModel<GetShippingInfoByIdResponse>> GetByOrderId(GetShippingInfoByOrderIdRequest request); 
+        Task<BaseResponseModel<GetShippingInfoByIdResponse>> GetByOrderId(GetShippingInfoByOrderIdRequest request);
     }
 }

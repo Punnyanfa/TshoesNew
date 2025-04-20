@@ -1,12 +1,12 @@
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Authentication;
 using FCSP.Models.Entities;
+using FCSP.Repositories.Interfaces;
 using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
-using FCSP.Repositories.Interfaces;
-using FCSP.Common.Enums;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
 namespace FCSP.Services.Auth;
 
@@ -61,16 +61,16 @@ public class AuthService : IAuthService
         var user = await _userRepository.FindAsync(request.Id);
         return new BaseResponseModel<GetUserByIdResponse>
         {
-            Code = 200, 
+            Code = 200,
             Message = "Get user by id successfully",
             Data = new GetUserByIdResponse
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Dob = user.Dob ?? "",
-                Gender = user.Gender ?? "",
-                PhoneNumber = user.PhoneNumber ?? ""
+                Dob = user.Dob ?? string.Empty,
+                Gender = user.Gender ?? string.Empty,
+                PhoneNumber = user.PhoneNumber ?? string.Empty
             }
         };
     }

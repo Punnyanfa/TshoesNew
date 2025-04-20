@@ -1,6 +1,5 @@
 ﻿using FCSP.DTOs;
 using FCSP.DTOs.Manufacturer;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.ManufacturerService
 {

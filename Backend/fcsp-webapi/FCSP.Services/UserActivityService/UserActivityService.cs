@@ -3,9 +3,7 @@ using FCSP.DTOs.UserActivity;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.UserActivityService
 {
@@ -24,7 +22,7 @@ namespace FCSP.Services.UserActivityService
             {
                 var activities = await _userActivityRepository.GetAllAsync();
                 var activityResponses = activities.Select(a => MapToResponse(a)).ToList();
-                
+
                 return new BaseResponseModel<List<GetUserActivityByIdResponse>>
                 {
                     Code = 200,
@@ -82,7 +80,7 @@ namespace FCSP.Services.UserActivityService
             {
                 var activities = await _userActivityRepository.GetActivitiesByUserIdAsync(request.UserId);
                 var activityResponses = activities.Select(a => MapToResponse(a)).ToList();
-                
+
                 return new BaseResponseModel<List<GetUserActivityByIdResponse>>
                 {
                     Code = 200,
@@ -107,7 +105,7 @@ namespace FCSP.Services.UserActivityService
             {
                 var activities = await _userActivityRepository.GetActivitiesByDesignIdAsync(request.DesignId);
                 var activityResponses = activities.Select(a => MapToResponse(a)).ToList();
-                
+
                 return new BaseResponseModel<List<GetUserActivityByIdResponse>>
                 {
                     Code = 200,
@@ -141,7 +139,7 @@ namespace FCSP.Services.UserActivityService
                 };
 
                 var addedActivity = await _userActivityRepository.AddAsync(activity);
-                
+
                 return new BaseResponseModel<AddUserActivityResponse>
                 {
                     Code = 201,
@@ -180,7 +178,7 @@ namespace FCSP.Services.UserActivityService
                 activity.UpdatedAt = DateTime.UtcNow;
 
                 await _userActivityRepository.UpdateAsync(activity);
-                
+
                 return new BaseResponseModel<UpdateUserActivityResponse>
                 {
                     Code = 200,
@@ -215,7 +213,7 @@ namespace FCSP.Services.UserActivityService
                 }
 
                 await _userActivityRepository.DeleteAsync(request.Id);
-                
+
                 return new BaseResponseModel<DeleteUserActivityResponse>
                 {
                     Code = 200,
@@ -247,4 +245,4 @@ namespace FCSP.Services.UserActivityService
             };
         }
     }
-} 
+}

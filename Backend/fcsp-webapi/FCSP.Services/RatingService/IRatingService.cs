@@ -1,8 +1,5 @@
 using FCSP.DTOs;
 using FCSP.DTOs.Rating;
-using FCSP.Models.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.RatingService
 {

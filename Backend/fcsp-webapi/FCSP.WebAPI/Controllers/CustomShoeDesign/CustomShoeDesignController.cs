@@ -72,7 +72,7 @@ public class CustomShoeDesignController : ControllerBase
     /// <param name="request">Custom shoe design data</param>
     /// <returns>Created custom shoe design</returns>
     [HttpPost]
-    public async Task<IActionResult> CreateCustomShoeDesign([FromBody] AddCustomShoeDesignRequest request)
+    public async Task<IActionResult> CreateCustomShoeDesign([FromForm] AddCustomShoeDesignRequest request)
     {
         var response = await _customShoeDesignService.AddCustomShoeDesign(request);
         return StatusCode(response.Code, response);

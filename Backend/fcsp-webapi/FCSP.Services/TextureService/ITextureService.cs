@@ -1,6 +1,5 @@
-﻿using FCSP.DTOs.Texture;
-using FCSP.Models.Entities;
-using FCSP.DTOs;
+﻿using FCSP.DTOs;
+using FCSP.DTOs.Texture;
 
 namespace FCSP.Services.TextureService
 {

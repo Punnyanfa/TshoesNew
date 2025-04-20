@@ -11,4 +11,4 @@ namespace FCSP.Services.CustomShoeDesignTextureService
         Task<AddCustomShoeDesignTextureResponse> UpdateCustomShoeDesignTexture(UpdateCustomShoeDesignTextureRequest request);
         Task<AddCustomShoeDesignTextureResponse> DeleteCustomShoeDesignTexture(DeleteCustomShoeDesignTextureRequest request);
     }
-} 
+}

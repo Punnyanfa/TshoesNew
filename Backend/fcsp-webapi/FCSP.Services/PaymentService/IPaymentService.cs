@@ -1,8 +1,5 @@
 using FCSP.DTOs;
 using FCSP.DTOs.Payment;
-using FCSP.Models.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.PaymentService
 {
@@ -16,4 +13,4 @@ namespace FCSP.Services.PaymentService
         Task<BaseResponseModel<UpdatePaymentResponse>> UpdatePayment(UpdatePaymentRequest request);
         Task<BaseResponseModel<CancelPaymentResponse>> CancelPaymentFromPayOS(CancelPaymentRequest request);
     }
-} 
+}

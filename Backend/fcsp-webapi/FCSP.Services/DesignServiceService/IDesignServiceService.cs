@@ -1,6 +1,5 @@
 using FCSP.DTOs;
 using FCSP.DTOs.DesignService;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.DesignServiceService
 {

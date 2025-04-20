@@ -1,6 +1,5 @@
 ﻿using FCSP.DTOs;
 using FCSP.DTOs.Criteria;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.CriteriaService
 {

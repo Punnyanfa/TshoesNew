@@ -1,6 +1,5 @@
 using FCSP.DTOs;
 using FCSP.DTOs.ReturnedCustomShoe;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.ReturnedCustomShoeService
 {
@@ -11,4 +10,4 @@ namespace FCSP.Services.ReturnedCustomShoeService
         Task<BaseResponseModel<GetReturnedCustomShoeByIdResponse>> GetReturnedCustomShoeById(GetReturnedCustomShoeByIdRequest request);
         Task<BaseResponseModel<GetReturnedCustomShoesResponse>> GetReturnedCustomShoesByDesignId(GetReturnedCustomShoeByDesignIdRequest request);
     }
-} 
+}

@@ -1,12 +1,9 @@
 ﻿using FCSP.DTOs;
-using FCSP.DTOs.Order;
 using FCSP.DTOs.ShippingInfo;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.ShippingInfoService
 {
@@ -20,7 +17,7 @@ namespace FCSP.Services.ShippingInfoService
             _shippingInfoRepository = shippingInfoRepository;
             _userRepository = userRepository;
         }
-       
+
         #region Public Methods
         public async Task<BaseResponseModel<GetAllShippingInfoResponse>> GetAllShippingInfo()
         {
@@ -246,7 +243,7 @@ namespace FCSP.Services.ShippingInfoService
                 {
                     Code = 200,
                     Message = "Shipping information retrieved successfully",
-                    Data = response 
+                    Data = response
                 };
             }
             catch (Exception ex)
@@ -266,7 +263,7 @@ namespace FCSP.Services.ShippingInfoService
         public async Task<string> GetUserNameById(long userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            return user?.Name ?? "N/A"; 
+            return user?.Name ?? "N/A";
         }
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetAllShippingInfos()
         {

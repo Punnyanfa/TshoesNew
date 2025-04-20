@@ -1,5 +1,4 @@
 using FCSP.DTOs.Size;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.SizeService
 {
@@ -12,4 +11,4 @@ namespace FCSP.Services.SizeService
         Task<SizeResponse> UpdateSizeAsync(UpdateSizeRequest request);
         Task<SizeResponse> DeleteSizeAsync(DeleteSizeRequest request);
     }
-} 
+}

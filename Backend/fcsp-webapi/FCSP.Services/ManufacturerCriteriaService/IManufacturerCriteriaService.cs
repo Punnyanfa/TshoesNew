@@ -1,6 +1,5 @@
 ﻿using FCSP.DTOs;
 using FCSP.DTOs.ManufacturerCriteria;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.ManufacturerCriteriaService
 {

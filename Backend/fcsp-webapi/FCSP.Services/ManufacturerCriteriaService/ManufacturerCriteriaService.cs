@@ -6,9 +6,7 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.ManufacturerCriteriaService
 {
@@ -54,7 +52,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                 {
                     ManufacturerId = request.ManufacturerId,
                     CriteriaId = request.CriteriaId,
-                    Status = (ManufacturerCriteriaStatus)request.Status,
+                    Status = request.Status,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -170,7 +168,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                     };
                 }
 
-                manufacturerCriteria.Status = (ManufacturerCriteriaStatus)request.Status;
+                manufacturerCriteria.Status = request.Status;
                 manufacturerCriteria.UpdatedAt = DateTime.UtcNow;
 
                 await _manufacturerCriteriaRepository.UpdateAsync(manufacturerCriteria);
@@ -279,7 +277,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
         }
 
         private GetManufacturerCriteriaResponse MapToDetailResponse(ManufacturerCriteria manufacturerCriteria)
-        { 
+        {
             return new GetManufacturerCriteriaResponse
             {
                 Id = manufacturerCriteria.Id,

@@ -1,11 +1,9 @@
+using FCSP.DTOs;
 using FCSP.DTOs.OrderDetail;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using FCSP.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace FCSP.Services.OrderDetailService
 {
@@ -148,7 +146,7 @@ namespace FCSP.Services.OrderDetailService
                     Data = new GetOrderDetailByIdResponse
                     {
                         Id = orderDetails.Id,
-                        OrderId = orderDetails.OrderId,            
+                        OrderId = orderDetails.OrderId,
                         CustomShoeDesignName = orderDetails.CustomShoeDesign.Name,
                         Quantity = orderDetails.Quantity,
                         UnitPrice = orderDetails.Price,
@@ -189,7 +187,7 @@ namespace FCSP.Services.OrderDetailService
         }
 
         private async Task<OrderDetail> GetEntityFromAddRequest(AddOrderDetailRequest request)
-        {   
+        {
             var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
             if (customShoeDesign == null)
             {

@@ -1,6 +1,5 @@
-using FCSP.DTOs.CustomShoeDesign;
-using FCSP.Models.Entities;
 using FCSP.DTOs;
+using FCSP.DTOs.CustomShoeDesign;
 
 namespace FCSP.Services.CustomShoeDesignService
 {
@@ -15,4 +14,4 @@ namespace FCSP.Services.CustomShoeDesignService
         Task<BaseResponseModel<UpdateCustomShoeDesignResponse>> UpdateCustomShoeDesign(UpdateCustomShoeDesignRequest request);
         Task<BaseResponseModel<DeleteCustomShoeDesignResponse>> DeleteCustomShoeDesign(DeleteCustomShoeDesignRequest request);
     }
-} 
+}

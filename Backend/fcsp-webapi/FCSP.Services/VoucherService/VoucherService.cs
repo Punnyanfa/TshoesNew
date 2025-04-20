@@ -1,13 +1,11 @@
+using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Voucher;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using FCSP.Common.Enums;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace FCSP.Services.VoucherService
 {
@@ -27,7 +25,7 @@ namespace FCSP.Services.VoucherService
             {
                 var vouchers = await _voucherRepository.GetAllVoucherAsync();
                 var voucherResponses = vouchers.Select(voucher => new GetAllVoucherResponse(
-                  
+
                     )
                 {
                     Id = voucher.Id,
@@ -35,7 +33,7 @@ namespace FCSP.Services.VoucherService
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
                     Status = voucher.Status.ToString(),
                     ExpiryDate = voucher.ExpirationDate,
-                    IsUsed = voucher.Orders != null && voucher.Orders.Any()                 
+                    IsUsed = voucher.Orders != null && voucher.Orders.Any()
                 }).ToList();
 
                 return new BaseResponseModel<List<GetAllVoucherResponse>>
@@ -119,7 +117,7 @@ namespace FCSP.Services.VoucherService
                     Code = voucher.VoucherName ?? string.Empty,
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
                     ExpiryDate = voucher.ExpirationDate,
-                   Status = voucher.Status.ToString()
+                    Status = voucher.Status.ToString()
                 };
 
                 return new BaseResponseModel<GetVoucherByOrderIdResponse>
@@ -288,7 +286,7 @@ namespace FCSP.Services.VoucherService
                     DiscountAmount = float.TryParse(voucher.VoucherValue, out float value) ? value : 0,
                     Status = voucher.Status.ToString(),
                     ExpiryDate = voucher.ExpirationDate,
-                    IsUsed = voucher.Orders != null && voucher.Orders.Any(), 
+                    IsUsed = voucher.Orders != null && voucher.Orders.Any(),
                     OrderIds = voucher.Orders?.Select(o => o.Id).ToList() ?? new List<long>()
                 }).ToList();
 

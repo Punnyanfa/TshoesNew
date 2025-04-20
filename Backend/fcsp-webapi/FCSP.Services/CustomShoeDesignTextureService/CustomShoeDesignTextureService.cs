@@ -2,8 +2,6 @@ using FCSP.DTOs.CustomShoeDesignTexture;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.CustomShoeDesignTextureService
 {
@@ -81,10 +79,10 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");
             }
-            
+
             customShoeDesignTexture.TextureId = request.TextureId;
             customShoeDesignTexture.UpdatedAt = DateTime.UtcNow;
-            
+
             return customShoeDesignTexture;
         }
 
@@ -98,4 +96,4 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             return customShoeDesignTexture;
         }
     }
-} 
+}

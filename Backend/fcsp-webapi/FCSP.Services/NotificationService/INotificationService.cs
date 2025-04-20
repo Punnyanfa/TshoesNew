@@ -1,6 +1,4 @@
-using FCSP.DTOs;
 using FCSP.DTOs.Notification;
-using FCSP.Models.Entities;
 
 namespace FCSP.Services.NotificationService
 {
@@ -13,4 +11,4 @@ namespace FCSP.Services.NotificationService
         Task<UpdateNotificationResponse> UpdateNotification(UpdateNotificationRequest request);
         Task<DeleteNotificationResponse> DeleteNotification(DeleteNotificationRequest request);
     }
-} 
+}

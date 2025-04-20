@@ -1,8 +1,5 @@
-using FCSP.DTOs.OrderDetail;
-using FCSP.Models.Entities;
 using FCSP.DTOs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using FCSP.DTOs.OrderDetail;
 
 namespace FCSP.Services.OrderDetailService
 {
@@ -14,4 +11,4 @@ namespace FCSP.Services.OrderDetailService
         Task<BaseResponseModel<UpdateOrderDetailResponse>> UpdateOrderDetail(UpdateOrderDetailRequest request);
         Task<BaseResponseModel<DeleteOrderDetailResponse>> DeleteOrderDetail(DeleteOrderDetailRequest request);
     }
-} 
+}

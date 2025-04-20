@@ -1,5 +1,5 @@
-﻿using FCSP.DTOs.CustomShoeDesignTemplate;
-using FCSP.DTOs;
+﻿using FCSP.DTOs;
+using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
 
 namespace FCSP.Services.TemplateService

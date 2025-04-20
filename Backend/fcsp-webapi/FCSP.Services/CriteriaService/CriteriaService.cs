@@ -6,49 +6,47 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FCSP.Services.CriteriaService
 {
     public class CriteriaService : ICriteriaService
     {
         private readonly ICriteriaRepository _criteriaRepository;
-  
+
 
         public CriteriaService(ICriteriaRepository criteriaRepository, ILogger<CriteriaService> logger)
         {
             _criteriaRepository = criteriaRepository;
-  
+
         }
         public async Task<BaseResponseModel<AddCriteriaResponse>> AddAsync(AddCriteriaRequest request)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Name))
-                {                  
+                {
                     return new BaseResponseModel<AddCriteriaResponse>
                     {
                         Code = 400,
                         Message = "Criteria name cannot be empty"
                     };
-                }              
+                }
                 var existingCriteria = await _criteriaRepository.GetAll()
                     .Where(c => !c.IsDeleted && c.Name.ToLower() == request.Name.ToLower())
                     .FirstOrDefaultAsync();
                 if (existingCriteria != null)
-                {                 
+                {
                     return new BaseResponseModel<AddCriteriaResponse>
                     {
                         Code = 400,
                         Message = "Criteria with the same name already exists"
                     };
-                }            
+                }
                 var criteria = new Criteria
                 {
                     Name = request.Name,
-                    Status = CriteriaStatus.Active, 
+                    Status = CriteriaStatus.Active,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -67,7 +65,7 @@ namespace FCSP.Services.CriteriaService
                 };
             }
             catch (Exception ex)
-            {             
+            {
                 return new BaseResponseModel<AddCriteriaResponse>
                 {
                     Code = 500,
@@ -79,39 +77,39 @@ namespace FCSP.Services.CriteriaService
         {
             try
             {
-              
+
                 if (request.Id <= 0)
-                {                 
+                {
                     return new BaseResponseModel<UpdateCriteriaResponse>
                     {
                         Code = 400,
                         Message = "Criteria ID must be greater than 0"
                     };
                 }
-               
+
                 if (string.IsNullOrWhiteSpace(request.Name))
-                {                 
+                {
                     return new BaseResponseModel<UpdateCriteriaResponse>
                     {
                         Code = 400,
                         Message = "Criteria name cannot be empty"
                     };
-                }                                                 
+                }
                 var criteria = await _criteriaRepository.FindAsync(request.Id);
                 if (criteria == null || criteria.IsDeleted)
-                {                   
+                {
                     return new BaseResponseModel<UpdateCriteriaResponse>
                     {
                         Code = 404,
                         Message = "Criteria not found"
                     };
                 }
-                
+
                 var existingCriteria = await _criteriaRepository.GetAll()
                     .Where(c => !c.IsDeleted && c.Name.ToLower() == request.Name.ToLower() && c.Id != request.Id)
                     .FirstOrDefaultAsync();
                 if (existingCriteria != null)
-                {                   
+                {
                     return new BaseResponseModel<UpdateCriteriaResponse>
                     {
                         Code = 400,
@@ -119,11 +117,11 @@ namespace FCSP.Services.CriteriaService
                     };
                 }
 
-                criteria.Name = request.Name;              
+                criteria.Name = request.Name;
                 criteria.UpdatedAt = DateTime.UtcNow;
 
                 await _criteriaRepository.UpdateAsync(criteria);
-              
+
 
                 return new BaseResponseModel<UpdateCriteriaResponse>
                 {
@@ -139,7 +137,7 @@ namespace FCSP.Services.CriteriaService
                 };
             }
             catch (Exception ex)
-            {             
+            {
                 return new BaseResponseModel<UpdateCriteriaResponse>
                 {
                     Code = 500,
