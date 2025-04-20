@@ -84,11 +84,10 @@ namespace FCSP.WebAPI.Controllers.Template
             return StatusCode(result.Code, result);
         }
 
-        [HttpPut("{id}/restore")]
-        public async Task<IActionResult> RestoreTemplate(long id)
+        [HttpPut("status")]
+        public async Task<IActionResult> UpdateTemplateStatus([FromBody] UpdateTemplateStatusRequest request)
         {
-            var request = new RestoreTemplateRequest { Id = id };
-            var result = await _templateService.RestoreTemplate(request);
+            var result = await _templateService.UpdateTemplateStatus(request);
             return StatusCode(result.Code, result);
         }
 

@@ -17,14 +17,6 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> GetHashedPassword(string password)
-    {
-        var response = _authService.HashPassword(password);
-        return StatusCode(200, response);
-    }
-
-
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -92,6 +84,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleRequest request)
     {
         var response = await _authService.UpdateUserRole(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPut("status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateUserStatus([FromBody] UpdateUserStatusRequest request)
+    {
+        var response = await _authService.UpdateUserStatus(request);
         return StatusCode(response.Code, response);
     }
 }

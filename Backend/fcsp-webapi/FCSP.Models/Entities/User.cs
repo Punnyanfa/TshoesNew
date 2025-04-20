@@ -12,9 +12,13 @@ public class User : BaseEntity
 
     public string PasswordHash { get; set; } = null!;
 
-    public string? Dob { get; set; }
+    public string? PhoneNumber { get; set; }
 
+    public string? Dob { get; set; }
     public string? Gender { get; set; }
+
+    public string? AvatarImageUrl { get; set; }
+    public bool IsBanned { get; set; }
 
     public UserRole UserRole { get; set; }
 

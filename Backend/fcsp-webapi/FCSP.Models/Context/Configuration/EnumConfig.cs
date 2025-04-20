@@ -15,6 +15,10 @@ internal static class EnumConfig
             .Property(o => o.ShippingStatus)
             .HasConversion<int>();
 
+        modelBuilder.Entity<CustomShoeDesignTemplate>()
+            .Property(c => c.Status)
+            .HasConversion<int>();
+
         modelBuilder.Entity<Payment>()
             .Property(p => p.PaymentMethod)
             .HasConversion<int>();

@@ -10,6 +10,7 @@ public interface IAuthService
     Task<BaseResponseModel<GetUserByIdResponse>> GetUserById(GetUserByIdRequest request);
     Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request);
     Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request);
+    Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request);
     Task<BaseResponseModel<UpdateUserPasswordResponse>> UpdateUserPassword(UpdateUserPasswordRequest request);
     Task<BaseResponseModel<UpdateUserInformationResponse>> UpdateUserInformation(UpdateUserInformationRequest request);
     Task<BaseResponseModel<UserDeleteResponse>> DeleteUser(UserDeleteRequest request);

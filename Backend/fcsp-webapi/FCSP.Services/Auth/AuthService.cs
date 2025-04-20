@@ -5,7 +5,9 @@ using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
 using FCSP.Repositories.Interfaces;
 using FCSP.Common.Enums;
-
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Configuration;
 namespace FCSP.Services.Auth;
 
 public class AuthService : IAuthService
@@ -13,12 +15,18 @@ public class AuthService : IAuthService
     private readonly IPasswordHashingService _passwordHashingService;
     private readonly ITokenService _tokenService;
     private readonly IUserRepository _userRepository;
+    private readonly IConfiguration _configuration;
+    private readonly string? _azureConnectionString;
+    private readonly string? _azureContainerName;
 
-    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository)
+    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository, IConfiguration configuration)
     {
         _passwordHashingService = passwordHashingService;
         _tokenService = tokenService;
         _userRepository = userRepository;
+        _configuration = configuration;
+        _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
+        _azureContainerName = _configuration["AzureStorage:ContainerName"];
     }
 
     public string HashPassword(string password)
@@ -163,6 +171,54 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<BaseResponseModel<UpdateUserBalanceResponse>> UpdateUserBalance(UpdateUserBalanceRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromUpdateUserBalanceRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+
+            return new BaseResponseModel<UpdateUserBalanceResponse>
+            {
+                Code = 200,
+                Message = "User balance updated successfully",
+                Data = new UpdateUserBalanceResponse { Success = true }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<UpdateUserBalanceResponse>
+            {
+                Code = 500,
+                Message = ex.Message
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<UpdateUserAvatarResponse>> UpdateUserAvatar(UpdateUserAvatarRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromUpdateUserAvatarRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+
+            return new BaseResponseModel<UpdateUserAvatarResponse>
+            {
+                Code = 200,
+                Message = "User avatar updated successfully",
+                Data = new UpdateUserAvatarResponse { Success = true }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<UpdateUserAvatarResponse>
+            {
+                Code = 500,
+                Message = ex.Message
+            };
+        }
+    }
+
     public async Task<BaseResponseModel<UpdateUserInformationResponse>> UpdateUserInformation(UpdateUserInformationRequest request)
     {
         try
@@ -264,8 +320,80 @@ public class AuthService : IAuthService
             Email = request.Email,
             PasswordHash = _passwordHashingService.GetHashedPassword(request.Password),
             Balance = 0,
-            UserRole = UserRole.Customer
+            UserRole = UserRole.Customer,
+            IsBanned = false,
+            IsDeleted = false
         };
+    }
+
+    private async Task<User> GetUserEntityFromUpdateUserBalanceRequestAsync(UpdateUserBalanceRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
+        }
+
+        user.Balance = request.Balance;
+        user.UpdatedAt = DateTime.Now;
+        return user;
+    }
+
+    private async Task<User> GetUserEntityFromUpdateUserAvatarRequestAsync(UpdateUserAvatarRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
+        }
+
+        if (request.Avatar == null)
+        {
+            throw new InvalidOperationException("Avatar is required");
+        }
+
+        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+        string fileName = $"avatar_{user.Id}_{formattedDateTime}.jpeg";
+        byte[] fileBytes;
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await request.Avatar.CopyToAsync(memoryStream);
+            fileBytes = memoryStream.ToArray();
+        }
+        var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
+
+        user.AvatarImageUrl = avatarPath;
+        user.UpdatedAt = DateTime.Now;
+        return user;
+    }
+
+    private async Task<string> UploadToAzureStorage(string fileName, byte[] fileBytes)
+    {
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+            var blobClient = containerClient.GetBlobClient(fileName);
+
+            using (var stream = new MemoryStream(fileBytes))
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = "image/jpeg"
+                });
+            }
+
+            return blobClient.Uri.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+        }
     }
 
     private async Task<User> GetUserEntityFromUpdateUserStatusRequestAsync(UpdateUserStatusRequest request)
@@ -276,7 +404,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
 
-        user.IsDeleted = request.IsDeleted;
+        user.IsBanned = request.IsBanned;
         user.UpdatedAt = DateTime.Now;
         return user;
     }
@@ -309,6 +437,7 @@ public class AuthService : IAuthService
         user.Name = request.Name ?? user.Name;
         user.Gender = request.Gender ?? user.Gender;
         user.Dob = request.Dob ?? user.Dob;
+        user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
         user.UpdatedAt = DateTime.Now;
         return user;
     }

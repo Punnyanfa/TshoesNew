@@ -1,5 +1,6 @@
 using FCSP.Common.Enums;
 using FCSP.DTOs.Size;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 
 namespace FCSP.DTOs.CustomShoeDesign
@@ -64,6 +65,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public string? Description { get; set; }
         public string? DesignData { get; set; }
         public float? DesignerMarkup { get; set; } = 0;
+        public List<IFormFile> CustomShoeDesignPreviewImages { get; set; } = new List<IFormFile>();
         public List<long>? TextureIds { get; set; }
         public List<long>? ServiceIds { get; set; }
     }

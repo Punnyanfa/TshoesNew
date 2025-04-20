@@ -13,7 +13,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     public async Task<User> GetByEmailAsync(string email)
     {
-        return await Entities.FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+        return await Entities.FirstOrDefaultAsync(u => u.Email == email && (!u.IsDeleted || !u.IsBanned));
     }
 
     public async Task<User> GetEmailByUserIdAsync(long userId)
@@ -25,6 +25,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             })
             .FirstOrDefaultAsync();
     }
+
     public async Task<User> GetUserNameByUserIdAsync(long userId)
     {
         return await Entities.Where(u => u.Id == userId && !u.IsDeleted)
@@ -34,6 +35,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             })
             .FirstOrDefaultAsync();
     }
+
     public async Task<User?> GetByIdAsync(long userId)
     {
         return await Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);

@@ -15,7 +15,7 @@ namespace FCSP.Services.TemplateService
         Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> GetAvailableTemplates();
         Task<BaseResponseModel<IEnumerable<CustomShoeDesignTemplate>>> SearchTemplates(SearchTemplatesRequest request);
         Task<BaseResponseModel<IEnumerable<GetPopularTemplatesResponse>>> GetPopularTemplates(GetPopularTemplatesRequest request);
-        Task<BaseResponseModel<RestoreTemplateResponse>> RestoreTemplate(RestoreTemplateRequest request);
+        Task<BaseResponseModel<UpdateTemplateStatusResponse>> UpdateTemplateStatus(UpdateTemplateStatusRequest request);
         Task<BaseResponseModel<GetTemplateStatsResponse>> GetTemplateStats(GetTemplateStatsRequest request);
     }
 }

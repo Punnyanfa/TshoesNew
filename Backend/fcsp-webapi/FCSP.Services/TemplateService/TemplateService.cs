@@ -2,25 +2,31 @@
 using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace FCSP.Services.TemplateService
 {
     public class TemplateService : ITemplateService
     {
         private readonly ICustomShoeDesignTemplateRepository _templateRepository;
+        private readonly IConfiguration _configuration;
+        private readonly string? _azureConnectionString;
+        private readonly string? _azureContainerName;
 
-        public TemplateService(ICustomShoeDesignTemplateRepository templateRepository)
+        public TemplateService(ICustomShoeDesignTemplateRepository templateRepository, IConfiguration configuration)
         {
+            _configuration = configuration;
             _templateRepository = templateRepository;
+            _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
+            _azureContainerName = _configuration["AzureStorage:ContainerName"];
         }
 
         private BaseResponseModel<T> HandleException<T>(Exception ex, string action) =>
-            new BaseResponseModel<T> { Code = 500, Message = $"Error {action}: {ex.Message}" };
+            new BaseResponseModel<T> { Code = 500, Message = $"Error {action}: {ex.Message}"};
 
         public async Task<BaseResponseModel<List<CustomShoeDesignTemplate>>> GetAllTemplate()
         {
@@ -41,7 +47,7 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                var template = _templateRepository.Find(request.Id);
+                var template = await _templateRepository.FindAsync(request.Id);
                 if (template == null)
                     return new BaseResponseModel<GetTemplateByIdResponse> { Code = 404, Message = "Template not found" };
 
@@ -54,8 +60,8 @@ namespace FCSP.Services.TemplateService
                         Id = template.Id,
                         Name = template.Name,
                         Description = template.Description ?? string.Empty,
-                        Gender = template.Gender,
-                        Color = template.Color,
+                        Gender = template.Gender ?? string.Empty,
+                        Color = template.Color ?? string.Empty,
                         PreviewImageUrl = template.TwoDImageUrl ?? string.Empty,
                         Model3DUrl = template.ThreeDFileUrl ?? string.Empty,
                         BasePrice = (decimal)template.Price,
@@ -78,7 +84,7 @@ namespace FCSP.Services.TemplateService
                 if (request.BasePrice < 0)
                     return new BaseResponseModel<AddTemplateResponse> { Code = 400, Message = "BasePrice cannot be negative" };
 
-                var template = GetEntityFromAddRequest(request);
+                var template = await GetEntityFromAddRequest(request);
                 await _templateRepository.AddAsync(template);
 
                 return new BaseResponseModel<AddTemplateResponse>
@@ -87,9 +93,7 @@ namespace FCSP.Services.TemplateService
                     Message = "Template created successfully",
                     Data = new AddTemplateResponse
                     {
-                        Id = template.Id,
-                        Name = template.Name,
-                        PreviewImageUrl = template.TwoDImageUrl ?? string.Empty
+                        Success = true
                     }
                 };
             }
@@ -104,13 +108,16 @@ namespace FCSP.Services.TemplateService
                 if (template == null)
                     return new BaseResponseModel<UpdateTemplateResponse> { Code = 404, Message = "Template not found" };
 
-                template.Name = request.Name;
-                template.Description = request.Description;
-                template.Gender = request.Gender;
-                template.Color = request.Color;
+                var previewImageUrl = await UploadPreviewImage(request.PreviewImage);
+                var model3DUrl = await Upload3DModel(request.Model3DFile);
+
+                template.Name = request.Name ?? template.Name;
+                template.Description = request.Description ?? template.Description;
+                template.Gender = request.Gender ?? template.Gender;
+                template.Color = request.Color ?? template.Color;
                 template.Price = (float)request.BasePrice;
-                template.TwoDImageUrl = request.PreviewImageUrl;
-                template.ThreeDFileUrl = request.Model3DUrl;
+                template.TwoDImageUrl = previewImageUrl;
+                template.ThreeDFileUrl = model3DUrl;
                 template.UpdatedAt = DateTime.Now;
 
                 await _templateRepository.UpdateAsync(template);
@@ -121,13 +128,19 @@ namespace FCSP.Services.TemplateService
                     Message = "Template updated successfully",
                     Data = new UpdateTemplateResponse
                     {
-                        Id = template.Id,
-                        Name = template.Name,
-                        PreviewImageUrl = template.TwoDImageUrl ?? string.Empty
+                        Success = true
                     }
                 };
             }
-            catch (Exception ex) { return HandleException<UpdateTemplateResponse>(ex, "updating template"); }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateTemplateResponse>
+                {
+                    Code = 500,
+                    Message = $"Error updating template: {ex.Message}"
+                    
+                };
+            }
         }
 
         public async Task<BaseResponseModel<DeleteTemplateResponse>> DeleteTemplate(DeleteTemplateRequest request)
@@ -237,29 +250,29 @@ namespace FCSP.Services.TemplateService
             catch (Exception ex) { return HandleException<IEnumerable<GetPopularTemplatesResponse>>(ex, "retrieving popular templates"); }
         }
 
-        public async Task<BaseResponseModel<RestoreTemplateResponse>> RestoreTemplate(RestoreTemplateRequest request)
+        public async Task<BaseResponseModel<UpdateTemplateStatusResponse>> UpdateTemplateStatus(UpdateTemplateStatusRequest request)
         {
             try
             {
                 var template = _templateRepository.Find(request.Id);
                 if (template == null)
-                    return new BaseResponseModel<RestoreTemplateResponse> { Code = 404, Message = "Template not found" };
+                    return new BaseResponseModel<UpdateTemplateStatusResponse> { Code = 404, Message = "Template not found" };
 
-                if (!template.IsDeleted)
-                    return new BaseResponseModel<RestoreTemplateResponse> { Code = 400, Message = "Template is already active" };
-
-                template.IsDeleted = false;
+                template.Status = request.Status;
                 template.UpdatedAt = DateTime.Now;
                 await _templateRepository.UpdateAsync(template);
 
-                return new BaseResponseModel<RestoreTemplateResponse>
+                return new BaseResponseModel<UpdateTemplateStatusResponse>
                 {
                     Code = 200,
                     Message = "Template restored successfully",
-                    Data = new RestoreTemplateResponse { Id = template.Id, Success = true, Message = "Restored" }
+                    Data = new UpdateTemplateStatusResponse
+                    {    
+                        Success = true
+                    }
                 };
             }
-            catch (Exception ex) { return HandleException<RestoreTemplateResponse>(ex, "restoring template"); }
+            catch (Exception ex) { return HandleException<UpdateTemplateStatusResponse>(ex, "restoring template"); }
         }
 
         public async Task<BaseResponseModel<GetTemplateStatsResponse>> GetTemplateStats(GetTemplateStatsRequest request)
@@ -288,18 +301,86 @@ namespace FCSP.Services.TemplateService
             catch (Exception ex) { return HandleException<GetTemplateStatsResponse>(ex, "retrieving template stats"); }
         }
 
-        private CustomShoeDesignTemplate GetEntityFromAddRequest(AddTemplateRequest request) => new()
+        private async Task<CustomShoeDesignTemplate> GetEntityFromAddRequest(AddTemplateRequest request) 
         {
-            Name = request.Name,
-            Description = request.Description,
-            Gender = request.Gender,
-            Color = request.Color,
-            Price = (float)request.BasePrice,
-            TwoDImageUrl = request.PreviewImageUrl,
-            ThreeDFileUrl = request.Model3DUrl,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
-            IsDeleted = false
-        };
+            var previewImageUrl = await UploadPreviewImage(request.PreviewImage);
+            var model3DUrl = await Upload3DModel(request.Model3DFile);
+
+            return new CustomShoeDesignTemplate
+            {
+                Name = request.Name,
+                Description = request.Description,
+                Gender = request.Gender,
+                Color = request.Color,
+                Price = (float)request.BasePrice,
+                TwoDImageUrl = previewImageUrl,
+                ThreeDFileUrl = model3DUrl,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+                IsDeleted = false,
+                Status = Common.Enums.TemplateStatus.Private
+            };
+        }
+
+        private async Task<string> UploadPreviewImage(IFormFile previewImage)
+        {
+            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+            string fileName = $"templatePreviewImage_{formattedDateTime}.jpeg";
+            byte[] fileBytes;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await previewImage.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+            var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
+
+            return avatarPath;
+        }
+
+        private async Task<string> Upload3DModel(IFormFile model3DFile)
+        {
+            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+            string fileName = $"template3DModel_{formattedDateTime}.glb";
+            byte[] fileBytes;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await model3DFile.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+            var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
+
+            return avatarPath;
+        }
+
+        private async Task<string> UploadToAzureStorage(string fileName, byte[] fileBytes)
+        {
+        try
+        {
+            var blobServiceClient = new BlobServiceClient(_azureConnectionString);
+
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+            var blobClient = containerClient.GetBlobClient(fileName);
+
+            using (var stream = new MemoryStream(fileBytes))
+            {
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = "model/gltf-binary"
+                });
+            }
+
+            return blobClient.Uri.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Azure Storage upload failed: {ex.Message}");
+        }
+        }
     }
 }

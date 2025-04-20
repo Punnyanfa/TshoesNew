@@ -289,7 +289,7 @@ public class TextureService : ITextureService
     {
         DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
-        string fileName = $"texture_uploaded_{formattedDateTime}.png";
+        string fileName = $"texture__uploaded_{formattedDateTime}.jpeg";
         byte[] fileBytes;
 
         using (var memoryStream = new MemoryStream())
@@ -299,7 +299,6 @@ public class TextureService : ITextureService
         }
 
         var imageUrl = await UploadToAzureStorage(fileName, fileBytes);
-        //var imageUrl = "\"C:\\Users\\ASUS\\Pictures\\Saved Pictures\\292359128_595094968652714_9080161834328948733_n.jpg\"";
         if (string.IsNullOrEmpty(imageUrl))
         {
             throw new InvalidOperationException("Failed to upload file to Azure Storage.");
@@ -369,7 +368,7 @@ public class TextureService : ITextureService
         }
 
         string formattedDateTime = DateTime.Now.ToString("dd-MM-yyyy_HH-mm");
-        string fileName = $"texture_{formattedDateTime}.png";
+        string fileName = $"texture_{formattedDateTime}.jpeg";
         byte[] imageBytes = Convert.FromBase64String(responseData.Data[0].B64Json);
 
         var azureImageUrl = await UploadToAzureStorage(fileName, imageBytes);
@@ -396,7 +395,7 @@ public class TextureService : ITextureService
             {
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders
                 {
-                    ContentType = "image/png"
+                    ContentType = "image/jpeg"
                 });
             }
 
