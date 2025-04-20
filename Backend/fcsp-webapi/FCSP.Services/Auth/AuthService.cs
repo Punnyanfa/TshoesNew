@@ -69,7 +69,8 @@ public class AuthService : IAuthService
                 Name = user.Name,
                 Email = user.Email,
                 Dob = user.Dob ?? "",
-                Gender = user.Gender ?? ""
+                Gender = user.Gender ?? "",
+                PhoneNumber = user.PhoneNumber ?? ""
             }
         };
     }
