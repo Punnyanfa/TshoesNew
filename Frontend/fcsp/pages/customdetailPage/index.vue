@@ -364,6 +364,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js' // Thêm RGBELoader để tải HDR environment map
 
 // Container reference
 const container = ref(null)
@@ -625,42 +626,65 @@ const initThree = () => {
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xf0f0f0)
 
-  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
-  camera.position.set(1.5, 0.5, 1.5)
+  // Camera setup
+  camera = new THREE.PerspectiveCamera(50, container.value.clientWidth / container.value.clientHeight, 0.1, 100)
+  camera.position.set(2, 0.5, 2)
+  camera.lookAt(0, 1, 0)
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.toneMapping = THREE.ACESFilmicToneMapping
+  renderer.toneMappingExposure = 1.2
   container.value.appendChild(renderer.domElement)
 
-  // Lighting setup
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+  // Load HDR environment map
+  const rgbeLoader = new RGBELoader()
+  rgbeLoader.load(
+    'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/urban_street_01_1k.hdr', 
+    (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping
+      scene.environment = texture 
+      scene.background = new THREE.Color(0xf0f0f0)
+    },
+    undefined,
+    (error) => console.error('Lỗi khi tải HDR environment map:', error)
+  )
+
+  // Lighting setup 
+  const ambientLight = new THREE.AmbientLight(0xf0f0f0, 1) // Giảm intensity vì có ánh sáng từ environment map
   scene.add(ambientLight)
 
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.2)
-  mainLight.position.set(5, 10, 5)
-  mainLight.castShadow = true
-  mainLight.shadow.mapSize.width = 1024
-  mainLight.shadow.mapSize.height = 1024
-  scene.add(mainLight)
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.6) // Giảm intensity
+  keyLight.position.set(3, 4, 3)
+  keyLight.castShadow = true
+  keyLight.shadow.mapSize.width = 2048
+  keyLight.shadow.mapSize.height = 2048
+  keyLight.shadow.camera.near = 0.5
+  keyLight.shadow.camera.far = 50
+  keyLight.shadow.bias = -0.0001
+  scene.add(keyLight)
 
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5)
-  fillLight.position.set(-5, 3, -5)
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.3)
+  fillLight.position.set(-3, 2, -3)
   scene.add(fillLight)
 
-  const topLight = new THREE.DirectionalLight(0xffffff, 0.4)
-  topLight.position.set(0, 10, 0)
-  scene.add(topLight)
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.2)
+  backLight.position.set(0, 3, -3)
+  scene.add(backLight)
 
+  // Orbit controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.dampingFactor = 0.05
   controls.rotateSpeed = 0.7
-  controls.minDistance = 1
+  controls.minDistance = 0.8
   controls.maxDistance = 3
-  controls.target.set(0, 0.5, 0)
+  controls.target.set(0, 0.7, 0)
+  controls.maxPolarAngle = Math.PI / 1.8
+  controls.minPolarAngle = Math.PI / 8
 
   loadModel()
   animate()
@@ -688,8 +712,8 @@ const onModelLoaded = (gltf) => {
   }
 
   model = gltf.scene
-  model.scale.set(5, 5, 5)
-  model.position.set(0, -0.5, 0)
+  model.scale.set(7, 7, 7)
+  model.position.set(0, -0.3, 0)
   model.rotation.y = Math.PI / 4
 
   const foundMeshes = []
@@ -730,9 +754,9 @@ const onModelLoaded = (gltf) => {
       normalMap: originalMaterial.normalMap || null,
       roughnessMap: originalMaterial.roughnessMap || null,
       metalness: originalMaterial.metalness || 0.2,
-      roughness: originalMaterial.roughness || 0.6,
-      envMap: scene.environment,
-      envMapIntensity: 1.0
+      roughness: originalMaterial.Roughness || 0.6,
+      envMap: scene.environment, // Áp dụng environment map
+      envMapIntensity: 1.5 // Tăng cường độ ánh sáng môi trường để mô hình sáng hơn
     })
 
     model.traverse((node) => {
@@ -834,7 +858,7 @@ const applyImageToMesh = () => {
     (error) => {
       console.error('Lỗi khi tải ảnh:', error)
       alert('Đã xảy ra lỗi khi tải ảnh, vui lòng thử lại')
-      URL.reviteObjectURL(imageUrl)
+      URL.revokeObjectURL(imageUrl)
     }
   )
 }
@@ -1028,10 +1052,14 @@ onBeforeUnmount(() => {
     if (container.value) container.value.removeChild(renderer.domElement)
   }
   if (controls) controls.dispose()
-  if (scene) scene.clear()
+  if (scene) {
+    if (scene.environment) scene.environment.dispose()
+    scene.clear()
+  }
   if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
 })
 </script>
+
 <style>
 .custom-detail-page {
   height: 100vh;
