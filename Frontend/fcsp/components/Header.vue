@@ -16,90 +16,73 @@
 
       <!-- Navigation -->
       <nav class="navbar-nav" :class="{ 'nav-open': isNavOpen }">
-        <router-link 
-          v-for="item in navItems" 
-          :key="item.path" 
-          :to="item.path" 
-          class="nav-link"
-          :class="{ 'highlight-link': item.highlight }"
-          @click="toggleNav"
-        >
-          <a-icon :type="item.icon" /> {{ item.label }}
-        </router-link>
+        <!-- Regular nav items -->
+        <template v-for="item in navItems" :key="item.path">
+          <!-- Regular nav link -->
+          <router-link 
+            v-if="item.path !== '/customPage'" 
+            :to="item.path" 
+            class="nav-link"
+            @click="toggleNav"
+          >
+            <a-icon :type="item.icon" /> {{ item.label }}
+          </router-link>
+          
+          <!-- Customize with dropdown -->
+          <div v-else class="custom-dropdown">
+            <div class="nav-link" style="cursor: pointer;">
+              <a-icon :type="item.icon" /> {{ item.label }}
+              <DownOutlined style="margin-left: 5px; font-size: 12px;" />
+            </div>
+            <div class="dropdown-content">
+              <router-link to="/customPage" class="dropdown-item" @click="toggleNav">
+                <ShoppingOutlined style="margin-right: 8px;" /> Customize Product
+              </router-link>
+              <router-link to="/mycustomPage" class="dropdown-item" @click="toggleNav">
+                <UserOutlined style="margin-right: 8px;" /> My Customize
+              </router-link>
+            </div>
+          </div>
+        </template>
       </nav>
 
      <!-- User Actions -->
 <div class="user-actions">
-  <!-- Search Bar -->
-  <div class="search-wrapper" :class="{ 'expanded': isSearchOpen }">
-    <a-input-search 
-      v-if="isSearchOpen"
-      v-model="searchQuery"
-      placeholder="Search sneakers..."
-      @search="onSearch"
-      class="search-input" 
-    />
-    <a-button 
-      class="sneaker-btn-icon search-btn"
-      shape="circle"
-      @click="toggleSearch"
-    >
-      <a-icon type="search" />
-    </a-button>
-  </div>
+  <!-- Favorite Button -->
+  <router-link to="/favoritePage" class="sneaker-btn-icon favorite-btn">
+    <HeartOutlined />
+    <span class="sneaker-badge">{{ favoriteCount }}</span>
+  </router-link>
 
   <!-- Cart Button -->
-  <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
+  <router-link to="/cartPage" class="sneaker-btn-icon cart-btn">
     <ShoppingCartOutlined />
     <span class="sneaker-badge">{{ cartCount }}</span>
   </router-link>
 
-  <!-- User Section -->
-  <template v-if="isAuthenticated">
-    <div class="dropdown">
-      <button 
-        class="btn dropdown-toggle d-flex align-items-center" 
-        type="button" 
-        id="userDropdown"
-        data-bs-toggle="dropdown" 
-        aria-expanded="false"
-      >
-        <i class="bi bi-person-circle me-1"></i> {{ userName }}
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
-        <li>
-          <router-link class="dropdown-item" to="/profilePage">
-            <i class="bi bi-person me-2"></i> Profile
-          </router-link>
-        </li>
-        <li>
-          <router-link class="dropdown-item" to="/settingsPage">
-            <i class="bi bi-gear me-2"></i> Settings
-          </router-link>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-          <a class="dropdown-item text-danger" href="#" @click.prevent="logout">
-            <i class="bi bi-box-arrow-right me-2"></i> Logout
-          </a>
-        </li>
-      </ul>
-    </div>
-  </template>
-  <template v-else>
-    <router-link to="/loginPage" class="login-btn">
-      <UserOutlined /> Login
-    </router-link>
-  </template>
+    <!-- Notification Button -->
+    <router-link to="/notificationPage" class="sneaker-btn-icon notification-btn">
+    <BellOutlined />
+    <span class="sneaker-badge">{{ notificationCount }}</span>
+  </router-link>
 
-  <!-- Theme Toggle Button -->
-  <a-button 
-    class="sneaker-btn-icon theme-btn"
-    shape="circle"
-    @click="toggleTheme"
-  >
-    <a-icon :type="isDarkTheme ? 'sun' : 'moon'" />
-  </a-button>
+  <!-- User Dropdown (Authenticated) -->
+  <a-dropdown v-if="isAuthenticated" class="user-dropdown">
+    <a-button class="sneaker-btn user-btn">
+      <UserOutlined /> {{ userName }}
+      <DownOutlined />
+    </a-button>
+    <a-dropdown-menu slot="overlay">
+      <a-dropdown-item><ProfileOutlined /> Profile</a-dropdown-item>
+      <a-dropdown-item><SettingOutlined /> Settings</a-dropdown-item>
+      <a-dropdown-item @click="logout"><LogoutOutlined /> Logout</a-dropdown-item>
+    </a-dropdown-menu>
+  </a-dropdown>
+
+  <!-- Login Link (Non-Authenticated) -->
+  <router-link v-else to="/loginPage" class="sneaker-btn">
+    <UserOutlined /> Login
+  </router-link>
 </div>
 
       <!-- Mobile Toggle Button -->
@@ -111,15 +94,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons-vue';
-import { useRouter } from 'vue-router';
-import { useCart } from '~/composables/useCart';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { 
+  ShoppingCartOutlined, 
+  UserOutlined, 
+  DownOutlined, 
+  ProfileOutlined, 
+  SettingOutlined, 
+  LogoutOutlined, 
+  HeartOutlined,
+  BellOutlined,
+  ShoppingOutlined
+} from '@ant-design/icons-vue';
 
-const router = useRouter();
-const { cartCount } = useCart();
 const isAuthenticated = ref(false);
-const userName = ref('');
+const userName = ref('SneakerFan');
+const cartCount = ref(2);
+const favoriteCount = ref(3);
+const notificationCount = ref(1);
 const isNavOpen = ref(false);
 const isSearchOpen = ref(false);
 const searchQuery = ref('');
@@ -129,45 +121,23 @@ const isScrolled = ref(false);
 const navItems = [
   { path: '/homePage', label: 'Home', icon: 'home' },
   { path: '/productPage', label: 'Products', icon: 'shop' },
-  { path: '/customPage', label: 'Customize', icon: 'edit', highlight: true },
+  { path: '/customPage', label: 'Customize', icon: 'edit' },
   { path: '/contactPage', label: 'Contact', icon: 'mail' },
   { path: '/aboutPage', label: 'About', icon: 'info-circle' },
 ];
 
-// Watch for authentication state changes
-watch(() => {
-  const token = localStorage.getItem('username');
-  isAuthenticated.value = !!token;
-  if (isAuthenticated.value) {
-    userName.value = localStorage.getItem('username') || 'User';
-  }
-}, { immediate: true });
+// Loại bỏ Customize khỏi danh sách menu thông thường vì đã có dropdown riêng
+const filteredNavItems = computed(() => {
+  return navItems.filter(item => item.label !== 'Customize');
+});
 
 // Xử lý sự kiện scroll
 const handleScroll = () => {
-  isScrolled.value = window.scrollY > 50;
-};
-
-const initDropdowns = async () => {
-  if (process.client) {
-    try {
-      const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
-      const dropdownElements = document.querySelectorAll('.dropdown-toggle');
-      dropdownElements.forEach(element => {
-        new bootstrap.Dropdown(element);
-      });
-    } catch (error) {
-      console.error('Error initializing dropdowns:', error);
-    }
-  }
+  isScrolled.value = window.scrollY > 50; // Thay đổi trạng thái khi scroll quá 50px
 };
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
-  // Initialize dropdowns after DOM is ready
-  nextTick(() => {
-    initDropdowns();
-  });
 });
 
 onUnmounted(() => {
@@ -190,19 +160,7 @@ const onSearch = (value) => {
 };
 
 const logout = () => {
-  // Clear all user data from localStorage
-  localStorage.removeItem('userToken');
-  localStorage.removeItem('email');
-  localStorage.removeItem('role');
-  localStorage.removeItem('username');
-  localStorage.removeItem('userId');
-  
-  // Reset authentication state
   isAuthenticated.value = false;
-  userName.value = '';
-  
-  // Redirect to home page
-  router.push('/homePage');
 };
 
 const toggleTheme = () => {
@@ -221,9 +179,10 @@ const resetLogo = (e) => {
 
 <style scoped>
 .sneaker-header {
-  background: #1a1a1a;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 1rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -232,17 +191,8 @@ const resetLogo = (e) => {
 
 .sneaker-header.scrolled {
   padding: 0.5rem 0;
-  background: rgba(26, 26, 26, 0.9);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
-}
-
-.sneaker-header.scrolled .logo-img {
-  width: 35px;
-  height: 35px;
-}
-
-.sneaker-header.scrolled .brand-text {
-  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
 }
 
 .header-container {
@@ -259,53 +209,176 @@ const resetLogo = (e) => {
   display: flex;
   align-items: center;
   text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.logo-wrapper:hover {
+  transform: scale(1.05);
 }
 
 .logo-img {
   width: 45px;
   height: 45px;
-  transition: transform 0.5s ease, width 0.3s ease, height 0.3s ease;
+  transition: all 0.3s ease;
   margin-right: 12px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .brand-text {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #8bc34a;
+  color: #555555;
   letter-spacing: 1px;
-  background: #fff;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: font-size 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-/* Các style khác giữ nguyên */
 .navbar-nav {
   display: flex;
   flex-direction: row;
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: center;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #fff;
+  color: #555555;
   font-weight: 600;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
-  transition: transform 0.3s ease;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
-  -webkit-background-clip: text;
-  background-clip: text;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #555555;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+  width: 80%;
 }
 
 .nav-link:hover {
-  transform: scale(1.05);
-  color: transparent;
+  transform: none;
+  box-shadow: none;
+  background: none;
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.search-wrapper.expanded {
+  width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  margin-right: 0.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+}
+
+.sneaker-btn-icon {
+  position: relative;
+  background: linear-gradient(135deg, #555555, #555555);
+  color: #fff;
+  border-radius: 24px;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.sneaker-btn-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #444444, #444444);
+}
+
+.sneaker-btn-icon.favorite-btn {
+  position: relative;
+  background: linear-gradient(135deg, #555555, #555555);
+  color: #fff;
+}
+
+.sneaker-btn-icon.favorite-btn:hover {
+  background: linear-gradient(135deg, #444444, #444444);
+}
+
+.sneaker-btn-icon.cart-btn {
+  position: relative;
+  background: linear-gradient(135deg, #555555, #555555);
+  color: #fff;
+}
+
+.sneaker-btn-icon.cart-btn:hover {
+  background: linear-gradient(135deg, #444444, #444444);
+}
+
+.sneaker-btn-icon.notification-btn {
+  position: relative;
+  background: linear-gradient(135deg, #555555, #555555);
+  color: #fff;
+}
+
+.sneaker-btn-icon.notification-btn:hover {
+  background: linear-gradient(135deg, #444444, #444444);
+}
+
+.sneaker-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #555555;
+  color: #fff;
+  border-radius: 50%;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-dropdown .sneaker-btn.user-btn,
+.sneaker-btn {
+  background: linear-gradient(135deg, #555555, #555555);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.user-dropdown .sneaker-btn.user-btn:hover,
+.sneaker-btn:hover {
+  background: linear-gradient(135deg, #444444, #444444);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sneaker-btn-icon.theme-btn {
+  display: none;
 }
 
 @media (max-width: 991px) {
@@ -318,19 +391,32 @@ const resetLogo = (e) => {
     display: none;
     flex-direction: column;
     width: 100%;
-    background: #1a1a1a;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     padding: 1rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 24px;
   }
 
   .sneaker-header.scrolled .navbar-nav {
-    background: rgba(26, 26, 26, 0.9);
+    background: rgba(255, 255, 255, 0.9);
   }
 
   .nav-open {
     display: flex;
   }
 
+  .user-actions {
+    gap: 0.75rem;
+  }
+
+  .search-wrapper.expanded {
+    width: 200px;
+  }
+
+  .sneaker-btn-icon {
+    padding: 0.4rem;
+  }
 }
 
 body.light-theme .sneaker-header {
@@ -343,285 +429,203 @@ body.light-theme .sneaker-header.scrolled {
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
 }
 
-.user-actions {
+body.light-theme .sneaker-header.scrolled .logo-img {
+  width: 35px;
+  height: 35px;
+}
+
+body.light-theme .sneaker-header.scrolled .brand-text {
+  font-size: 1.5rem;
+}
+
+body.light-theme .navbar-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  align-items: center;
+}
+
+body.light-theme .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #555555;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+body.light-theme .nav-link:hover {
+  transform: scale(1.05);
+  color: transparent;
+}
+
+body.light-theme .user-actions {
   display: flex;
   align-items: center;
   gap: 1rem; 
 }
 
-/* Search Wrapper */
-.search-wrapper {
+body.light-theme .search-wrapper {
   display: flex;
   align-items: center;
   transition: width 0.3s ease;
 }
 
-.search-wrapper.expanded {
+body.light-theme .search-wrapper.expanded {
   width: 200px;
 }
 
-.search-input {
+body.light-theme .search-input {
   width: 100%;
   margin-right: 0.5rem;
-}
-
-.sneaker-btn-icon.search-btn {
-  background: #3498db;
-  color: #fff;
-  border: none;
-  transition: background 0.3s ease;
-}
-
-.sneaker-btn-icon.search-btn:hover {
-  background: #2980b9;
-}
-
-/* Cart Button */
-.sneaker-btn-icon.cart-btn {
-  position: relative;
-  background: linear-gradient(45deg, #2c3e50, #3498db);;
-  color: #fff;
-  padding: 0.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-}
-
-.sneaker-btn-icon.cart-btn:hover {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
-}
-
-.sneaker-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #8bc34a;
-  color: #fff;
-  border-radius: 50%;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.75rem;
-}
-
-/* User Dropdown & Login Button */
-.user-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: none;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
-  color: #fff;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-}
-
-.user-btn:hover {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
-  opacity: 0.9;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.btn.dropdown-toggle {
-  background: linear-gradient(45deg, #3498db, #00bcd4);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 25px;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  box-shadow: 0 2px 10px rgba(0, 188, 212, 0.2);
-}
-
-.btn.dropdown-toggle:hover {
-  background: linear-gradient(45deg, #00bcd4, #3498db);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
-}
-
-.btn.dropdown-toggle:active,
-.btn.dropdown-toggle:focus {
-  background: linear-gradient(45deg, #00bcd4, #3498db);
-  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.25);
-  transform: translateY(0);
-}
-
-.btn.dropdown-toggle i {
-  font-size: 1.2rem;
-  color: white;
-  transition: transform 0.3s ease;
-}
-
-.btn.dropdown-toggle:hover i {
-  transform: scale(1.1);
-}
-
-/* Dropdown menu styling */
-.dropdown-menu {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 188, 212, 0.15);
-  margin-top: 10px;
-  background: white;
-  animation: dropdownFade 0.3s ease;
-}
-
-@keyframes dropdownFade {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdown-menu .dropdown-item {
-  padding: 8px 20px;
-  color: #2c3e50;
-  transition: all 0.2s ease;
-}
-
-.dropdown-menu .dropdown-item:hover {
-  background: linear-gradient(45deg, rgba(52, 152, 219, 0.1), rgba(0, 188, 212, 0.1));
-  color: #00bcd4;
-  transform: translateX(5px);
-}
-
-.dropdown-divider {
-  margin: 0.5rem 0;
-  border-color: #dee2e6;
-}
-
-.text-danger {
-  color: #dc3545 !important;
-}
-
-.text-danger:hover {
-  color: #fff !important;
-  background-color: #dc3545 !important;
-}
-
-/* Theme Toggle Button */
-.sneaker-btn-icon.theme-btn {
-  background: #f1c40f;
-  color: #fff;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-}
-
-.sneaker-btn-icon.theme-btn:hover {
-  background: #d4ac0d;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 991px) {
-  .user-actions {
-    gap: 0.75rem; 
-  }
-
-  .search-wrapper.expanded {
-    width: 150px; 
-  }
-
-  .sneaker-btn-icon {
-    padding: 0.4rem;
-  }
-
-  .dropdown-menu {
-    position: fixed !important;
-    top: auto !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100%;
-    margin-top: 0.5rem;
-    border-radius: 0;
-  }
-}
-
-body.light-theme .sneaker-btn-icon.search-btn {
-  background: #2980b9;
 }
 
 body.light-theme .sneaker-btn-icon.cart-btn {
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
-body.light-theme .user-btn {
+body.light-theme .user-dropdown .sneaker-btn.user-btn,
+body.light-theme .sneaker-btn {
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
 body.light-theme .sneaker-btn-icon.theme-btn {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  display: none;
 }
 
-body.light-theme .dropdown-menu {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* Dropdown styling */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
 }
 
-body.light-theme .dropdown-item {
-  color: #333;
-}
-
-body.light-theme .dropdown-item:hover {
-  background-color: #f8f9fa;
-  color: #2196f3;
-}
-
-/* Cập nhật style cho nút Login */
-.login-btn {
-  background: linear-gradient(45deg, #3498db, #00bcd4);
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 25px;
+.custom-dropdown .nav-link {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 500;
+  color: #555555;
+  font-weight: 600;
   text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 188, 212, 0.2);
+  position: relative;
 }
 
-.login-btn:hover {
-  background: linear-gradient(45deg, #00bcd4, #3498db);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
-  color: white;
+.custom-dropdown .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #555555;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
 }
 
-.login-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.25);
+.custom-dropdown .nav-link:hover::after {
+  width: 80%;
 }
 
-.login-btn .anticon {
-  font-size: 1.2rem;
-  transition: transform 0.3s ease;
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: none;
+  background: rgba(255, 255, 255, 0.98);
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  border-radius: 10px;
+  padding: 8px 0;
+  margin-top: 5px;
+  padding-top: 10px;
+  margin-top: -5px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
 }
 
-.login-btn:hover .anticon {
-  transform: scale(1.1);
+.dropdown-content:before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: transparent;
 }
 
-/* Responsive styles for login button */
+.dropdown-item {
+  color: #555555;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.dropdown-content a:hover,
+.dropdown-item:hover {
+  background-color: rgba(85, 85, 85, 0.08);
+  transform: translateX(3px);
+}
+
+.custom-dropdown:hover .dropdown-content {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.custom-dropdown .nav-link:hover + .dropdown-content,
+.dropdown-content:hover {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile styles for dropdown */
 @media (max-width: 991px) {
-  .login-btn {
-    padding: 6px 16px;
-    font-size: 0.9rem;
+  .dropdown-content {
+    position: static;
+    display: none;
+    box-shadow: none;
+    margin-top: 0;
+    padding-left: 1rem;
+    opacity: 1;
+    visibility: visible;
+    transition: none;
   }
+  
+  .dropdown-content:before {
+    display: none;
+  }
+  
+  .custom-dropdown:hover .dropdown-content {
+    display: block;
+  }
+}
+
+/* Light theme support */
+body.light-theme .dropdown-content {
+  background: #ffffff;
+}
+
+body.light-theme .dropdown-content a {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.light-theme .dropdown-content a:hover {
+  background-color: rgba(52, 152, 219, 0.05);
 }
 </style>
