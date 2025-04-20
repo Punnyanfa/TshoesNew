@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-5">
-    <h1 class="text-center text-primary">Your Shopping Cart</h1>
+    <h1 class="text-center text-primary">Your Customize</h1>
 
     <div v-if="cart.length > 0">
       <!-- Giỏ hàng có sản phẩm -->

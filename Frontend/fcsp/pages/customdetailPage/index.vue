@@ -9,10 +9,10 @@
     <!-- Các nút chức năng ở góc phải trên -->
     <div class="action-buttons" style="display: flex; gap: 10px; justify-content: flex-end;">
       <button class="action-button" @click="openCaptureModal">
-         Tải ảnh
+        Tải ảnh
       </button>
       <button class="action-button primary-button" @click="handleDone">
-      Hoàn thành
+        Hoàn thành
       </button>
     </div>
     
@@ -43,9 +43,9 @@
           
           <div class="capture-actions">
             <div class="download-controls">
-            <button class="action-button" @click="downloadSelectedAngle">
-               Tải ảnh đã chọn
-            </button>
+              <button class="action-button" @click="downloadSelectedAngle">
+                Tải ảnh đã chọn
+              </button>
             </div>
           </div>
         </div>
@@ -87,10 +87,10 @@
           
           <div class="complete-actions">
             <button class="action-button" @click="saveAsDraft">
-               Lưu nháp
+              Lưu nháp
             </button>
             <button class="action-button primary-button" @click="addToCart">
-               Thêm vào giỏ hàng
+              Thêm vào giỏ hàng
             </button>
           </div>
         </div>
@@ -194,16 +194,13 @@
               />
               <div class="text-buttons">
                 <button class="text-button apply-text" @click="applyTextToMesh" title="Áp dụng văn bản vào phần đã chọn">
-                   Áp dụng
+                  Áp dụng
                 </button>
                 <button class="text-button remove-text" @click="removeTextFromMesh" title="Xóa văn bản khỏi phần đã chọn">
-                   Xóa
+                  Xóa
                 </button>
               </div>
             </div>
-            
-            <!-- Thêm pallete màu chữ -->
-            <!-- Đã xóa phần màu chữ -->
           </div>
         </div>
         
@@ -220,14 +217,14 @@
                 id="image-upload"
               />
               <label for="image-upload" class="upload-button">
-                 Chọn ảnh
+                Chọn ảnh
               </label>
               <div class="image-buttons">
                 <button class="text-button apply-text" @click="applyImageToMesh" :disabled="!selectedImage" title="Áp dụng ảnh vào phần đã chọn">
-                   Áp dụng
+                  Áp dụng
                 </button>
                 <button class="text-button remove-text" @click="removeTextFromMesh" title="Xóa ảnh khỏi phần đã chọn">
-                   Xóa
+                  Xóa
                 </button>
               </div>
             </div>
@@ -237,6 +234,24 @@
               <img :src="previewImageUrl" alt="Preview" class="image-preview" />
             </div>
           </div>
+        </div>
+
+        <!-- Thêm dropdown chọn HDRI -->
+        <div class="hdri-selector">
+          <h4 class="hdri-title">Chọn ánh sáng môi trường</h4>
+          <select 
+            class="hdri-dropdown"
+            v-model="selectedHDRIIndex"
+            @change="updateHDRI"
+          >
+            <option 
+              v-for="(hdri, index) in HDRIs" 
+              :key="hdri.name" 
+              :value="index"
+            >
+              {{ hdri.name }}
+            </option>
+          </select>
         </div>
       </div>
       
@@ -364,7 +379,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js' // Thêm RGBELoader để tải HDR environment map
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
 // Container reference
 const container = ref(null)
@@ -412,7 +427,7 @@ const selectedImage = ref(null)
 const selectedImageName = ref('')
 const previewImageUrl = ref('')
 
-// Part colors and textures (fixed typos and aligned with components)
+// Part colors and textures
 const partColors = reactive({
   Accent_inside: '#ffffff',
   Accent_outside: '#ffffff',
@@ -485,6 +500,23 @@ const selectedComponentIndex = ref(0)
 const selectedColor = ref('#000000')
 const customColorValue = ref('#ff0000')
 const customColorApplied = ref(false)
+
+// HDRI list
+const HDRIs = reactive([
+  { name: 'Kloofendal 48d Partly Cloudy', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr', description: 'Bầu trời ngoài trời với mây nhẹ, ánh sáng tự nhiên, mềm mại, tông màu trung tính.' },
+  { name: 'Sunflowers PureSky', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunflowers_puresky_1k.hdr', description: 'Ánh sáng mặt trời buổi chiều, tông màu vàng ấm áp, bầu trời trong xanh.' },
+  { name: 'Noon Grass PureSky', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/noon_grass_puresky_1k.hdr', description: 'Ánh sáng ban trưa trên cánh đồng cỏ, bầu trời trong, ánh sáng mạnh nhưng tự nhiên.' },
+  { name: 'Venus PureSky', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venus_puresky_1k.hdr', description: 'Ánh sáng hoàng hôn nhẹ, tông màu cam-vàng, bầu trời có mây mỏng.' },
+  { name: 'Dank PureSky', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dank_puresky_1k.hdr', description: 'Bầu trời nhiều mây, ánh sáng dịu, tông màu hơi mát.' },
+  { name: 'Studio Small 03', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr', description: 'Ánh sáng studio, mềm mại và cân bằng, tông màu trung tính.' },
+  { name: 'Photo Studio 01', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/photo_studio_01_1k.hdr', description: 'Ánh sáng trong studio chụp ảnh, rất sáng và đều, tong màu trung tính.' },
+  { name: 'Syferfontein 0d Clear', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/syferfontein_0d_clear_1k.hdr', description: 'Bầu trời trong xanh, ánh sáng mặt trời mạnh, tông màu sáng và tự nhiên.' },
+  { name: 'Brown Photostudio 02', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/brown_photostudio_02_1k.hdr', description: 'Ánh sáng studio với tông màu ấm nhẹ, ánh sáng mềm mại.' },
+  { name: 'Urban Street 01', url: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/urban_street_01_1k.hdr', description: 'Ánh sáng ngoài trời trong khu phố đô thị, bầu trời có mây, ánh sáng tự nhiên với chút bóng.' }
+])
+
+// State for selected HDRI
+const selectedHDRIIndex = ref(0)
 
 // Modal handlers
 const openCaptureModal = () => {
@@ -588,7 +620,8 @@ const saveAsDraft = () => {
     textureParams: { ...textureParams },
     customText: customText.value,
     cameraPosition: camera ? { x: camera.position.x, y: camera.position.y, z: camera.position.z } : null,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    selectedHDRI: HDRIs[selectedHDRIIndex.value].name // Lưu HDRI đã chọn
   }
 
   for (const comp of components) {
@@ -626,10 +659,9 @@ const initThree = () => {
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xf0f0f0)
 
-  // Camera setup
   camera = new THREE.PerspectiveCamera(50, container.value.clientWidth / container.value.clientHeight, 0.1, 100)
-  camera.position.set(2, 0.5, 2)
-  camera.lookAt(0, 1, 0)
+  camera.position.set(1.2, 0.8, 1.2)
+  camera.lookAt(0, 0.7, 0)
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
   renderer.setPixelRatio(window.devicePixelRatio)
@@ -640,24 +672,13 @@ const initThree = () => {
   renderer.toneMappingExposure = 1.2
   container.value.appendChild(renderer.domElement)
 
-  // Load HDR environment map
-  const rgbeLoader = new RGBELoader()
-  rgbeLoader.load(
-    'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/urban_street_01_1k.hdr', 
-    (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping
-      scene.environment = texture 
-      scene.background = new THREE.Color(0xf0f0f0)
-    },
-    undefined,
-    (error) => console.error('Lỗi khi tải HDR environment map:', error)
-  )
+  // Load initial HDRI
+  loadHDRI(HDRIs[selectedHDRIIndex.value].url)
 
-  // Lighting setup 
-  const ambientLight = new THREE.AmbientLight(0xf0f0f0, 1) // Giảm intensity vì có ánh sáng từ environment map
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
   scene.add(ambientLight)
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.6) // Giảm intensity
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.6)
   keyLight.position.set(3, 4, 3)
   keyLight.castShadow = true
   keyLight.shadow.mapSize.width = 2048
@@ -675,7 +696,6 @@ const initThree = () => {
   backLight.position.set(0, 3, -3)
   scene.add(backLight)
 
-  // Orbit controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.dampingFactor = 0.05
@@ -689,6 +709,38 @@ const initThree = () => {
   loadModel()
   animate()
   window.addEventListener('resize', onWindowResize)
+}
+
+// Function to load HDRI
+const loadHDRI = (url) => {
+  const rgbeLoader = new RGBELoader()
+  rgbeLoader.load(
+    url,
+    (texture) => {
+      // Dispose of the previous environment map if it exists
+      if (scene.environment) {
+        scene.environment.dispose()
+      }
+      texture.mapping = THREE.EquirectangularReflectionMapping
+      scene.environment = texture
+      // Update all materials to use the new environment map
+      Object.keys(materials).forEach((partName) => {
+        if (materials[partName]) {
+          materials[partName].envMap = scene.environment
+          materials[partName].needsUpdate = true
+        }
+      })
+      renderer.render(scene, camera)
+    },
+    undefined,
+    (error) => console.error('Lỗi khi tải HDR environment map:', error)
+  )
+}
+
+// Function to update HDRI when selection changes
+const updateHDRI = () => {
+  const selectedHDRI = HDRIs[selectedHDRIIndex.value]
+  loadHDRI(selectedHDRI.url)
 }
 
 const loadModel = () => {
@@ -732,9 +784,6 @@ const onModelLoaded = (gltf) => {
     }
   })
 
-  console.log('Found meshes:', foundMeshes)
-  console.log('Mesh material map:', meshMaterialMap)
-
   Object.keys(partColors).forEach((partName) => {
     const matchingMesh = foundMeshes.find(meshName => meshName.toLowerCase().includes(partName.toLowerCase()))
     const originalMaterial = matchingMesh ? meshMaterialMap[matchingMesh] : new THREE.MeshStandardMaterial({ color: 0x808080 })
@@ -754,9 +803,9 @@ const onModelLoaded = (gltf) => {
       normalMap: originalMaterial.normalMap || null,
       roughnessMap: originalMaterial.roughnessMap || null,
       metalness: originalMaterial.metalness || 0.2,
-      roughness: originalMaterial.Roughness || 0.6,
-      envMap: scene.environment, // Áp dụng environment map
-      envMapIntensity: 1.5 // Tăng cường độ ánh sáng môi trường để mô hình sáng hơn
+      roughness: originalMaterial.roughness || 0.6,
+      envMap: scene.environment,
+      envMapIntensity: 1.5
     })
 
     model.traverse((node) => {
@@ -767,23 +816,7 @@ const onModelLoaded = (gltf) => {
     })
   })
 
-  checkPartGroups(foundMeshes)
   scene.add(model)
-}
-
-const checkPartGroups = (foundMeshes) => {
-  const missingMeshes = []
-  for (const groupName in partGroups) {
-    partGroups[groupName].forEach(partName => {
-      if (!foundMeshes.some(mesh => mesh.toLowerCase().includes(partName.toLowerCase()))) {
-        console.warn(`Phần "${partName}" không tìm thấy trong mô hình!`)
-        missingMeshes.push(partName)
-      }
-    })
-  }
-  if (missingMeshes.length) {
-    console.warn('Các phần không tìm thấy:', missingMeshes.join(', '))
-  }
 }
 
 const animate = () => {
@@ -978,8 +1011,6 @@ const updatePartColor = (color) => {
           node.material.needsUpdate = true
         }
       })
-    } else {
-      console.warn(`Material for ${part} not found`)
     }
   })
 
@@ -1032,6 +1063,13 @@ const handleComponentChange = () => {
   console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
 }
 
+const toggleCanvasSize = () => {
+  isCanvasExpanded.value = !isCanvasExpanded.value
+  setTimeout(() => {
+    onWindowResize()
+  }, 300)
+}
+
 onMounted(() => {
   initThree()
 })
@@ -1068,6 +1106,7 @@ onBeforeUnmount(() => {
   align-items: center;
   position: relative;
   background-color: #f9f9f9;
+  overflow-y: auto;
 }
 
 /* 3D Model container */
@@ -1084,14 +1123,13 @@ onBeforeUnmount(() => {
 }
 
 .model-container-wrapper.expanded {
-  height: 60vh;
+  height: 65vh;
 }
 
 .canvas-resizer {
   position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 10px;
+  bottom: 10px;
   z-index: 10;
 }
 
@@ -1201,20 +1239,6 @@ onBeforeUnmount(() => {
   border-bottom: 2px solid #000;
 }
 
-.button-group {
-  display: flex;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.button-group-highlighted {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  border: 2px dashed #ccc;
-}
-
 /* Primary button */
 .primary-button {
   background-color: #000;
@@ -1223,155 +1247,6 @@ onBeforeUnmount(() => {
 
 .primary-button:hover {
   background-color: #333;
-}
-
-/* Apply and remove buttons */
-.apply-button, .remove-button {
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  flex: 1;
-}
-
-.apply-button {
-  background-color: #000;
-  color: white;
-  border-color: #000;
-  font-size: 15px;
-}
-
-/* Action highlight button */
-.action-highlight {
-  transform: scale(1.05);
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  letter-spacing: 0.5px;
-}
-
-/* Swatches */
-.swatches-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 15px;
-}
-
-.swatch-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.swatch {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.swatch-selected {
-  border: 2px solid #000;
-  transform: scale(1.1);
-}
-
-.swatch-label {
-  margin-top: 5px;
-  font-size: 12px;
-  color: #000;
-  text-align: center;
-}
-
-/* Components list */
-.components-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.component-item {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #333;
-  cursor: pointer;
-  padding: 8px 15px;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
-
-.component-item:hover {
-  background-color: #f5f5f5;
-  color: #000;
-}
-
-.component-selected {
-  background-color: #f0f0f0;
-  color: #000;
-  font-weight: bold;
-}
-
-.component-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #ccc;
-  margin-right: 8px;
-}
-
-.component-selected .component-dot {
-  background-color: #000;
-}
-
-/* Navigation and Label */
-.navigation-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 10px;
-}
-
-.nav-arrow {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #000;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.nav-arrow:hover {
-  background-color: #f0f0f0;
-}
-
-.nav-label {
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
 }
 
 /* Product info */
@@ -1429,11 +1304,6 @@ onBeforeUnmount(() => {
   transform: translateY(-2px);
 }
 
-.action-button:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
 /* Text customizer */
 .text-customizer {
   display: flex;
@@ -1450,7 +1320,7 @@ onBeforeUnmount(() => {
 }
 
 .text-input {
-  flex: 1; /* Để input chiếm phần còn lại của không gian */
+  flex: 1;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -1559,65 +1429,6 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 
-.file-name {
-  font-size: 14px;
-  color: #333;
-  padding: 8px 0;
-  text-align: center;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .customizer-container {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .components-card, .customizer-card {
-    max-width: 90%;
-  }
-  
-  .product-info, .action-buttons {
-    position: relative;
-    top: 0;
-    left: 0;
-    right: 0;
-    margin: 10px 0;
-  }
-  
-  .action-buttons {
-    justify-content: center;
-  }
-}
-
-.button-group-highlighted {
-  margin-top: 10px;
-}
-
-.input-hint {
-  font-size: 12px;
-  color: #666;
-  margin-top: 8px;
-  text-align: center;
-  font-style: italic;
-}
-
-@media (max-width: 768px) {
-  .text-input-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .text-buttons {
-    margin-top: 10px;
-    justify-content: space-between;
-  }
-  
-  .text-button {
-    flex: 1;
-  }
-}
-
 .image-preview-container {
   margin-top: 15px;
   display: flex;
@@ -1632,12 +1443,6 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 
-.file-name {
-  font-size: 13px;
-  color: #555;
-  font-style: italic;
-}
-
 /* Capture modal */
 .capture-modal {
   position: fixed;
@@ -1649,7 +1454,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Tăng z-index lên cao hơn */
+  z-index: 9999;
 }
 
 .capture-modal-content {
@@ -1740,71 +1545,6 @@ onBeforeUnmount(() => {
   border-top: 1px solid #eee;
 }
 
-.download-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.camera-button {
-  background-color: #333;
-  color: white;
-  border: none;
-  border-radius: 25px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.camera-button:hover {
-  background-color: #555;
-}
-
-.rotate-button {
-  width: 40px;
-  height: 40px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all 0.2s ease;
-}
-
-.rotate-button:hover {
-  background-color: #f0f0f0;
-}
-
-.rotate-button:nth-child(1) {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.rotate-button:nth-child(2) {
-  grid-column: 3;
-  grid-row: 2;
-}
-
-.rotate-button:nth-child(3) {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.rotate-button:nth-child(4) {
-  grid-column: 2;
-  grid-row: 3;
-}
-
 .capture-actions {
   display: flex;
   justify-content: center;
@@ -1812,7 +1552,7 @@ onBeforeUnmount(() => {
   margin-top: 20px;
 }
 
-/* Mới thêm: CSS cho product-summary và complete-actions */
+/* Product summary */
 .product-summary {
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -1855,17 +1595,7 @@ onBeforeUnmount(() => {
   flex: 2;
 }
 
-@media (max-width: 480px) {
-  .complete-actions {
-    flex-direction: column;
-  }
-  
-  .complete-actions .action-button {
-    width: 100%;
-  }
-}
-
-/* Thêm công cụ điều chỉnh texture */
+/* Texture controls */
 .texture-controls-card {
   background-color: #1f2937;
   border-radius: 10px;
@@ -1959,19 +1689,7 @@ onBeforeUnmount(() => {
   margin-top: 0;
 }
 
-@media (max-width: 600px) {
-  .texture-controls-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 601px) and (max-width: 900px) {
-  .texture-controls-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Dropdown styles - Thêm phần CSS cho dropdown */
+/* Dropdown styles */
 .components-dropdown-container {
   margin: 15px 0;
 }
@@ -2046,5 +1764,68 @@ onBeforeUnmount(() => {
   padding: 3px 10px;
   font-size: 14px;
   cursor: pointer;
+}
+
+/* HDRI selector styles */
+.hdri-selector {
+  margin-top: 20px;
+}
+
+.hdri-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.hdri-dropdown {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 14px;
+  color: #333;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hdri-dropdown:hover {
+  border-color: #aaa;
+}
+
+.hdri-dropdown:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .customizer-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .components-card, .customizer-card {
+    max-width: 90%;
+  }
+  
+  .product-info, .action-buttons {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 10px 0;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
 }
 </style>
