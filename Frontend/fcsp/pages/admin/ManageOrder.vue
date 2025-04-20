@@ -93,11 +93,11 @@
                     <tbody>
                       <tr v-for="order in filteredOrders" :key="order.id">
                         <td class="fw-medium">{{ order.id }}</td>
-                        <td>{{ order.userId }}</td>
+                        <td>{{ order.userName }}</td>
                         <td class="total-amount">{{ formatCurrency(order.totalPrice) }}</td>
                         <td>
-                          <span :class="['badge', getStatusBadgeClass(order.status)]">
-                            {{ getStatusText(order.status) }}
+                          <span :class="['badge', getStatusBadgeClass(order.statusName)]">
+                            {{ getStatusText(order.statusName) }}
                           </span>
                         </td>
                         <td class="date-text">{{ formatDate(order.createdAt) }}</td>
@@ -156,22 +156,42 @@
                             </h5>
                             <ul class="list-group list-group-flush bg-transparent">
                               <li class="list-group-item bg-transparent px-0">
-                                <strong>Name:</strong> {{ selectedOrder.userId }}
-                              </li>
-                              <li class="list-group-item bg-transparent px-0">
-                                <strong>Email:</strong> {{ selectedOrder.userId }}@example.com
-                              </li>
-                              <li class="list-group-item bg-transparent px-0">
-                                <strong>Phone:</strong> {{ selectedOrder.userId }}
-                              </li>
-                              <li class="list-group-item bg-transparent px-0">
-                                <strong>Address:</strong> {{ selectedOrder.userId }}
+                                <strong>Name:</strong> {{ selectedOrder.userName }}
                               </li>
                             </ul>
                           </div>
                         </div>
                       </div>
                       <div class="col-12 col-md-6">
+                        <div class="card h-100 border-0 bg-light">
+                          <div class="card-body">
+                            <h5 class="card-title text-primary mb-3">
+                              <i class="bi bi-truck me-2"></i>Shipping Information
+                            </h5>
+                            <ul class="list-group list-group-flush bg-transparent" v-if="getShippingInfo(selectedOrder.shippingInfoId)">
+                              <li class="list-group-item bg-transparent px-0">
+                                <strong>Phone:</strong> {{ getShippingInfo(selectedOrder.shippingInfoId).phoneNumber }}
+                              </li>
+                              <li class="list-group-item bg-transparent px-0">
+                                <strong>Address:</strong> {{ getShippingInfo(selectedOrder.shippingInfoId).address }}
+                              </li>
+                              <li class="list-group-item bg-transparent px-0">
+                                <strong>City:</strong> {{ getShippingInfo(selectedOrder.shippingInfoId).city }}
+                              </li>
+                              <li class="list-group-item bg-transparent px-0">
+                                <strong>District:</strong> {{ getShippingInfo(selectedOrder.shippingInfoId).district }}
+                              </li>
+                              <li class="list-group-item bg-transparent px-0">
+                                <strong>Ward:</strong> {{ getShippingInfo(selectedOrder.shippingInfoId).ward }}
+                              </li>
+                            </ul>
+                            <div v-else class="text-muted">
+                              No shipping information available
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12">
                         <div class="card h-100 border-0 bg-light">
                           <div class="card-body">
                             <h5 class="card-title text-primary mb-3">
@@ -183,8 +203,8 @@
                               </li>
                               <li class="list-group-item bg-transparent px-0">
                                 <strong>Status:</strong> 
-                                <span :class="['badge', getStatusBadgeClass(selectedOrder.status)]">
-                                  {{ getStatusText(selectedOrder.status) }}
+                                <span :class="['badge', getStatusBadgeClass(selectedOrder.statusName)]">
+                                  {{ getStatusText(selectedOrder.statusName) }}
                                 </span>
                               </li>
                               <li class="list-group-item bg-transparent px-0">
@@ -192,7 +212,7 @@
                                 <span class="total-amount">{{ formatCurrency(selectedOrder.totalPrice) }}</span>
                               </li>
                               <li class="list-group-item bg-transparent px-0">
-                                <strong>Payment Method:</strong> {{ getPaymentMethodText(selectedOrder.paymentMethod) }}
+                                <strong>Payment Method:</strong> {{ getPaymentMethodText(selectedOrder.paymentMethodName) }}
                               </li>
                             </ul>
                           </div>
@@ -209,15 +229,19 @@
                                 <th>Product</th>
                                 <th>Price</th>
                                 <th>Quantity</th>
+                                <th>Size</th>
                                 <th>Total</th>
+                           
                               </tr>
                             </thead>
                             <tbody>
                               <tr v-for="(product, index) in selectedOrder.orderDetails" :key="index">
-                                <td>{{ product.name }}</td>
-                                <td>{{ formatCurrency(product.price) }}</td>
+                                <td>{{ product.customShoeDesignId }}</td>
+                                <td>{{ formatCurrency(product.unitPrice) }}</td>
                                 <td>{{ product.quantity }}</td>
-                                <td class="total-amount">{{ formatCurrency(product.price * product.quantity) }}</td>
+                                <td>{{ product.sizeValue }}</td>
+                                <td class="total-amount">{{ formatCurrency(product.unitPrice * product.quantity) }}</td>
+                                
                               </tr>
                             </tbody>
                             <tfoot class="table-light">
@@ -263,6 +287,52 @@
                 </div>
               </div>
             </div>
+
+            <!-- Order Item Details Modal -->
+            <div class="modal fade" id="orderItemModal" tabindex="-1" ref="orderItemModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Chi tiết sản phẩm</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body" v-if="selectedOrderItem">
+                    <div class="card border-0 bg-light mb-3">
+                      <div class="card-body">
+                        <h6 class="text-primary mb-3">Thông tin sản phẩm</h6>
+                        <ul class="list-group list-group-flush bg-transparent">
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>Mã thiết kế:</strong>
+                            <span>{{ selectedOrderItem.customShoeDesignId }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>Kích cỡ:</strong>
+                            <span>{{ selectedOrderItem.sizeValue }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>Đơn giá:</strong>
+                            <span>{{ formatCurrency(selectedOrderItem.unitPrice) }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>Số lượng:</strong>
+                            <span>{{ selectedOrderItem.quantity }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>Tổng tiền:</strong>
+                            <span class="text-primary fw-bold">
+                              {{ formatCurrency(selectedOrderItem.unitPrice * selectedOrderItem.quantity) }}
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -272,12 +342,42 @@
 
 <script>
 import { getAllOrders, getOrderById } from '@/server/order-service';
+import { getAllShippingInfo } from '@/server/shipping-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
+import { onMounted, ref } from 'vue';
 
 export default {
   name: 'AdminOrders',
   components: {
     AdminSidebar
+  },
+  setup() {
+    const orderItemModal = ref(null);
+    const orderDetailsModal = ref(null);
+    const updateStatusModal = ref(null);
+    const modalRefs = ref({
+      orderItemModal: null,
+      orderDetailsModal: null,
+      updateStatusModal: null
+    });
+
+    onMounted(async () => {
+      if (process.client) {
+        const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
+        modalRefs.value = {
+          orderItemModal: new bootstrap.Modal(document.getElementById('orderItemModal')),
+          orderDetailsModal: new bootstrap.Modal(document.getElementById('orderDetailsModal')),
+          updateStatusModal: new bootstrap.Modal(document.getElementById('updateStatusModal'))
+        };
+      }
+    });
+
+    return {
+      orderItemModal,
+      orderDetailsModal,
+      updateStatusModal,
+      modalRefs
+    };
   },
   data() {
     return {
@@ -287,9 +387,8 @@ export default {
       dateRange: ['', ''],
       loading: false,
       selectedOrder: null,
+      selectedOrderItem: null,
       newStatus: '',
-      orderDetailsModal: null,
-      updateStatusModal: null,
       orderStatuses: [
         'Pending',
         'Confirmed',
@@ -298,7 +397,8 @@ export default {
         'Delivered',
         'Cancelled'
       ],
-      orders: []
+      orders: [],
+      shippingInfos: []
     }
   },
   computed: {
@@ -311,7 +411,7 @@ export default {
       
       // Apply status filter
       if (this.statusFilter) {
-        result = result.filter(order => this.getStatusText(order.status) === this.statusFilter);
+        result = result.filter(order => order.statusName === this.statusFilter);
       }
       
       // Apply date range filter
@@ -331,7 +431,7 @@ export default {
         const searchLower = this.search.toLowerCase();
         result = result.filter(order => 
           order.id.toString().includes(searchLower) ||
-          order.userId.toString().includes(searchLower)
+          order.userName.toString().includes(searchLower)
         );
       }
       
@@ -350,35 +450,22 @@ export default {
       return new Date(date).toLocaleDateString('vi-VN');
     },
     getStatusText(status) {
-      const statusMap = {
-        0: 'Pending',
-        1: 'Confirmed',
-        2: 'Processing',
-        3: 'Shipping',
-        4: 'Delivered',
-        5: 'Cancelled'
-      };
-      return statusMap[status] || 'Unknown';
+      return status || 'Unknown';
     },
     getStatusBadgeClass(status) {
-      const statusText = this.getStatusText(status);
       const classes = {
         'Pending': 'bg-warning text-dark',
         'Confirmed': 'bg-info',
         'Processing': 'bg-primary',
         'Shipping': 'bg-info',
         'Delivered': 'bg-success',
+        'Completed': 'bg-success',
         'Cancelled': 'bg-danger'
       };
-      return classes[statusText] || 'bg-secondary';
+      return classes[status] || 'bg-secondary';
     },
     getPaymentMethodText(method) {
-      const methodMap = {
-        0: 'Cash on Delivery',
-        1: 'Bank Transfer',
-        2: 'E-Wallet'
-      };
-      return methodMap[method] || 'Unknown';
+      return method || 'Unknown';
     },
     toggleDatePicker() {
       this.datePickerVisible = !this.datePickerVisible;
@@ -386,35 +473,87 @@ export default {
     applyDateFilter() {
       this.datePickerVisible = false;
     },
+    async fetchShippingInfos() {
+      try {
+        const response = await getAllShippingInfo();
+        console.log('ssssssssssShipping API Response:', response);
+        
+        // Check if response has the expected structure
+        if (response && Array.isArray(response.shippingInfos)) {
+          this.shippingInfos = response.shippingInfos;
+        } else if (Array.isArray(response)) {
+          this.shippingInfos = response;
+        } else {
+          console.error('Unexpected shipping info response structure:', response);
+          this.shippingInfos = [];
+        }
+        
+        console.log('Processed shipping infos:', this.shippingInfos);
+      } catch (error) {
+        console.error('Error fetching shipping info:', error);
+        this.showMessage('Có lỗi xảy ra khi tải thông tin giao hàng', 'danger');
+        this.shippingInfos = [];
+      }
+    },
+    getShippingInfo(shippingInfoId) {
+      return this.shippingInfos.find(info => info.id === shippingInfoId) || null;
+    },
     async fetchOrders() {
       this.loading = true;
       try {
         const response = await getAllOrders();
-        if (response) {
-          this.orders = Array.isArray(response) ? response : [response];
+        console.log('API Response:', response);
+        
+        if (response && Array.isArray(response)) {
+          this.orders = response.map(order => ({
+            id: order.id,
+            userName: order.userName,
+            shippingInfoId: order.shippingInfoId,
+            voucherCode: order.voucherCode,
+            totalPrice: order.totalPrice,
+            statusName: order.status,
+            shippingStatusName: order.shippingStatus,
+            paymentMethodName: order.paymentMethod,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+            orderDetails: Array.isArray(order.orderDetails) ? order.orderDetails.map(detail => ({
+              customShoeDesignId: detail.customShoeDesignId,
+              quantity: detail.quantity,
+              unitPrice: detail.unitPrice,
+              sizeValue: detail.sizeValue
+            })) : []
+          }));
+          console.log('Transformed orders:', this.orders);
+          
+          // Fetch shipping information after orders are loaded
+          await this.fetchShippingInfos();
+        } else {
+          throw new Error('Invalid response format from server');
         }
       } catch (error) {
+        console.error('Error fetching orders:', error);
         this.showMessage('Có lỗi xảy ra khi tải danh sách đơn hàng: ' + error.message, 'danger');
       } finally {
         this.loading = false;
       }
     },
-    async viewOrderDetails(order) {
-      try {
-        const detailedOrder = await getOrderById(order.id);
-        this.selectedOrder = detailedOrder;
-      } catch (error) {
-        this.showMessage('Có lỗi xảy ra khi tải chi tiết đơn hàng: ' + error.message, 'danger');
+    viewOrderDetails(order) {
+      this.selectedOrder = order;
+      if (this.modalRefs.orderDetailsModal) {
+        this.modalRefs.orderDetailsModal.show();
       }
     },
     updateOrderStatus(order) {
       this.selectedOrder = order;
-      this.newStatus = order.status;
+      this.newStatus = order.statusName;
+      if (this.modalRefs.updateStatusModal) {
+        this.modalRefs.updateStatusModal.show();
+      }
     },
     async confirmStatusUpdate() {
       try {
         // TODO: Implement API call to update order status
-        this.selectedOrder.status = this.newStatus;
+        this.selectedOrder.statusName = this.newStatus;
         
         // Show success message
         this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
@@ -426,9 +565,13 @@ export default {
     showMessage(message, type = 'success') {
       // Implement your own message display logic here
       console.log(`${type}: ${message}`);
+    },
+    viewOrderItemDetails(item) {
+      this.selectedOrderItem = item;
+      if (this.modalRefs.orderItemModal) {
+        this.modalRefs.orderItemModal.show();
+      }
     }
-  },
-  mounted() {
   },
   async created() {
     await this.fetchOrders();
@@ -504,11 +647,11 @@ export default {
 
 /* Modal styling */
 .modal-header {
-  border-bottom: 0;
+  border-bottom: none;
 }
 
 .modal-footer {
-  border-top: 0;
+  border-top: none;
 }
 
 .card-title {
@@ -517,9 +660,16 @@ export default {
 }
 
 .list-group-item {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
   border-color: rgba(0, 0, 0, 0.05);
+  padding: 0.75rem 0;
+}
+
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.modal .card {
+  box-shadow: none;
 }
 
 /* Button styling */

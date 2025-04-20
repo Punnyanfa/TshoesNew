@@ -41,12 +41,12 @@
                       </td>
                       <td>
                         <div class="btn-group">
-                          <button 
+                          <!-- <button 
                             class="btn btn-sm btn-outline-primary" 
                             @click="openShippingForm(info)"
                           >
                             Edit
-                          </button>
+                          </button> -->
                           <button 
                             class="btn btn-sm btn-outline-danger" 
                             @click="deleteShipping(info.id)"
