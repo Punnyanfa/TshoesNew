@@ -89,12 +89,28 @@
       <button class="navbar-toggler" @click="toggleNav">
         <span class="toggler-icon"></span>
       </button>
+
+      <!-- <a-input-search 
+        v-if="isSearchOpen"
+        v-model="searchQuery"
+        placeholder="Search sneakers..."
+        @search="onSearch"
+        class="search-input" 
+      />
+
+      <a-button 
+        class="sneaker-btn-icon search-btn"
+        shape="circle"
+        @click="toggleSearch"
+      >
+        <a-icon type="search" />
+      </a-button> -->
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { 
   ShoppingCartOutlined, 
   UserOutlined, 
@@ -106,10 +122,14 @@ import {
   BellOutlined,
   ShoppingOutlined
 } from '@ant-design/icons-vue';
+import { useRouter } from 'vue-router';
+import { useCart } from '~/composables/useCart';
+
+const router = useRouter();
+const { cartCount } = useCart();
 
 const isAuthenticated = ref(false);
 const userName = ref('SneakerFan');
-const cartCount = ref(2);
 const favoriteCount = ref(3);
 const notificationCount = ref(1);
 const isNavOpen = ref(false);
@@ -138,11 +158,29 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
+  nextTick(() => {
+    initDropdowns();
+  });
+  const token = localStorage.getItem('username');
+  userName.value = localStorage.getItem('username') || 'User';
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  localStorage.removeItem('userToken');
+  localStorage.removeItem('email');
+  localStorage.removeItem('role');
+  localStorage.removeItem('username');
+  localStorage.removeItem('userId');
 });
+
+watch(() => {
+  const token = localStorage.getItem('username');
+  isAuthenticated.value = !!token;
+  if (isAuthenticated.value) {
+    userName.value = localStorage.getItem('username') || 'User';
+  }
+}, { immediate: true });
 
 const toggleNav = () => {
   isNavOpen.value = !isNavOpen.value;
@@ -174,6 +212,24 @@ const animateLogo = (e) => {
 
 const resetLogo = (e) => {
   e.target.style.transform = 'rotate(0deg) scale(1)';
+};
+
+const pushHomePage = () => {
+  router.push('/homePage');
+};
+
+const initDropdowns = async () => {
+  if (process.client) {
+    try {
+      const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
+      const dropdownElements = document.querySelectorAll('.dropdown-toggle');
+      dropdownElements.forEach(element => {
+        new bootstrap.Dropdown(element);
+      });
+    } catch (error) {
+      console.error('Error initializing dropdowns:', error);
+    }
+  }
 };
 </script>
 

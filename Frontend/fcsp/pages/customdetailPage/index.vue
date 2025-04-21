@@ -308,36 +308,55 @@ const addToCart = () => {
 
 const saveAsDraft = () => {
   showCompleteModal.value = false
-  const designData = {
-    productName: 'Adidas Running Shoes (Tùy chỉnh)',
-    price: '2.500.000 ₫',
-    components: {},
-    textureParams: { ...textureParams },
-    customText: customText.value,
-    cameraPosition: camera ? { x: camera.position.x, y: camera.position.y, z: camera.position.z } : null,
-    selectedHDRI: HDRIs[selectedHDRIIndex.value].name,
-    timestamp: new Date().toISOString()
+
+  // Create draft data
+  const draftData = {
+    id: Date.now(),
+    name: 'Adidas Running Shoes (Nháp)',
+    price: 2500000,
+    image: captureAngles[1].preview,
+    designData: {
+      colors: {},
+      textures: {},
+      imagesData: {},
+      customText: customText.value,
+      textureParams: { ...textureParams },
+      selectedHDRI: HDRIs[selectedHDRIIndex.value].name,
+      timestamp: new Date().toISOString(),
+      cameraPosition: camera ? { x: camera.position.x, y: camera.position.y, z: camera.position.z } : null
+    },
+    previewImages: captureAngles.map(angle => angle.preview)
   }
 
+  // Save colors and textures
   for (const comp of components) {
     const partName = comp.value
     if (materials[partName]) {
-      designData.components[partName] = {
-        name: comp.name,
-        color: '#' + materials[partName].color.getHexString(),
-        hasTexture: !!materials[partName].map
-      }
+      draftData.designData.colors[partName] = '#' + materials[partName].color.getHexString()
       if (customTextures[partName]) {
-        designData.components[partName].textureInfo = {
-          type: customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image',
-          textContent: customText.value,
-          imageData: customTextures[partName].imageData || null
+        const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+        draftData.designData.textures[partName] = {
+          type: textureType,
+          textContent: customText.value
+        }
+        if (textureType === 'image' && customTextures[partName].imageData) {
+          draftData.designData.imagesData[partName] = customTextures[partName].imageData
         }
       }
     }
   }
 
-  const jsonString = JSON.stringify(designData, null, 2)
+  // Save to localStorage
+  let drafts = []
+  const savedDrafts = localStorage.getItem('designDrafts')
+  if (savedDrafts) {
+    drafts = JSON.parse(savedDrafts)
+  }
+  drafts.push(draftData)
+  localStorage.setItem('designDrafts', JSON.stringify(drafts))
+
+  // Also save as JSON file for download
+  const jsonString = JSON.stringify(draftData, null, 2)
   const blob = new Blob([jsonString], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -347,7 +366,9 @@ const saveAsDraft = () => {
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
+
   alert('Thiết kế đã được lưu vào bản nháp và tải xuống thành công!')
+  window.location.href = '/mycustomPage'
 }
 
 // Three.js initialization
