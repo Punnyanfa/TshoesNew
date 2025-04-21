@@ -51,3 +51,17 @@ export async function updateProductStatus(id, status) {
     throw error;
   }
 }
+
+// Delete product by ID
+export async function deleteProduct(id) {
+  try {
+    const response = await instance.delete(`/CustomShoeDesign/${id}`);
+    if (response.data.code === 200) {
+      return response.data;
+    }
+    throw new Error(response.data.message || `Failed to delete product with id ${id}`);
+  } catch (error) {
+    console.error(`Error deleting product with id ${id}:`, error);
+    throw error;
+  }
+}

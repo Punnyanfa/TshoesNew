@@ -69,11 +69,15 @@
                 </div>
               </td>
               <td class="actions">
-                <button class="edit-btn" @click="editProduct(product)">
+                <button class="edit-btn" @click="editProduct(product)" title="Edit">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="delete-btn" @click="confirmDelete(product)">
-                  <i class="fas fa-trash"></i>
+                <button 
+                  class="delete-btn" 
+                  @click="confirmDelete(product)" 
+                  title="Delete"
+                > 
+                  <i class="fas fa-trash-alt"></i>
                 </button>
               </td>
             </tr>
@@ -168,25 +172,38 @@
           </form>
         </div>
       </div>
-
-      <!-- Delete Confirmation Modal -->
-      <div v-if="showDeleteModal" class="modal">
-        <div class="modal-content delete-modal">
-          <h2>Confirm Delete</h2>
-          <p>Are you sure you want to delete this product?</p>
-          <div class="delete-actions">
-            <button class="confirm-delete-btn" @click="deleteProduct">Delete</button>
-            <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          </div>
-        </div>
-      </div>
     </div>
+    
+    <client-only>
+      <teleport to="body">
+        <transition name="fade">
+          <div v-if="showDeleteModal" class="modal-overlay">
+            <div class="modal-wrapper">
+              <div class="modal-container">
+                <div class="modal-header">
+                  <h3>Delete Product</h3>
+                  <button class="modal-close" @click="showDeleteModal = false">×</button>
+                </div>
+                <div class="modal-body">
+                  <p v-if="selectedProduct">Are you sure you want to delete "{{ selectedProduct.name }}"?</p>
+                  <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn-cancel" @click="showDeleteModal = false">Cancel</button>
+                  <button class="btn-delete" @click="handleDelete">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </teleport>
+    </client-only>
   </div>
 </template>
 
 <script>
 import AdminSidebar from '@/components/AdminSidebar.vue'
-import { getAllProducts, updateProductStatus } from '@/server/product-service'
+import { getAllProducts, updateProductStatus, deleteProduct } from '@/server/product-service'
 
 export default {
   name: 'ManageProduct',
@@ -332,13 +349,33 @@ export default {
       }
     },
     confirmDelete(product) {
-      this.selectedProduct = product
-      this.showDeleteModal = true
+      console.log('Confirming delete for product:', product);
+      this.selectedProduct = product;
+      this.showDeleteModal = true;
+      console.log('Modal state:', this.showDeleteModal);
     },
-    async deleteProduct() {
-      // TODO: Implement delete API call
-      this.showDeleteModal = false
-      await this.fetchProducts()
+    async handleDelete() {
+      try {
+        if (!this.selectedProduct) {
+          alert('No product selected for deletion');
+          return;
+        }
+        
+        console.log('Attempting to delete product:', this.selectedProduct.id);
+        await deleteProduct(this.selectedProduct.id);
+        
+        // If we reach here, deletion was successful
+        alert('Product deleted successfully!');
+        this.showDeleteModal = false;
+        this.selectedProduct = null;
+        await this.fetchProducts(); // Refresh the list
+        
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert(error.message || 'An error occurred while deleting the product');
+      } finally {
+        this.showDeleteModal = false;
+      }
     },
     closeModal() {
       this.showAddModal = false
@@ -569,23 +606,21 @@ input:checked + .slider:before {
 
 .actions {
   display: flex;
-  gap: 10px;
-  padding: 12px 15px;
-  white-space: nowrap;
-  min-width: 100px;
+  gap: 8px;
   justify-content: center;
-  padding-top: 35px;
+  align-items: center;
 }
 
 .edit-btn, .delete-btn {
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
+  transition: all 0.2s ease;
 }
 
 .edit-btn {
@@ -593,9 +628,21 @@ input:checked + .slider:before {
   color: white;
 }
 
+.edit-btn:hover {
+  background-color: #1976D2;
+}
+
 .delete-btn {
   background-color: #f44336;
   color: white;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.edit-btn i, .delete-btn i {
+  font-size: 16px;
 }
 
 .pagination {
@@ -653,92 +700,228 @@ input:checked + .slider:before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 99999;
 }
 
 .modal-content {
-  background-color: white;
-  padding: 20px;
+  background: white;
+  padding: 2rem;
   border-radius: 8px;
-  width: 500px;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.close {
-  position: absolute;
-  right: 20px;
-  top: 10px;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.submit-btn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 8px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
-  padding: 8px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  z-index: 100000;
 }
 
 .delete-modal {
   text-align: center;
+  margin: auto;
+}
+
+.delete-modal h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.delete-modal p {
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.text-danger {
+  color: #dc3545;
+  font-weight: 500;
 }
 
 .delete-actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
-.confirm-delete-btn {
-  background-color: #f44336;
+.btn-cancel,
+.btn-delete {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
   color: white;
-  padding: 8px 20px;
+}
+
+.btn-cancel:hover {
+  background-color: #5a6268;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.edit-btn,
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  background-color: #2196F3;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #1976D2;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.edit-btn i,
+.delete-btn i {
+  font-size: 16px;
+}
+
+.modal-overlay {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.modal-container {
+  width: 400px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+  transition: all 0.3s ease;
+}
+
+.modal-header {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+}
+
+.modal-close {
+  border: none;
+  background: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  border-top: 1px solid #eee;
+}
+
+.btn-cancel,
+.btn-delete {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background-color: #5a6268;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* Transition animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
