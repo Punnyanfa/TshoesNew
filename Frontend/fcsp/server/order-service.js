@@ -31,15 +31,28 @@ export async function getOrderById(id) {
 
 // Post order
 export async function postOrder(orderData) {
+  console.log('Sending order data:', JSON.stringify(orderData, null, 2));
   try {
     const response = await instance.post('/Order', orderData);
-    if (response.data.code === 200) {
-      return response.data.data;  // Return the created order data
+    console.log('Raw API response:', response);
+
+    // If we have a successful response
+    if (response.data) {
+      // Check if we have a payment URL in the response data
+      if (response.data.data && response.data.data.paymentUrl) {
+        return {
+          code: response.data.code,
+          paymentUrl: response.data.data.paymentUrl
+        };
+      }
+      // Return the full response data if no payment URL
+      return response.data;
     }
-    throw new Error(response.data.message || 'Failed to create order');
+
+    throw new Error('No response data received from server');
   } catch (error) {
-    console.error('Error creating order:', error);
-    throw error;
+    console.error('Error creating order:', error.response?.data || error);
+    throw error.response?.data || error;
   }
 }
 

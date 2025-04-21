@@ -95,7 +95,7 @@
                         <img v-if="item.image" :src="item.image" alt="product" class="product-image me-2">
                         <div>
                           <div class="product-name">{{ item.name }}</div>
-                          <div class="product-size text-muted">Size: {{ item.selectedSize }}</div>
+                          <div class="product-size text-muted">Size: {{ mappedSizes[item.id] || 'Loading...' }}</div>
                         </div>
                       </div>
                     </td>
@@ -177,6 +177,8 @@
   import Footer from '@/components/Footer.vue';
   import { useRouter } from 'vue-router';
   import { getAllVouchers } from '@/server/ManageVoucher-service';
+  import { postOrder } from '@/server/order-service';
+  import { getSizeValueById, getSizeIdByValue } from '@/server/size-service';
   const order = ref(null);
   const loading = ref(true);
   const selectedAddress = ref(null);
@@ -191,6 +193,28 @@
   const errorMessage = ref('');
   const totalBeforeDiscount = ref(0);
   const availableVouchers = ref([]);
+
+  // Add new ref for mapped sizes
+  const mappedSizes = ref({});
+
+  // Function to load and map sizes for order items
+  const loadSizesForItems = async () => {
+    try {
+      if (!order.value?.items) return;
+      
+      // Load size values for each item
+      const sizePromises = order.value.items.map(async (item) => {
+        const sizeValue = await getSizeValueById(parseInt(item.selectedSize));
+        if (sizeValue) {
+          mappedSizes.value[item.id] = sizeValue;
+        }
+      });
+      
+      await Promise.all(sizePromises);
+    } catch (err) {
+      console.error('Error loading sizes:', err);
+    }
+  };
 
   // Computed property for final total after voucher discount
   const finalTotal = computed(() => {
@@ -211,20 +235,23 @@
 
       const orderData = JSON.parse(orderDataStr);
       order.value = {
-        id: Date.now(), // Tạo ID tạm thời
+        id: Date.now(),
         items: orderData.items.map(item => ({
           id: item.id,
           name: item.name,
           price: parseFloat(item.price),
           quantity: item.quantity || 1,
           total: parseFloat(item.price) * (item.quantity || 1),
-          image: item.image, // Nếu có
-          selectedSize: item.selectedSize // Thêm trường selectedSize
+          image: item.image,
+          selectedSize: item.selectedSize
         })),
         totalPrice: parseFloat(orderData.totalPrice),
         shippingCost: parseFloat(orderData.shippingCost),
         totalPayment: parseFloat(orderData.totalPayment)
       };
+
+      // Load sizes after order data is loaded
+      await loadSizesForItems();
 
     } catch (error) {
       console.error('Error loading order:', error);
@@ -336,15 +363,67 @@
         return;
       }
 
-      // TODO: Gọi API đặt hàng ở đây
-      alert('Đặt hàng thành công!');
-      // Xóa dữ liệu đơn hàng khỏi sessionStorage
+      // Get userId from localStorage
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('Vui lòng đăng nhập để đặt hàng');
+        return;
+      }
+
+      // Convert size values to size IDs and prepare order details
+      const orderDetailsPromises = order.value.items.map(async (item) => {
+        // Get the correct size ID for the size value
+        const sizeId = await getSizeIdByValue(Number(item.selectedSize));
+        if (!sizeId) {
+          throw new Error(`Không tìm thấy size ID cho size ${item.selectedSize}`);
+        }
+        
+        return {
+          customShoeDesignId: parseInt(item.id),
+          quantity: parseInt(item.quantity || 1),
+          sizeId: sizeId // Use the looked up sizeId
+        };
+      });
+
+      // Wait for all size ID lookups to complete
+      const orderDetails = await Promise.all(orderDetailsPromises);
+
+      // Prepare request body
+      const orderData = {
+        userId: parseInt(userId),
+        shippingInfoId: parseInt(shippingAddress.value.id),
+        paymentMethod: 0,
+        orderDetails: orderDetails
+      };
+
+      console.log('Sending order data:', JSON.stringify(orderData, null, 2));
+
+      // Call the postOrder API
+      const response = await postOrder(orderData);
+      console.log('Order response:', response);
+      
+      // Clear order data from sessionStorage
       sessionStorage.removeItem('orderData');
-      // Chuyển về trang chủ hoặc trang đơn hàng
-      router.push('/');
+
+      // Check if we have a payment URL directly in the response
+      if (response && response.paymentUrl) {
+        window.location.href = response.paymentUrl;
+        return;
+      }
+      
+      // If no payment URL but order was successful
+      if (response && response.code === 200) {
+        alert('Đặt hàng thành công!');
+        router.push('/');
+        return;
+      }
+
+      // If we get here, something went wrong
+      throw new Error(response?.message || 'Đặt hàng thất bại');
     } catch (err) {
       console.error('Error placing order:', err);
-      alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+      const errorMessage = err.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.';
+      alert(errorMessage);
     }
   };
   

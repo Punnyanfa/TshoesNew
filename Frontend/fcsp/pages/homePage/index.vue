@@ -381,7 +381,7 @@ const swiperOptions = {
   },
 }
 
-import { useCartStore } from '~/stores/cart'
+import { useCartStore } from '@/server/cart'
 const cartStore = useCartStore()
 
 // Hàm thêm vào giỏ hàng
