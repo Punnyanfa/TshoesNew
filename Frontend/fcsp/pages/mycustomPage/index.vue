@@ -25,6 +25,8 @@
               <div class="cart-item-details">
                 <h4>{{ item.name }}</h4>
                 <p class="price">{{ formatPrice(item.price) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Phụ phí: {{ formatPrice(item.surcharge) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Tổng: {{ formatPrice(item.price + item.surcharge) }}</p>
                 
                 <!-- Hiển thị thông tin thiết kế nếu có -->
                 <div v-if="item.designData" class="design-info">
@@ -370,6 +372,7 @@ const addToProduct = (item) => {
   selectedProduct.value = {
     name: item.name,
     price: item.price,
+    surcharge: item.surcharge,
     image: item.image,
     description: `Thiết kế tùy chỉnh từ ${item.name}`,
     designData: JSON.parse(JSON.stringify(item.designData || {})),
@@ -509,7 +512,7 @@ onMounted(() => {
 <style scoped>
 /* 🌟 Cấu trúc và màu sắc */
 .container {
-  max-width: 900px;
+  /* max-width: 900px; */
   margin: 0 auto;
   padding: 0 15px;
 }
@@ -579,6 +582,20 @@ h1 {
   font-weight: bold;
   color: #e74c3c;
   margin: 8px 0;
+}
+
+.price.surcharge {
+  font-size: 1.1rem;
+  color: #f39c12;
+  margin: 4px 0;
+}
+
+.price.total {
+  font-size: 1.2rem;
+  color: #2ecc71;
+  margin: 4px 0;
+  border-top: 1px dashed #ddd;
+  padding-top: 6px;
 }
 
 .design-info {

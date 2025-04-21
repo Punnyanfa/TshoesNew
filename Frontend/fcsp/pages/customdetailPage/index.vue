@@ -4,6 +4,7 @@
     <div class="product-info">
       <h2 class="product-name">Adidas Running Shoes</h2>
       <p class="product-price">2.500.000 ₫</p>
+      <p class="product-surcharge" v-if="surcharge > 0">Phụ phí: {{ formatPrice(surcharge) }}</p>
     </div>
     
     <!-- Các nút chức năng ở góc phải trên -->
@@ -81,7 +82,9 @@
             <h4>Chi tiết sản phẩm</h4>
             <div class="summary-info">
               <p><strong>Tên sản phẩm:</strong> Adidas Running Shoes</p>
-              <p><strong>Giá:</strong> 2.500.000 ₫</p>
+              <p><strong>Giá gốc:</strong> 2.500.000 ₫</p>
+              <p v-if="surcharge > 0"><strong>Phụ phí tùy chỉnh:</strong> {{ formatPrice(surcharge) }}</p>
+              <p><strong>Tổng tiền:</strong> {{ formatPrice(2500000 + surcharge) }}</p>
             </div>
           </div>
           
@@ -359,14 +362,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, reactive, computed, watch } from 'vue'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+import { useRoute } from 'vue-router'
 
 // Container reference
 const container = ref(null)
+
+// Phụ phí tùy chỉnh
+const surcharge = ref(0)
 
 // State for canvas size
 const isCanvasExpanded = ref(false)
@@ -482,7 +489,7 @@ const partGroups = reactive({
 // Selected component and color
 const selectedComponentIndex = ref(0)
 const selectedColor = ref('#000000')
-const customColorValue = ref('#ff0000')
+const customColorValue = ref('#ffffff')
 const customColorApplied = ref(false)
 
 // Modal handlers
@@ -570,6 +577,9 @@ const handleDone = () => {
     position: camera ? camera.position.clone() : null,
     rotation: controls ? controls.target.clone() : null
   }
+  // Tính phụ phí trước khi hiển thị modal
+  calculateSurcharge()
+  
   captureAllAngles().then(() => {
     showCompleteModal.value = true
   })
@@ -637,6 +647,9 @@ const applyImageToMesh = () => {
       })
 
       renderer.render(scene, camera)
+      
+      // Tính toán phụ phí sau khi thêm ảnh
+      calculateSurcharge()
     },
     undefined,
     (error) => {
@@ -713,6 +726,9 @@ const applyTextToMesh = () => {
   })
 
   renderer.render(scene, camera)
+  
+  // Tính toán phụ phí sau khi thêm văn bản
+  calculateSurcharge()
 }
 
 const removeTextFromMesh = () => {
@@ -742,6 +758,9 @@ const removeTextFromMesh = () => {
   }
 
   renderer.render(scene, camera)
+  
+  // Tính toán phụ phí sau khi xóa texture
+  calculateSurcharge()
 }
 
 const addToCart = () => {
@@ -752,11 +771,15 @@ const addToCart = () => {
   const isEditing = urlParams.get('edit') === 'true'
   const editId = urlParams.get('id')
   
+  // Tính phụ phí cuối cùng trước khi thêm vào giỏ hàng
+  calculateSurcharge()
+  
   // Tạo dữ liệu sản phẩm với thiết kế tùy chỉnh
   const productData = {
     id: isEditing && editId ? parseInt(editId) : Date.now(), // Sử dụng ID hiện có nếu đang chỉnh sửa
     name: 'Adidas Running Shoes',
     price: 2500000,
+    surcharge: surcharge.value, // Sử dụng giá trị surcharge đã tính
     image: captureAngles[1].preview, // Lưu hình ảnh mặc định (mặt sau)
     designData: {
       colors: {},
@@ -773,7 +796,8 @@ const addToCart = () => {
   for (const comp of components) {
     const partName = comp.value
     if (materials[partName]) {
-      productData.designData.colors[partName] = '#' + materials[partName].color.getHexString()
+      const hexColor = '#' + materials[partName].color.getHexString()
+      productData.designData.colors[partName] = hexColor
       
       if (customTextures[partName]) {
         const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
@@ -798,6 +822,11 @@ const addToCart = () => {
     cart = JSON.parse(savedCart)
   }
   
+  // Tính tổng tiền
+  const totalPrice = 2500000 + surcharge.value;
+  const formattedTotalPrice = formatPrice(totalPrice);
+  const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : '';
+  
   if (isEditing && editId) {
     // Cập nhật sản phẩm hiện có thay vì thêm mới
     const itemIndex = cart.findIndex(item => item.id === parseInt(editId))
@@ -807,11 +836,11 @@ const addToCart = () => {
       // Thêm mới nếu không tìm thấy (hiếm khi xảy ra)
       cart.push(productData)
     }
-    alert('Đã cập nhật thiết kế của sản phẩm trong giỏ hàng!')
+    alert(`Đã cập nhật thiết kế của sản phẩm trong giỏ hàng!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
   } else {
     // Thêm sản phẩm mới vào giỏ hàng
     cart.push(productData)
-    alert('Sản phẩm thiết kế đã được thêm vào trang sáng tạo thành công!')
+    alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
   }
   
   // Lưu giỏ hàng vào localStorage
@@ -823,11 +852,15 @@ const addToCart = () => {
 const saveAsDraft = () => {
   showCompleteModal.value = false;
   
+  // Tính phụ phí cuối cùng
+  calculateSurcharge();
+  
   // Tạo đối tượng thiết kế với ID mới
   const productData = {
     id: Date.now(),
     name: 'Adidas Running Shoes (Nháp)',
     price: 2500000,
+    surcharge: surcharge.value,
     image: captureAngles[1].preview, // Lưu hình ảnh mặc định
     designData: {
       colors: {},
@@ -875,7 +908,13 @@ const saveAsDraft = () => {
   // Lưu danh sách nháp vào localStorage
   localStorage.setItem('designDrafts', JSON.stringify(drafts));
   
-  alert('Thiết kế đã được lưu vào bản nháp!');
+  // Tính tổng tiền
+  const totalPrice = 2500000 + surcharge.value;
+  const formattedTotalPrice = formatPrice(totalPrice);
+  const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : '';
+  
+  // Hiển thị thông báo với tổng tiền
+  alert(`Thiết kế đã được lưu vào bản nháp!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`);
   window.location.href = '/mycustomPage';
 }
 
@@ -1069,6 +1108,9 @@ const applyCustomColor = () => {
   
   // Cập nhật renderer để hiển thị thay đổi
   renderer.render(scene, camera)
+  
+  // Tính toán phụ phí sau khi đổi màu
+  calculateSurcharge()
 }
 
 // Thêm hàm để toggle kích thước canvas
@@ -1136,6 +1178,11 @@ onMounted(() => {
           // Đây là thiết kế đúng, thực hiện tải lại
           console.log('Đang tải lại thiết kế...', editingDesign)
           
+          // Khôi phục giá trị phụ phí (nếu có)
+          if (editingDesign.surcharge) {
+            surcharge.value = editingDesign.surcharge
+          }
+          
           // Đặt lại customText nếu có
           if (editingDesign.designData && editingDesign.designData.customText) {
             customText.value = editingDesign.designData.customText
@@ -1153,6 +1200,9 @@ onMounted(() => {
               return
             }
             
+            // Biến để kiểm tra xem sau khi khôi phục có mesh nào được tùy chỉnh không
+            let hasCustomizedMeshes = false
+            
             // Áp dụng màu sắc
             if (editingDesign.designData && editingDesign.designData.colors) {
               for (const partName in editingDesign.designData.colors) {
@@ -1161,6 +1211,11 @@ onMounted(() => {
                   materials[partName].color.set(color)
                   materials[partName].needsUpdate = true
                   partColors[partName] = color
+                  
+                  // Kiểm tra nếu màu khác mặc định
+                  if (color.toLowerCase() !== '#ffffff') {
+                    hasCustomizedMeshes = true
+                  }
                 }
               }
             }
@@ -1176,9 +1231,11 @@ onMounted(() => {
                   // Phục hồi dựa trên loại texture
                   if (textureInfo.type === 'text' && customText.value) {
                     // Khôi phục texture dạng text - sử dụng hàm applyTextToMesh đã có
+                    hasCustomizedMeshes = true
                     applyTextToMesh();
                   } else if (textureInfo.type === 'image' && editingDesign.designData.imagesData && editingDesign.designData.imagesData[partName]) {
                     // Khôi phục texture dạng ảnh từ dữ liệu base64 đã lưu
+                    hasCustomizedMeshes = true
                     const imageData = editingDesign.designData.imagesData[partName];
                     const textureLoader = new THREE.TextureLoader();
                     
@@ -1225,6 +1282,23 @@ onMounted(() => {
               }
             }
             
+            // Chỉ tính toán lại phụ phí nếu không có mesh nào được tùy chỉnh
+            if (!hasCustomizedMeshes) {
+              // Đặt lại phụ phí về 0 nếu không có mesh nào được tùy chỉnh
+              surcharge.value = 0;
+              const productSurchargeElement = document.querySelector('.product-surcharge');
+              if (productSurchargeElement) {
+                productSurchargeElement.style.display = 'none';
+              }
+            } else {
+              // Cập nhật hiển thị phụ phí
+              const productSurchargeElement = document.querySelector('.product-surcharge');
+              if (productSurchargeElement && surcharge.value > 0) {
+                productSurchargeElement.textContent = `Phụ phí: ${formatPrice(surcharge.value)}`;
+                productSurchargeElement.style.display = 'block';
+              }
+            }
+            
             // Xóa thông tin chỉnh sửa sau khi tải xong
             localStorage.removeItem('editingDesign')
           }
@@ -1257,6 +1331,83 @@ onBeforeUnmount(() => {
   if (scene) scene.clear()
   if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
 })
+
+// Thêm hàm định dạng giá tiền
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price || 0);
+};
+
+// Hàm tính phụ phí khi thay đổi màu hoặc thêm ảnh
+const calculateSurcharge = () => {
+  const surchargePerTexture = 50000 // 50.000 VND cho mỗi phần có ảnh
+  const surchargePerColor = 30000 // 30.000 VND cho mỗi phần đổi màu
+  let totalCustomizedTextures = 0
+  let totalCustomizedColors = 0
+  
+  // Tạo một mảng chứa tất cả các mesh, bao gồm cả mesh con trong các nhóm
+  const allMeshes = []
+  
+  // Thêm các mesh cơ bản
+  for (const comp of components) {
+    allMeshes.push(comp.value)
+  }
+  
+  // Thêm các mesh con từ các nhóm (partGroups)
+  for (const groupName in partGroups) {
+    for (const partName of partGroups[groupName]) {
+      if (!allMeshes.includes(partName)) {
+        allMeshes.push(partName)
+      }
+    }
+  }
+  
+  // Kiểm tra từng mesh riêng biệt
+  for (const partName of allMeshes) {
+    if (materials[partName]) {
+      // Kiểm tra nếu màu đã thay đổi so với mặc định (#ffffff)
+      const hexColor = '#' + materials[partName].color.getHexString()
+      if (hexColor.toLowerCase() !== '#ffffff') {
+        totalCustomizedColors++
+      }
+      
+      // Kiểm tra các phần đã thêm ảnh
+      if (customTextures[partName]) {
+        const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+        
+        if (textureType === 'image' && customTextures[partName].imageData) {
+          totalCustomizedTextures++
+        }
+      }
+    }
+  }
+  
+  // Tính tổng phụ phí
+  const calculatedSurcharge = (totalCustomizedTextures * surchargePerTexture) + 
+                   (totalCustomizedColors * surchargePerColor)
+  
+  // Chỉ đặt lại phụ phí về 0 nếu không có phần tùy chỉnh nào
+  // Nếu tổng số phần tùy chỉnh là 0, đặt phụ phí về 0
+  // Nếu không, cập nhật phụ phí mới
+  if (totalCustomizedTextures === 0 && totalCustomizedColors === 0) {
+    surcharge.value = 0
+  } else {
+    surcharge.value = calculatedSurcharge
+  }
+  
+  // Cập nhật phụ phí trên UI
+  const productSurchargeElement = document.querySelector('.product-surcharge')
+  if (productSurchargeElement) {
+    if (surcharge.value > 0) {
+      productSurchargeElement.textContent = `Phụ phí: ${formatPrice(surcharge.value)}`
+      productSurchargeElement.style.display = 'block'
+    } else {
+      productSurchargeElement.style.display = 'none'
+    }
+  }
+}
 </script>
 <style>
 .custom-detail-page {
