@@ -20,7 +20,9 @@
 
     <div v-else class="text-center mt-5 empty-cart">
       <h4>Your cart is empty!</h4>
-      <NuxtLink to="/customPage" class="btn btn-primary mt-3">Start Customizing</NuxtLink>
+
+      <NuxtLink to="/custom" class="btn btn-primary mt-3">Start Customizing</NuxtLink>
+
     </div>
   </div>
 </template>
