@@ -13,7 +13,7 @@ namespace FCSP.Services.ManufacturerService
         private readonly IUserRepository _userRepository;
         private readonly ILogger<ManufacturerService> _logger;
 
-        public ManufacturerService(IManufacturerRepository manufacturerRepository, IUserRepository userRepository, ILogger<ManufacturerService> logger)
+        public ManufacturerService(IManufacturerRepository manufacturerRepository, IUserRepository userRepository)
         {
             _manufacturerRepository = manufacturerRepository;
             _userRepository = userRepository;
@@ -23,7 +23,7 @@ namespace FCSP.Services.ManufacturerService
         {
             try
             {
-                _logger.LogInformation("Fetching all manufacturers with details");
+                
                 var manufacturers = await _manufacturerRepository.GetAllWithDetailsAsync();
 
                 var detailedManufacturers = new List<GetManufacturerDetailResponse>();
@@ -41,7 +41,7 @@ namespace FCSP.Services.ManufacturerService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching all manufacturers");
+               
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>>
                 {
                     Code = 500,
@@ -56,15 +56,15 @@ namespace FCSP.Services.ManufacturerService
             {
                 if (request.Id <= 0)
                 {
-                    _logger.LogWarning("Invalid Manufacturer ID: {Id}", request.Id);
+                   
                     return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
                 }
 
-                _logger.LogInformation("Fetching manufacturer with ID: {Id}", request.Id);
+               
                 var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
                 if (manufacturer == null)
                 {
-                    _logger.LogWarning("Manufacturer not found for ID: {Id}", request.Id);
+                    
                     return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 404, Message = "Manufacturer not found" };
                 }
 
@@ -77,7 +77,7 @@ namespace FCSP.Services.ManufacturerService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching manufacturer with ID: {Id}", request.Id);
+                
                 return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 500, Message = ex.Message };
             }
         }
@@ -85,12 +85,10 @@ namespace FCSP.Services.ManufacturerService
         public async Task<BaseResponseModel<AddManufacturerResponse>> AddManufacturer(AddManufacturerRequest request)
         {
             try
-            {
-                _logger.LogInformation("Adding manufacturer for UserId: {UserId}", request.UserId);
+            {              
                 var user = await _userRepository.GetByIdAsync(request.UserId);
                 if (user == null || user.UserRole != UserRole.Manufacturer)
-                {
-                    _logger.LogWarning("User with ID {UserId} is not a Manufacturer", request.UserId);
+                {                   
                     return new BaseResponseModel<AddManufacturerResponse>
                     {
                         Code = 403,
@@ -101,7 +99,6 @@ namespace FCSP.Services.ManufacturerService
                 var existingManufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(request.UserId);
                 if (existingManufacturer != null)
                 {
-                    _logger.LogWarning("User with ID {UserId} already has a Manufacturer", request.UserId);
                     return new BaseResponseModel<AddManufacturerResponse>
                     {
                         Code = 409,
@@ -120,7 +117,6 @@ namespace FCSP.Services.ManufacturerService
                 };
 
                 var addedManufacturer = await _manufacturerRepository.AddAsync(manufacturer);
-                _logger.LogInformation("Manufacturer added with ID: {Id}", addedManufacturer.Id);
                 return new BaseResponseModel<AddManufacturerResponse>
                 {
                     Code = 201,
@@ -135,7 +131,6 @@ namespace FCSP.Services.ManufacturerService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding manufacturer for UserId: {UserId}", request.UserId);
                 return new BaseResponseModel<AddManufacturerResponse> { Code = 500, Message = ex.Message };
             }
         }
@@ -146,15 +141,11 @@ namespace FCSP.Services.ManufacturerService
             {
                 if (request.Id <= 0)
                 {
-                    _logger.LogWarning("Invalid Manufacturer ID: {Id}", request.Id);
                     return new BaseResponseModel<UpdateManufacturerResponse> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
                 }
-
-                _logger.LogInformation("Updating manufacturer with ID: {Id}", request.Id);
                 var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
                 if (manufacturer == null)
                 {
-                    _logger.LogWarning("Manufacturer not found for ID: {Id}", request.Id);
                     return new BaseResponseModel<UpdateManufacturerResponse> { Code = 404, Message = "Manufacturer not found" };
                 }
 
@@ -164,7 +155,6 @@ namespace FCSP.Services.ManufacturerService
                 manufacturer.UpdatedAt = DateTime.UtcNow;
 
                 await _manufacturerRepository.UpdateAsync(manufacturer);
-                _logger.LogInformation("Manufacturer updated with ID: {Id}", manufacturer.Id);
                 return new BaseResponseModel<UpdateManufacturerResponse>
                 {
                     Code = 200,
@@ -180,7 +170,6 @@ namespace FCSP.Services.ManufacturerService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating manufacturer with ID: {Id}", request.Id);
                 return new BaseResponseModel<UpdateManufacturerResponse> { Code = 500, Message = ex.Message };
             }
         }
@@ -191,27 +180,21 @@ namespace FCSP.Services.ManufacturerService
             {
                 if (request.Id <= 0)
                 {
-                    _logger.LogWarning("Invalid Manufacturer ID: {Id}", request.Id);
                     return new BaseResponseModel<bool> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
                 }
-
-                _logger.LogInformation("Attempting to delete manufacturer with ID: {Id}", request.Id);
                 var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
                 if (manufacturer == null)
                 {
-                    _logger.LogWarning("Manufacturer not found for ID: {Id}", request.Id);
                     return new BaseResponseModel<bool> { Code = 404, Message = "Manufacturer not found" };
                 }
 
                 manufacturer.Status = ManufacturerStatus.Inactive;
                 manufacturer.UpdatedAt = DateTime.UtcNow;
                 await _manufacturerRepository.UpdateAsync(manufacturer);
-                _logger.LogInformation("Manufacturer marked as Inactive with ID: {Id}", request.Id);
                 return new BaseResponseModel<bool> { Code = 200, Message = "Manufacturer marked as inactive", Data = true };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting manufacturer with ID: {Id}", request.Id);
                 return new BaseResponseModel<bool> { Code = 500, Message = ex.Message, Data = false };
             }
         }
@@ -222,15 +205,11 @@ namespace FCSP.Services.ManufacturerService
             {
                 if (userId <= 0)
                 {
-                    _logger.LogWarning("Invalid UserId: {UserId}", userId);
                     return new BaseResponseModel<List<GetManufacturerDetailResponse>> { Code = 400, Message = "User ID must be greater than 0" };
                 }
-
-                _logger.LogInformation("Fetching manufacturers for UserId: {UserId}", userId);
                 var manufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(userId);
                 if (manufacturer == null)
                 {
-                    _logger.LogWarning("No manufacturers found for UserId: {UserId}", userId);
                     return new BaseResponseModel<List<GetManufacturerDetailResponse>> { Code = 404, Message = "No manufacturers found for this user" };
                 }
 
@@ -244,7 +223,6 @@ namespace FCSP.Services.ManufacturerService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching manufacturers for UserId: {UserId}", userId);
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>> { Code = 500, Message = ex.Message };
             }
         }
@@ -253,7 +231,6 @@ namespace FCSP.Services.ManufacturerService
         {
             try
             {
-                _logger.LogInformation("Fetching active manufacturers");
                 var manufacturers = await _manufacturerRepository.GetManufacturersByStatusAsync((int)ManufacturerStatus.Active);
 
                 var detailedManufacturers = new List<GetManufacturerDetailResponse>();
@@ -272,7 +249,6 @@ namespace FCSP.Services.ManufacturerService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching active manufacturers");
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>>
                 {
                     Code = 500,
