@@ -625,8 +625,61 @@ const applyImageToMesh = () => {
       texture.rotation = textureParams.rotation
       texture.needsUpdate = true
 
+      // Nếu đang cập nhật Lace, sử dụng phương pháp đặc biệt
+      if (partsToUpdate.includes('Lace')) {
+        console.log('Đang áp dụng texture cho dây giày')
+        
+        // Tìm tất cả mesh dây giày
+        const laceMeshes = findAllLaceMeshes()
+        
+        if (laceMeshes.length > 0) {
+          // Xử lý từng mesh dây giày tìm thấy
+          laceMeshes.forEach(mesh => {
+            console.log(`Đang áp dụng texture cho mesh ${mesh.name}`)
+            
+            // Tạo material mới với texture
+            const newMaterial = new THREE.MeshStandardMaterial({
+              map: texture,
+              color: new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness),
+              transparent: true,
+              side: THREE.DoubleSide  // Hiển thị cả hai mặt của mesh
+            })
+            
+            // Lưu material gốc
+            if (!customTextures['Lace']) {
+              customTextures['Lace'] = {
+                originalMap: mesh.material.map,
+                originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff'),
+                texture,
+                imageData: imageUrl
+              }
+            }
+            
+            // Clone mesh với material mới
+            try {
+              // Thay thế material
+              mesh.material = newMaterial
+              mesh.material.needsUpdate = true
+              
+              // Cập nhật tham chiếu trong mảng materials
+              materials['Lace'] = newMaterial
+              partTextures['Lace'] = texture
+              
+              console.log(`Đã áp dụng texture cho mesh ${mesh.name}`)
+            } catch (error) {
+              console.error(`Lỗi khi áp dụng texture cho mesh ${mesh.name}:`, error)
+            }
+          })
+        } else {
+          console.warn('Không tìm thấy mesh dây giày nào')
+        }
+      }
+
+      // Xử lý các phần khác như bình thường
       partsToUpdate.forEach((part) => {
-        if (materials[part]) {
+        if (part !== 'Lace' && materials[part]) {
+          console.log(`Đang áp dụng texture cho phần: ${part}`)
+          
           if (!customTextures[part]) {
             customTextures[part] = {
               originalMap: materials[part].map,
@@ -673,42 +726,92 @@ const applyTextToMesh = () => {
   canvas.height = 1024
   const context = canvas.getContext('2d')
 
+  // Thiết lập chung cho canvas
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+
+  context.save()
+  context.translate(canvas.width / 2, canvas.height / 2)
+  context.rotate(Math.PI)
+  context.scale(-1, 1)
+  context.translate(-canvas.width / 2, -canvas.height / 2)
+
+  const textLength = customText.value.length
+  const fontSize = Math.min(150, 600 / Math.max(1, textLength / 3))
+  context.font = `bold ${fontSize}px Arial, sans-serif`
+  context.strokeStyle = 'black'
+  context.lineWidth = fontSize / 8
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  context.strokeText(customText.value, canvas.width / 2, canvas.height / 2)
+  context.fillStyle = '#ffffff'
+  context.shadowColor = 'rgba(0, 0, 0, 0.7)'
+  context.shadowBlur = 3
+  context.shadowOffsetX = 1
+  context.shadowOffsetY = 1
+  context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
+  context.shadowColor = 'transparent'
+  context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
+
+  context.restore()
+
+  // Tạo texture từ canvas
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.set(1, 1)
+  texture.needsUpdate = true
+
+  // Nếu đang cập nhật Lace, sử dụng phương pháp đặc biệt
+  if (partsToUpdate.includes('Lace')) {
+    console.log('Đang áp dụng text texture cho dây giày')
+    
+    // Tìm tất cả mesh dây giày
+    const laceMeshes = findAllLaceMeshes()
+    
+    if (laceMeshes.length > 0) {
+      // Xử lý từng mesh dây giày tìm thấy
+      laceMeshes.forEach(mesh => {
+        console.log(`Đang áp dụng text texture cho mesh ${mesh.name}`)
+        
+        // Tạo material mới với texture
+        const newMaterial = new THREE.MeshStandardMaterial({
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide  // Hiển thị cả hai mặt của mesh
+        })
+        
+        // Lưu material gốc
+        if (!customTextures['Lace']) {
+          customTextures['Lace'] = {
+            originalMap: mesh.material.map,
+            originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff'),
+            texture
+          }
+        } else {
+          customTextures['Lace'].texture = texture
+        }
+        
+        // Thay thế material
+        mesh.material = newMaterial
+        mesh.material.needsUpdate = true
+        
+        // Cập nhật tham chiếu trong mảng materials
+        materials['Lace'] = newMaterial
+        partTextures['Lace'] = texture
+        
+        console.log(`Đã áp dụng text texture cho mesh ${mesh.name}`)
+      })
+    } else {
+      console.warn('Không tìm thấy mesh dây giày nào')
+    }
+  }
+
+  // Xử lý các phần khác như bình thường
   partsToUpdate.forEach((part) => {
-    if (materials[part]) {
-      const currentColor = materials[part].color.clone()
-      context.fillStyle = `#${currentColor.getHexString()}`
-      context.fillRect(0, 0, canvas.width, canvas.height)
-
-      context.save()
-      context.translate(canvas.width / 2, canvas.height / 2)
-      context.rotate(Math.PI)
-      context.scale(-1, 1)
-      context.translate(-canvas.width / 2, -canvas.height / 2)
-
-      const textLength = customText.value.length
-      const fontSize = Math.min(150, 600 / Math.max(1, textLength / 3))
-      context.font = `bold ${fontSize}px Arial, sans-serif`
-      context.strokeStyle = 'black'
-      context.lineWidth = fontSize / 8
-      context.textAlign = 'center'
-      context.textBaseline = 'middle'
-      context.strokeText(customText.value, canvas.width / 2, canvas.height / 2)
-      context.fillStyle = '#ffffff'
-      context.shadowColor = 'rgba(0, 0, 0, 0.7)'
-      context.shadowBlur = 3
-      context.shadowOffsetX = 1
-      context.shadowOffsetY = 1
-      context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
-      context.shadowColor = 'transparent'
-      context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
-
-      context.restore()
-
-      const texture = new THREE.CanvasTexture(canvas)
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
-      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-      texture.repeat.set(1, 1)
-
+    if (part !== 'Lace' && materials[part]) {
+      console.log(`Đang áp dụng text texture cho phần: ${part}`)
+      
       if (!customTextures[part]) {
         customTextures[part] = {
           originalMap: materials[part].map,
@@ -720,7 +823,6 @@ const applyTextToMesh = () => {
       }
       partTextures[part] = texture
       materials[part].map = texture
-      materials[part].color.copy(currentColor)
       materials[part].needsUpdate = true
     }
   })
@@ -735,8 +837,51 @@ const removeTextFromMesh = () => {
   const selectedPart = components[selectedComponentIndex.value].value
   const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
 
+  // Nếu đang cập nhật Lace, sử dụng phương pháp đặc biệt
+  if (partsToUpdate.includes('Lace')) {
+    console.log('Đang xóa texture cho dây giày')
+    
+    // Tìm tất cả mesh dây giày
+    const laceMeshes = findAllLaceMeshes()
+    
+    if (laceMeshes.length > 0) {
+      // Xử lý từng mesh dây giày tìm thấy
+      laceMeshes.forEach(mesh => {
+        console.log(`Đang xóa texture cho mesh ${mesh.name}`)
+        
+        if (customTextures['Lace']) {
+          // Tạo material mới phục hồi trạng thái gốc
+          const newMaterial = new THREE.MeshStandardMaterial({
+            map: customTextures['Lace'].originalMap,
+            side: THREE.DoubleSide
+          })
+          
+          // Khôi phục màu gốc
+          if (customTextures['Lace'].originalColor) {
+            newMaterial.color.copy(customTextures['Lace'].originalColor)
+          }
+          
+          // Thay thế material
+          mesh.material = newMaterial
+          mesh.material.needsUpdate = true
+          
+          console.log(`Đã xóa texture cho mesh ${mesh.name}`)
+        }
+      })
+      
+      // Xóa khỏi customTextures
+      partTextures['Lace'] = null
+      delete customTextures['Lace']
+    } else {
+      console.warn('Không tìm thấy mesh dây giày nào')
+    }
+  }
+  
+  // Xử lý các phần khác như bình thường
   partsToUpdate.forEach((part) => {
-    if (materials[part] && customTextures[part]) {
+    if (part !== 'Lace' && materials[part] && customTextures[part]) {
+      console.log(`Đang xóa texture cho phần: ${part}`)
+      
       materials[part].map = customTextures[part].originalMap
       materials[part].color.copy(customTextures[part].originalColor)
       materials[part].transparent = materials[part].map ? true : false
@@ -992,13 +1137,45 @@ const onModelLoaded = (gltf) => {
 
   const foundMeshes = []
   const meshMaterialMap = {}
+  
+  // Tìm kiếm tất cả mesh có thể là dây giày
+  const possibleLaceMeshes = []
+  
   model.traverse((node) => {
     if (node.isMesh) {
       foundMeshes.push(node.name)
       node.castShadow = true
       node.receiveShadow = true
+      
+      // Tìm các mesh có thể là dây giày
+      if (node.name.toLowerCase().includes('lace') || 
+          node.name.toLowerCase().includes('shoelace') || 
+          node.name.toLowerCase().includes('string') ||
+          node.name.toLowerCase().includes('cord')) {
+        possibleLaceMeshes.push({
+          name: node.name,
+          uuid: node.uuid,
+          material: node.material ? node.material.type : 'không có material',
+          materialColor: node.material && node.material.color ? node.material.color.getHexString() : 'không có màu'
+        })
+      }
+      
       if (node.material) {
         meshMaterialMap[node.name] = node.material
+        
+        // Kiểm tra chi tiết về material của mesh nếu là Lace
+        if (node.name === 'Lace') {
+          console.log('Chi tiết về mesh Lace:', {
+            name: node.name,
+            uuid: node.uuid,
+            materialType: node.material.type,
+            materialProps: Object.keys(node.material),
+            hasMap: !!node.material.map,
+            materialUUID: node.material.uuid,
+            materialTransparent: node.material.transparent,
+            materialColor: node.material.color ? node.material.color.getHexString() : 'không có màu'
+          });
+        }
       } else {
         node.material = new THREE.MeshStandardMaterial({ color: 0x808080 })
         meshMaterialMap[node.name] = node.material
@@ -1008,6 +1185,8 @@ const onModelLoaded = (gltf) => {
 
   console.log('Found meshes:', foundMeshes)
   console.log('Mesh material map:', meshMaterialMap)
+  console.log('Tìm kiếm mesh Lace:', foundMeshes.filter(name => name.toLowerCase().includes('lace')))
+  console.log('Các mesh có thể là dây giày:', possibleLaceMeshes)
 
   Object.keys(partColors).forEach((partName) => {
     const matchingMesh = foundMeshes.find(meshName => meshName.toLowerCase().includes(partName.toLowerCase()))
@@ -1090,8 +1269,59 @@ const applyCustomColor = () => {
   const selectedPart = components[selectedComponentIndex.value].value
   const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
   
+  // Nếu đang cập nhật Lace, sử dụng phương pháp đặc biệt
+  if (partsToUpdate.includes('Lace')) {
+    console.log('Đang áp dụng màu cho dây giày:', customColorValue.value)
+    
+    // Tìm tất cả mesh dây giày
+    const laceMeshes = findAllLaceMeshes()
+    
+    if (laceMeshes.length > 0) {
+      // Xử lý từng mesh dây giày tìm thấy
+      laceMeshes.forEach(mesh => {
+        console.log(`Đang áp dụng màu cho mesh ${mesh.name}`)
+        
+        // Lưu material gốc
+        if (!customTextures['Lace']) {
+          customTextures['Lace'] = {
+            originalMap: mesh.material.map,
+            originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff')
+          }
+        }
+        
+        // Thay thế bằng material mới
+        const newMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(customColorValue.value),
+          side: THREE.DoubleSide,
+          metalness: 0.2,
+          roughness: 0.6
+        })
+        
+        // Thay thế material
+        mesh.material = newMaterial
+        mesh.material.needsUpdate = true
+        
+        // Cập nhật tham chiếu và màu trong mảng
+        materials['Lace'] = newMaterial
+        partColors['Lace'] = customColorValue.value
+        
+        // Xóa texture nếu có
+        if (partTextures['Lace']) {
+          partTextures['Lace'] = null
+        }
+        
+        console.log(`Đã áp dụng màu cho mesh ${mesh.name}:`, customColorValue.value)
+      })
+    } else {
+      console.warn('Không tìm thấy mesh dây giày nào')
+    }
+  }
+  
+  // Xử lý các phần khác như bình thường
   partsToUpdate.forEach((part) => {
-    if (materials[part]) {
+    if (part !== 'Lace' && materials[part]) {
+      console.log(`Đang áp dụng màu cho phần: ${part}`)
+      
       materials[part].color.set(customColorValue.value)
       materials[part].needsUpdate = true
       partColors[part] = customColorValue.value
@@ -1407,6 +1637,28 @@ const calculateSurcharge = () => {
       productSurchargeElement.style.display = 'none'
     }
   }
+}
+
+// Hàm mới để tìm và xử lý tất cả các mesh dây giày
+const findAllLaceMeshes = () => {
+  if (!model) return []
+  
+  const laceMeshes = []
+  model.traverse((node) => {
+    if (node.isMesh && 
+       (node.name === 'Lace' || 
+        node.name.toLowerCase().includes('lace') || 
+        node.name.toLowerCase().includes('shoelace') || 
+        node.name.toLowerCase().includes('string') ||
+        node.name.toLowerCase().includes('cord'))) {
+      laceMeshes.push(node)
+    }
+  })
+  
+  console.log(`Tìm thấy ${laceMeshes.length} mesh dây giày:`, 
+    laceMeshes.map(mesh => ({ name: mesh.name, uuid: mesh.uuid })))
+  
+  return laceMeshes
 }
 </script>
 <style>
