@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { createTemplate } from '@/server/custom-service'
+import { addTemplate } from '@/server/custom-service'
 
 export default {
   name: 'TemplateModal',
@@ -81,8 +81,8 @@ export default {
         description: '',
         gender: 'Male',
         color: '',
-        previewImage: '',
-        model3DFile: '',
+        previewImage: null,
+        model3DFile: null,
         basePrice: 0,
         isAvailable: true
       }
@@ -99,8 +99,8 @@ export default {
         description: '',
         gender: 'Male',
         color: '',
-        previewImage: '',
-        model3DFile: '',
+        previewImage: null,
+        model3DFile: null,
         basePrice: 0,
         isAvailable: true
       }
@@ -126,31 +126,47 @@ export default {
           return
         }
 
+        // Validate all required fields
+        if (!this.formData.name || !this.formData.description || !this.formData.color) {
+          alert('Please fill in all required fields')
+          return
+        }
+
         const formData = new FormData()
-        formData.append('Name', this.formData.name)
-        formData.append('Description', this.formData.description)
+        formData.append('Name', this.formData.name.trim())
+        formData.append('Description', this.formData.description.trim())
         formData.append('Gender', this.formData.gender)
-        formData.append('Color', this.formData.color)
-        formData.append('TwoDImageFile', this.formData.previewImage)
-        formData.append('ThreeDFile', this.formData.model3DFile)
-        formData.append('Price', this.formData.basePrice.toString())
-        formData.append('IsDeleted', (!this.formData.isAvailable).toString())
+        formData.append('Color', this.formData.color.trim())
+        formData.append('PreviewImage', this.formData.previewImage)
+        formData.append('Model3DFile', this.formData.model3DFile)
+        formData.append('BasePrice', this.formData.basePrice.toString())
+        formData.append('IsAvailable', this.formData.isAvailable.toString())
 
         console.log('Submitting form data:', {
-          name: this.formData.name,
-          description: this.formData.description,
-          gender: this.formData.gender,
-          color: this.formData.color,
-          previewImageName: this.formData.previewImage.name,
-          modelFileName: this.formData.model3DFile.name,
-          price: this.formData.basePrice,
-          isDeleted: !this.formData.isAvailable
+          Name: this.formData.name,
+          Description: this.formData.description,
+          Gender: this.formData.gender,
+          Color: this.formData.color,
+          PreviewImage: this.formData.previewImage.name,
+          Model3DFile: this.formData.model3DFile.name,
+          BasePrice: this.formData.basePrice,
+          IsAvailable: this.formData.isAvailable
         })
 
-        const response = await createTemplate(formData)
-        if (response.code === 200) {
+        const response = await addTemplate(formData)
+        console.log('Response:', response)
+        
+        // Check if response indicates success
+        if (response.code === 200 || (response.message && response.message.toLowerCase().includes('successfully'))) {
+          // Emit both events to ensure proper handling
           this.$emit('template-added')
-          this.closeModal()
+          this.$emit('close')
+          this.resetForm()
+          
+          // Show success message
+          alert('Template added successfully!')
+        } else {
+          throw new Error(response.message || 'Failed to add template')
         }
       } catch (error) {
         console.error('Error creating template:', error)

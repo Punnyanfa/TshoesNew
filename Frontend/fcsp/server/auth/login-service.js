@@ -5,6 +5,9 @@ import { ElNotification } from 'element-plus';
 
 const saveTokenAndUserInfo = (token, email, role) => {
   if (token) {
+    // Save the token first
+    localStorage.setItem("userToken", token);
+    
     const decodedToken = jwtDecode(token);
     console.log("decodedToken", decodedToken);
     const userId = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];

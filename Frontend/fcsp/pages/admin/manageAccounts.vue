@@ -125,6 +125,7 @@
                             <i class="bi bi-pencil"></i>
                           </button>
                           <button 
+                            v-if="isAdmin"
                             class="btn btn-sm"
                             :class="account.status === 'active' ? 'btn-outline-danger' : 'btn-outline-success'"
                             data-bs-toggle="tooltip" 
@@ -378,13 +379,19 @@
 </template>
 
 <script>
-import { getAllUser } from '@/server/manageAccounts-service';
+import { getAllUser, updateStatus } from '@/server/manageAccounts-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
+import { ElMessageBox, ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'AccountManagement',
   components: {
     AdminSidebar
+  },
+  setup() {
+    const router = useRouter();
+    return { router };
   },
   data() {
     return {
@@ -395,9 +402,6 @@ export default {
       selectedAccount: null,
       editedAccount: {},
       isNewAccount: false,
-      accountDetailsModal: null,
-      editAccountModal: null,
-      confirmStatusModal: null,
       userRoles: [
         'Admin',
         'Designer',
@@ -442,9 +446,23 @@ export default {
       }
       
       return result;
+    },
+    isAdmin() {
+      return localStorage.getItem('role') === 'Admin';
     }
   },
   methods: {
+    checkAdminAccess() {
+      if (!this.isAdmin) {
+        ElMessage({
+          type: 'error',
+          message: 'Access denied. Only administrators can access this page.'
+        });
+        this.router.push('/');
+        return false;
+      }
+      return true;
+    },
     formatDate(date) {
       if (!date) return '';
       return new Date(date).toLocaleDateString('en-US');
@@ -463,18 +481,150 @@ export default {
     },
     viewAccountDetails(account) {
       this.selectedAccount = account;
-      this.accountDetailsModal.show();
+    },
+    toggleAccountStatus(account) {
+      if (!account) return;
+      
+      // Check if current user is admin
+      if (!this.isAdmin) {
+        ElMessage({
+          type: 'warning',
+          message: 'Only administrators can lock/unlock accounts'
+        });
+        return;
+      }
+
+      // Don't allow admin to lock themselves
+      const currentUserId = localStorage.getItem('userId');
+      if (currentUserId === account.id) {
+        ElMessage({
+          type: 'warning',
+          message: 'You cannot lock your own account'
+        });
+        return;
+      }
+      
+      const action = account.status === 'active' ? 'lock' : 'unlock';
+      
+      ElMessageBox.confirm(
+        `Are you sure you want to ${action} account "${account.name}"?`,
+        `${action.charAt(0).toUpperCase() + action.slice(1)} Account`,
+        {
+          confirmButtonText: action.charAt(0).toUpperCase() + action.slice(1),
+          cancelButtonText: 'Cancel',
+          type: action === 'lock' ? 'warning' : 'success'
+        }
+      )
+      .then(async () => {
+        try {
+          const newStatus = account.status === 'active' ? 'inactive' : 'active';
+          // Call API with correct parameters
+          await updateStatus(account.id, account.status === 'active');
+          
+          // Update local state
+          account.status = newStatus;
+          
+          // Refresh the accounts list
+          await this.fetchAccounts();
+          
+          // Show success message
+          ElMessage({
+            type: 'success',
+            message: `Account has been ${newStatus === 'active' ? 'unlocked' : 'locked'} successfully`
+          });
+        } catch (error) {
+          console.error('Error updating status:', error);
+          ElMessage({
+            type: 'error',
+            message: error.message || 'Failed to update account status'
+          });
+        }
+      })
+      .catch(() => {
+        // User cancelled the operation
+      });
     },
     editAccount(account) {
       this.isNewAccount = false;
-      this.editedAccount = JSON.parse(JSON.stringify(account)); // Deep copy
+      this.editedAccount = JSON.parse(JSON.stringify(account));
       
-      // Close details modal if open
-      if (this.accountDetailsModal._isShown) {
-        this.accountDetailsModal.hide();
-      }
-      
-      this.editAccountModal.show();
+      ElMessageBox.confirm(
+        `
+        <div class="p-3">
+          <h4 class="mb-3">Edit Account</h4>
+          <form class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                value="${this.editedAccount.username}"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input 
+                type="email" 
+                class="form-control" 
+                value="${this.editedAccount.email}"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Role</label>
+              <select class="form-select" required>
+                ${this.userRoles.map(role => `
+                  <option value="${role}" ${this.editedAccount.role === role ? 'selected' : ''}>
+                    ${role}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" required>
+                <option value="active" ${this.editedAccount.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="inactive" ${this.editedAccount.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        `,
+        'Edit Account',
+        {
+          confirmButtonText: 'Save',
+          cancelButtonText: 'Cancel',
+          customClass: 'edit-account-dialog',
+          showClose: true,
+          closeOnClickModal: false,
+          closeOnPressEscape: false,
+          dangerouslyUseHTMLString: true
+        }
+      )
+      .then(async () => {
+        try {
+          // Save account changes
+          // Update existing account
+          const index = this.accounts.findIndex(acc => acc.id === this.editedAccount.id);
+          if (index !== -1) {
+            this.accounts[index] = { ...this.editedAccount };
+          }
+          
+          ElMessage({
+            type: 'success',
+            message: 'Account updated successfully'
+          });
+        } catch (error) {
+          ElMessage({
+            type: 'error',
+            message: error.message || 'Failed to update account'
+          });
+        }
+      })
+      .catch(() => {
+        // User cancelled the operation
+      });
     },
     showAddAccountModal() {
       this.isNewAccount = true;
@@ -492,87 +642,106 @@ export default {
         permissions: [],
         password: ''
       };
-      this.editAccountModal.show();
-    },
-    toggleAccountStatus(account) {
-      this.selectedAccount = account;
-      this.confirmStatusModal.show();
-    },
-    async confirmStatusChange() {
-      try {
-        // Toggle the status
-        this.selectedAccount.status = this.selectedAccount.status === 'active' ? 'inactive' : 'active';
-        
-        // Close the modal
-        this.confirmStatusModal.hide();
-        
-        // Show success message
-        this.showToast(
-          `Account ${this.selectedAccount.name} has been ${this.selectedAccount.status === 'active' ? 'unlocked' : 'locked'} successfully`,
-          this.selectedAccount.status === 'active' ? 'success' : 'warning'
-        );
-      } catch (error) {
-        this.showToast('An error occurred while changing account status', 'danger');
-      }
+      
+      ElMessageBox.confirm(
+        `
+        <div class="p-3">
+          <h4 class="mb-3">Add New Account</h4>
+          <form class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input 
+                type="email" 
+                class="form-control" 
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              <input 
+                type="password" 
+                class="form-control" 
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Role</label>
+              <select class="form-select" required>
+                ${this.userRoles.map(role => `
+                  <option value="${role}">
+                    ${role}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+          </form>
+        </div>
+        `,
+        'Add New Account',
+        {
+          confirmButtonText: 'Create',
+          cancelButtonText: 'Cancel',
+          customClass: 'add-account-dialog',
+          showClose: true,
+          closeOnClickModal: false,
+          closeOnPressEscape: false,
+          dangerouslyUseHTMLString: true
+        }
+      )
+      .then(async () => {
+        try {
+          // Add new account
+          this.accounts.push(this.editedAccount);
+          
+          ElMessage({
+            type: 'success',
+            message: 'Account created successfully'
+          });
+        } catch (error) {
+          ElMessage({
+            type: 'error',
+            message: error.message || 'Failed to create account'
+          });
+        }
+      })
+      .catch(() => {
+        // User cancelled the operation
+      });
     },
     async saveAccount() {
       try {
         if (this.isNewAccount) {
           // Add new account
           this.accounts.push(this.editedAccount);
-          this.showToast('Account created successfully', 'success');
+          ElMessage({
+            type: 'success',
+            message: 'Account created successfully'
+          });
         } else {
           // Update existing account
           const index = this.accounts.findIndex(acc => acc.id === this.editedAccount.id);
           if (index !== -1) {
             this.accounts[index] = { ...this.editedAccount };
           }
-          this.showToast('Account updated successfully', 'success');
+          ElMessage({
+            type: 'success',
+            message: 'Account updated successfully'
+          });
         }
-        
-        // Close the modal
-        this.editAccountModal.hide();
       } catch (error) {
-        this.showToast('An error occurred while saving account information', 'danger');
+        ElMessage({
+          type: 'error',
+          message: error.message || 'Failed to save account'
+        });
       }
-    },
-    showToast(message, type = 'success') {
-      // Create a Bootstrap toast programmatically
-      const toastContainer = document.getElementById('toast-container') || this.createToastContainer();
-      
-      const toastEl = document.createElement('div');
-      toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
-      toastEl.setAttribute('role', 'alert');
-      toastEl.setAttribute('aria-live', 'assertive');
-      toastEl.setAttribute('aria-atomic', 'true');
-      
-      toastEl.innerHTML = `
-        <div class="d-flex">
-          <div class="toast-body">
-            ${message}
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-      `;
-      
-      toastContainer.appendChild(toastEl);
-      
-      // Initialize and show the toast
-      const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
-      toast.show();
-      
-      // Remove the toast element after it's hidden
-      toastEl.addEventListener('hidden.bs.toast', () => {
-        toastEl.remove();
-      });
-    },
-    createToastContainer() {
-      const container = document.createElement('div');
-      container.id = 'toast-container';
-      container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-      container.style.zIndex = '1050';
-      document.body.appendChild(container);
-      return container;
     },
     async fetchAccounts() {
       this.loading = true;
@@ -588,15 +757,31 @@ export default {
         }));
       } catch (error) {
         console.error('Error loading accounts:', error);
-        this.showToast('Error loading accounts', 'danger');
+        ElMessage({
+          type: 'error',
+          message: 'Error loading accounts'
+        });
       } finally {
         this.loading = false;
       }
     },
   },
   async created() {
-    await this.fetchAccounts();
-  }
+    if (!this.checkAdminAccess()) return;
+  },
+  async mounted() {
+    if (!this.checkAdminAccess()) return;
+
+    try {
+      await this.fetchAccounts();
+    } catch (error) {
+      console.error('Error in mounted hook:', error);
+      ElMessage({
+        type: 'error',
+        message: 'Error initializing the page'
+      });
+    }
+  },
 }
 </script>
 

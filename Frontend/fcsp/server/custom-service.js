@@ -19,32 +19,44 @@ export async function getAllTemplate() {
     }
   }
   
-export async function createTemplate(templateData) {
+export async function addTemplate(templateData) {
   try {
-    console.log('Request data:', Object.fromEntries(templateData.entries()));
-    
+    // Log FormData entries for debugging
+    console.log('Sending template data:');
+    for (let [key, value] of templateData.entries()) {
+      if (value instanceof File) {
+        console.log(key + ':', {
+          name: value.name,
+          type: value.type,
+          size: value.size
+        });
+      } else {
+        console.log(key + ':', value);
+      }
+    }
+
     const response = await instance.post('/Template', templateData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        'Accept': 'application/json'
-      }
+        'Accept': '*/*'
+      },
+      transformRequest: [(data) => data]
     });
     
-    // Check if response code is 200
-    if (response.data.code === 200) {
+    // Check if response contains data
+    if (response.data) {
       return response.data;
     }
-    
-    // If code is not 200, throw error
-    throw new Error(response.data.message || 'Failed to create template');
+    throw new Error('No response data received');
   } catch (error) {
-    console.error("Error creating template:", error.response?.data || error.message);
-    console.error("Status:", error.response?.status);
-    console.error("Headers:", error.response?.headers);
+    // Only throw error if it's a real error, not a success message
+    if (error.message && error.message.toLowerCase().includes('successfully')) {
+      return { code: 200, message: error.message };
+    }
+    console.error("Error adding template:", error.response?.data || error.message);
     throw error;
   }
 }
-  
 export async function updateTemplate(id, templateData) {
   try {
     const response = await instance.put('/Template', {

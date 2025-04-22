@@ -32,10 +32,10 @@
         <GiftOutlined />
         <span>Voucher Management</span>
       </router-link>
-      <router-link to="/admin/settings" class="menu-item">
-        <SettingOutlined />
-        <span>Settings</span>
-      </router-link>
+      <div class="menu-item" @click="handleLogout">
+        <LogoutOutlined />
+        <span>Logout</span>
+      </div>
     </div>
   </div>
 </template>
@@ -49,7 +49,8 @@ import {
   CarOutlined,
   ExperimentOutlined,
   GiftOutlined,
-  SettingOutlined
+  SettingOutlined,
+  LogoutOutlined
 } from '@ant-design/icons-vue';
 
 export default {
@@ -62,7 +63,17 @@ export default {
     CarOutlined,
     ExperimentOutlined,
     GiftOutlined,
-    SettingOutlined
+    SettingOutlined,
+    LogoutOutlined
+  },
+  methods: {
+    handleLogout() {
+      // Clear all localStorage data
+      localStorage.clear()
+      
+      // Redirect to home page
+      this.$router.push('/')
+    }
   }
 }
 </script>

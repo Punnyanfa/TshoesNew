@@ -110,7 +110,7 @@ const login = async () => {
     let redirectRoute = '/homePage'; // Default route
     
     if (role === "Admin") {
-      redirectRoute = '/adminDashboard';
+      redirectRoute = '/admin';
     } else if (role === "Manufacturer") {
       redirectRoute = '/ManufacturerPage';
     }
