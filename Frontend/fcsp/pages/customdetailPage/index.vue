@@ -420,26 +420,26 @@ const previewImageUrl = ref('')
 
 // Part colors and textures (fixed typos and aligned with components)
 const partColors = reactive({
-  // Accent_inside: '#ffffff',
-  // Accent_outside: '#ffffff',
+  Accent_inside: '#ffffff',
+  Accent_outside: '#ffffff',
   Base: '#ffffff',
-  // Cover: '#ffffff',
-  // Cylinder: '#ffffff',
-  // Cylinder001: '#ffffff',
-  // Heel: '#ffffff',
-  // Lace: '#ffffff',
-  // Line_inside: '#ffffff',
-  // Line_outside: '#ffffff',
+  Cover: '#ffffff',
+  Cylinder: '#ffffff',
+  Cylinder001: '#ffffff',
+  Heel: '#ffffff',
+  Lace: '#ffffff',
+  Line_inside: '#ffffff',
+  Line_outside: '#ffffff',
    Logo_inside: '#ffffff',
    Logo_outside: '#ffffff',
-  // MidSode: '#ffffff',
-  // MidSode001: '#ffffff',
-  // OutSode: '#ffffff',
-  // Tip: '#ffffff',
-  // Plane012: '#ffffff',
-  // Plane012_1: '#ffffff',
-  // Plane005: '#ffffff',
-  // Tongue: '#ffffff'
+  MidSode: '#ffffff',
+  MidSode001: '#ffffff',
+  OutSode: '#ffffff',
+  Tip: '#ffffff',
+  Plane012: '#ffffff',
+  Plane012_1: '#ffffff',
+  Plane005: '#ffffff',
+  Tongue: '#ffffff'
 });
 
 const partTextures = reactive({
@@ -861,12 +861,12 @@ const removeTextFromMesh = () => {
 }
 
 const addToCart = () => {
-  showCompleteModal.value = false
-  const urlParams = new URLSearchParams(window.location.search)
-  const isEditing = urlParams.get('edit') === 'true'
-  const editId = urlParams.get('id')
+  showCompleteModal.value = false;
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEditing = urlParams.get('edit') === 'true';
+  const editId = urlParams.get('id');
   
-  calculateSurcharge()
+  calculateSurcharge();
   
   const productData = {
     id: isEditing && editId ? parseInt(editId) : Date.now(),
@@ -883,31 +883,34 @@ const addToCart = () => {
       timestamp: new Date().toISOString()
     },
     previewImages: captureAngles.map(angle => angle.preview)
-  }
+  };
   
   for (const comp of components) {
-    const partName = comp.value
-    if (materials[partName]) {
-      const hexColor = '#' + materials[partName].color.getHexString()
-      productData.designData.colors[partName] = hexColor
-      
-      if (customTextures[partName]) {
-        const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
-        productData.designData.textures[partName] = {
-          type: textureType,
-          textContent: customText.value
-        }
-        if (textureType === 'image' && customTextures[partName].imageData) {
-          productData.designData.imagesData[partName] = customTextures[partName].imageData
+    const partName = comp.value;
+    const partsToSave = partGroups[partName] || [partName];
+    partsToSave.forEach((subPart) => {
+      if (materials[subPart]) {
+        const hexColor = '#' + materials[subPart].color.getHexString();
+        productData.designData.colors[subPart] = hexColor;
+        
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
+          productData.designData.textures[subPart] = {
+            type: textureType,
+            textContent: customText.value
+          };
+          if (textureType === 'image' && customTextures[subPart].imageData) {
+            productData.designData.imagesData[subPart] = customTextures[subPart].imageData;
+          }
         }
       }
-    }
+    });
   }
   
-  let cart = []
-  const savedCart = localStorage.getItem('cart')
+  let cart = [];
+  const savedCart = localStorage.getItem('cart');
   if (savedCart) {
-    cart = JSON.parse(savedCart)
+    cart = JSON.parse(savedCart);
   }
   
   const totalPrice = 2500000 + surcharge.value;
@@ -915,21 +918,21 @@ const addToCart = () => {
   const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : '';
   
   if (isEditing && editId) {
-    const itemIndex = cart.findIndex(item => item.id === parseInt(editId))
+    const itemIndex = cart.findIndex(item => item.id === parseInt(editId));
     if (itemIndex !== -1) {
-      cart[itemIndex] = productData
+      cart[itemIndex] = productData;
     } else {
-      cart.push(productData)
+      cart.push(productData);
     }
-    alert(`Đã cập nhật thiết kế của sản phẩm trong giỏ hàng!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
+    alert(`Đã cập nhật thiết kế của sản phẩm trong giỏ hàng!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`);
   } else {
-    cart.push(productData)
-    alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
+    cart.push(productData);
+    alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`);
   }
   
-  localStorage.setItem('cart', JSON.stringify(cart))
-  window.location.href = '/cartcustomPage'
-}
+  localStorage.setItem('cart', JSON.stringify(cart));
+  window.location.href = '/cartcustomPage';
+};
 
 const saveAsDraft = () => {
   showCompleteModal.value = false;
@@ -954,19 +957,23 @@ const saveAsDraft = () => {
   
   for (const comp of components) {
     const partName = comp.value;
-    if (materials[partName]) {
-      productData.designData.colors[partName] = '#' + materials[partName].color.getHexString();
-      if (customTextures[partName]) {
-        const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
-        productData.designData.textures[partName] = {
-          type: textureType,
-          textContent: customText.value
-        };
-        if (textureType === 'image' && customTextures[partName].imageData) {
-          productData.designData.imagesData[partName] = customTextures[partName].imageData;
+    const partsToSave = partGroups[partName] || [partName];
+    partsToSave.forEach((subPart) => {
+      if (materials[subPart]) {
+        const hexColor = '#' + materials[subPart].color.getHexString();
+        productData.designData.colors[subPart] = hexColor;
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
+          productData.designData.textures[subPart] = {
+            type: textureType,
+            textContent: customText.value
+          };
+          if (textureType === 'image' && customTextures[subPart].imageData) {
+            productData.designData.imagesData[subPart] = customTextures[subPart].imageData;
+          }
         }
       }
-    }
+    });
   }
   
   let drafts = [];
@@ -984,7 +991,7 @@ const saveAsDraft = () => {
   
   alert(`Thiết kế đã được lưu vào bản nháp!\nGiá gốc: 2.500.000 ₫${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`);
   window.location.href = '/mycustomPage';
-}
+};
 
 // Updated Three.js initialization
 const initThree = () => {
@@ -1051,16 +1058,15 @@ const onModelLoaded = (gltf) => {
   }
 
   model = gltf.scene;
-  model.scale.set(40, 40, 40); // Match Code 1
-  model.position.set(0, -2, 0); // Match Code 1
+  model.scale.set(40, 40, 40);
+  model.position.set(0, -2, 0);
   model.rotation.y = Math.PI / 4;
 
   const foundMeshes = [];
   const meshMaterialMap = {};
   const possibleLaceMeshes = [];
-  const originalMaterials = {}; // Store original materials
+  const originalMaterials = {};
 
-  // First pass: Collect original materials, assign materials, and adjust properties
   console.log('Phân tích các mesh trong mô hình:');
   let meshCount = 0;
   model.traverse((node) => {
@@ -1069,17 +1075,14 @@ const onModelLoaded = (gltf) => {
       foundMeshes.push(node.name);
       console.log(`- Mesh ${meshCount}: ${node.name}`);
 
-      // Đảm bảo tất cả vật liệu đều hiển thị đúng
       node.castShadow = true;
       node.receiveShadow = true;
 
-      // Kiểm tra và cập nhật material
       if (!node.material) {
         console.log(`  Mesh ${node.name} không có material, tạo material mặc định`);
         node.material = new THREE.MeshStandardMaterial({ color: 0x808080 });
       } else {
         console.log(`  Mesh ${node.name} có material:`, node.material.type);
-        // Log material details for debugging
         console.log(`  Mesh ${node.name} material details:`, {
           hasMap: !!node.material.map,
           mapSrc: node.material.map ? node.material.map.source?.data?.currentSrc || 'N/A' : 'No map',
@@ -1090,12 +1093,11 @@ const onModelLoaded = (gltf) => {
         });
       }
 
-      // Store the material in materials object
-      materials[node.name] = node.material;
+      // Store the original material for this specific mesh
+      materials[node.name] = node.material.clone(); // Clone to ensure uniqueness
       meshMaterialMap[node.name] = node.material;
-      originalMaterials[node.name] = node.material.clone(); // Clone to preserve the original
+      originalMaterials[node.name] = node.material.clone();
 
-      // Identify potential lace meshes
       if (
         node.name.toLowerCase().includes('lace') ||
         node.name.toLowerCase().includes('shoelace') ||
@@ -1110,16 +1112,14 @@ const onModelLoaded = (gltf) => {
         });
       }
 
-      // Adjust material properties
       if (node.material.type === 'MeshStandardMaterial') {
-        node.material.metalness = node.material.metalness !== undefined ? node.material.metalness : 0.3; // Default to 0.3 if not set
-        node.material.roughness = node.material.roughness !== undefined ? node.material.roughness : 0.4; // Default to 0.4 if not set
+        node.material.metalness = node.material.metalness !== undefined ? node.material.metalness : 0.3;
+        node.material.roughness = node.material.roughness !== undefined ? node.material.roughness : 0.4;
         node.material.needsUpdate = true;
       }
 
-      // Fallback if material has no texture or color
       if (!node.material.map && !node.material.color) {
-        node.material.color = new THREE.Color(0xffffff); // Fallback to white
+        node.material.color = new THREE.Color(0xffffff);
         node.material.needsUpdate = true;
       }
     }
@@ -1136,12 +1136,13 @@ const onModelLoaded = (gltf) => {
   console.log('Tìm kiếm mesh Lace:', foundMeshes.filter((name) => name.toLowerCase().includes('lace')));
   console.log('Các mesh có thể là dây giày:', possibleLaceMeshes);
 
-  // Second pass: Apply customizations to materials
+  // Apply customizations to materials for each mesh
   Object.keys(partColors).forEach((partName) => {
-    const matchingMesh = foundMeshes.find((meshName) => meshName.toLowerCase().includes(partName.toLowerCase()));
-    const originalMaterial = matchingMesh && originalMaterials[matchingMesh] ? originalMaterials[matchingMesh] : new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const matchingMesh = foundMeshes.find((meshName) => meshName.toLowerCase() === partName.toLowerCase());
+    if (!matchingMesh) return; // Skip if no exact match
 
-    // Handle texture updates if any
+    const originalMaterial = originalMaterials[matchingMesh] || new THREE.MeshStandardMaterial({ color: 0xffffff });
+
     const texture = partTextures[partName];
     if (texture) {
       texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale);
@@ -1151,33 +1152,28 @@ const onModelLoaded = (gltf) => {
       texture.needsUpdate = true;
     }
 
-    // Update the existing material with customizations
-    if (materials[partName]) {
-      materials[partName].color = new THREE.Color(partColors[partName]); // Apply custom color
-      if (texture) {
-        materials[partName].map = texture; // Apply custom texture if available
-        materials[partName].transparent = true;
-      }
-      materials[partName].metalness = 0.3; // Ensure consistency with Code 1
-      materials[partName].roughness = 0.4;
-      materials[partName].needsUpdate = true;
+    // Update the material for this specific mesh
+    if (materials[matchingMesh]) {
+      materials[matchingMesh].color = new THREE.Color(partColors[partName]);
+      materials[matchingMesh].map = texture || undefined;
+      materials[matchingMesh].transparent = !!texture;
+      materials[matchingMesh].metalness = 0.3;
+      materials[matchingMesh].roughness = 0.4;
+      materials[matchingMesh].needsUpdate = true;
     } else {
-      // If no material exists (fallback), create a new one
-      materials[partName] = originalMaterial.clone();
-      materials[partName].color = new THREE.Color(partColors[partName]);
-      if (texture) {
-        materials[partName].map = texture;
-        materials[partName].transparent = true;
-      }
-      materials[partName].metalness = 0.3;
-      materials[partName].roughness = 0.4;
-      materials[partName].needsUpdate = true;
+      materials[matchingMesh] = originalMaterial.clone();
+      materials[matchingMesh].color = new THREE.Color(partColors[partName]);
+      materials[matchingMesh].map = texture || undefined;
+      materials[matchingMesh].transparent = !!texture;
+      materials[matchingMesh].metalness = 0.3;
+      materials[matchingMesh].roughness = 0.4;
+      materials[matchingMesh].needsUpdate = true;
     }
 
-    // Apply the material to all matching meshes
+    // Apply the material to the exact matching mesh
     model.traverse((node) => {
-      if (node.isMesh && node.name.toLowerCase().includes(partName.toLowerCase())) {
-        node.material = materials[partName];
+      if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
+        node.material = materials[node.name]; // Use the unique material
         node.material.needsUpdate = true;
       }
     });
@@ -1396,7 +1392,6 @@ const updateTextureParameters = () => {
 watch(textureParams, updateTextureParameters, { deep: true })
 
 onMounted(() => {
-  // Add a slight delay to ensure the container is ready
   setTimeout(() => {
     initThree();
     
@@ -1429,64 +1424,77 @@ onMounted(() => {
               if (editingDesign.designData && editingDesign.designData.colors) {
                 for (const partName in editingDesign.designData.colors) {
                   const color = editingDesign.designData.colors[partName];
-                  if (materials[partName]) {
-                    materials[partName].color.set(color);
-                    materials[partName].needsUpdate = true;
-                    materials[partName].metalness = 0.3;
-                    materials[partName].roughness = 0.4;
-                    partColors[partName] = color;
-                    if (color.toLowerCase() !== '#ffffff') {
-                      hasCustomizedMeshes = true;
-                    }
-                  }
+                  // Map component names to their parts using partGroups
+                  const partsToUpdate = partGroups[partName] || [partName];
+                  partsToUpdate.forEach((subPart) => {
+                    // Find all meshes that exactly match this subPart
+                    model.traverse((node) => {
+                      if (node.isMesh && node.name.toLowerCase() === subPart.toLowerCase()) {
+                        if (materials[node.name]) {
+                          materials[node.name].color.set(color);
+                          materials[node.name].needsUpdate = true;
+                          materials[node.name].metalness = 0.3;
+                          materials[node.name].roughness = 0.4;
+                          // Update partColors for the subPart
+                          partColors[subPart] = color;
+                          if (color.toLowerCase() !== '#ffffff') {
+                            hasCustomizedMeshes = true;
+                          }
+                        }
+                      }
+                    });
+                  });
                 }
               }
               if (editingDesign.designData && editingDesign.designData.textures) {
                 for (const partName in editingDesign.designData.textures) {
                   const textureInfo = editingDesign.designData.textures[partName];
-                  if (materials[partName]) {
-                    if (textureInfo.type === 'text' && customText.value) {
-                      hasCustomizedMeshes = true;
-                      applyTextToMesh();
-                    } else if (textureInfo.type === 'image' && editingDesign.designData.imagesData && editingDesign.designData.imagesData[partName]) {
-                      hasCustomizedMeshes = true;
-                      const imageData = editingDesign.designData.imagesData[partName];
-                      const textureLoader = new THREE.TextureLoader();
-                      previewImageUrl.value = imageData;
-                      textureLoader.load(
-                        imageData,
-                        (texture) => {
-                          texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                          texture.flipY = false;
-                          texture.encoding = THREE.sRGBEncoding;
-                          texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale);
-                          texture.offset.set(textureParams.offsetX, textureParams.offsetY);
-                          texture.rotation = textureParams.rotation;
-                          texture.needsUpdate = true;
-                          customTextures[partName] = {
-                            originalMap: materials[partName].map,
-                            originalColor: materials[partName].color.clone(),
-                            texture,
-                            imageData: imageData
-                          };
-                          partTextures[partName] = texture;
-                          materials[partName].map = texture;
-                          materials[partName].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness));
-                          materials[partName].transparent = true;
-                          materials[partName].needsUpdate = true;
-                          materials[partName].metalness = 0.3;
-                          materials[partName].roughness = 0.4;
-                          renderer.render(scene, camera);
-                          console.log(`Đã khôi phục texture ảnh cho phần ${partName}`);
-                        },
-                        undefined,
-                        (error) => {
-                          console.error(`Lỗi khi tải texture ảnh cho phần ${partName}:`, error);
-                        }
-                      );
+                  const partsToUpdate = partGroups[partName] || [partName];
+                  partsToUpdate.forEach((subPart) => {
+                    if (materials[subPart]) {
+                      if (textureInfo.type === 'text' && customText.value) {
+                        hasCustomizedMeshes = true;
+                        applyTextToMesh();
+                      } else if (textureInfo.type === 'image' && editingDesign.designData.imagesData && editingDesign.designData.imagesData[partName]) {
+                        hasCustomizedMeshes = true;
+                        const imageData = editingDesign.designData.imagesData[partName];
+                        const textureLoader = new THREE.TextureLoader();
+                        previewImageUrl.value = imageData;
+                        textureLoader.load(
+                          imageData,
+                          (texture) => {
+                            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                            texture.flipY = false;
+                            texture.encoding = THREE.sRGBEncoding;
+                            texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale);
+                            texture.offset.set(textureParams.offsetX, textureParams.offsetY);
+                            texture.rotation = textureParams.rotation;
+                            texture.needsUpdate = true;
+                            customTextures[subPart] = {
+                              originalMap: materials[subPart].map,
+                              originalColor: materials[subPart].color.clone(),
+                              texture,
+                              imageData: imageData
+                            };
+                            partTextures[subPart] = texture;
+                            materials[subPart].map = texture;
+                            materials[subPart].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness));
+                            materials[subPart].transparent = true;
+                            materials[subPart].needsUpdate = true;
+                            materials[subPart].metalness = 0.3;
+                            materials[subPart].roughness = 0.4;
+                            renderer.render(scene, camera);
+                            console.log(`Đã khôi phục texture ảnh cho phần ${subPart}`);
+                          },
+                          undefined,
+                          (error) => {
+                            console.error(`Lỗi khi tải texture ảnh cho phần ${subPart}:`, error);
+                          }
+                        );
+                      }
                     }
-                  }
+                  });
                 }
               }
               if (!hasCustomizedMeshes) {
@@ -1511,9 +1519,8 @@ onMounted(() => {
         }
       }
     }
-  }, 100); // Small delay to ensure DOM is ready
+  }, 100);
 });
-
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
   if (model) {
