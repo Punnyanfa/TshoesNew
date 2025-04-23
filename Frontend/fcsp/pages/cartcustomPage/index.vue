@@ -16,8 +16,10 @@
               
               <div class="cart-item-details">
                 <h4>{{ item.name }}</h4>
-                <p class="price">{{ formatPrice(item.price) }}</p>
-                
+                <p class="price">Giá gốc: {{ formatPrice(item.price) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Phụ phí: {{ formatPrice(item.surcharge) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Tổng: {{ formatPrice(item.price + item.surcharge) }}</p>
+
                 <!-- Hiển thị thông tin thiết kế nếu có -->
                 <div v-if="item.designData" class="design-info">
                   <p v-if="item.designData.customText" class="custom-text">
@@ -100,7 +102,11 @@ const formatDate = (dateString) => {
 };
 
 // Tính tổng tiền
-const totalPrice = computed(() => cart.value.reduce((sum, item) => sum + (item.price || 0), 0));
+const totalPrice = computed(() => cart.value.reduce((sum, item) => {
+  const itemPrice = item.price || 0;
+  const itemSurcharge = item.surcharge || 0;
+  return sum + itemPrice + itemSurcharge;
+}, 0));
 
 // 🗑 Xóa sản phẩm khỏi giỏ hàng
 const removeFromCart = (id) => {
@@ -134,7 +140,7 @@ onMounted(() => {
 <style scoped>
 /* 🌟 Cấu trúc và màu sắc */
 .container {
-  max-width: 900px;
+  /* max-width: 900px; */
   margin: 0 auto;
   padding: 0 15px;
 }
@@ -214,6 +220,20 @@ h1 {
   color: #e74c3c;
   margin: 10px 0;
   letter-spacing: 0.5px;
+}
+
+.price.surcharge {
+  font-size: 1.2rem;
+  color: #f39c12;
+  margin: 5px 0;
+}
+
+.price.total {
+  font-size: 1.3rem;
+  color: #2ecc71;
+  margin: 5px 0;
+  border-top: 1px dashed #ddd;
+  padding-top: 6px;
 }
 
 .design-info {

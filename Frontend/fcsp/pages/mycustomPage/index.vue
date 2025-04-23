@@ -25,6 +25,8 @@
               <div class="cart-item-details">
                 <h4>{{ item.name }}</h4>
                 <p class="price">{{ formatPrice(item.price) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Phụ phí: {{ formatPrice(item.surcharge) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Tổng: {{ formatPrice(item.price + item.surcharge) }}</p>
                 
                 <!-- Hiển thị thông tin thiết kế nếu có -->
                 <div v-if="item.designData" class="design-info">
@@ -183,6 +185,17 @@ const selectedProduct = ref({
   }
 });
 
+// Theo dõi modal để khóa/mở scroll
+watch(showProductModal, (newValue) => {
+  if (newValue) {
+    // Khóa scroll khi modal hiển thị
+    document.body.style.overflow = 'hidden';
+  } else {
+    // Khôi phục scroll khi modal đóng
+    document.body.style.overflow = '';
+  }
+});
+
 // Hiển thị/ẩn các góc nhìn
 const togglePreviewImages = (item) => {
   item.showPreviews = !item.showPreviews;
@@ -211,51 +224,6 @@ const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleString('vi-VN');
 };
-
-// 🏗 Lưu giỏ hàng vào localStorage khi thay đổi
-watch(cart, () => {
-  try {
-    // Nếu giỏ hàng trống, xóa sạch localStorage
-    if (cart.value.length === 0) {
-      localStorage.removeItem('cart');
-      console.log('Đã xóa dữ liệu giỏ hàng trong localStorage');
-      return;
-    }
-    
-    // Xóa localStorage trước để đảm bảo không bị tràn bộ nhớ
-    localStorage.removeItem('cart');
-    
-    // Áp dụng giới hạn kích thước và lưu
-    const limitedCartData = limitCartSize(cart.value);
-    localStorage.setItem('cart', JSON.stringify(limitedCartData));
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      alert('Lỗi: Bộ nhớ cục bộ đã đầy. Vui lòng xóa bớt các thiết kế không cần thiết.');
-      console.error('Lỗi lưu trữ: Đã vượt quá quota localStorage', error);
-      
-      // Cố gắng lưu với dữ liệu tối thiểu
-      try {
-        // Xóa dữ liệu cũ
-        localStorage.removeItem('cart');
-        
-        // Tạo phiên bản tối thiểu của giỏ hàng
-        const minimalCart = cart.value.slice(-5).map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          image: item.image
-        }));
-        
-        // Lưu phiên bản tối thiểu
-        localStorage.setItem('cart', JSON.stringify(minimalCart));
-      } catch (e) {
-        console.error('Không thể lưu giỏ hàng ngay cả với dữ liệu tối thiểu', e);
-      }
-    } else {
-      console.error('Lỗi lưu trữ cart:', error);
-    }
-  }
-}, { deep: true });
 
 // Hàm làm mới dữ liệu từ localStorage
 const refreshDataFromStorage = () => {
@@ -357,16 +325,45 @@ function removeFromCart(id) {
   }
 }
 
-// Tạo bản sao của thiết kế và thêm vào giỏ hàng
+// Thêm thiết kế vào giỏ hàng
 const duplicateToCart = (item) => {
-  // Tạo một bản sao với ID mới
-  const newItem = JSON.parse(JSON.stringify(item));
-  newItem.id = Date.now();
-  newItem.name = `${newItem.name} (Bản sao)`;
-  
-  // Thêm vào giỏ hàng
-  cart.value.push(newItem);
-  alert('Đã tạo bản sao thiết kế và thêm vào giỏ hàng!');
+  try {
+    // Lấy giỏ hàng hiện tại
+    const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Tạo bản sao của item với ID mới để tránh trùng lặp
+    const newCartItem = {
+      ...item,
+      id: `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      showPreviews: false
+    };
+    
+    // Thêm vào giỏ hàng
+    cartItems.push(newCartItem);
+    
+    // Lưu lại vào localStorage
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    
+    // Xóa khỏi danh sách nháp nếu đang tồn tại trong đó
+    try {
+      const designDrafts = JSON.parse(localStorage.getItem('designDrafts') || '[]');
+      const updatedDrafts = designDrafts.filter(draft => draft.id !== item.id);
+      localStorage.setItem('designDrafts', JSON.stringify(updatedDrafts));
+    } catch (e) {
+      console.error('Lỗi khi xóa thiết kế khỏi danh sách nháp:', e);
+    }
+    
+    // Thông báo đã thêm vào giỏ hàng
+    alert('Đã thêm thiết kế vào giỏ hàng!');
+    
+    // Chuyển hướng đến trang giỏ hàng
+    setTimeout(() => {
+      window.location.href = '/cartcustomPage';
+    }, 500);
+  } catch (e) {
+    console.error('Lỗi khi thêm vào giỏ hàng:', e);
+    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.');
+  }
 };
 
 // Thêm thiết kế vào danh sách sản phẩm
@@ -375,6 +372,7 @@ const addToProduct = (item) => {
   selectedProduct.value = {
     name: item.name,
     price: item.price,
+    surcharge: item.surcharge,
     image: item.image,
     description: `Thiết kế tùy chỉnh từ ${item.name}`,
     designData: JSON.parse(JSON.stringify(item.designData || {})),
@@ -514,7 +512,7 @@ onMounted(() => {
 <style scoped>
 /* 🌟 Cấu trúc và màu sắc */
 .container {
-  max-width: 900px;
+  /* max-width: 900px; */
   margin: 0 auto;
   padding: 0 15px;
 }
@@ -539,6 +537,7 @@ h1 {
   overflow: hidden;
   background-color: #fff;
   transition: all 0.3s ease;
+  margin: 0px 0px 20px 0px;
 }
 
 .cart-item-card:hover {
@@ -583,6 +582,20 @@ h1 {
   font-weight: bold;
   color: #e74c3c;
   margin: 8px 0;
+}
+
+.price.surcharge {
+  font-size: 1.1rem;
+  color: #f39c12;
+  margin: 4px 0;
+}
+
+.price.total {
+  font-size: 1.2rem;
+  color: #2ecc71;
+  margin: 4px 0;
+  border-top: 1px dashed #ddd;
+  padding-top: 6px;
 }
 
 .design-info {
@@ -873,11 +886,12 @@ h1 {
 
 .product-modal-header h3 {
   margin: 0;
-  color: #333;
   font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(90deg, #333333, #666666);
+  background-clip: text;
   -webkit-background-clip: text;
+  color: transparent;
   -webkit-text-fill-color: transparent;
 }
 
