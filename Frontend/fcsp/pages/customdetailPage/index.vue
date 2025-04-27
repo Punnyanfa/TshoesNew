@@ -2,18 +2,62 @@
   <div class="custom-detail-page">
     <!-- Thông tin sản phẩm ở góc trái trên -->
     <div class="product-info">
-      <h2 class="product-name">Adidas Running Shoes</h2>
-      <p class="product-price">2.500.000 ₫</p>
+      <div class="product-name-container">
+        <h2 class="product-name">{{ customProductName || 'Custom Running Shoes' }}</h2>
+        <button class="edit-name-btn" @click="openEditNameModal">
+          <i class="fas fa-edit"></i> Sửa tên
+        </button>
+      </div>
+      <p class="product-price">{{ formatPrice(2500000) }}</p>
+      <p class="product-surcharge" v-if="surcharge > 0">Phụ phí: {{ formatPrice(surcharge) }}</p>
+      
+      <!-- Dropdown chọn nhà sản xuất -->
+      <div class="manufacturer-selector">
+        <label for="manufacturer">Thương hiệu:</label>
+        <select id="manufacturer" v-model="selectedManufacturer" @change="handleManufacturerChange">
+          <option v-for="(mfr, index) in manufacturers" :key="index" :value="mfr.id">
+            {{ mfr.name }}
+          </option>
+        </select>
+      </div>
     </div>
     
     <!-- Các nút chức năng ở góc phải trên -->
     <div class="action-buttons" style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button class="action-button" @click="openCaptureModal">
-         Tải ảnh
-      </button>
-      <button class="action-button primary-button" @click="handleDone">
-      Hoàn thành
-      </button>
+      <button class="action-button" @click="showSurchargeInfo = true">Thông tin phụ phí</button>
+      <button class="action-button" @click="openCaptureModal">Tải ảnh</button>
+      <button class="action-button primary-button" @click="handleDone">Hoàn thành</button>
+    </div>
+    
+    <!-- Modal hiển thị thông tin phụ phí -->
+    <div v-if="showSurchargeInfo" class="surcharge-modal">
+      <div class="surcharge-modal-content">
+        <div class="surcharge-modal-header">
+          <h3>Thông tin phụ phí {{ currentManufacturer.name }}</h3>
+          <button class="close-button" @click="showSurchargeInfo = false">×</button>
+        </div>
+        <div class="surcharge-modal-body">
+          <h4>Bảng phụ phí tùy chỉnh</h4>
+          <div class="component-surcharge-details">
+            <div class="surcharge-detail-table">
+              <div class="surcharge-detail-header">
+                <div class="detail-col">Thành phần</div>
+                <div class="detail-col">Phụ phí màu sắc</div>
+                <div class="detail-col">Phụ phí hình ảnh</div>
+              </div>
+              <div v-for="comp in components" :key="comp.value" class="surcharge-detail-row">
+                <div class="detail-col">{{ comp.name }}</div>
+                <div class="detail-col">{{ formatPrice(currentManufacturer.surcharges.colorChange * currentManufacturer.surcharges.componentRates[comp.value]) }}</div>
+                <div class="detail-col">{{ formatPrice(currentManufacturer.surcharges.imageApplication * currentManufacturer.surcharges.componentRates[comp.value]) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="surcharge-note mt-4">
+            <p><i>Lưu ý: Phụ phí sẽ được tính theo từng thành phần tùy chỉnh. Mỗi lần bạn thay đổi màu sắc hoặc áp dụng hình ảnh cho một thành phần, phụ phí tương ứng sẽ được cộng vào giá sản phẩm.</i></p>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Modal chụp ảnh từ nhiều góc -->
@@ -43,9 +87,7 @@
           
           <div class="capture-actions">
             <div class="download-controls">
-            <button class="action-button" @click="downloadSelectedAngle">
-               Tải ảnh đã chọn
-            </button>
+              <button class="action-button" @click="downloadSelectedAngle">Tải ảnh đã chọn</button>
             </div>
           </div>
         </div>
@@ -80,18 +122,36 @@
           <div class="product-summary">
             <h4>Chi tiết sản phẩm</h4>
             <div class="summary-info">
-              <p><strong>Tên sản phẩm:</strong> Adidas Running Shoes (Tùy chỉnh)</p>
-              <p><strong>Giá:</strong> 2.500.000 ₫</p>
+              <p><strong>Tên sản phẩm:</strong> {{ customProductName || 'Custom Running Shoes' }}</p>
+              <p><strong>Giá gốc:</strong> {{ formatPrice(2500000) }}</p>
+              <p v-if="surcharge > 0"><strong>Phụ phí tùy chỉnh:</strong> {{ formatPrice(surcharge) }}</p>
+              <p><strong>Tổng tiền:</strong> {{ formatPrice(2500000 + surcharge) }}</p>
             </div>
           </div>
           
           <div class="complete-actions">
-            <button class="action-button" @click="saveAsDraft">
-               Lưu nháp
-            </button>
-            <button class="action-button primary-button" @click="addToCart">
-               Thêm vào giỏ hàng
-            </button>
+            <button class="action-button" @click="saveAsDraft">Lưu nháp</button>
+            <button class="action-button primary-button" @click="addToCart">Thêm vào giỏ hàng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal sửa tên sản phẩm -->
+    <div v-if="showEditNameModal" class="edit-name-modal">
+      <div class="edit-name-modal-content">
+        <div class="edit-name-modal-header">
+          <h3>Sửa tên sản phẩm</h3>
+          <button class="close-button" @click="showEditNameModal = false">×</button>
+        </div>
+        <div class="edit-name-modal-body">
+          <div class="form-group">
+            <label for="productName">Tên sản phẩm:</label>
+            <input type="text" id="productName" v-model="customProductName" class="form-control" placeholder="Nhập tên sản phẩm mới" />
+          </div>
+          <div class="edit-name-modal-actions">
+            <button class="btn btn-secondary" @click="showEditNameModal = false">Hủy</button>
+            <button class="btn btn-primary" @click="updateProductName">Lưu</button>
           </div>
         </div>
       </div>
@@ -111,7 +171,6 @@
       <!-- Components UI bên trái -->
       <div class="components-card">
         <h3 class="card-title">COMPONENTS</h3>
-        <!-- Thay thế components-list bằng dropdown -->
         <div class="components-dropdown-container">
           <select 
             class="components-dropdown"
@@ -128,10 +187,37 @@
           </select>
         </div>
         
-        <!-- Hiển thị thông tin component đã chọn -->
         <div class="selected-component-info">
           <div class="component-name">{{ components[selectedComponentIndex].name }}</div>
           <div class="component-index">{{ selectedComponentIndex + 1 }}/{{ components.length }}</div>
+        </div>
+      </div>
+      
+      <!-- Card hiển thị ảnh đã chọn -->
+      <div v-if="selectedImage && activeTab === 'image'" class="image-preview-card">
+        <div class="image-preview-container">
+          <img :src="previewImageUrl" alt="Preview" class="image-preview-large" />
+          <div class="image-navigation-buttons">
+            <button 
+              v-if="uploadedImageHistory.length > 1 && currentImageIndex > 0" 
+              @click="showPreviousImage" 
+              class="back-image-button"
+              title="Xem ảnh trước đó"
+            >
+              ←
+            </button>
+            <button 
+              v-if="uploadedImageHistory.length > 1 && currentImageIndex < uploadedImageHistory.length - 1" 
+              @click="showNextImage" 
+              class="next-image-button"
+              title="Xem ảnh tiếp theo"
+            >
+              →
+            </button>
+          </div>
+          <div v-if="uploadedImageHistory.length > 1" class="image-counter">
+            {{ currentImageIndex + 1 }}/{{ uploadedImageHistory.length }}
+          </div>
         </div>
       </div>
       
@@ -139,19 +225,12 @@
       <div class="customizer-card">
         <h3 class="card-title">TÙY CHỈNH</h3>
         
-        <!-- Tabs for different customization options -->
         <div class="customizer-tabs">
           <button 
             :class="{'tab-button': true, 'active': activeTab === 'color'}" 
             @click="activeTab = 'color'"
           >
             Màu nền
-          </button>
-          <button 
-            :class="{'tab-button': true, 'active': activeTab === 'text'}" 
-            @click="activeTab = 'text'"
-          >
-            Văn bản
           </button>
           <button 
             :class="{'tab-button': true, 'active': activeTab === 'image'}" 
@@ -163,7 +242,6 @@
         
         <!-- Color swatches -->
         <div v-if="activeTab === 'color'" class="tab-content">
-          <!-- Thêm Color Picker -->
           <div class="color-picker-container">
             <div class="color-picker-wrapper">
               <input 
@@ -179,31 +257,6 @@
                 Áp dụng
               </button>
             </div>
-          </div>
-        </div>
-        
-        <!-- Text input -->
-        <div v-if="activeTab === 'text'" class="tab-content">
-          <div class="text-customizer">
-            <div class="text-input-group">
-              <input 
-                type="text" 
-                v-model="customText" 
-                placeholder="Nhập văn bản tùy chỉnh"
-                class="text-input"
-              />
-              <div class="text-buttons">
-                <button class="text-button apply-text" @click="applyTextToMesh" title="Áp dụng văn bản vào phần đã chọn">
-                   Áp dụng
-                </button>
-                <button class="text-button remove-text" @click="removeTextFromMesh" title="Xóa văn bản khỏi phần đã chọn">
-                   Xóa
-                </button>
-              </div>
-            </div>
-            
-            <!-- Thêm pallete màu chữ -->
-            <!-- Đã xóa phần màu chữ -->
           </div>
         </div>
         
@@ -226,15 +279,10 @@
                 <button class="text-button apply-text" @click="applyImageToMesh" :disabled="!selectedImage" title="Áp dụng ảnh vào phần đã chọn">
                    Áp dụng
                 </button>
-                <button class="text-button remove-text" @click="removeTextFromMesh" title="Xóa ảnh khỏi phần đã chọn">
+                <button class="text-button remove-text" @click="removeImagePreview" title="Xóa ảnh đã chọn">
                    Xóa
                 </button>
               </div>
-            </div>
-            
-            <!-- Hiển thị hình ảnh đã chọn -->
-            <div v-if="selectedImage" class="image-preview-container">
-              <img :src="previewImageUrl" alt="Preview" class="image-preview" />
             </div>
           </div>
         </div>
@@ -359,25 +407,128 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, reactive, watch, computed } from 'vue'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+import { useRoute } from 'vue-router'
 
-// Container tham chiếu
+// Container reference và state
 const container = ref(null)
-
-// State cho canvas size
+const surcharge = ref(0)
 const isCanvasExpanded = ref(false)
 
-// State cho modal chụp ảnh
+// Modal states
 const showCaptureModal = ref(false)
-// State cho modal hoàn thành
 const showCompleteModal = ref(false)
+const showSurchargeInfo = ref(false)
+const showEditNameModal = ref(false)
 const selectedAngleIndex = ref(0)
+const customProductName = ref('')
+
+// Mở modal sửa tên sản phẩm
+const openEditNameModal = () => {
+  if (!customProductName.value) {
+    customProductName.value = 'Custom Running Shoes'
+  }
+  showEditNameModal.value = true
+}
+
+// Cập nhật tên sản phẩm
+const updateProductName = () => {
+  if (customProductName.value.trim() === '') {
+    customProductName.value = 'Custom Running Shoes'
+  }
+  showEditNameModal.value = false
+}
+
+// Theo dõi modal để khóa/mở scroll
+watch(showEditNameModal, (newValue) => {
+  if (newValue) {
+    // Khóa scroll khi modal hiển thị
+    document.body.style.overflow = 'hidden'
+  } else {
+    // Khôi phục scroll khi modal đóng
+    document.body.style.overflow = ''
+  }
+})
+
+// Danh sách nhà sản xuất với các mức phụ phí khác nhau
+const selectedManufacturer = ref('adidas')
+const manufacturers = reactive([
+  {
+    id: 'adidas',
+    name: 'Adidas',
+    basePrice: 2500000,
+    surcharges: {
+      colorChange: 30000,     // Phụ phí khi thay đổi màu sắc một thành phần
+      imageApplication: 50000, // Phụ phí khi áp dụng hình ảnh lên một thành phần
+      componentRates: {
+        // Hệ số nhân phụ phí cho từng thành phần
+        Base: 1.0,
+        Heel: 1.2,
+        Lace: 0.8,
+        OutSode: 1.5,
+        MidSole: 1.3,
+        Tip: 0.9,
+        Accent: 1.1,
+        Logo: 2.0,  // Logo có phụ phí cao hơn
+        Details: 0.7
+      }
+    },
+    modelPath: '/Adidasrunningshoes.glb'
+  },
+  {
+    id: 'nike',
+    name: 'Nike',
+    basePrice: 2800000,
+    surcharges: {
+      colorChange: 35000,
+      imageApplication: 60000,
+      componentRates: {
+        Base: 1.2,
+        Heel: 1.5,
+        Lace: 0.9,
+        OutSode: 1.8,
+        MidSole: 1.5,
+        Tip: 1.0,
+        Accent: 1.3,
+        Logo: 2.5,  // Nike logo đắt hơn
+        Details: 0.8
+      }
+    },
+    modelPath: '/Adidasrunningshoes.glb' // Thay bằng đường dẫn mô hình Nike thực tế
+  },
+  {
+    id: 'vans',
+    name: 'Vans',
+    basePrice: 1800000,
+    surcharges: {
+      colorChange: 25000,
+      imageApplication: 40000,
+      componentRates: {
+        Base: 0.9,
+        Heel: 1.0,
+        Lace: 0.7,
+        OutSode: 1.2,
+        MidSole: 1.0,
+        Tip: 0.8,
+        Accent: 0.9,
+        Logo: 1.8,
+        Details: 0.6
+      }
+    },
+    modelPath: '/Adidasrunningshoes.glb' // Thay bằng đường dẫn mô hình Vans thực tế
+  }
+])
+
+// Lấy thông tin nhà sản xuất hiện tại
+const currentManufacturer = computed(() => {
+  return manufacturers.find(m => m.id === selectedManufacturer.value) || manufacturers[0]
+})
+
 const captureAngles = reactive([
-  //{ name: 'Mặt trước', preview: null, position: { x: 0, y: 0, z: 8 } },
   { name: 'Mặt sau', preview: null, position: { x: -6, y: 2, z: -6 } },
   { name: 'Bên trái', preview: null, position: { x: -4, y: 0, z: 6 } },
   { name: 'Bên phải', preview: null, position: { x: 4, y: 0, z: -6 } },
@@ -385,1018 +536,1290 @@ const captureAngles = reactive([
   { name: 'Góc nhìn dưới', preview: null, position: { x: -4, y: -12, z: 4 } }
 ])
 
-// Lưu trữ vị trí camera hiện tại để khôi phục sau khi chụp
+// Camera position storage
 let originalCameraPosition = null
 
-// Mở modal chụp ảnh
+// Three.js objects
+let scene, camera, renderer, controls, model
+const materials = reactive({})
+const customTextures = reactive({})
+
+// State for customization
+const customText = ref('')
+const activeTab = ref('color')
+const selectedTextColor = ref('#ffffff')
+const textureParams = reactive({
+  scale: 1.0,
+  repeatX: 1.1,
+  repeatY: 1.6,
+  offsetX: -0.01,
+  offsetY: -0.08,
+  rotation: 0.24,
+  brightness: 2.0
+})
+
+// Image upload state
+const imageInput = ref(null)
+const selectedImage = ref(null)
+const selectedImageName = ref('')
+const previewImageUrl = ref('')
+// Lịch sử ảnh đã upload
+const uploadedImageHistory = reactive([])
+const currentImageIndex = ref(-1)
+
+// Part colors and textures
+const partColors = reactive({
+  Accent_inside: '#ffffff', Accent_outside: '#ffffff',
+  Base: '#ffffff', Cover: '#ffffff',
+  Cylinder: '#ffffff', Cylinder001: '#ffffff',
+  Heel: '#ffffff', Lace: '#ffffff',
+  Line_inside: '#ffffff', Line_outside: '#ffffff',
+  Logo_inside: '#ffffff', Logo_outside: '#ffffff',
+  MidSode: '#ffffff', MidSode001: '#ffffff',
+  OutSode: '#ffffff', Tip: '#ffffff',
+  Plane012: '#ffffff', Plane012_1: '#ffffff',
+  Plane005: '#ffffff', Tongue: '#ffffff'
+})
+
+const partTextures = reactive({
+  Accent_inside: null, Accent_outside: null,
+  Base: null, Cover: null,
+  Cylinder: null, Cylinder001: null,
+  Heel: null, Lace: null,
+  Line_inside: null, Line_outside: null,
+  Logo_inside: null, Logo_outside: null,
+  MidSode: null, MidSode001: null,
+  OutSode: null, Tip: null,
+  Plane012: null, Plane012_1: null,
+  Plane005: null, Tongue: null
+})
+
+// Components list price color, price texture, hãng adidas
+const components = reactive([
+  { name: 'Base', value: 'Base' },
+  { name: 'Heel', value: 'Heel' },
+  { name: 'Lace', value: 'Lace' },
+  { name: 'Outsole', value: 'OutSode' },
+  { name: 'Midsole', value: 'MidSole'},
+  { name: 'Tip', value: 'Tip' },
+  { name: 'Accent', value: 'Accent' },
+  { name: 'Logo', value: 'Logo' },
+  { name: 'Details', value: 'Details' }
+])
+
+// Part groups 
+const partGroups = reactive({
+  Accent: ['Accent_inside', 'Accent_outside', 'Line_inside', 'Line_outside'],
+  Logo: ['Logo_inside', 'Logo_outside'],
+  MidSole: ['MidSode', 'MidSode001', 'Plane012', 'Plane012_1'], 
+  Details: ['Cylinder', 'Cylinder001', 'Plane005', 'Cover']
+})
+
+// Selected component and color
+const selectedComponentIndex = ref(0)
+const selectedColor = ref('#000000')
+const customColorValue = ref('#ffffff')
+const customColorApplied = ref(false)
+
+// Modal handlers
 const openCaptureModal = () => {
-  console.log('Mở modal chụp ảnh')
-  // Lưu vị trí camera hiện tại
   originalCameraPosition = {
-    position: camera ? new THREE.Vector3().copy(camera.position) : null,
+    position: camera ? camera.position.clone() : null,
     rotation: controls ? controls.target.clone() : null
   }
-  
   showCaptureModal.value = true
-  
-  // Tự động chụp ảnh khi mở modal
   captureAllAngles()
 }
 
-// Chọn góc chụp
 const selectAngle = (index) => {
   selectedAngleIndex.value = index
-  
-  // Di chuyển camera đến vị trí của góc nhìn đã chọn
   if (camera && controls) {
     const anglePosition = captureAngles[index].position
-    
-    // Tạo animation di chuyển camera đến vị trí mới
     const startPosition = camera.position.clone()
     const targetPosition = new THREE.Vector3(anglePosition.x, anglePosition.y, anglePosition.z)
-    
-    // Reset target của controls về trung tâm
     controls.target.set(0, 0, 0)
-    
-    // Animation di chuyển camera
-    const duration = 500 // milliseconds
+    const duration = 500
     const startTime = Date.now()
-    
+
     function animateCamera() {
-      const now = Date.now()
-      const elapsed = now - startTime
+      const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-      
-      // Sử dụng easing function để làm mượt chuyển động
       const easeProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
-      
-      // Di chuyển camera theo nội suy
       camera.position.lerpVectors(startPosition, targetPosition, easeProgress)
-      
-      // Cập nhật controls
       controls.update()
-      
       if (progress < 1) {
         requestAnimationFrame(animateCamera)
       } else {
-        // Tự động chụp ảnh sau khi camera đã di chuyển đến vị trí
         captureCurrentAngle()
       }
     }
-    
     animateCamera()
   }
 }
 
-// Xoay camera
-const rotateCamera = (direction) => {
-  if (!camera || !controls) return
-  
-  const rotationSpeed = 0.3
-  
-  switch(direction) {
-    case 'left':
-      controls.rotateLeft(rotationSpeed)
-      break;
-    case 'right':
-      controls.rotateLeft(-rotationSpeed)
-      break;
-    case 'up':
-      controls.rotateUp(rotationSpeed)
-      break;
-    case 'down':
-      controls.rotateUp(-rotationSpeed)
-      break;
-  }
-  
-  controls.update()
-}
-
-// Chụp ảnh góc hiện tại
 const captureCurrentAngle = () => {
-  if (!renderer) return
-  
-  // Render scene một lần nữa để đảm bảo ảnh mới nhất
-  renderer.render(scene, camera)
-  
-  // Lấy dữ liệu hình ảnh từ canvas
-  const imageData = renderer.domElement.toDataURL('image/png')
-  
-  // Lưu ảnh vào góc nhìn đã chọn
-  captureAngles[selectedAngleIndex.value].preview = imageData
+  if (renderer) {
+    renderer.render(scene, camera)
+    captureAngles[selectedAngleIndex.value].preview = renderer.domElement.toDataURL('image/png')
+  }
 }
 
-// Chụp ảnh tất cả các góc
 const captureAllAngles = async () => {
-  // Lưu vị trí camera ban đầu
   const initialPosition = camera.position.clone()
   const initialTarget = controls.target.clone()
-  
-  // Đặt lại target về trung tâm
   controls.target.set(0, 0, 0)
-  
-  // Duyệt qua từng góc và chụp
+
   for (let i = 0; i < captureAngles.length; i++) {
-    // Chọn góc hiện tại
     selectedAngleIndex.value = i
-    
-    // Di chuyển camera đến góc đó
     const anglePosition = captureAngles[i].position
     camera.position.set(anglePosition.x, anglePosition.y, anglePosition.z)
-    
-    // Cập nhật controls
     controls.update()
-    
-    // Đợi một chút để camera ổn định
     await new Promise(resolve => setTimeout(resolve, 300))
-    
-    // Render scene và chụp ảnh
     renderer.render(scene, camera)
-    const imageData = renderer.domElement.toDataURL('image/png')
-    captureAngles[i].preview = imageData
+    captureAngles[i].preview = renderer.domElement.toDataURL('image/png')
   }
-  
-  // Khôi phục vị trí camera ban đầu
+
   camera.position.copy(initialPosition)
   controls.target.copy(initialTarget)
   controls.update()
-  
-  // Chọn lại góc đầu tiên
   selectedAngleIndex.value = 0
 }
 
-// Tải xuống tất cả các ảnh đã chụp
-const downloadAllAngles = () => {
-  // Kiểm tra xem có ảnh nào chưa chụp không
-  const missingAngles = captureAngles.filter(angle => !angle.preview)
-  
-  // Nếu có góc chưa chụp, chụp tất cả trước
-  if (missingAngles.length > 0) {
-    captureAllAngles().then(() => {
-      // Sau khi chụp xong, tải từng ảnh
-      downloadImages()
-    })
-  } else {
-    // Nếu đã có đủ ảnh, tải xuống ngay
-    downloadImages()
-  }
-  
-  function downloadImages() {
-    captureAngles.forEach((angle, index) => {
-      const link = document.createElement('a')
-      link.href = angle.preview
-      link.download = `adidas-custom-shoe-${angle.name}.png`
-      
-      // Thêm delay để tránh trình duyệt chặn nhiều lần tải xuống
-      setTimeout(() => {
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        console.log(`Đã tải ảnh từ góc nhìn: ${angle.name}`)
-      }, index * 500)
-    })
-  }
-}
-
-// Tải ảnh đã chọn
 const downloadSelectedAngle = () => {
   const selectedAngle = captureAngles[selectedAngleIndex.value]
-  
-  // Nếu chưa có ảnh, chụp trước khi tải
   if (!selectedAngle.preview) {
     captureCurrentAngle()
   }
-  
-  // Tạo một element a để tải xuống
   const link = document.createElement('a')
   link.href = selectedAngle.preview
   link.download = `adidas-custom-shoe-${selectedAngle.name}.png`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  
-  console.log(`Đã tải ảnh từ góc nhìn: ${selectedAngle.name}`)
 }
 
-// Hàm xử lý khi nhấn nút tải ảnh (giữ lại để tương thích ngược)
-const handleDownloadImage = () => {
-  if (!renderer) return
+const handleDone = () => {
+  originalCameraPosition = {
+    position: camera ? camera.position.clone() : null,
+    rotation: controls ? controls.target.clone() : null
+  }
+  calculateSurcharge()
   
-  // Render scene một lần nữa để đảm bảo hình ảnh mới nhất
-  renderer.render(scene, camera)
-  
-  // Lấy dữ liệu hình ảnh từ canvas
-  const imageData = renderer.domElement.toDataURL('image/png')
-  
-  // Tạo một element a để tải xuống
-  const link = document.createElement('a')
-  link.href = imageData
-  link.download = 'adidas-custom-shoe.png'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  
-  console.log('Đã tải ảnh mô hình 3D')
+  captureAllAngles().then(() => {
+    showCompleteModal.value = true
+  })
 }
 
-// Hàm toggle kích thước canvas
-const toggleCanvasSize = () => {
-  isCanvasExpanded.value = !isCanvasExpanded.value
-  setTimeout(() => {
-    if (renderer && camera) {
-      onWindowResize()
-    }
-  }, 300)
-}
-
-// Three.js objects
-let scene, camera, renderer, controls, model
-const materials = {}
-const customTextures = {}
-
-// State cho văn bản tùy chỉnh
-const customText = ref('')
-
-// State cho tab đang active
-const activeTab = ref('color')
-
-// State cho màu văn bản đã chọn
-const selectedTextColor = ref('#ffffff') // Mặc định là màu trắng
-
-// State cho các tham số texture
-const textureParams = reactive({
-  scale: 1.0,
-  repeatX: 1.1,
-  repeatY: 1.6,
-  offsetX: 0,
-  offsetY: 0,
-  rotation: 0.91,
-  brightness: 2.0
-})
-
-// State cho upload ảnh
-const imageInput = ref(null)
-const selectedImage = ref(null)
-const selectedImageName = ref('')
-const previewImageUrl = ref('')
-
-// Hàm xử lý khi người dùng chọn ảnh
 const onImageSelected = (event) => {
   const file = event.target.files[0]
   if (file) {
     selectedImage.value = file
-    selectedImageName.value = file.name.length > 20 
-      ? file.name.substring(0, 17) + '...' 
-      : file.name
+    selectedImageName.value = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name
     
-    // Tạo URL cho hình ảnh xem trước
-    previewImageUrl.value = URL.createObjectURL(file)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImageUrl.value = e.target.result
+      
+      // Lưu ảnh vào lịch sử
+      uploadedImageHistory.push({
+        file: file,
+        name: selectedImageName.value,
+        imageUrl: e.target.result
+      })
+      currentImageIndex.value = uploadedImageHistory.length - 1
+    }
+    reader.readAsDataURL(file)
   }
 }
 
-// Hàm áp dụng ảnh đã upload làm texture cho mesh
+// Hàm xóa ảnh preview
+const removeImagePreview = () => {
+  if (selectedImage.value) {
+    // Xóa ảnh hiện tại ra khỏi lịch sử nếu cần
+    if (uploadedImageHistory.length > 0 && currentImageIndex.value >= 0) {
+      uploadedImageHistory.splice(currentImageIndex.value, 1);
+      
+      // Hiển thị ảnh mới nhất trong lịch sử nếu còn
+      if (uploadedImageHistory.length > 0) {
+        currentImageIndex.value = uploadedImageHistory.length - 1;
+        const latestImage = uploadedImageHistory[currentImageIndex.value];
+        selectedImage.value = latestImage.file;
+        selectedImageName.value = latestImage.name;
+        previewImageUrl.value = latestImage.imageUrl;
+        return; // Không xóa hết vì vẫn còn ảnh trong lịch sử
+      } else {
+        currentImageIndex.value = -1;
+      }
+    }
+  }
+  
+  // Nếu không còn ảnh trong lịch sử hoặc đã xóa hết
+  selectedImage.value = null;
+  selectedImageName.value = '';
+  previewImageUrl.value = '';
+  if (imageInput.value) {
+    imageInput.value.value = '';
+  }
+}
+
 const applyImageToMesh = () => {
   if (!selectedImage.value) {
     alert('Vui lòng chọn ảnh trước khi áp dụng')
     return
   }
-  
+
   const selectedPart = components[selectedComponentIndex.value].value
-  if (!selectedPart || !materials[selectedPart]) {
-    alert('Không tìm thấy phần đã chọn')
-    return
-  }
-  
-  const material = materials[selectedPart]
-  
-  // Lưu lại màu hiện tại của mesh
-  const currentColor = material.color.clone()
-  
-  // Tạo đường dẫn URL cho ảnh đã chọn
-  const imageUrl = URL.createObjectURL(selectedImage.value)
-  
-  // Tạo texture từ ảnh đã upload
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
+  const imageUrl = previewImageUrl.value
   const textureLoader = new THREE.TextureLoader()
   textureLoader.load(
     imageUrl,
     (texture) => {
-      // Cấu hình texture
-      texture.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 1
-      texture.wrapS = THREE.RepeatWrapping
-      texture.wrapT = THREE.RepeatWrapping
-      
-      // Đặt các thông số texture từ textureParams
-      texture.repeat.set(textureParams.repeatX, textureParams.repeatY)
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+      texture.flipY = false
+      texture.encoding = THREE.sRGBEncoding
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
       texture.offset.set(textureParams.offsetX, textureParams.offsetY)
       texture.rotation = textureParams.rotation
-      
-      // Lưu texture cũ nếu chưa lưu
-      if (!customTextures[selectedPart]) {
-        customTextures[selectedPart] = {
-          originalMap: material.map,
-          originalColor: material.color.clone(),
-          texture: texture
+      texture.needsUpdate = true
+
+      if (partsToUpdate.includes('Lace')) {
+        const laceMeshes = findAllLaceMeshes()
+        
+        if (laceMeshes.length > 0) {
+          laceMeshes.forEach(mesh => {
+            const newMaterial = new THREE.MeshStandardMaterial({
+              map: texture,
+              color: new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness),
+              transparent: true,
+              side: THREE.DoubleSide,
+              metalness: 0.3,
+              roughness: 0.4
+            })
+            
+            if (!customTextures['Lace']) {
+              customTextures['Lace'] = {
+                originalMap: mesh.material.map,
+                originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff'),
+                texture,
+                imageData: imageUrl
+              }
+            }
+            
+            mesh.material = newMaterial
+            mesh.material.needsUpdate = true
+            materials['Lace'] = newMaterial
+            partTextures['Lace'] = texture
+          })
         }
-      } else {
-        customTextures[selectedPart].texture = texture
       }
-      
-      // Áp dụng texture mới với blending
-      material.map = texture
-      
-      // Thiết lập blending mode để có thể kết hợp texture với màu
-      material.blending = THREE.NormalBlending
-      
-      // Đặt màu phù hợp với độ sáng
-      const brightness = textureParams.brightness
-      material.color.set(new THREE.Color(brightness, brightness, brightness))
-      
-      // Thiết lập các thuộc tính material để hiển thị đúng
-      material.transparent = true
-      material.needsUpdate = true
-      
-      console.log(`Đã áp dụng ảnh "${selectedImageName.value}" lên ${selectedPart}`)
-      
-      // Giải phóng URL để tránh rò rỉ bộ nhớ
-      URL.revokeObjectURL(imageUrl)
+
+      partsToUpdate.forEach((part) => {
+        if (part !== 'Lace' && materials[part]) {
+          if (!customTextures[part]) {
+            customTextures[part] = {
+              originalMap: materials[part].map,
+              originalColor: materials[part].color.clone(),
+              texture,
+              imageData: imageUrl
+            }
+          } else {
+            customTextures[part].texture = texture
+            customTextures[part].imageData = imageUrl
+          }
+          partTextures[part] = texture
+          materials[part].map = texture
+          materials[part].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness))
+          materials[part].transparent = true
+          materials[part].needsUpdate = true
+          materials[part].metalness = 0.3
+          materials[part].roughness = 0.4
+        }
+      })
+
+      renderer.render(scene, camera)
+      calculateSurcharge()
     },
     undefined,
     (error) => {
-      console.error('Lỗi khi tải ảnh:', error)
       alert('Đã xảy ra lỗi khi tải ảnh, vui lòng thử lại')
-      URL.revokeObjectURL(imageUrl)
     }
   )
 }
 
-// Hàm cập nhật các tham số texture
-const updateTextureParameters = () => {
-  const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && customTextures[selectedPart] && customTextures[selectedPart].texture) {
-    const texture = customTextures[selectedPart].texture
-    const material = materials[selectedPart]
-    
-    // Cập nhật các tham số texture
-    texture.repeat.set(textureParams.repeatX, textureParams.repeatY)
-    texture.offset.set(textureParams.offsetX, textureParams.offsetY)
-    texture.rotation = textureParams.rotation
-    
-    // Cập nhật độ sáng
-    const brightness = textureParams.brightness
-    material.color.set(new THREE.Color(brightness, brightness, brightness))
-    
-    // Cập nhật material
-    material.needsUpdate = true
-  }
-}
-
-// Watch các thay đổi trong textureParams để cập nhật texture
-watch(textureParams, () => {
-  updateTextureParameters()
-}, { deep: true })
-
-// Hàm áp dụng văn bản lên mesh đã chọn
 const applyTextToMesh = () => {
   if (!customText.value.trim()) {
     alert('Vui lòng nhập văn bản trước khi áp dụng')
     return
   }
-  
+
   const selectedPart = components[selectedComponentIndex.value].value
-  if (!selectedPart || !materials[selectedPart]) {
-    alert('Không tìm thấy phần đã chọn')
-    return
-  }
-  
-  const material = materials[selectedPart]
-  
-  // Lưu lại màu hiện tại của mesh
-  const currentColor = material.color.clone()
-  
-  // Tạo texture từ canvas chứa text
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
   const canvas = document.createElement('canvas')
-  const context = canvas.getContext('2d')
-  
-  // Kích thước canvas
   canvas.width = 1024
   canvas.height = 1024
-  
-  // Vẽ nền với màu tương tự như màu hiện tại của mesh
-  context.fillStyle = `rgb(${Math.floor(currentColor.r * 255)}, ${Math.floor(currentColor.g * 255)}, ${Math.floor(currentColor.b * 255)})`
+  const context = canvas.getContext('2d')
+
+  context.fillStyle = '#ffffff'
   context.fillRect(0, 0, canvas.width, canvas.height)
-  
-  // Tính kích thước văn bản phù hợp với độ dài
+
+  context.save()
+  context.translate(canvas.width / 2, canvas.height / 2)
+  context.rotate(Math.PI)
+  context.scale(-1, 1)
+  context.translate(-canvas.width / 2, -canvas.height / 2)
+
   const textLength = customText.value.length
   const fontSize = Math.min(150, 600 / Math.max(1, textLength / 3))
-  
-  // Lưu trạng thái canvas hiện tại
-  context.save()
-  
-  // Xoay canvas 180 độ và lật ngang để văn bản hiển thị đúng
-  context.translate(canvas.width / 2, canvas.height / 2)
-  context.rotate(Math.PI) // Xoay 180 độ (π radian)
-  context.scale(-1, 1) // Lật ngược chiều ngang
-  context.translate(-canvas.width / 2, -canvas.height / 2)
-  
-  // Vẽ text với màu đã chọn nhưng với viền đen để dễ nhìn trên mọi nền
   context.font = `bold ${fontSize}px Arial, sans-serif`
-  
-  // Vẽ viền
   context.strokeStyle = 'black'
-  context.lineWidth = fontSize / 8 // Tăng độ đậm của viền
+  context.lineWidth = fontSize / 8
   context.textAlign = 'center'
   context.textBaseline = 'middle'
   context.strokeText(customText.value, canvas.width / 2, canvas.height / 2)
-  
-  // Vẽ text với màu trắng cố định
-  context.fillStyle = '#ffffff' // Màu trắng cố định
-  // Giảm hiệu ứng shadow hoặc loại bỏ nó để text rõ nét hơn
-  context.shadowColor = 'rgba(0, 0, 0, 0.7)' // Tăng độ đậm của shadow
-  context.shadowBlur = 3 // Giảm độ mờ
-  context.shadowOffsetX = 1 // Giảm độ lệch
-  context.shadowOffsetY = 1 // Giảm độ lệch
+  context.fillStyle = '#ffffff'
+  context.shadowColor = 'rgba(0, 0, 0, 0.7)'
+  context.shadowBlur = 3
+  context.shadowOffsetX = 1
+  context.shadowOffsetY = 1
   context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
-  
-  // Vẽ lại văn bản một lần nữa không có shadow để tăng độ rõ nét
   context.shadowColor = 'transparent'
-  context.shadowBlur = 0
-  context.shadowOffsetX = 0
-  context.shadowOffsetY = 0
-  context.fillStyle = '#ffffff' // Màu trắng cố định
   context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
-  
-  // Khôi phục trạng thái canvas ban đầu
+
   context.restore()
-  
-  // Tạo texture từ canvas
+
   const texture = new THREE.CanvasTexture(canvas)
-  texture.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 1
-  
-  // Thiết lập các tham số cho texture
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
+  texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
   texture.repeat.set(1, 1)
-  
-  // Lưu texture cũ nếu chưa lưu
-  if (!customTextures[selectedPart]) {
-    customTextures[selectedPart] = {
-      originalMap: materials[selectedPart].map,
-      originalColor: materials[selectedPart].color.clone(),
-      texture: texture
+  texture.needsUpdate = true
+
+  if (partsToUpdate.includes('Lace')) {
+    const laceMeshes = findAllLaceMeshes()
+    
+    if (laceMeshes.length > 0) {
+      laceMeshes.forEach(mesh => {
+        const newMaterial = new THREE.MeshStandardMaterial({
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+          metalness: 0.3,
+          roughness: 0.4
+        })
+        
+        if (!customTextures['Lace']) {
+          customTextures['Lace'] = {
+            originalMap: mesh.material.map,
+            originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff'),
+            texture
+          }
+        } else {
+          customTextures['Lace'].texture = texture
+        }
+        
+        mesh.material = newMaterial
+        mesh.material.needsUpdate = true
+        materials['Lace'] = newMaterial
+        partTextures['Lace'] = texture
+      })
     }
-  } else {
-    customTextures[selectedPart].texture = texture
   }
-  
-  // Áp dụng texture mới
-  material.map = texture
-  
-  // Sử dụng blending mode bình thường thay vì custom
-  material.blending = THREE.NormalBlending
-  
-  // Giữ nguyên màu hiện tại của material
-  material.color.copy(currentColor)
-  
-  // Thiết lập các thuộc tính material để hiển thị đúng
-  material.needsUpdate = true
-  
-  console.log(`Đã áp dụng văn bản "${customText.value}" vào ${selectedPart}`)
+
+  partsToUpdate.forEach((part) => {
+    if (part !== 'Lace' && materials[part]) {
+      if (!customTextures[part]) {
+        customTextures[part] = {
+          originalMap: materials[part].map,
+          originalColor: materials[part].color.clone(),
+          texture
+        }
+      } else {
+        customTextures[part].texture = texture
+      }
+      partTextures[part] = texture
+      materials[part].map = texture
+      materials[part].needsUpdate = true
+      materials[part].metalness = 0.3
+      materials[part].roughness = 0.4
+    }
+  })
+
+  renderer.render(scene, camera)
+  calculateSurcharge()
 }
 
-// Thêm hàm để xóa texture và phục hồi màu ban đầu
 const removeTextFromMesh = () => {
   const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && customTextures[selectedPart]) {
-    const material = materials[selectedPart]
-    
-    // Khôi phục texture gốc
-    material.map = customTextures[selectedPart].originalMap
-    
-    // Khôi phục màu gốc nếu người dùng muốn
-    if (customTextures[selectedPart].originalColor) {
-      material.color.copy(customTextures[selectedPart].originalColor)
-    }
-    
-    // Phục hồi blending mode
-    material.blending = THREE.NormalBlending
-    
-    // Cập nhật material
-    material.transparent = material.map ? true : false
-    material.needsUpdate = true
-    
-    // Reset input file và preview image
-    if (imageInput.value) {
-      imageInput.value.value = ''
-    }
-    
-    // Xóa preview image khi đang ở tab image
-    if (activeTab.value === 'image') {
-      if (previewImageUrl.value) {
-        URL.revokeObjectURL(previewImageUrl.value)
-        previewImageUrl.value = ''
-      }
-      selectedImage.value = null
-      selectedImageName.value = ''
-    }
-    
-    console.log(`Đã xóa texture khỏi ${selectedPart}`)
-  }
-}
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
 
-// Hàm xử lý khi nhấn nút hoàn thành
-const handleDone = () => {
-  console.log('Mở modal hoàn thành')
-  // Lưu vị trí camera hiện tại
-  originalCameraPosition = {
-    position: camera ? new THREE.Vector3().copy(camera.position) : null,
-    rotation: controls ? controls.target.clone() : null
+  if (partsToUpdate.includes('Lace')) {
+    const laceMeshes = findAllLaceMeshes()
+    
+    if (laceMeshes.length > 0) {
+      laceMeshes.forEach(mesh => {
+        if (customTextures['Lace']) {
+          const newMaterial = new THREE.MeshStandardMaterial({
+            map: customTextures['Lace'].originalMap,
+            side: THREE.DoubleSide,
+            metalness: 0.3,
+            roughness: 0.4
+          })
+          
+          if (customTextures['Lace'].originalColor) {
+            newMaterial.color.copy(customTextures['Lace'].originalColor)
+          }
+          
+          mesh.material = newMaterial
+          mesh.material.needsUpdate = true
+        }
+      })
+      partTextures['Lace'] = null
+      delete customTextures['Lace']
+    }
   }
   
-  // Chụp tất cả các góc
-  captureAllAngles().then(() => {
-    console.log('Đã chụp tất cả các góc, hiển thị modal hoàn thành')
-    // Hiển thị modal hoàn thành
-    showCompleteModal.value = true
+  partsToUpdate.forEach((part) => {
+    if (part !== 'Lace' && materials[part] && customTextures[part]) {
+      materials[part].map = customTextures[part].originalMap
+      materials[part].color.copy(customTextures[part].originalColor)
+      materials[part].transparent = materials[part].map ? true : false
+      materials[part].needsUpdate = true
+      materials[part].metalness = 0.3
+      materials[part].roughness = 0.4
+      partTextures[part] = null
+      delete customTextures[part]
+    }
   })
+
+  if (imageInput.value) {
+    imageInput.value.value = ''
+  }
+  if (activeTab.value === 'image') {
+    if (previewImageUrl.value) {
+      previewImageUrl.value = ''
+    }
+    selectedImage.value = null
+    selectedImageName.value = ''
+  }
+
+  renderer.render(scene, camera)
+  calculateSurcharge()
 }
 
-// Thêm hàm thêm vào giỏ hàng
 const addToCart = () => {
   showCompleteModal.value = false
+  const urlParams = new URLSearchParams(window.location.search)
+  const isEditing = urlParams.get('edit') === 'true'
+  const editId = urlParams.get('id')
   
-  // Xử lý thêm vào giỏ hàng ở đây
-  // Ví dụ: gửi dữ liệu thiết kế lên server
+  calculateSurcharge()
   
-  // Thông báo đã thêm vào giỏ hàng
-  alert('Sản phẩm đã được thêm vào giỏ hàng thành công!')
-  
-  // Chuyển hướng về trang customPage sau khi đóng alert
-  window.location.href = '/customPage'
-}
-
-// Thêm hàm lưu nháp
-const saveAsDraft = () => {
-  showCompleteModal.value = false
-  
-  // Thu thập dữ liệu thiết kế
-  const designData = {
-    productName: 'Adidas Running Shoes (Tùy chỉnh)',
-    price: '2.500.000 ₫',
-    components: {},
-    textureParams: {...textureParams},
-    customText: customText.value,
-    cameraPosition: camera ? {
-      x: camera.position.x,
-      y: camera.position.y,
-      z: camera.position.z
-    } : null,
-    timestamp: new Date().toISOString()
+  const productData = {
+    id: isEditing && editId ? parseInt(editId) : Date.now(),
+    name: customProductName.value || 'Custom Running Shoes',
+    manufacturerId: selectedManufacturer.value,
+    price: 2500000, // Giá cố định
+    surcharge: surcharge.value,
+    image: captureAngles[1].preview,
+    designData: {
+      colors: {},
+      textures: {},
+      imagesData: {},
+      customText: customText.value,
+      textureParams: { ...textureParams },
+      timestamp: new Date().toISOString(),
+      manufacturerId: selectedManufacturer.value
+    },
+    previewImages: captureAngles.map(angle => angle.preview)
   }
   
-  // Lưu thông tin về các thay đổi trên từng component
   for (const comp of components) {
     const partName = comp.value
-    if (materials[partName]) {
-      const material = materials[partName]
-      designData.components[partName] = {
-        name: comp.name,
-        color: '#' + material.color.getHexString(),
-        hasTexture: !!material.map
-      }
-      
-      // Kiểm tra và lưu thông tin về texture
-      if (customTextures[partName]) {
-        designData.components[partName].textureInfo = {
-          type: customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image',
-          // Không thể lưu trực tiếp texture vì quá lớn, chỉ lưu thông tin
-          textContent: customText.value
-        }
-      }
-    }
-  }
-  
-  // Chuyển đổi thành chuỗi JSON
-  const jsonString = JSON.stringify(designData, null, 2)
-  
-  // Tạo và tải xuống file
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'adidas-custom-design.json'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-  
-  // Thông báo đã lưu bản nháp
-  alert('Thiết kế đã được lưu vào bản nháp và tải xuống thành công!')
-}
-
-// Khởi tạo Three.js
-const initThree = () => {
-  // Log kích thước container để debug
-  console.log('Container dimensions:', container.value.clientWidth, container.value.clientHeight)
-  
-  // Tạo scene
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xf0f0f0)
-
-  // Tạo camera
-  camera = new THREE.PerspectiveCamera(
-    75, 
-    container.value.clientWidth / container.value.clientHeight, 
-    0.1, 
-    1000
-  )
-  // Đặt vị trí camera để nhìn thấy mô hình tốt nhất
-  camera.position.set(0, 1, 8)
-
-  // Tạo renderer với chất lượng cao
-  renderer = new THREE.WebGLRenderer({ 
-    antialias: true, 
-    alpha: true,
-    preserveDrawingBuffer: true 
-  })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-  container.value.appendChild(renderer.domElement)
-
-  // Thêm đèn
-  // Ánh sáng môi trường
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
-  scene.add(ambientLight)
-
-  // Ánh sáng chính (để tạo bóng)
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
-  mainLight.position.set(5, 10, 7)
-  mainLight.castShadow = true
-  mainLight.shadow.mapSize.width = 1024
-  mainLight.shadow.mapSize.height = 1024
-  scene.add(mainLight)
-  
-  // Ánh sáng điền (để chiếu sáng các góc tối)
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
-  fillLight.position.set(-5, 0, -5)
-  scene.add(fillLight)
-
-  // Thêm controls
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-  controls.dampingFactor = 0.05
-  controls.rotateSpeed = 0.7
-  controls.minDistance = 3
-  controls.maxDistance = 20
-
-  // Tải model
-  loadModel()
-
-  // Animation loop
-  animate()
-
-  // Handle resize
-  window.addEventListener('resize', onWindowResize)
-}
-
-// Tải mô hình 3D
-const loadModel = () => {
-  console.log('Bắt đầu tải mô hình GLB...')
-  
-  // Tạo DRACOLoader
-  const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/') // Sử dụng CDN của Google
-  console.log('Đã thiết lập DRACOLoader với decoder từ CDN')
-  
-  // Tạo GLTFLoader và gán DRACOLoader vào
-  const loader = new GLTFLoader()
-  loader.setDRACOLoader(dracoLoader)
-  
-  try {
-    // Đường dẫn tương đối và tuyệt đối
-    const relativeModelPath = '/Adidasrunningshoes.glb';
-    const baseUrl = window.location.origin;
-    const absoluteModelPath = `${baseUrl}/Adidasrunningshoes.glb`;
-    
-    console.log('Đường dẫn tương đối:', relativeModelPath);
-    console.log('Đường dẫn tuyệt đối:', absoluteModelPath);
-    
-    // Kiểm tra xem file có tồn tại không
-    fetch(relativeModelPath)
-      .then(response => {
-        if (!response.ok) {
-          console.error(`File không tồn tại tại đường dẫn ${relativeModelPath}, mã lỗi: ${response.status}`);
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const partsToSave = partGroups[partName] || [partName]
+    partsToSave.forEach((subPart) => {
+      if (materials[subPart]) {
+        const hexColor = '#' + materials[subPart].color.getHexString()
+        productData.designData.colors[subPart] = hexColor
         
-        console.log('Fetch: File tồn tại, kích thước:', response.headers.get('content-length'), 'bytes');
-        console.log('Fetch: Loại nội dung:', response.headers.get('content-type'));
-        
-        // Tải mô hình
-        console.log('Bắt đầu tải mô hình...');
-        loader.load(
-          relativeModelPath,
-          (gltf) => onModelLoaded(gltf),
-          onLoadProgress,
-          (error) => {
-            console.error('Lỗi khi tải với đường dẫn tương đối:', error);
-            console.error('Chi tiết lỗi:', error.message);
-            
-            // Thử tải với đường dẫn tuyệt đối
-            console.log('Thử tải với đường dẫn tuyệt đối...');
-            loader.load(
-              absoluteModelPath,
-              (gltf) => onModelLoaded(gltf),
-              onLoadProgress,
-              (absoluteError) => {
-                console.error('Lỗi khi tải với đường dẫn tuyệt đối:', absoluteError);
-                console.error('Chi tiết lỗi:', absoluteError.message);
-              }
-            );
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+          productData.designData.textures[subPart] = {
+            type: textureType,
+            textContent: customText.value
           }
-        );
-      })
-      .catch(error => {
-        console.error('Lỗi khi kiểm tra tồn tại file:', error);
-        
-        // Thử tải trực tiếp nếu fetch không thành công
-        console.log('Thử tải trực tiếp mà không kiểm tra tồn tại...');
-        loader.load(
-          absoluteModelPath,
-          (gltf) => onModelLoaded(gltf),
-          onLoadProgress,
-          (directError) => {
-            console.error('Lỗi khi tải trực tiếp:', directError);
-            console.error('Chi tiết lỗi:', directError.message);
-          }
-        );
-      });
-  } catch (e) {
-    console.error('Ngoại lệ khi tải mô hình:', e);
-    console.error('Stack trace:', e.stack);
-  }
-}
-
-// Hàm xử lý khi mô hình tải thành công
-const onModelLoaded = (gltf) => {
-  console.log('Mô hình đã tải thành công!', gltf);
-  
-  // Xóa mô hình hiện tại nếu có
-  if (model) {
-    scene.remove(model);
-  }
-  
-  model = gltf.scene;
-  
-  // Thay đổi kích thước và vị trí
-  model.scale.set(50, 50, 50);
-  model.position.set(0, -2, 0);
-  model.rotation.y = Math.PI / 4;
-  
-  // Lưu trữ tất cả materials và đảm bảo chúng hiển thị đúng
-  console.log('Phân tích các mesh trong mô hình:');
-  let meshCount = 0;
-  model.traverse((node) => {
-    if (node.isMesh) {
-      meshCount++;
-      console.log(`- Mesh ${meshCount}: ${node.name}`);
-      
-      // Đảm bảo tất cả vật liệu đều hiển thị đúng
-      materials[node.name] = node.material;
-      node.castShadow = true;
-      node.receiveShadow = true;
-      
-      // Kiểm tra và cập nhật material
-      if (!node.material) {
-        console.log(`  Mesh ${node.name} không có material, tạo material mặc định`);
-        node.material = new THREE.MeshStandardMaterial({ color: 0x808080 });
-      } else {
-        console.log(`  Mesh ${node.name} có material:`, node.material.type);
-        
-        // Điều chỉnh material để hiển thị tốt hơn
-        if (node.material.type === 'MeshStandardMaterial') {
-          node.material.metalness = 0.3;
-          node.material.roughness = 0.4;
-        }
-      }
-    }
-  });
-  
-  if (meshCount === 0) {
-    console.warn('CẢNH BÁO: Mô hình không chứa mesh nào!');
-    return;
-  }
-  
-  // Thêm vào scene
-  scene.add(model);
-  console.log('Đã thêm mô hình vào scene thành công');
-}
-
-// Hàm theo dõi tiến độ tải
-const onLoadProgress = (xhr) => {
-  const progress = Math.floor((xhr.loaded / xhr.total) * 100);
-  console.log(`Tiến độ tải: ${progress}% (${xhr.loaded} / ${xhr.total} bytes)`);
-}
-
-// Animation loop
-const animate = () => {
-  requestAnimationFrame(animate)
-  if (controls) controls.update()
-  if (renderer && scene && camera) {
-    renderer.render(scene, camera)
-  }
-}
-
-// Xử lý thay đổi kích thước cửa sổ
-const onWindowResize = () => {
-  if (camera && renderer && container.value) {
-    camera.aspect = container.value.clientWidth / container.value.clientHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-  }
-}
-
-// Danh sách các thành phần của UI
-const components = reactive([
-  { name: 'Base', value: 'Base' },
-  { name: 'Heel', value: 'Heel' },
-  { name: 'Lace', value: 'Lace' },
-  { name: 'Outsole', value: 'OutSode' },
-  { name: 'Midsole', value: 'MidSode001' },
-  { name: 'Tip', value: 'Tip' },
-  { name: 'Accent', value: 'Accent' }, // Grouped: Accent_inside, Accent_outside, Line_inside, Line_outside
-  { name: 'Logo', value: 'Logo' }, // Grouped: Logo_inside, Logo_outside
-  { name: 'Details', value: 'Details' }, // Grouped: Cylinder, Cylinder001, Plane012, Plane012_1, Plane005, Plane005_1
-])
-
-// State để theo dõi chỉ số thành phần đã chọn
-const selectedComponentIndex = ref(0)
-
-// Định nghĩa các mẫu màu với nhãn của chúng
-const colors = reactive([
-  { name: 'Black', value: '#000000' },
-  { name: 'White', value: '#ffffff' },
-  { name: 'Off-White', value: '#f5f5f5' },
-  { name: 'Gray', value: '#808080' },
-  { name: 'Brown', value: '#4a3728' },
-  { name: 'Navy Blue', value: '#1c2526' },
-  { name: 'Light Blue', value: '#a3c1d4' },
-  { name: 'Orange', value: '#ff4500' },
-  { name: 'Pink', value: '#ff69b4' },
-  { name: 'University Red', value: '#c8102e' },
-])
-
-// State để theo dõi màu đã chọn cho phản hồi UI
-const selectedColor = ref(colors[0].value)
-// Biến để lưu trữ màu tùy chỉnh
-const customColorValue = ref('#ff0000')
-// Đánh dấu khi màu tùy chỉnh được áp dụng
-const customColorApplied = ref(false)
-
-// Cập nhật màu của phần đã chọn
-const handleColorClick = (colorValue) => {
-  selectedColor.value = colorValue
-  customColorApplied.value = false
-  updatePartColor(colorValue)
-  checkTextContrast()
-}
-
-// Xử lý khi người dùng thay đổi màu trong color picker
-const handleCustomColorChange = (event) => {
-  // Chỉ cập nhật giá trị màu, không áp dụng ngay
-  customColorValue.value = event.target.value
-}
-
-// Áp dụng màu tùy chỉnh khi người dùng bấm nút Áp dụng
-const applyCustomColor = () => {
-  selectedColor.value = customColorValue.value
-  customColorApplied.value = true
-  updatePartColor(customColorValue.value)
-  checkTextContrast()
-}
-
-// Hàm cập nhật màu sắc
-const updatePartColor = (color) => {
-  const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && materials[selectedPart]) {
-    materials[selectedPart].color.set(color)
-    
-    // Đảm bảo văn bản vẫn hiển thị đúng sau khi thay đổi màu
-    if (materials[selectedPart].map && materials[selectedPart].transparent) {
-      materials[selectedPart].needsUpdate = true
-    }
-  }
-}
-
-// Xử lý điều hướng của mũi tên
-const handlePrevComponent = () => {
-  selectedComponentIndex.value = selectedComponentIndex.value === 0 
-    ? components.length - 1 
-    : selectedComponentIndex.value - 1
-}
-
-const handleNextComponent = () => {
-  selectedComponentIndex.value = selectedComponentIndex.value === components.length - 1 
-    ? 0 
-    : selectedComponentIndex.value + 1
-}
-
-// Xử lý khi chọn một thành phần từ danh sách
-const handleComponentClick = (index) => {
-  selectedComponentIndex.value = index
-}
-
-// Khởi tạo Three.js sau khi component được mount
-onMounted(() => {
-  initThree()
-})
-
-// Dọn dẹp khi component bị unmount
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', onWindowResize)
-  
-  // Dừng animation loop
-  if (typeof cancelAnimationFrame === 'function') {
-    cancelAnimationFrame(animate)
-  }
-  
-  // Xóa model từ scene và dọn dẹp tài nguyên
-  if (model) {
-    scene.remove(model)
-    model.traverse((node) => {
-      if (node.isMesh) {
-        if (node.geometry) node.geometry.dispose()
-        if (node.material) {
-          if (Array.isArray(node.material)) {
-            node.material.forEach(material => material.dispose())
-          } else {
-            node.material.dispose()
+          if (textureType === 'image' && customTextures[subPart].imageData) {
+            productData.designData.imagesData[subPart] = customTextures[subPart].imageData
           }
         }
       }
     })
   }
   
-  // Xóa renderer
-  if (renderer) {
-    renderer.dispose()
-    if (container.value) {
-      container.value.removeChild(renderer.domElement)
+  let cart = []
+  const savedCart = localStorage.getItem('cart')
+  if (savedCart) {
+    cart = JSON.parse(savedCart)
+  }
+  
+  const totalPrice = 2500000 + surcharge.value // Giá cố định + phụ phí
+  const formattedTotalPrice = formatPrice(totalPrice)
+  const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : ''
+  
+  if (isEditing && editId) {
+    const itemIndex = cart.findIndex(item => item.id === parseInt(editId))
+    if (itemIndex !== -1) {
+      cart[itemIndex] = productData
+    } else {
+      cart.push(productData)
     }
+    alert(`Đã cập nhật thiết kế của sản phẩm trong giỏ hàng!\nGiá gốc: ${formatPrice(2500000)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
+  } else {
+    cart.push(productData)
+    alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: ${formatPrice(2500000)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
   }
   
-  // Dọn dẹp controls
-  if (controls) {
-    controls.dispose()
+  localStorage.setItem('cart', JSON.stringify(cart))
+  window.location.href = '/cartcustomPage'
+}
+
+const saveAsDraft = () => {
+  showCompleteModal.value = false
+  calculateSurcharge()
+  
+  const productData = {
+    id: Date.now(),
+    name: customProductName.value || 'Custom Running Shoes (Nháp)',
+    manufacturerId: selectedManufacturer.value,
+    price: 2500000, // Giá cố định
+    surcharge: surcharge.value,
+    image: captureAngles[1].preview,
+    designData: {
+      colors: {},
+      textures: {},
+      imagesData: {},
+      customText: customText.value,
+      textureParams: { ...textureParams },
+      timestamp: new Date().toISOString(),
+      manufacturerId: selectedManufacturer.value
+    },
+    previewImages: captureAngles.map(angle => angle.preview)
   }
   
-  // Dọn dẹp scene
-  if (scene) {
-    scene.clear()
+  for (const comp of components) {
+    const partName = comp.value
+    const partsToSave = partGroups[partName] || [partName]
+    partsToSave.forEach((subPart) => {
+      if (materials[subPart]) {
+        const hexColor = '#' + materials[subPart].color.getHexString()
+        productData.designData.colors[subPart] = hexColor
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+          productData.designData.textures[subPart] = {
+            type: textureType,
+            textContent: customText.value
+          }
+          if (textureType === 'image' && customTextures[subPart].imageData) {
+            productData.designData.imagesData[subPart] = customTextures[subPart].imageData
+          }
+        }
+      }
+    })
+  }
+  
+  let drafts = []
+  const savedDrafts = localStorage.getItem('designDrafts')
+  if (savedDrafts) {
+    drafts = JSON.parse(savedDrafts)
+  }
+  
+  drafts.push(productData)
+  localStorage.setItem('designDrafts', JSON.stringify(drafts))
+  
+  const totalPrice = 2500000 + surcharge.value // Giá cố định + phụ phí
+  const formattedTotalPrice = formatPrice(totalPrice)
+  const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : ''
+  
+  alert(`Thiết kế đã được lưu vào bản nháp!\nGiá gốc: ${formatPrice(2500000)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}`)
+  window.location.href = '/mycustomPage'
+}
+
+// Updated Three.js initialization
+const initThree = () => {
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0xf0f0f0)
+
+  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
+  camera.position.set(0, 1, 8)
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  container.value.appendChild(renderer.domElement)
+
+  // Lighting setup
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
+  scene.add(ambientLight)
+
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
+  mainLight.position.set(5, 10, 7)
+  mainLight.castShadow = true
+  mainLight.shadow.mapSize.width = 1024
+  mainLight.shadow.mapSize.height = 1024
+  scene.add(mainLight)
+
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
+  fillLight.position.set(-5, 0, -5)
+  scene.add(fillLight)
+
+  controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.05
+  controls.rotateSpeed = 0.7
+  controls.minDistance = 3
+  controls.maxDistance = 20
+  controls.target.set(0, 0, 0)
+
+  loadModel()
+  animate()
+  window.addEventListener('resize', onWindowResize)
+}
+
+const loadModel = () => {
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+
+  const modelPath = currentManufacturer.value.modelPath
+  loader.load(
+    modelPath,
+    (gltf) => onModelLoaded(gltf),
+    (xhr) => null, // Tiến độ tải không hiển thị
+    (error) => alert('Lỗi khi tải mô hình 3D')
+  )
+}
+
+const onModelLoaded = (gltf) => {
+  if (model) {
+    scene.remove(model)
   }
 
-  // Cleanup URL khi component unmount
-  if (previewImageUrl.value) {
-    URL.revokeObjectURL(previewImageUrl.value)
-  }
-})
+  model = gltf.scene
+  model.scale.set(40, 40, 40)
+  model.position.set(0, -2, 0)
+  model.rotation.y = Math.PI / 4
 
-// Xử lý khi component trong dropdown thay đổi
+  const foundMeshes = []
+  const meshMaterialMap = {}
+  const possibleLaceMeshes = []
+  const originalMaterials = {}
+
+  model.traverse((node) => {
+    if (node.isMesh) {
+      foundMeshes.push(node.name)
+
+      node.castShadow = true
+      node.receiveShadow = true
+
+      if (!node.material) {
+        node.material = new THREE.MeshStandardMaterial({ color: 0x808080 })
+      }
+
+      // Lưu trữ material gốc cho mesh cụ thể
+      materials[node.name] = node.material.clone()
+      meshMaterialMap[node.name] = node.material
+      originalMaterials[node.name] = node.material.clone()
+
+      if (
+        node.name.toLowerCase().includes('lace') ||
+        node.name.toLowerCase().includes('shoelace') ||
+        node.name.toLowerCase().includes('string') ||
+        node.name.toLowerCase().includes('cord')
+      ) {
+        possibleLaceMeshes.push({
+          name: node.name,
+          uuid: node.uuid,
+          material: node.material ? node.material.type : 'không có material',
+          materialColor: node.material && node.material.color ? node.material.color.getHexString() : 'không có màu',
+        })
+      }
+
+      if (node.material.type === 'MeshStandardMaterial') {
+        node.material.metalness = node.material.metalness !== undefined ? node.material.metalness : 0.3
+        node.material.roughness = node.material.roughness !== undefined ? node.material.roughness : 0.4
+        node.material.needsUpdate = true
+      }
+
+      if (!node.material.map && !node.material.color) {
+        node.material.color = new THREE.Color(0xffffff)
+        node.material.needsUpdate = true
+      }
+    }
+  })
+
+  // Áp dụng tùy chỉnh cho material của mỗi mesh
+  Object.keys(partColors).forEach((partName) => {
+    const matchingMesh = foundMeshes.find((meshName) => meshName.toLowerCase() === partName.toLowerCase())
+    if (!matchingMesh) return
+
+    const originalMaterial = originalMaterials[matchingMesh] || new THREE.MeshStandardMaterial({ color: 0xffffff })
+
+    const texture = partTextures[partName]
+    if (texture) {
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+      texture.offset.set(textureParams.offsetX, textureParams.offsetY)
+      texture.rotation = textureParams.rotation
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+      texture.needsUpdate = true
+    }
+
+    // Cập nhật material cho mesh cụ thể
+    if (materials[matchingMesh]) {
+      materials[matchingMesh].color = new THREE.Color(partColors[partName])
+      materials[matchingMesh].map = texture || undefined
+      materials[matchingMesh].transparent = !!texture
+      materials[matchingMesh].metalness = 0.3
+      materials[matchingMesh].roughness = 0.4
+      materials[matchingMesh].needsUpdate = true
+    } else {
+      materials[matchingMesh] = originalMaterial.clone()
+      materials[matchingMesh].color = new THREE.Color(partColors[partName])
+      materials[matchingMesh].map = texture || undefined
+      materials[matchingMesh].transparent = !!texture
+      materials[matchingMesh].metalness = 0.3
+      materials[matchingMesh].roughness = 0.4
+      materials[matchingMesh].needsUpdate = true
+    }
+
+    // Áp dụng material cho mesh trùng khớp chính xác
+    model.traverse((node) => {
+      if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
+        node.material = materials[node.name]
+        node.material.needsUpdate = true
+      }
+    })
+  })
+
+  checkPartGroups(foundMeshes)
+  scene.add(model)
+}
+
+const checkPartGroups = (foundMeshes) => {
+  const missingMeshes = []
+  for (const groupName in partGroups) {
+    partGroups[groupName].forEach(partName => {
+      if (!foundMeshes.some(mesh => mesh.toLowerCase().includes(partName.toLowerCase()))) {
+        missingMeshes.push(partName)
+      }
+    })
+  }
+}
+
+const animate = () => {
+  requestAnimationFrame(animate)
+  controls.update()
+  renderer.render(scene, camera)
+}
+
+const onWindowResize = () => {
+  if (camera && renderer && container.value) {
+    camera.aspect = container.value.clientWidth / container.value.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.value.clientWidth, container.value.clientHeight);
+    renderer.render(scene, camera);
+  }
+};
+
 const handleComponentChange = () => {
-  // Không cần làm gì vì v-model đã tự động cập nhật selectedComponentIndex
   console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
 }
 
-// Hàm kiểm tra tương phản màu giữa chữ và nền
-const checkTextContrast = () => {
-  const selectedPart = components[selectedComponentIndex.value].value
-  if (selectedPart && materials[selectedPart]) {
-    const backgroundColorHex = selectedColor.value;
-    const textColorHex = selectedTextColor.value;
-    
-    // Chuyển màu từ hex sang rgb
-    const getRGBFromHex = (hex) => {
-      const r = parseInt(hex.substring(1, 3), 16);
-      const g = parseInt(hex.substring(3, 5), 16);
-      const b = parseInt(hex.substring(5, 7), 16);
-      return [r, g, b];
+const handleCustomColorChange = () => {
+  selectedColor.value = customColorValue.value;
+};
+
+const applyCustomColor = () => {
+  if (!model) {
+    console.error('Model is not loaded. Cannot apply color.');
+    return;
+  }
+
+  const selectedPart = components[selectedComponentIndex.value].value;
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart];
+
+  console.log(`Applying color to component: ${selectedPart}, parts: ${partsToUpdate.join(', ')}`);
+
+  // Handle Lace separately due to its unique mesh structure
+  if (partsToUpdate.includes('Lace')) {
+    console.log('Đang áp dụng màu cho dây giày:', customColorValue.value);
+    const laceMeshes = findAllLaceMeshes()
+
+    if (laceMeshes.length > 0) {
+      laceMeshes.forEach(mesh => {
+        console.log(`Đang áp dụng màu cho mesh ${mesh.name}`);
+        if (!customTextures['Lace']) {
+          customTextures['Lace'] = {
+            originalMap: mesh.material.map,
+            originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff')
+          };
+        }
+
+        const newMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(customColorValue.value),
+          side: THREE.DoubleSide,
+          metalness: 0.3,
+          roughness: 0.4
+        });
+
+        mesh.material = newMaterial;
+        mesh.material.needsUpdate = true;
+        materials['Lace'] = newMaterial;
+
+        if ('Lace' in partColors) {
+          partColors['Lace'] = customColorValue.value;
+        } else {
+          console.warn(`'Lace' not found in partColors. Adding it.`);
+          partColors['Lace'] = customColorValue.value;
+        }
+
+        if (partTextures['Lace']) {
+          partTextures['Lace'] = null;
+        }
+      });
+    } else {
+      console.warn('Không tìm thấy mesh dây giày nào');
     }
+  }
+
+  // Apply color to other parts
+  partsToUpdate.forEach((part) => {
+    if (part !== 'Lace') {
+      let partUpdated = false;
+
+      // Traverse the model and apply a unique material to each matching mesh
+      model.traverse((node) => {
+        if (node.isMesh) {
+          // Exact match only: the mesh name must exactly match the part name
+          const nodeNameLower = node.name.toLowerCase();
+          const partLower = part.toLowerCase();
+          const isExactMatch = nodeNameLower === partLower;
+
+          if (isExactMatch) {
+            console.log(`Đang áp dụng màu cho mesh: ${node.name}`);
+
+            // Create a new material for this specific mesh
+            const newMaterial = new THREE.MeshStandardMaterial({
+              color: new THREE.Color(customColorValue.value),
+              metalness: 0.3,
+              roughness: 0.4
+            });
+
+            // Preserve existing properties if they exist
+            if (node.material.map) {
+              newMaterial.map = node.material.map;
+              newMaterial.transparent = node.material.transparent;
+            }
+
+            // Assign the new material to the mesh
+            node.material = newMaterial;
+            node.material.needsUpdate = true;
+
+            // Store the new material in materials with a unique key for this mesh
+            materials[node.name] = newMaterial;
+
+            partUpdated = true;
+          }
+        }
+      });
+
+      if (partUpdated) {
+        // Update partColors if the part exists
+        if (part in partColors) {
+          partColors[part] = customColorValue.value;
+        } else {
+          console.warn(`Part '${part}' not found in partColors. Adding it.`);
+          partColors[part] = customColorValue.value;
+        }
+
+        // Remove textures if they exist
+        if (partTextures[part] && customTextures[part]) {
+          // Update the material for each matching mesh
+          model.traverse((node) => {
+            if (node.isMesh && node.name.toLowerCase() === part.toLowerCase()) {
+              node.material.map = undefined;
+              node.material.transparent = false;
+              node.material.needsUpdate = true;
+            }
+          });
+          partTextures[part] = null;
+          delete customTextures[part];
+        }
+      } else {
+        console.warn(`Không tìm thấy mesh nào cho phần: ${part}`);
+      }
+    }
+  });
+
+  renderer.render(scene, camera);
+  calculateSurcharge();
+};
+
+const toggleCanvasSize = () => {
+  isCanvasExpanded.value = !isCanvasExpanded.value;
+  setTimeout(() => {
+    if (renderer && container.value) {
+      onWindowResize();
+    }
+  }, 300);
+}
+
+const updateTextureParameters = () => {
+  const selectedPart = components[selectedComponentIndex.value].value
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
+  partsToUpdate.forEach((part) => {
+    if (partTextures[part] && materials[part]) {
+      const texture = partTextures[part]
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+      texture.offset.set(textureParams.offsetX, textureParams.offsetY)
+      texture.rotation = textureParams.rotation
+      texture.needsUpdate = true
+      
+      if (customTextures[part] && customTextures[part].imageData) {
+        materials[part].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness))
+      }
+      
+      materials[part].needsUpdate = true
+      materials[part].metalness = 0.3 // Match Code 1
+      materials[part].roughness = 0.4 // Match Code 1
+
+      model.traverse((node) => {
+        if (node.isMesh && node.name.toLowerCase().includes(part.toLowerCase())) {
+          node.material = materials[part]
+          node.material.needsUpdate = true
+        }
+      })
+    }
+  })
+  
+  renderer.render(scene, camera)
+}
+
+watch(textureParams, updateTextureParameters, { deep: true })
+
+onMounted(() => {
+  setTimeout(() => {
+    initThree();
     
-    const bgRGB = getRGBFromHex(backgroundColorHex);
-    const textRGB = getRGBFromHex(textColorHex);
+    const urlParams = new URLSearchParams(window.location.search);
+    const isEditing = urlParams.get('edit') === 'true';
+    const editId = urlParams.get('id');
     
-    // Tính khoảng cách Euclidean giữa 2 màu
-    const distance = Math.sqrt(
-      Math.pow(bgRGB[0] - textRGB[0], 2) +
-      Math.pow(bgRGB[1] - textRGB[1], 2) +
-      Math.pow(bgRGB[2] - textRGB[2], 2)
-    );
+    if (isEditing && editId) {
+      const editingDesignJson = localStorage.getItem('editingDesign');
+      if (editingDesignJson) {
+        try {
+          const editingDesign = JSON.parse(editingDesignJson);
+          if (editingDesign.id.toString() === editId) {
+            console.log('Đang tải lại thiết kế...', editingDesign);
+            
+            // Khôi phục manufacturer từ designData
+            if (editingDesign.manufacturerId) {
+              selectedManufacturer.value = editingDesign.manufacturerId;
+            } else if (editingDesign.designData && editingDesign.designData.manufacturerId) {
+              selectedManufacturer.value = editingDesign.designData.manufacturerId;
+            }
+            
+            if (editingDesign.surcharge) {
+              surcharge.value = editingDesign.surcharge;
+            }
+            if (editingDesign.designData && editingDesign.designData.customText) {
+              customText.value = editingDesign.designData.customText;
+            }
+            if (editingDesign.designData && editingDesign.designData.textureParams) {
+              Object.assign(textureParams, editingDesign.designData.textureParams);
+            }
+            
+            const applyEditingDesign = () => {
+              if (!model) {
+                setTimeout(applyEditingDesign, 500);
+                return;
+              }
+              let hasCustomizedMeshes = false;
+              if (editingDesign.designData && editingDesign.designData.colors) {
+                for (const partName in editingDesign.designData.colors) {
+                  const color = editingDesign.designData.colors[partName];
+                  // Map component names to their parts using partGroups
+                  const partsToUpdate = partGroups[partName] || [partName];
+                  partsToUpdate.forEach((subPart) => {
+                    // Find all meshes that exactly match this subPart
+                    model.traverse((node) => {
+                      if (node.isMesh && node.name.toLowerCase() === subPart.toLowerCase()) {
+                        if (materials[node.name]) {
+                          materials[node.name].color.set(color);
+                          materials[node.name].needsUpdate = true;
+                          materials[node.name].metalness = 0.3;
+                          materials[node.name].roughness = 0.4;
+                          // Update partColors for the subPart
+                          partColors[subPart] = color;
+                          if (color.toLowerCase() !== '#ffffff') {
+                            hasCustomizedMeshes = true;
+                          }
+                        }
+                      }
+                    });
+                  });
+                }
+              }
+              if (editingDesign.designData && editingDesign.designData.textures) {
+                for (const partName in editingDesign.designData.textures) {
+                  const textureInfo = editingDesign.designData.textures[partName];
+                  const partsToUpdate = partGroups[partName] || [partName];
+                  partsToUpdate.forEach((subPart) => {
+                    if (materials[subPart]) {
+                      if (textureInfo.type === 'text' && customText.value) {
+                        hasCustomizedMeshes = true;
+                        applyTextToMesh();
+                      } else if (textureInfo.type === 'image' && editingDesign.designData.imagesData && editingDesign.designData.imagesData[partName]) {
+                        hasCustomizedMeshes = true;
+                        const imageData = editingDesign.designData.imagesData[partName];
+                        const textureLoader = new THREE.TextureLoader();
+                        previewImageUrl.value = imageData;
+                        textureLoader.load(
+                          imageData,
+                          (texture) => {
+                            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                            texture.flipY = false;
+                            texture.encoding = THREE.sRGBEncoding;
+                            texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale);
+                            texture.offset.set(textureParams.offsetX, textureParams.offsetY);
+                            texture.rotation = textureParams.rotation;
+                            texture.needsUpdate = true;
+                            customTextures[subPart] = {
+                              originalMap: materials[subPart].map,
+                              originalColor: materials[subPart].color.clone(),
+                              texture,
+                              imageData: imageData
+                            };
+                            partTextures[subPart] = texture;
+                            materials[subPart].map = texture;
+                            materials[subPart].color.set(new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness));
+                            materials[subPart].transparent = true;
+                            materials[subPart].needsUpdate = true;
+                            materials[subPart].metalness = 0.3;
+                            materials[subPart].roughness = 0.4;
+                            renderer.render(scene, camera);
+                            console.log(`Đã khôi phục texture ảnh cho phần ${subPart}`);
+                          },
+                          undefined,
+                          (error) => {
+                            console.error(`Lỗi khi tải texture ảnh cho phần ${subPart}:`, error);
+                          }
+                        );
+                      }
+                    }
+                  });
+                }
+              }
+              if (!hasCustomizedMeshes) {
+                surcharge.value = 0;
+                const productSurchargeElement = document.querySelector('.product-surcharge');
+                if (productSurchargeElement) {
+                  productSurchargeElement.style.display = 'none';
+                }
+              } else {
+                const productSurchargeElement = document.querySelector('.product-surcharge');
+                if (productSurchargeElement && surcharge.value > 0) {
+                  productSurchargeElement.textContent = `Phụ phí: ${formatPrice(surcharge.value)}`;
+                  productSurchargeElement.style.display = 'block';
+                }
+              }
+              localStorage.removeItem('editingDesign');
+            };
+            applyEditingDesign();
+          }
+        } catch (e) {
+          console.error('Lỗi khi phân tích thiết kế:', e);
+        }
+      }
+    }
+  }, 100);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize)
+  if (model) {
+    scene.remove(model)
+    model.traverse((node) => {
+      if (node.isMesh) {
+        if (node.geometry) node.geometry.dispose()
+        if (node.material) node.material.dispose()
+      }
+    })
+  }
+  if (renderer) {
+    renderer.dispose()
+    if (container.value) container.value.removeChild(renderer.domElement)
+  }
+  if (controls) controls.dispose()
+  if (scene) scene.clear()
+  if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
+})
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price || 0);
+};
+
+const calculateSurcharge = () => {
+  let totalSurcharge = 0
+  const manufacturer = currentManufacturer.value
+  
+  // Khởi tạo mảng để theo dõi các thành phần đã tùy chỉnh
+  const customizedComponents = {
+    colors: [],
+    textures: []
+  }
+  
+  // Kiểm tra tất cả các thành phần đã tùy chỉnh
+  for (const comp of components) {
+    const partName = comp.value
+    const partsToCheck = partGroups[partName] || [partName]
     
+    partsToCheck.forEach((subPart) => {
+      if (materials[subPart]) {
+        // Kiểm tra nếu đã thay đổi màu sắc (không phải màu trắng mặc định)
+        const hexColor = '#' + materials[subPart].color.getHexString()
+        if (hexColor.toLowerCase() !== '#ffffff') {
+          // Thêm vào danh sách đã tùy chỉnh để tránh tính trùng
+          if (!customizedComponents.colors.includes(partName)) {
+            customizedComponents.colors.push(partName)
+            
+            // Tính phụ phí theo thành phần và nhà sản xuất
+            const componentFee = manufacturer.surcharges.colorChange * 
+                                (manufacturer.surcharges.componentRates[partName] || 1.0)
+            totalSurcharge += componentFee
+          }
+        }
+        
+        // Kiểm tra nếu đã áp dụng texture
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+          if (textureType === 'image' && !customizedComponents.textures.includes(partName)) {
+            customizedComponents.textures.push(partName)
+            
+            // Phụ phí cho ứng dụng hình ảnh
+            const textureFee = manufacturer.surcharges.imageApplication * 
+                              (manufacturer.surcharges.componentRates[partName] || 1.0)
+            totalSurcharge += textureFee
+          }
+        }
+      }
+    })
+  }
+  
+  // Cập nhật giá trị phụ phí
+  surcharge.value = Math.round(totalSurcharge)
+  
+  // Cập nhật hiển thị phụ phí
+  updateSurchargeDisplay()
+}
+
+// Hàm hiển thị phụ phí
+const updateSurchargeDisplay = () => {
+  const productSurchargeElement = document.querySelector('.product-surcharge')
+  
+  if (productSurchargeElement) {
+    if (surcharge.value > 0) {
+      productSurchargeElement.textContent = `Phụ phí: ${formatPrice(surcharge.value)}`
+      productSurchargeElement.style.display = 'block'
+    } else {
+      productSurchargeElement.style.display = 'none'
+    }
+  }
+}
+
+const findAllLaceMeshes = () => {
+  if (!model) return []
+  
+  const laceMeshes = []
+  model.traverse((node) => {
+    if (node.isMesh && 
+       (node.name === 'Lace' || 
+        node.name.toLowerCase().includes('lace') || 
+        node.name.toLowerCase().includes('shoelace') || 
+        node.name.toLowerCase().includes('string') ||
+        node.name.toLowerCase().includes('cord'))) {
+      laceMeshes.push(node)
+    }
+  })
+  
+  console.log(`Tìm thấy ${laceMeshes.length} mesh dây giày:`, 
+    laceMeshes.map(mesh => ({ name: mesh.name, uuid: mesh.uuid })))
+  
+  return laceMeshes
+}
+
+// Xử lý khi thay đổi nhà sản xuất
+const handleManufacturerChange = () => {
+  // Lấy thông tin nhà sản xuất hiện tại
+  const manufacturer = currentManufacturer.value
+  
+  // Tính lại phụ phí với nhà sản xuất mới
+  calculateSurcharge()
+  
+  // Khi thay đổi nhà sản xuất, có thể cần thay đổi mô hình 3D
+  loadModelForManufacturer(manufacturer.id)
+}
+
+// Tải mô hình 3D tương ứng với nhà sản xuất
+const loadModelForManufacturer = (manufacturerId) => {
+  // Lấy nhà sản xuất
+  const manufacturer = manufacturers.find(m => m.id === manufacturerId) || manufacturers[0]
+  
+  // Tải mô hình mới
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+  
+  loader.load(
+    manufacturer.modelPath,
+    (gltf) => onModelLoaded(gltf),
+    (xhr) => null,
+    (error) => alert('Lỗi khi tải mô hình 3D: ' + error.message)
+  )
+}
+
+// Hàm hiển thị ảnh trước đó
+const showPreviousImage = () => {
+  if (currentImageIndex.value > 0) {
+    currentImageIndex.value--;
+    const prevImage = uploadedImageHistory[currentImageIndex.value];
+    selectedImage.value = prevImage.file;
+    selectedImageName.value = prevImage.name;
+    previewImageUrl.value = prevImage.imageUrl;
+  }
+}
+
+// Hàm hiển thị ảnh tiếp theo
+const showNextImage = () => {
+  if (currentImageIndex.value < uploadedImageHistory.length - 1) {
+    currentImageIndex.value++;
+    const nextImage = uploadedImageHistory[currentImageIndex.value];
+    selectedImage.value = nextImage.file;
+    selectedImageName.value = nextImage.name;
+    previewImageUrl.value = nextImage.imageUrl;
   }
 }
 </script>
-
 <style>
 .custom-detail-page {
   height: 100vh;
@@ -1405,6 +1828,169 @@ const checkTextContrast = () => {
   align-items: center;
   position: relative;
   background-color: #f9f9f9;
+  overflow-y: auto;
+}
+
+/* Product-name container styles */
+.product-name-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.edit-name-btn {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-name-btn:hover {
+  background: linear-gradient(135deg, #138496, #0f6674);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+}
+
+/* Modal sửa tên sản phẩm */
+.edit-name-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.edit-name-modal-content {
+  background-color: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: slideIn 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.edit-name-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  background: linear-gradient(to right, #f9f9f9, #ffffff);
+}
+
+.edit-name-modal-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.edit-name-modal-body {
+  padding: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.form-control {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  outline: none;
+}
+
+.edit-name-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.edit-name-modal-actions .btn {
+  min-width: 100px;
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.edit-name-modal-actions .btn-primary {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+}
+
+.edit-name-modal-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #0069d9, #004494);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+  transform: translateY(-3px);
+}
+
+.edit-name-modal-actions .btn-secondary {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.edit-name-modal-actions .btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268, #4e555b);
+  box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+  transform: translateY(-3px);
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .product-name-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .edit-name-btn {
+    margin-top: 5px;
+  }
 }
 
 /* 3D Model container */
@@ -1421,14 +2007,13 @@ const checkTextContrast = () => {
 }
 
 .model-container-wrapper.expanded {
-  height: 60vh;
+  height: 65vh;
 }
 
 .canvas-resizer {
   position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 10px;
+  bottom: 10px;
   z-index: 10;
 }
 
@@ -1465,18 +2050,105 @@ const checkTextContrast = () => {
 /* Customizer container layout */
 .customizer-container {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
+  align-items: flex-start;
+  padding: 20px;
   width: 100%;
   max-width: 1200px;
+  margin: 20px auto;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.components-card,
+.customizer-card,
+.texture-controls-card,
+.image-preview-card {
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  min-width: 250px;
+  margin-bottom: 20px;
+}
+
+.components-card {
+  flex: 0 0 250px;
+}
+
+.image-preview-card {
+  flex: 0 0 300px;
+  order: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  overflow: hidden;
+}
+
+.image-preview-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.image-preview-large {
+  max-width: 100%;
+  max-height: 250px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.image-name {
+  font-size: 14px;
+  color: #333;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.image-preview-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.preview-action-button {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.preview-action-button:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.customizer-card {
+  flex: 1;
+  order: 3;
+  min-width: 300px;
+}
+
+.texture-controls-card {
+  flex: 0 0 250px;
+  order: 4;
 }
 
 /* Card styles */
 .components-card {
   background-color: white;
   border-radius: 10px;
-  padding: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   width: 100%;
   max-width: 170px;
@@ -1893,7 +2565,41 @@ const checkTextContrast = () => {
 
 .image-buttons {
   display: flex;
+  justify-content: center;
   gap: 10px;
+}
+
+.text-button {
+  padding: 8px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.apply-text {
+  background-color: #3498db;
+  color: white;
+}
+
+.apply-text:hover {
+  background-color: #2980b9;
+}
+
+.remove-text {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.remove-text:hover {
+  background-color: #c0392b;
+}
+
+.apply-text:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
 }
 
 .file-name {
@@ -2383,5 +3089,413 @@ const checkTextContrast = () => {
   padding: 3px 10px;
   font-size: 14px;
   cursor: pointer;
+}
+
+.manufacturer-selector {
+  margin-top: 10px;
+}
+
+.surcharge-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Tăng z-index lên cao hơn */
+}
+
+.surcharge-modal-content {
+  background-color: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.surcharge-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.surcharge-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
+.surcharge-modal-body {
+  padding: 20px;
+}
+
+.surcharge-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.surcharge-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.surcharge-item:last-child {
+  border-bottom: none;
+}
+
+.surcharge-item span:last-child {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.component-surcharge-details {
+  margin-top: 15px;
+}
+
+.surcharge-detail-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eaeaea;
+  width: 100%;
+}
+
+.surcharge-detail-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  background-color: #007bff;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+}
+
+.surcharge-detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 1px solid #eee;
+  background-color: white;
+  transition: background-color 0.2s ease;
+}
+
+.surcharge-detail-row:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.surcharge-detail-row:hover {
+  background-color: #f0f8ff;
+}
+
+.surcharge-detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-col {
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.detail-col:first-child {
+  font-weight: 500;
+}
+
+.detail-col:nth-child(2), .detail-col:nth-child(3) {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.surcharge-note {
+  background-color: #fff8e6;
+  border-left: 4px solid #ffc107;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.surcharge-note p {
+  margin: 0;
+  color: #6c4a00;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.surcharge-modal-header h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  position: relative;
+  padding-bottom: 5px;
+}
+
+.surcharge-modal-header h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+/* Manufacturer selector */
+.manufacturer-selector {
+  margin-top: 15px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 250px;
+}
+
+.manufacturer-selector label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.manufacturer-selector select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 30px;
+  flex: 1;
+}
+
+.manufacturer-selector select:hover {
+  border-color: #aaa;
+}
+
+.manufacturer-selector select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+}
+
+/* Surcharge Modal */
+.surcharge-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.surcharge-modal-content {
+  background-color: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.surcharge-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+}
+
+.surcharge-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.surcharge-modal-body {
+  padding: 20px;
+}
+
+.surcharge-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.surcharge-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.surcharge-item:last-child {
+  border-bottom: none;
+}
+
+.surcharge-item span:last-child {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .surcharge-table {
+    grid-template-columns: 1fr;
+  }
+  
+  .manufacturer-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .manufacturer-selector select {
+    width: 100%;
+  }
+}
+
+.image-preview-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+}
+
+.image-preview-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-preview-large {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.image-name {
+  font-size: 14px;
+  color: #333;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.image-preview-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.preview-action-button {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.preview-action-button:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.back-image-button, .next-image-button {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.back-image-button:hover, .next-image-button:hover {
+  background-color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.image-navigation-buttons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.image-navigation-buttons button {
+  pointer-events: auto;
+}
+
+.next-image-button {
+  margin-left: auto;
+}
+
+.image-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
 }
 </style>
