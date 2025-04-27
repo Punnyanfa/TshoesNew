@@ -15,20 +15,25 @@ public class AuthService : IAuthService
     private readonly IPasswordHashingService _passwordHashingService;
     private readonly ITokenService _tokenService;
     private readonly IUserRepository _userRepository;
+    private readonly IDesignerRepository _designerRepository;
+    private readonly IManufacturerRepository _manufacturerRepository;
     private readonly IConfiguration _configuration;
     private readonly string? _azureConnectionString;
     private readonly string? _azureContainerName;
 
-    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository, IConfiguration configuration)
+    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository, IConfiguration configuration, IDesignerRepository designerRepository, IManufacturerRepository manufacturerRepository)
     {
         _passwordHashingService = passwordHashingService;
         _tokenService = tokenService;
         _userRepository = userRepository;
         _configuration = configuration;
+        _designerRepository = designerRepository;
+        _manufacturerRepository = manufacturerRepository;
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
         _azureContainerName = _configuration["AzureStorage:ContainerName"];
     }
 
+    #region Public Methods
     public string HashPassword(string password)
     {
         return _passwordHashingService.GetHashedPassword(password);
@@ -120,6 +125,64 @@ public class AuthService : IAuthService
                 Code = 500,
                 Message = ex.Message,
                 Data = new UserRegisterResponse { Success = false }
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<CreateDesignerAccountResponse>> CreateDesignerAccount(CreateDesignerAccountRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromCreateDesignerAccountRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+            
+            var designer = await GetDesignerEntityFromCreateDesignerAccountRequest(request);
+            await _designerRepository.AddAsync(designer);
+
+
+            return new BaseResponseModel<CreateDesignerAccountResponse>
+            {
+                Code = 200,
+                Message = "Designer account created successfully",
+                Data = new CreateDesignerAccountResponse { Success = true }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<CreateDesignerAccountResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new CreateDesignerAccountResponse { Success = false }
+            };
+        }
+    } 
+
+    public async Task<BaseResponseModel<CreateManufacturerAccountResponse>> CreateManufacturerAccount(CreateManufacturerAccountRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromCreateManufacturerAccountRequest(request);
+            await _userRepository.UpdateAsync(user);
+
+            var manufacturer = await GetManufacturerEntityFromCreateManufacturerAccountRequest(request);
+            await _manufacturerRepository.AddAsync(manufacturer);
+
+
+            return new BaseResponseModel<CreateManufacturerAccountResponse>
+            {
+                Code = 200,
+                Message = "Manufacturer account created successfully",
+                Data = new CreateManufacturerAccountResponse { Success = true }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<CreateManufacturerAccountResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new CreateManufacturerAccountResponse { Success = false }
             };
         }
     }
@@ -296,7 +359,9 @@ public class AuthService : IAuthService
             };
         }
     }
+    #endregion
 
+    #region Private methods
     private async Task<User> GetUserEntityFromUserLoginRequestAsync(UserLoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
@@ -325,6 +390,63 @@ public class AuthService : IAuthService
             IsBanned = false,
             IsDeleted = false
         };
+    }
+
+    private async Task<User> GetUserEntityFromCreateDesignerAccountRequestAsync(CreateDesignerAccountRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+        }
+        user.UserRole = UserRole.Designer;
+        return user;    
+    }
+
+    private async Task<Designer> GetDesignerEntityFromCreateDesignerAccountRequest(CreateDesignerAccountRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+        }
+
+        var designer = new Designer
+        {
+            UserId = user.Id,
+            Rating = 0,
+            CommissionRate = request.CommissionRate
+        };
+
+        return designer;
+    }
+
+    private async Task<User> GetUserEntityFromCreateManufacturerAccountRequest(CreateManufacturerAccountRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+        }
+        user.UserRole = UserRole.Manufacturer;
+        return user;
+    }
+
+    private async Task<Manufacturer> GetManufacturerEntityFromCreateManufacturerAccountRequest(CreateManufacturerAccountRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+        }
+
+        var manufacturer = new Manufacturer
+        {
+            UserId = user.Id,
+            CommissionRate = request.CommissionRate
+        };
+
+        return manufacturer;
     }
 
     private async Task<User> GetUserEntityFromUpdateUserBalanceRequestAsync(UpdateUserBalanceRequest request)
@@ -468,4 +590,5 @@ public class AuthService : IAuthService
         user.UpdatedAt = DateTime.Now;
         return user;
     }
+    #endregion
 }

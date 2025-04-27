@@ -49,6 +49,28 @@ public class UserRegisterRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class CreateDesignerAccountRequest
+{
+    public long UserId { get; set; }
+    public float CommissionRate { get; set; }
+}
+
+public class CreateDesignerAccountResponse
+{
+    public bool Success { get; set; }
+}
+
+public class CreateManufacturerAccountRequest
+{
+    public long UserId { get; set; }
+    public float CommissionRate { get; set; }
+}
+
+public class CreateManufacturerAccountResponse
+{
+    public bool Success { get; set; }
+}
+
 public class UpdateUserBalanceRequest
 {
     public long Id { get; set; }

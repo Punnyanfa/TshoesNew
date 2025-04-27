@@ -15,7 +15,7 @@ namespace FCSP.DTOs.Manufacturer
         
         public long Id { get; set; }
         public string UserName { get; set; }
-        public string Name { get; set; } = null!;
+        public string Description { get; set; } = null!;
         public float CommissionRate { get; set; }  
         public string Status { get; set; }
        
@@ -28,7 +28,7 @@ namespace FCSP.DTOs.Manufacturer
     public class ServiceDto
     {
         public long Id { get; set; }
-        public string ServiceName { get; set; } = null!;
+        public string Name { get; set; } = null!;
         public float? CurrentAmount { get; set; }
     }
 
@@ -43,9 +43,9 @@ namespace FCSP.DTOs.Manufacturer
         [Range(1, long.MaxValue, ErrorMessage = "User ID must be greater than 0")]
         public long UserId { get; set; }
 
-        [Required(ErrorMessage = "Name is required")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
-        public string Name { get; set; } = null!;
+        [Required(ErrorMessage = "Description is required")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Description must be between 2 and 100 characters")]
+        public string Description { get; set; } = null!;
 
         [Range(0, 100, ErrorMessage = "Commission rate must be between 0 and 100")]
         public float CommissionRate { get; set; }
@@ -57,7 +57,7 @@ namespace FCSP.DTOs.Manufacturer
     public class AddManufacturerResponse
     {
         public long Id { get; set; }
-        public string Name { get; set; } = null!;
+        public string Description { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
     }
 
@@ -66,9 +66,9 @@ namespace FCSP.DTOs.Manufacturer
         [Range(1, long.MaxValue, ErrorMessage = "Manufacturer ID must be greater than 0")]
         public long Id { get; set; }
 
-        [Required(ErrorMessage = "Name is required")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
-        public string Name { get; set; } = null!;
+        [Required(ErrorMessage = "Description is required")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Description must be between 2 and 100 characters")]
+        public string Description { get; set; } = null!;
 
         [Range(0, 100, ErrorMessage = "Commission rate must be between 0 and 100")]
         public float CommissionRate { get; set; }
@@ -80,7 +80,7 @@ namespace FCSP.DTOs.Manufacturer
     public class UpdateManufacturerResponse
     {
         public long Id { get; set; }
-        public string Name { get; set; } = null!;
+        public string Description { get; set; } = null!;
         public string Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

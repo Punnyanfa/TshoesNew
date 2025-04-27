@@ -125,6 +125,12 @@ internal static class RelationshipConfig
             .HasForeignKey(od => od.CustomShoeDesignId)
             .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
 
+        modelBuilder.Entity<OrderDetail>()
+            .HasOne(od => od.Manufacturer)
+            .WithMany(m => m.OrderDetails)
+            .HasForeignKey(od => od.ManufacturerId)
+            .OnDelete(DeleteBehavior.NoAction); // Use NoAction to avoid multiple cascade paths
+
         // Payment relationships
         modelBuilder.Entity<Payment>()
             .HasOne(p => p.Order)

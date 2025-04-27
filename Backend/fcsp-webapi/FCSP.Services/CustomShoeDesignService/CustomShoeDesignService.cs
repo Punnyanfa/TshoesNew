@@ -419,7 +419,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Services = design.DesignServices?.Select(s => new GetCustomShoeDesignServiceByIdResponse
             {
                 Id = s.Service.Id,
-                Name = s.Service.ServiceName
+                Name = s.Service.Name
             })
         };
     }

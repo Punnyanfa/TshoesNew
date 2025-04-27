@@ -13,7 +13,7 @@ namespace FCSP.DTOs.ManufacturerCriteria
         public long ManufacturerId { get; set; }     
         public long CriteriaId { get; set; }
         public string Status { get; set; }
-        public string ManufacturerName { get; set; } = null!;
+        public string ManufacturerDescription { get; set; } = null!;
         public string CriteriaName { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

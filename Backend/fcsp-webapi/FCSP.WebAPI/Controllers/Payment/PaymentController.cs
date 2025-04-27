@@ -20,7 +20,7 @@ public class PaymentController : ControllerBase
     [HttpGet("test-payos")]
     public async Task<IActionResult> TestPayOS()
     {
-        var result = await _paymentService.TestPayOSAsync(new AddPaymentRequest { OrderId = 4, Amount = 2000 });
+        var result = await _paymentService.TestPayOSAsync(new AddPaymentRequest { OrderId = 14, Amount = 2000 });
         return StatusCode(result.Code, result);
     }
 
@@ -67,6 +67,20 @@ public class PaymentController : ControllerBase
     {
         var request = new CancelPaymentRequest { PaymentId = paymentId };
         var result = await _paymentService.CancelPaymentFromPayOS(request);
+        return StatusCode(result.Code, result);
+    }
+
+    [HttpPost("confirm-webhook")]
+    public async Task<IActionResult> ConfirmWebhook([FromBody] ConfirmWebhookRequest request)
+    {
+        var result = await _paymentService.ConfirmWebhook(request);
+        return StatusCode(result.Code, result);
+    }
+
+    [HttpPut("webhook")]
+    public async Task<IActionResult> UpdatePaymentUsingWebhook([FromBody] UpdatePaymentUsingWebhookRequest request)
+    {
+        var result = await _paymentService.UpdatePaymentUsingWebhook(request);
         return StatusCode(result.Code, result);
     }
 } 

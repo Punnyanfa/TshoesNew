@@ -13,20 +13,31 @@ namespace FCSP.Services.OrderDetailService
         private readonly IOrderRepository _orderRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
         private readonly ISizeRepository _sizeRepository;
+        private readonly IManufacturerRepository _manufacturerRepository;
 
-        public OrderDetailService(IOrderDetailRepository orderDetailRepository, IOrderRepository orderRepository, ICustomShoeDesignRepository customShoeDesignRepository, ISizeRepository sizeRepository)
+        public OrderDetailService(
+            IOrderDetailRepository orderDetailRepository, 
+            IOrderRepository orderRepository, 
+            ICustomShoeDesignRepository customShoeDesignRepository, 
+            ISizeRepository sizeRepository,
+            IManufacturerRepository manufacturerRepository)
         {
             _orderDetailRepository = orderDetailRepository;
             _orderRepository = orderRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
             _sizeRepository = sizeRepository;
+            _manufacturerRepository = manufacturerRepository;
         }
 
         public async Task<BaseResponseModel<IEnumerable<GetOrderDetailByIdResponse>>> GetAllOrderDetails()
         {
             try
             {
-                var response = await _orderDetailRepository.GetAll().Include(od => od.Size).ToListAsync();
+                var response = await _orderDetailRepository.GetAll()
+                    .Include(od => od.Size)
+                    .Include(od => od.Manufacturer)
+                    .ToListAsync();
+                
                 return new BaseResponseModel<IEnumerable<GetOrderDetailByIdResponse>>
                 {
                     Code = 200,
@@ -39,6 +50,7 @@ namespace FCSP.Services.OrderDetailService
                         Quantity = orderDetail.Quantity,
                         UnitPrice = orderDetail.Price,
                         SizeId = orderDetail.SizeId,
+                        ManufacturerId = orderDetail.ManufacturerId,
                         CreatedAt = orderDetail.CreatedAt,
                         UpdatedAt = orderDetail.UpdatedAt
                     }).ToList()
@@ -151,6 +163,7 @@ namespace FCSP.Services.OrderDetailService
                         Quantity = orderDetails.Quantity,
                         UnitPrice = orderDetails.Price,
                         SizeId = orderDetails.SizeId,
+                        ManufacturerId = orderDetails.ManufacturerId,
                         CreatedAt = orderDetails.CreatedAt,
                         UpdatedAt = orderDetails.UpdatedAt
                     }
@@ -171,6 +184,7 @@ namespace FCSP.Services.OrderDetailService
         {
             var orderDetail = await _orderDetailRepository.GetAll()
                                                             .Include(od => od.Size)
+                                                            .Include(od => od.Manufacturer)
                                                             .Include(od => od.CustomShoeDesign)
                                                                 .ThenInclude(cd => cd.CustomShoeDesignTemplate)
                                                             .Include(od => od.CustomShoeDesign)
@@ -206,6 +220,12 @@ namespace FCSP.Services.OrderDetailService
                 return null;
             }
 
+            var manufacturer = await _manufacturerRepository.FindAsync(request.ManufacturerId);
+            if (manufacturer == null)
+            {
+                return null;
+            }
+
             return new OrderDetail
             {
                 OrderId = request.OrderId,
@@ -213,6 +233,7 @@ namespace FCSP.Services.OrderDetailService
                 Quantity = request.Quantity,
                 Price = customShoeDesign.TotalAmount,
                 SizeId = size.Id,
+                ManufacturerId = request.ManufacturerId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -225,8 +246,16 @@ namespace FCSP.Services.OrderDetailService
             {
                 return null;
             }
+
+            var manufacturer = await _manufacturerRepository.FindAsync(request.ManufacturerId);
+            if (manufacturer == null)
+            {
+                return null;
+            }
+
             orderDetail.Quantity = request.Quantity;
             orderDetail.SizeId = request.SizeId;
+            orderDetail.ManufacturerId = request.ManufacturerId;
             orderDetail.UpdatedAt = DateTime.UtcNow;
 
             return orderDetail;
