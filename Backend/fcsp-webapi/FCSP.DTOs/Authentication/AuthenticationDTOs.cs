@@ -150,6 +150,7 @@ public class UpdateUserInformationResponse
 public class UpdateUserRoleRequest
 {
     public long Id { get; set; }
+    public float? CommissionRate { get; set; }
     public UserRole Role { get; set; } // Sử dụng enum UserRole
 }
 

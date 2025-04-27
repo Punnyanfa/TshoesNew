@@ -71,14 +71,6 @@ public class AuthController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
-    [HttpDelete]
-    [Authorize]
-    public async Task<IActionResult> DeleteUser([FromBody] UserDeleteRequest request)
-    {
-        var response = await _authService.DeleteUser(request);
-        return StatusCode(response.Code, response);
-    }
-
     [HttpPut("role")]
     [Authorize(Roles = "Admin")] // Chỉ Admin mới được cập nhật UserRole
     public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleRequest request)
@@ -92,6 +84,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> UpdateUserStatus([FromBody] UpdateUserStatusRequest request)
     {
         var response = await _authService.UpdateUserStatus(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpDelete]
+    [Authorize]
+    public async Task<IActionResult> DeleteUser([FromBody] UserDeleteRequest request)
+    {
+        var response = await _authService.DeleteUser(request);
         return StatusCode(response.Code, response);
     }
 }

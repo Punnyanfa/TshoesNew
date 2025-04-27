@@ -128,65 +128,7 @@ public class AuthService : IAuthService
             };
         }
     }
-
-    public async Task<BaseResponseModel<CreateDesignerAccountResponse>> CreateDesignerAccount(CreateDesignerAccountRequest request)
-    {
-        try
-        {
-            var user = await GetUserEntityFromCreateDesignerAccountRequestAsync(request);
-            await _userRepository.UpdateAsync(user);
-            
-            var designer = await GetDesignerEntityFromCreateDesignerAccountRequest(request);
-            await _designerRepository.AddAsync(designer);
-
-
-            return new BaseResponseModel<CreateDesignerAccountResponse>
-            {
-                Code = 200,
-                Message = "Designer account created successfully",
-                Data = new CreateDesignerAccountResponse { Success = true }
-            };
-        }
-        catch (Exception ex)
-        {
-            return new BaseResponseModel<CreateDesignerAccountResponse>
-            {
-                Code = 500,
-                Message = ex.Message,
-                Data = new CreateDesignerAccountResponse { Success = false }
-            };
-        }
-    } 
-
-    public async Task<BaseResponseModel<CreateManufacturerAccountResponse>> CreateManufacturerAccount(CreateManufacturerAccountRequest request)
-    {
-        try
-        {
-            var user = await GetUserEntityFromCreateManufacturerAccountRequest(request);
-            await _userRepository.UpdateAsync(user);
-
-            var manufacturer = await GetManufacturerEntityFromCreateManufacturerAccountRequest(request);
-            await _manufacturerRepository.AddAsync(manufacturer);
-
-
-            return new BaseResponseModel<CreateManufacturerAccountResponse>
-            {
-                Code = 200,
-                Message = "Manufacturer account created successfully",
-                Data = new CreateManufacturerAccountResponse { Success = true }
-            };
-        }
-        catch (Exception ex)
-        {
-            return new BaseResponseModel<CreateManufacturerAccountResponse>
-            {
-                Code = 500,
-                Message = ex.Message,
-                Data = new CreateManufacturerAccountResponse { Success = false }
-            };
-        }
-    }
-
+    
     public async Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request)
     {
         try
@@ -307,6 +249,46 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+            if (request.Role == UserRole.Designer)
+            {
+                var designer = await GetDesignerEntityFromUpdateUserRoleRequest(request);
+                await _designerRepository.AddAsync(designer);
+            }
+
+            if (request.Role == UserRole.Manufacturer)
+            {
+                var manufacturer = await GetManufacturerEntityFromUpdateUserRoleRequest(request);
+                await _manufacturerRepository.AddAsync(manufacturer);
+            }
+            
+            return new BaseResponseModel<UpdateUserRoleResponse>
+            {
+                Code = 200,
+                Message = "User role updated successfully",
+                Data = new UpdateUserRoleResponse
+                {
+                    Success = true,
+                    NewRole = user.UserRole
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<UpdateUserRoleResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new UpdateUserRoleResponse { Success = false }
+            };
+        }
+    }
+    
     public async Task<BaseResponseModel<UserDeleteResponse>> DeleteUser(UserDeleteRequest request)
     {
         try
@@ -327,35 +309,6 @@ public class AuthService : IAuthService
             {
                 Code = 500,
                 Message = ex.Message
-            };
-        }
-    }
-
-    public async Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request)
-    {
-        try
-        {
-            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
-            await _userRepository.UpdateAsync(user);
-
-            return new BaseResponseModel<UpdateUserRoleResponse>
-            {
-                Code = 200,
-                Message = "User role updated successfully",
-                Data = new UpdateUserRoleResponse
-                {
-                    Success = true,
-                    NewRole = user.UserRole
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            return new BaseResponseModel<UpdateUserRoleResponse>
-            {
-                Code = 500,
-                Message = ex.Message,
-                Data = new UpdateUserRoleResponse { Success = false }
             };
         }
     }
@@ -392,58 +345,66 @@ public class AuthService : IAuthService
         };
     }
 
-    private async Task<User> GetUserEntityFromCreateDesignerAccountRequestAsync(CreateDesignerAccountRequest request)
+    private async Task<Designer> GetDesignerEntityFromUpdateUserRoleRequest(UpdateUserRoleRequest request)
     {
-        var user = await _userRepository.FindAsync(request.UserId);
+        var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
-        user.UserRole = UserRole.Designer;
-        return user;    
-    }
 
-    private async Task<Designer> GetDesignerEntityFromCreateDesignerAccountRequest(CreateDesignerAccountRequest request)
-    {
-        var user = await _userRepository.FindAsync(request.UserId);
-        if (user == null)
+        if (user.UserRole != UserRole.Designer)
         {
-            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+            throw new InvalidOperationException("User is not a designer");
+        }
+
+        if (request.CommissionRate == null)
+        {
+            throw new InvalidOperationException("Commission rate is required");
+        }
+
+        if (request.CommissionRate < 0 || request.CommissionRate > 100)
+        {
+            throw new InvalidOperationException("Commission rate must be between 0 and 100");
         }
 
         var designer = new Designer
         {
             UserId = user.Id,
             Rating = 0,
-            CommissionRate = request.CommissionRate
+            CommissionRate = request.CommissionRate.Value
         };
 
         return designer;
     }
 
-    private async Task<User> GetUserEntityFromCreateManufacturerAccountRequest(CreateManufacturerAccountRequest request)
+    private async Task<Manufacturer> GetManufacturerEntityFromUpdateUserRoleRequest(UpdateUserRoleRequest request)
     {
-        var user = await _userRepository.FindAsync(request.UserId);
+        var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
-        user.UserRole = UserRole.Manufacturer;
-        return user;
-    }
 
-    private async Task<Manufacturer> GetManufacturerEntityFromCreateManufacturerAccountRequest(CreateManufacturerAccountRequest request)
-    {
-        var user = await _userRepository.FindAsync(request.UserId);
-        if (user == null)
+        if (user.UserRole != UserRole.Manufacturer)
         {
-            throw new InvalidOperationException($"User with ID {request.UserId} not found");
+            throw new InvalidOperationException("User is not a manufacturer");
+        }
+
+        if (request.CommissionRate == null)
+        {
+            throw new InvalidOperationException("Commission rate is required");
+        }
+
+        if (request.CommissionRate < 0 || request.CommissionRate > 100)
+        {
+            throw new InvalidOperationException("Commission rate must be between 0 and 100");
         }
 
         var manufacturer = new Manufacturer
         {
             UserId = user.Id,
-            CommissionRate = request.CommissionRate
+            CommissionRate = request.CommissionRate.Value
         };
 
         return manufacturer;
