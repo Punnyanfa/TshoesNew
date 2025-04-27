@@ -65,16 +65,18 @@ internal static class ServiceConfig
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
-        // User services
+        // User related services
         services.AddScoped<IUserActivityService, UserActivityService>();
         services.AddScoped<IUserRecommendationService, UserRecommendationService>();
-        //Cart services
+        
+        // Cart services
         services.AddScoped<ICartService, CartService>();
-        // Post & Comment services
+        
+        // Social (Posts & Comments) services
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPostsCommentsService, PostsCommentsService>();
 
-        // Design services
+        // Design related services
         services.AddScoped<ICustomShoeDesignService, CustomShoeDesignService>();
         services.AddScoped<ICustomShoeDesignTextureService, CustomShoeDesignTextureService>();
         services.AddScoped<ITemplateService, TemplateService>();
@@ -88,8 +90,11 @@ internal static class ServiceConfig
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IVoucherService, VoucherService>();
 
-        // Service services
+        // Service & Manufacturer services
         services.AddScoped<IServiceService, ServiceService>();
+        services.AddScoped<IManufacturerService, ManufacturerService>();
+        services.AddScoped<IManufacturerCriteriaService, ManufacturerCriteriaService>();
+        services.AddScoped<ICriteriaService, CriteriaService>();
 
         // Texture & Rating services
         services.AddScoped<ITextureService, TextureService>();
@@ -98,16 +103,8 @@ internal static class ServiceConfig
         // Notification service
         services.AddScoped<INotificationService, NotificationService>();
 
-        // Manufacturer services 
-        services.AddScoped<IManufacturerService, ManufacturerService>();
-        services.AddScoped<IManufacturerCriteriaService, ManufacturerCriteriaService>();
-        services.AddScoped<ICriteriaService, CriteriaService>();
-  
-
-        // Shipping service
+        // Shipping & Size services
         services.AddScoped<IShippingInfoService, ShippingInfoService>();
-
-        // Size service
         services.AddScoped<ISizeService, SizeService>();
     }
 }
