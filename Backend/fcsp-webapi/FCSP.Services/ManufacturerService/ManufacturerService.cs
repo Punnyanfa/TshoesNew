@@ -50,7 +50,6 @@ namespace FCSP.Services.ManufacturerService
                 };
             }
         }
-
         public async Task<BaseResponseModel<GetManufacturerDetailResponse>> GetManufacturerById(GetManufacturerRequest request)
         {
             try
@@ -82,7 +81,6 @@ namespace FCSP.Services.ManufacturerService
                 return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 500, Message = ex.Message };
             }
         }
-
         public async Task<BaseResponseModel<AddManufacturerResponse>> AddManufacturer(AddManufacturerRequest request)
         {
             try
@@ -135,7 +133,6 @@ namespace FCSP.Services.ManufacturerService
                 return new BaseResponseModel<AddManufacturerResponse> { Code = 500, Message = ex.Message };
             }
         }
-
         public async Task<BaseResponseModel<UpdateManufacturerResponse>> UpdateManufacturer(UpdateManufacturerRequest request)
         {
             try
@@ -174,7 +171,6 @@ namespace FCSP.Services.ManufacturerService
                 return new BaseResponseModel<UpdateManufacturerResponse> { Code = 500, Message = ex.Message };
             }
         }
-
         public async Task<BaseResponseModel<bool>> DeleteManufacturer(GetManufacturerRequest request)
         {
             try
@@ -199,7 +195,6 @@ namespace FCSP.Services.ManufacturerService
                 return new BaseResponseModel<bool> { Code = 500, Message = ex.Message, Data = false };
             }
         }
-
         public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetManufacturersByUserId(long userId)
         {
             try
@@ -227,7 +222,6 @@ namespace FCSP.Services.ManufacturerService
                 return new BaseResponseModel<List<GetManufacturerDetailResponse>> { Code = 500, Message = ex.Message };
             }
         }
-
         public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetActiveManufacturers()
         {
             try
@@ -257,7 +251,6 @@ namespace FCSP.Services.ManufacturerService
                 };
             }
         }
-
         private async Task<GetManufacturerDetailResponse> MapToDetailResponse(Manufacturer manufacturer)
         {
             var user = await _userRepository.GetUserNameByUserIdAsync(manufacturer.UserId);
