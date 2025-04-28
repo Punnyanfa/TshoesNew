@@ -4,6 +4,10 @@ public class OrderDetail : BaseEntity
 {
     public long OrderId { get; set; }
 
+    public long ManufacturerId { get; set; }
+
+    public virtual Manufacturer Manufacturer { get; set; } = null!;
+
     public virtual Order Order { get; set; } = null!;
 
     public long CustomShoeDesignId { get; set; }

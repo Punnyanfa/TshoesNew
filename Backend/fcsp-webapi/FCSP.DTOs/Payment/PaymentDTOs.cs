@@ -69,4 +69,24 @@ namespace FCSP.DTOs.Payment
         public bool Success { get; set; }
     }
     
+    public class ConfirmWebhookRequest
+    {
+        public string WebhookUrl { get; set; }
+    }
+
+    public class ConfirmWebhookResponse
+    {
+        public bool Success { get; set; }
+    }
+
+    public class UpdatePaymentUsingWebhookRequest
+    {
+        public long Id { get; set; }
+        public String Status { get; set; } = string.Empty;
+    }
+
+    public class UpdatePaymentUsingWebhookResponse
+    {
+        public bool Success { get; set; }
+    }
 }

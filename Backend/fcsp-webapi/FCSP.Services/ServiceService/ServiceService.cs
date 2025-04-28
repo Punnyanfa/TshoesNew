@@ -52,7 +52,9 @@ namespace FCSP.Services.ServiceService
                     return new ServiceResponseDto
                     {
                         Id = s.Id,
-                        Name = s.ServiceName,
+                        Name = s.Name,
+                        Description = s.Description,
+                        Component = s.Component,
                         Price = currentAmount?.Amount ?? 0,
                         ManufacturerId = s.ManufacturerId,
                         IsDeleted = s.IsDeleted
@@ -112,7 +114,9 @@ namespace FCSP.Services.ServiceService
                     return new ServiceResponseDto
                     {
                         Id = s.Id,
-                        Name = s.ServiceName,
+                        Name = s.Name,
+                        Description = s.Description,
+                        Component = s.Component,
                         Price = currentAmount?.Amount ?? 0,
                         ManufacturerId = s.ManufacturerId,
                         IsDeleted = s.IsDeleted
@@ -176,7 +180,9 @@ namespace FCSP.Services.ServiceService
                     Data = new ServiceResponseDto
                     {
                         Id = service.Id,
-                        Name = service.ServiceName,
+                        Name = service.Name,
+                        Description = service.Description,
+                        Component = service.Component,
                         Price = currentAmount?.Amount ?? 0,
                         ManufacturerId = service.ManufacturerId,
                         IsDeleted = service.IsDeleted
@@ -199,7 +205,8 @@ namespace FCSP.Services.ServiceService
         {
             try
             {
-                var validationResult = ValidateServiceInput<AddServiceResponse>(request.Name, request.Price, request.ManufacturerId);
+                var validationResult = ValidateServiceInput<AddServiceResponse>(
+                    request.Name, request.Description, request.Component, request.Price, request.ManufacturerId);
                 if (validationResult != null) return validationResult;
 
                 _logger.LogInformation("Checking Manufacturer with ID: {ManufacturerId}", request.ManufacturerId);
@@ -241,7 +248,9 @@ namespace FCSP.Services.ServiceService
                 _logger.LogInformation("Adding service for ManufacturerId: {ManufacturerId}", request.ManufacturerId);
                 var service = new Service
                 {
-                    ServiceName = request.Name,
+                    Name = request.Name,
+                    Description = request.Description,
+                    Component = request.Component,
                     IsDeleted = false,
                     ManufacturerId = request.ManufacturerId
                 };
@@ -266,7 +275,9 @@ namespace FCSP.Services.ServiceService
                     Data = new AddServiceResponse
                     {
                         Id = addedService.Id,
-                        Name = addedService.ServiceName,
+                        Name = addedService.Name,
+                        Description = addedService.Description,
+                        Component = addedService.Component,
                         Price = request.Price,
                         ManufacturerId = addedService.ManufacturerId,
                         IsDeleted = addedService.IsDeleted
@@ -300,7 +311,8 @@ namespace FCSP.Services.ServiceService
                     };
                 }
 
-                var validationResult = ValidateServiceInput<UpdateServiceResponse>(request.Name, request.Price);
+                var validationResult = ValidateServiceInput<UpdateServiceResponse>(
+                    request.Name, request.Description, request.Component, request.Price);
                 if (validationResult != null) return validationResult;
 
                 _logger.LogInformation("Updating service with ID: {Id}", request.Id);
@@ -316,7 +328,10 @@ namespace FCSP.Services.ServiceService
                     };
                 }
 
-                service.ServiceName = request.Name;
+                service.Name = request.Name;
+                service.Description = request.Description;
+                service.Component = request.Component;
+                
                 var currentAmount = service.SetServiceAmounts
                     .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
                 if (currentAmount?.Amount != request.Price)
@@ -345,7 +360,9 @@ namespace FCSP.Services.ServiceService
                     Data = new UpdateServiceResponse
                     {
                         Id = service.Id,
-                        Name = service.ServiceName,
+                        Name = service.Name,
+                        Description = service.Description,
+                        Component = service.Component,
                         Price = request.Price,
                         ManufacturerId = service.ManufacturerId,
                         IsDeleted = service.IsDeleted
@@ -476,6 +493,37 @@ namespace FCSP.Services.ServiceService
                 _logger.LogWarning("Invalid Manufacturer ID: {Id}", manufacturerId);
                 return new BaseResponseModel<T> { Code = 400, Message = "Manufacturer ID must be greater than 0", Data = default };
             }
+            return null;
+        }
+
+        // Update to include validation for Description and Component
+        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, string description, string component, float price, long manufacturerId = 0)
+        {
+            var baseValidation = ValidateServiceInput<T>(name, price, manufacturerId);
+            if (baseValidation != null) return baseValidation;
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                _logger.LogWarning("Service description is required");
+                return new BaseResponseModel<T> { Code = 400, Message = "Service description is required", Data = default };
+            }
+            if (description.Length > 500)
+            {
+                _logger.LogWarning("Invalid service description length: {Length}", description.Length);
+                return new BaseResponseModel<T> { Code = 400, Message = "Service description must not exceed 500 characters", Data = default };
+            }
+
+            if (string.IsNullOrWhiteSpace(component))
+            {
+                _logger.LogWarning("Service component is required");
+                return new BaseResponseModel<T> { Code = 400, Message = "Service component is required", Data = default };
+            }
+            if (component.Length > 100)
+            {
+                _logger.LogWarning("Invalid service component length: {Length}", component.Length);
+                return new BaseResponseModel<T> { Code = 400, Message = "Service component must not exceed 100 characters", Data = default };
+            }
+
             return null;
         }
     }

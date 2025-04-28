@@ -6,6 +6,8 @@ namespace FCSP.DTOs.Service
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Component { get; set; } = string.Empty;
         public float Price { get; set; } 
         public long ManufacturerId { get; set; }
         public bool IsDeleted { get; set; }
@@ -24,6 +26,14 @@ namespace FCSP.DTOs.Service
         [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Description is required.")]
+        [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
+        public string Description { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Component is required.")]
+        [StringLength(100, ErrorMessage = "Component cannot be longer than 100 characters.")]
+        public string Component { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Price is required.")]
         [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] 
         public float Price { get; set; } 
@@ -37,6 +47,8 @@ namespace FCSP.DTOs.Service
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Component { get; set; } = string.Empty;
         public float Price { get; set; } 
         public long ManufacturerId { get; set; }
         public bool IsDeleted { get; set; }
@@ -52,6 +64,14 @@ namespace FCSP.DTOs.Service
         [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Description is required.")]
+        [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
+        public string Description { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Component is required.")]
+        [StringLength(100, ErrorMessage = "Component cannot be longer than 100 characters.")]
+        public string Component { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Price is required.")]
         [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")] 
         public float Price { get; set; } 
@@ -61,6 +81,8 @@ namespace FCSP.DTOs.Service
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Component { get; set; } = string.Empty;
         public float Price { get; set; } 
         public long ManufacturerId { get; set; }
         public bool IsDeleted { get; set; }

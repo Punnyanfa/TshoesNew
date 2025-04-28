@@ -20,7 +20,6 @@ namespace FCSP.Services.PaymentService
         private readonly string _apiKey;
         private readonly string _checksumKey;
 
-
         public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IUserRepository userRepository, IConfiguration configuration)
         {
             _paymentRepository = paymentRepository;
@@ -251,6 +250,68 @@ namespace FCSP.Services.PaymentService
                 };
             }
         }
+        
+        public async Task<BaseResponseModel<ConfirmWebhookResponse>> ConfirmWebhook(ConfirmWebhookRequest request)
+        {
+            try
+            {
+                var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
+                await payOS.confirmWebhook(request.WebhookUrl);
+                return new BaseResponseModel<ConfirmWebhookResponse>
+                {
+                    Code = 200,
+                    Message = "Webhook confirmed successfully",
+                    Data = new ConfirmWebhookResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<ConfirmWebhookResponse>
+                {
+                    Code = 500,
+                    Message = $"Error confirming webhook: {ex.Message}",
+                    Data = new ConfirmWebhookResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<UpdatePaymentUsingWebhookResponse>> UpdatePaymentUsingWebhook(UpdatePaymentUsingWebhookRequest request)
+        {
+            try
+            {
+                var payment = await GetEntityFromUpdatePaymentRequest(request);
+                await _paymentRepository.UpdateAsync(payment);
+
+                await UpdateOrderStatus(payment);
+                return new BaseResponseModel<UpdatePaymentUsingWebhookResponse>
+                {
+                    Code = 200,
+                    Message = "Payment updated successfully",
+                    Data = new UpdatePaymentUsingWebhookResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdatePaymentUsingWebhookResponse>
+                {
+                    Code = 500,
+                    Message = $"Error updating payment: {ex.Message}",
+                    Data = new UpdatePaymentUsingWebhookResponse
+                    {
+                        Success = false 
+                    }
+                };
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -360,6 +421,34 @@ namespace FCSP.Services.PaymentService
             order.UpdatedAt = DateTime.UtcNow;
             await _orderRepository.UpdateAsync(order);
         }
+
+        private async Task<Payment> GetEntityFromUpdatePaymentRequest(UpdatePaymentUsingWebhookRequest request)
+        {
+            var payment = await _paymentRepository.FindAsync(request.Id);
+            if (payment == null)
+            {
+                throw new Exception("Payment not found");
+            }
+            
+            if (request.Status == "CANCELLED")
+            {
+                payment.PaymentStatus = PaymentStatus.Cancelled;
+            }
+            else if (request.Status == "PAID")
+            {
+                payment.PaymentStatus = PaymentStatus.Received;
+            }
+            else if (request.Status == "PROCESSING")
+            {
+                payment.PaymentStatus = PaymentStatus.Pending;
+            }
+            else
+            {
+                throw new Exception("Invalid payment status");
+            }
+            payment.UpdatedAt = DateTime.UtcNow;
+            return payment;
+        } 
         #endregion
     }
 }

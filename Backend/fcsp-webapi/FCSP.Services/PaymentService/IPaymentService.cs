@@ -12,5 +12,7 @@ namespace FCSP.Services.PaymentService
         Task<BaseResponseModel<AddPaymentResponse>> AddPayment(AddPaymentRequest request);
         Task<BaseResponseModel<UpdatePaymentResponse>> UpdatePayment(UpdatePaymentRequest request);
         Task<BaseResponseModel<CancelPaymentResponse>> CancelPaymentFromPayOS(CancelPaymentRequest request);
+        Task<BaseResponseModel<ConfirmWebhookResponse>> ConfirmWebhook(ConfirmWebhookRequest request);
+        Task<BaseResponseModel<UpdatePaymentUsingWebhookResponse>> UpdatePaymentUsingWebhook(UpdatePaymentUsingWebhookRequest request);
     }
 }

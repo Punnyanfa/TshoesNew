@@ -15,20 +15,25 @@ public class AuthService : IAuthService
     private readonly IPasswordHashingService _passwordHashingService;
     private readonly ITokenService _tokenService;
     private readonly IUserRepository _userRepository;
+    private readonly IDesignerRepository _designerRepository;
+    private readonly IManufacturerRepository _manufacturerRepository;
     private readonly IConfiguration _configuration;
     private readonly string? _azureConnectionString;
     private readonly string? _azureContainerName;
 
-    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository, IConfiguration configuration)
+    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository, IConfiguration configuration, IDesignerRepository designerRepository, IManufacturerRepository manufacturerRepository)
     {
         _passwordHashingService = passwordHashingService;
         _tokenService = tokenService;
         _userRepository = userRepository;
         _configuration = configuration;
+        _designerRepository = designerRepository;
+        _manufacturerRepository = manufacturerRepository;
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
         _azureContainerName = _configuration["AzureStorage:ContainerName"];
     }
 
+    #region Public Methods
     public string HashPassword(string password)
     {
         return _passwordHashingService.GetHashedPassword(password);
@@ -123,7 +128,7 @@ public class AuthService : IAuthService
             };
         }
     }
-
+    
     public async Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request)
     {
         try
@@ -244,6 +249,46 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+            if (request.Role == UserRole.Designer)
+            {
+                var designer = await GetDesignerEntityFromUpdateUserRoleRequest(request);
+                await _designerRepository.AddAsync(designer);
+            }
+
+            if (request.Role == UserRole.Manufacturer)
+            {
+                var manufacturer = await GetManufacturerEntityFromUpdateUserRoleRequest(request);
+                await _manufacturerRepository.AddAsync(manufacturer);
+            }
+            
+            return new BaseResponseModel<UpdateUserRoleResponse>
+            {
+                Code = 200,
+                Message = "User role updated successfully",
+                Data = new UpdateUserRoleResponse
+                {
+                    Success = true,
+                    NewRole = user.UserRole
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<UpdateUserRoleResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new UpdateUserRoleResponse { Success = false }
+            };
+        }
+    }
+    
     public async Task<BaseResponseModel<UserDeleteResponse>> DeleteUser(UserDeleteRequest request)
     {
         try
@@ -267,36 +312,9 @@ public class AuthService : IAuthService
             };
         }
     }
+    #endregion
 
-    public async Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request)
-    {
-        try
-        {
-            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
-            await _userRepository.UpdateAsync(user);
-
-            return new BaseResponseModel<UpdateUserRoleResponse>
-            {
-                Code = 200,
-                Message = "User role updated successfully",
-                Data = new UpdateUserRoleResponse
-                {
-                    Success = true,
-                    NewRole = user.UserRole
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            return new BaseResponseModel<UpdateUserRoleResponse>
-            {
-                Code = 500,
-                Message = ex.Message,
-                Data = new UpdateUserRoleResponse { Success = false }
-            };
-        }
-    }
-
+    #region Private methods
     private async Task<User> GetUserEntityFromUserLoginRequestAsync(UserLoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
@@ -325,6 +343,71 @@ public class AuthService : IAuthService
             IsBanned = false,
             IsDeleted = false
         };
+    }
+
+    private async Task<Designer> GetDesignerEntityFromUpdateUserRoleRequest(UpdateUserRoleRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
+        }
+
+        if (user.UserRole != UserRole.Designer)
+        {
+            throw new InvalidOperationException("User is not a designer");
+        }
+
+        if (request.CommissionRate == null)
+        {
+            throw new InvalidOperationException("Commission rate is required");
+        }
+
+        if (request.CommissionRate < 0 || request.CommissionRate > 100)
+        {
+            throw new InvalidOperationException("Commission rate must be between 0 and 100");
+        }
+
+        var designer = new Designer
+        {
+            UserId = user.Id,
+            Rating = 0,
+            CommissionRate = request.CommissionRate.Value
+        };
+
+        return designer;
+    }
+
+    private async Task<Manufacturer> GetManufacturerEntityFromUpdateUserRoleRequest(UpdateUserRoleRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"User with ID {request.Id} not found");
+        }
+
+        if (user.UserRole != UserRole.Manufacturer)
+        {
+            throw new InvalidOperationException("User is not a manufacturer");
+        }
+
+        if (request.CommissionRate == null)
+        {
+            throw new InvalidOperationException("Commission rate is required");
+        }
+
+        if (request.CommissionRate < 0 || request.CommissionRate > 100)
+        {
+            throw new InvalidOperationException("Commission rate must be between 0 and 100");
+        }
+
+        var manufacturer = new Manufacturer
+        {
+            UserId = user.Id,
+            CommissionRate = request.CommissionRate.Value
+        };
+
+        return manufacturer;
     }
 
     private async Task<User> GetUserEntityFromUpdateUserBalanceRequestAsync(UpdateUserBalanceRequest request)
@@ -468,4 +551,5 @@ public class AuthService : IAuthService
         user.UpdatedAt = DateTime.Now;
         return user;
     }
+    #endregion
 }

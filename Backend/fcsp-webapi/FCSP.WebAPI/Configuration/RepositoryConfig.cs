@@ -18,8 +18,10 @@ internal static class RepositoryConfig
         
         // User repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserActivityRepository, UserActivityRepository>();
+        services.AddScoped<IUserRecommendationRepository, UserRecommendationRepository>();
         
-        // Post & Comment repositories
+        // Social (Posts & Comments) repositories
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IPostsCommentsRepository, PostsCommentsRepository>();
 
@@ -42,30 +44,27 @@ internal static class RepositoryConfig
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IPaymentGatewayRepository, PaymentGatewayRepository>();
         services.AddScoped<IVoucherRepository, VoucherRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
         
-        // Service repositories
+        // Service & Manufacturer repositories
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<ISetServiceAmountRepository, SetServiceAmountRepository>();
+        services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
+        services.AddScoped<IManufacturerCriteriaRepository, ManufacturerCriteriaRepository>();
+        services.AddScoped<ICriteriaRepository, CriteriaRepository>();
+        
         // Texture & Rating repositories
         services.AddScoped<ITextureRepository, TextureRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
         
-        // User Activity & Recommendation repositories
-        services.AddScoped<IUserActivityRepository, UserActivityRepository>();
-        services.AddScoped<IUserRecommendationRepository, UserRecommendationRepository>();
-        
         // Notification repository
         services.AddScoped<INotificationRepository, NotificationRepository>();
 
-        // Manufacturer repository
-        services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
-        services.AddScoped<IManufacturerCriteriaRepository, ManufacturerCriteriaRepository>();
-        services.AddScoped<ICriteriaRepository, CriteriaRepository>();
-
-        // Shipping repository
+        // Shipping & Size repositories
         services.AddScoped<IShippingInfoRepository, ShippingInfoRepository>();
-        
-        // Size repository
         services.AddScoped<ISizeRepository, SizeRepository>();
+        
+        // Designer repository
+        services.AddScoped<IDesignerRepository, DesignerRepository>();
     }
 }

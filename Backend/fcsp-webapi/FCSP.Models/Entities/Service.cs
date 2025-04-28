@@ -4,7 +4,9 @@ namespace FCSP.Models.Entities;
 public class Service : BaseEntity
 {
     public long ManufacturerId { get; set; }
-    public string ServiceName { get; set; } = null!;
+    public string Name { get; set; } = null!;
+    public string Description { get; set; } = null!;
+    public string Component { get; set; } = null!;
 
     // Navigation properties
     public virtual Manufacturer Manufacturer { get; set; } = null!;

@@ -17,6 +17,7 @@ namespace FCSP.Services.ManufacturerService
         {
             _manufacturerRepository = manufacturerRepository;
             _userRepository = userRepository;
+            _logger = logger;
         }
 
         public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetAllManufacturers()
@@ -109,7 +110,7 @@ namespace FCSP.Services.ManufacturerService
                 var manufacturer = new Manufacturer
                 {
                     UserId = request.UserId,
-                    Name = request.Name,
+                    Description = request.Description,
                     CommissionRate = request.CommissionRate,
                     Status = (ManufacturerStatus)request.Status,
                     CreatedAt = DateTime.UtcNow,
@@ -124,7 +125,7 @@ namespace FCSP.Services.ManufacturerService
                     Data = new AddManufacturerResponse
                     {
                         Id = addedManufacturer.Id,
-                        Name = addedManufacturer.Name,
+                        Description = addedManufacturer.Description,
                         CreatedAt = addedManufacturer.CreatedAt
                     }
                 };
@@ -149,7 +150,7 @@ namespace FCSP.Services.ManufacturerService
                     return new BaseResponseModel<UpdateManufacturerResponse> { Code = 404, Message = "Manufacturer not found" };
                 }
 
-                manufacturer.Name = request.Name;
+                manufacturer.Description = request.Description;
                 manufacturer.CommissionRate = request.CommissionRate;
                 manufacturer.Status = (ManufacturerStatus)request.Status;
                 manufacturer.UpdatedAt = DateTime.UtcNow;
@@ -162,7 +163,7 @@ namespace FCSP.Services.ManufacturerService
                     Data = new UpdateManufacturerResponse
                     {
                         Id = manufacturer.Id,
-                        Name = manufacturer.Name,
+                        Description = manufacturer.Description,
                         Status = manufacturer.Status.ToString(),
                         UpdatedAt = manufacturer.UpdatedAt
                     }
@@ -265,13 +266,13 @@ namespace FCSP.Services.ManufacturerService
             {
                 Id = manufacturer.Id,
                 UserName = user?.Name,
-                Name = manufacturer.Name,
+                Description = manufacturer.Description,
                 Status = manufacturer.Status.ToString(),
                 CommissionRate = manufacturer.CommissionRate,
                 Services = manufacturer.Services?.Select(s => new ServiceDto
                 {
                     Id = s.Id,
-                    ServiceName = s.ServiceName,
+                    Name = s.Name,
                     CurrentAmount = s.SetServiceAmounts?
                         .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow))?.Amount
                 }).ToList() ?? new List<ServiceDto>(),

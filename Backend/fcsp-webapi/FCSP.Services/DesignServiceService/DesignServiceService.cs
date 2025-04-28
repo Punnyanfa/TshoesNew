@@ -118,7 +118,7 @@ namespace FCSP.Services.DesignServiceService
 
                 if (designService.Service != null)
                 {
-                    serviceName = designService.Service.ServiceName;
+                    serviceName = designService.Service.Name;
                 }
 
                 return new BaseResponseModel<GetDesignServiceByIdResponse>

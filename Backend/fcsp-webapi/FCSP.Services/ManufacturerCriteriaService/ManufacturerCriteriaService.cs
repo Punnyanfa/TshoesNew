@@ -284,7 +284,7 @@ namespace FCSP.Services.ManufacturerCriteriaService
                 ManufacturerId = manufacturerCriteria.ManufacturerId,
                 CriteriaId = manufacturerCriteria.CriteriaId,
                 Status = manufacturerCriteria.Status.ToString(),
-                ManufacturerName = manufacturerCriteria.Manufacturer?.Name ?? "Unknown",
+                ManufacturerDescription = manufacturerCriteria.Manufacturer?.Description ?? "Unknown",
                 CriteriaName = manufacturerCriteria.Criteria?.Name ?? "Unknown",
                 CreatedAt = manufacturerCriteria.CreatedAt,
                 UpdatedAt = manufacturerCriteria.UpdatedAt
