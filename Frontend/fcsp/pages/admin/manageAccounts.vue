@@ -448,20 +448,29 @@ export default {
       return result;
     },
     isAdmin() {
-      return localStorage.getItem('role') === 'Admin';
+      try {
+        return typeof window !== 'undefined' && localStorage && localStorage.getItem('role') === 'Admin';
+      } catch (e) {
+        return false;
+      }
     }
   },
   methods: {
     checkAdminAccess() {
-      if (!this.isAdmin) {
-        ElMessage({
-          type: 'error',
-          message: 'Access denied. Only administrators can access this page.'
-        });
+      try {
+        if (!this.isAdmin) {
+          ElMessage({
+            type: 'error',
+            message: 'Access denied. Only administrators can access this page.'
+          });
+          this.router.push('/');
+          return false;
+        }
+        return true;
+      } catch (e) {
         this.router.push('/');
         return false;
       }
-      return true;
     },
     formatDate(date) {
       if (!date) return '';
@@ -495,12 +504,17 @@ export default {
       }
 
       // Don't allow admin to lock themselves
-      const currentUserId = localStorage.getItem('userId');
-      if (currentUserId === account.id) {
-        ElMessage({
-          type: 'warning',
-          message: 'You cannot lock your own account'
-        });
+      try {
+        const currentUserId = typeof window !== 'undefined' && localStorage ? localStorage.getItem('userId') : null;
+        if (currentUserId === account.id) {
+          ElMessage({
+            type: 'warning',
+            message: 'You cannot lock your own account'
+          });
+          return;
+        }
+      } catch (e) {
+        console.error('Error accessing localStorage:', e);
         return;
       }
       

@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-header">
-      <h2>Admin Dashboard</h2>
+      <h2 class="cursor-pointer" @click="$router.push('/admin')" style="cursor: pointer;">Admin Dashboard</h2>
     </div>
     <div class="sidebar-menu">
       <router-link to="/admin/manageOrder" class="menu-item">

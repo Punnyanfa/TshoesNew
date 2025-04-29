@@ -2,12 +2,12 @@
   <div class="admin-container">
     <AdminSidebar />
     <div class="content">
-      <div class="header">
+      <!-- <div class="header">
         <h1>Manage Products</h1>
         <button class="add-btn" @click="showAddModal = true">
           <i class="fas fa-plus"></i> Add Product
         </button>
-      </div>
+      </div> -->
 
       <!-- Search and Filter -->
       <div class="search-filter">
