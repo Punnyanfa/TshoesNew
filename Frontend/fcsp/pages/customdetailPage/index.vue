@@ -315,8 +315,8 @@
               <div class="image-container">
                 <img :src="generatedAIImage" alt="Generated AI Image" class="generated-image"/>
                 <div class="image-buttons">
-                  <button class="text-button apply-text" @click="applyAIImageToMesh" title="Áp dụng ảnh vào phần đã chọn">
-                    Áp dụng
+                  <button class="text-button apply-text" @click="moveToImageSection" title="Chuyển sang phần Hình ảnh">
+                    Chuyển sang Hình ảnh
                   </button>
                   <button class="text-button remove-text" @click="removeAIImage" title="Xóa ảnh đã tạo">
                     Xóa
@@ -445,6 +445,23 @@
               <div class="control-value">{{ Number(textureParams.brightness).toFixed(2) }}</div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal xác nhận chuyển tab -->
+  <div v-if="showConfirmModal" class="capture-modal">
+    <div class="capture-modal-content">
+      <div class="capture-modal-header">
+        <h3>Xác nhận chuyển tab</h3>
+        <button class="close-button" @click="showConfirmModal = false">×</button>
+      </div>
+      <div class="capture-modal-body">
+        <p>AI đã tạo xong hình ảnh. Bạn có muốn chuyển sang tab hình ảnh để áp dụng không?</p>
+        <div class="complete-actions">
+          <button class="action-button" @click="showConfirmModal = false">Hủy</button>
+          <button class="action-button primary-button" @click="handleConfirmSwitchTab">Chuyển tab</button>
         </div>
       </div>
     </div>
@@ -1876,71 +1893,126 @@ const generatedAIImage = ref(null)
 const aiError = ref(null)
 const isGenerating = ref(false)
 
-const generateAIImage = async () => {
-  if (!aiPrompt.value.trim()) {
-    aiError.value = 'Vui lòng nhập prompt'
-    return
-  }
-
-  isGenerating.value = true
-  aiError.value = null
+const moveToImageSection = () => {
+  if (!generatedAIImage.value) return;
   
   try {
-    const formData = new FormData()
-    formData.append('Prompt', aiPrompt.value)
-    formData.append('OwnerId', localStorage.getItem('userId'))
-    formData.append('Status', '0')
+    // Thêm ảnh AI vào uploadedImageHistory
+    uploadedImageHistory.push(generatedAIImage.value);
     
-    const result = await aiService.generateImage(formData)
-    console.log('API Response:', result) // Thêm log để debug
+    // Cập nhật currentImageIndex để hiển thị ảnh mới nhất
+    currentImageIndex.value = uploadedImageHistory.length - 1;
     
+    // Cập nhật selectedImage và previewImageUrl
+    selectedImage.value = generatedAIImage.value;
+    previewImageUrl.value = generatedAIImage.value;
+    
+    // Chuyển sang tab Hình ảnh
+    activeTab.value = 'image';
+    
+    // Xóa ảnh AI sau khi đã chuyển
+    generatedAIImage.value = null;
+  } catch (error) {
+    console.error('Lỗi khi chuyển ảnh:', error);
+  }
+};
+
+const generateAIImage = async () => {
+  if (!aiPrompt.value.trim()) {
+    aiError.value = 'Vui lòng nhập prompt';
+    return;
+  }
+
+  isGenerating.value = true;
+  aiError.value = null;
+
+  try {
+    const formData = new FormData();
+    formData.append('Prompt', aiPrompt.value);
+    formData.append('OwnerId', localStorage.getItem('userId'));
+    formData.append('Status', '0');
+
+    const result = await aiService.generateImage(formData);
+    console.log('API Response:', result);
+
     if (result.data && result.data.imageUrl) {
-      generatedAIImage.value = result.data.imageUrl
+      // Thêm timestamp vào URL để tránh cache
+      const timestamp = new Date().getTime();
+      const separator = result.data.imageUrl.includes('?') ? '&' : '?';
+      const imageUrl = `${result.data.imageUrl}${separator}t=${timestamp}`;
+      generatedAIImage.value = imageUrl;
+      
+      // Chuyển sang tab hình ảnh và thêm vào lịch sử
+      const file = dataURLtoFile(imageUrl, 'ai-generated.png');
+      uploadedImageHistory.push({
+        file: file,
+        name: 'AI Generated Image',
+        imageUrl: imageUrl
+      });
+      currentImageIndex.value = uploadedImageHistory.length - 1;
+      
+      // Cập nhật preview
+      selectedImage.value = file;
+      selectedImageName.value = 'AI Generated Image';
+      previewImageUrl.value = imageUrl;
+      
+      // Chuyển tab
+      activeTab.value = 'image';
     } else {
-      throw new Error('Không nhận được URL ảnh từ server')
+      throw new Error('Không nhận được URL ảnh từ server');
     }
   } catch (error) {
-    console.error('Error generating image:', error)
-    aiError.value = 'Có lỗi khi tạo ảnh. Vui lòng thử lại.'
+    console.error('Error generating image:', error);
+    aiError.value = 'Có lỗi khi tạo ảnh. Vui lòng thử lại.';
   } finally {
-    isGenerating.value = false
+    isGenerating.value = false;
+  }
+};
+
+const removeAIImage = () => {
+  generatedAIImage.value = null;
+};
+
+// Thêm computed property để theo dõi component được chọn
+const selectedComponent = computed(() => {
+  const selected = components.find(comp => comp.isSelected);
+  return selected ? selected.name : null;
+});
+
+const showConfirmModal = ref(false)
+const generatedImageUrl = ref('')
+
+const handleConfirmSwitchTab = () => {
+  showConfirmModal.value = false
+  activeTab.value = 'image'
+  
+  // Thêm hình ảnh vào lịch sử
+  if (generatedImageUrl.value) {
+    const file = dataURLtoFile(generatedImageUrl.value, 'ai-generated.png')
+    uploadedImageHistory.push({
+      file: file,
+      name: 'AI Generated Image',
+      imageUrl: generatedImageUrl.value
+    })
+    currentImageIndex.value = uploadedImageHistory.length - 1
+    
+    // Cập nhật preview
+    selectedImage.value = file
+    selectedImageName.value = 'AI Generated Image' 
+    previewImageUrl.value = generatedImageUrl.value
   }
 }
 
-const applyAIImageToMesh = () => {
-  if (!generatedAIImage.value) return
-  const textureLoader = new THREE.TextureLoader()
-  textureLoader.load(generatedAIImage.value, (texture) => {
-    texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-    texture.flipY = false
-    texture.encoding = THREE.sRGBEncoding
-    texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
-    texture.offset.set(textureParams.offsetX, textureParams.offsetY)
-    texture.rotation = textureParams.rotation
-    texture.needsUpdate = true
-    customTextures['AI'] = { texture, imageData: generatedAIImage.value }
-    partTextures['AI'] = texture
-    materials['AI'] = new THREE.MeshStandardMaterial({
-      map: texture,
-      color: new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness),
-      transparent: true,
-      side: THREE.DoubleSide,
-      metalness: 0.3,
-      roughness: 0.4
-    })
-    renderer.render(scene, camera)
-    calculateSurcharge()
-  })
-}
-
-const removeAIImage = () => {
-  generatedAIImage.value = null
-  delete customTextures['AI']
-  partTextures['AI'] = null
-  materials['AI'] = null
-  renderer.render(scene, camera)
-  calculateSurcharge()
+const dataURLtoFile = (dataurl, filename) => {
+  const arr = dataurl.split(',')
+  const mime = arr[0].match(/:(.*?);/)[1]
+  const bstr = atob(arr[1])
+  let n = bstr.length
+  const u8arr = new Uint8Array(n)
+  while(n--){
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  return new File([u8arr], filename, {type:mime})
 }
 </script>
 <style scoped>
@@ -3738,5 +3810,106 @@ const removeAIImage = () => {
     width: calc(100% - 40px);
     max-width: 300px;
   }
+}
+
+.ai-generate-section {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.input-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.prompt-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.generate-button {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.generate-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.generate-button:not(:disabled):hover {
+  background: #0056b3;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.result-section {
+  margin-top: 20px;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  max-width: 512px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.generated-image {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+  max-height: 512px;
+  object-fit: contain;
+}
+
+.image-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.text-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.apply-text {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.remove-text {
+  background-color: #f44336;
+  color: white;
+}
+
+.text-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 </style>
