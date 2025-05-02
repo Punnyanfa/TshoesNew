@@ -238,6 +238,12 @@
           >
             Hình ảnh
           </button>
+          <button 
+            :class="{'tab-button': true, 'active': activeTab === 'ai'}" 
+            @click="activeTab = 'ai'"
+          >
+            AI Generate
+          </button>
         </div>
         
         <!-- Color swatches -->
@@ -273,16 +279,55 @@
                 id="image-upload"
               />
               <label for="image-upload" class="upload-button">
-                 Chọn ảnh
+                Chọn ảnh
               </label>
               <div class="image-buttons">
                 <button class="text-button apply-text" @click="applyImageToMesh" :disabled="!selectedImage" title="Áp dụng ảnh vào phần đã chọn">
-                   Áp dụng
+                  Áp dụng
                 </button>
                 <button class="text-button remove-text" @click="removeImagePreview" title="Xóa ảnh đã chọn">
-                   Xóa
+                  Xóa
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Generate -->
+        <div v-if="activeTab === 'ai'" class="tab-content">
+          <div class="ai-form">
+            <div class="form-group">
+              <label>Prompt</label>
+              <input
+                v-model="aiPrompt"
+                type="text"
+                class="input-text"
+                placeholder="Enter your prompt here..."
+              />
+            </div>
+
+            <button @click="generateAIImage" class="submit-button" :disabled="isGenerating">
+              {{ isGenerating ? 'Generating...' : 'Generate Image' }}
+            </button>
+
+            <!-- AI Generated Image Result -->
+            <div v-if="generatedAIImage" class="result-section">
+              <div class="image-container">
+                <img :src="generatedAIImage" alt="Generated AI Image" class="generated-image"/>
+                <div class="image-buttons">
+                  <button class="text-button apply-text" @click="applyAIImageToMesh" title="Áp dụng ảnh vào phần đã chọn">
+                    Áp dụng
+                  </button>
+                  <button class="text-button remove-text" @click="removeAIImage" title="Xóa ảnh đã tạo">
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            <div v-if="aiError" class="error-message">
+              {{ aiError }}
             </div>
           </div>
         </div>
@@ -412,12 +457,14 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import aiService from '@/server/ai-service'
 
 // Container reference và state
 const container = ref(null)
 const surcharge = ref(0)
 const isCanvasExpanded = ref(false)
+const router = useRouter()
 
 // Modal states
 const showCaptureModal = ref(false)
@@ -1819,8 +1866,84 @@ const showNextImage = () => {
     previewImageUrl.value = nextImage.imageUrl;
   }
 }
+
+const goToAIPage = () => {
+  router.push('/ai')
+}
+
+const aiPrompt = ref('')
+const generatedAIImage = ref(null)
+const aiError = ref(null)
+const isGenerating = ref(false)
+
+const generateAIImage = async () => {
+  if (!aiPrompt.value.trim()) {
+    aiError.value = 'Vui lòng nhập prompt'
+    return
+  }
+
+  isGenerating.value = true
+  aiError.value = null
+  
+  try {
+    const formData = new FormData()
+    formData.append('Prompt', aiPrompt.value)
+    formData.append('OwnerId', localStorage.getItem('userId'))
+    formData.append('Status', '0')
+    
+    const result = await aiService.generateImage(formData)
+    console.log('API Response:', result) // Thêm log để debug
+    
+    if (result.data && result.data.imageUrl) {
+      generatedAIImage.value = result.data.imageUrl
+    } else {
+      throw new Error('Không nhận được URL ảnh từ server')
+    }
+  } catch (error) {
+    console.error('Error generating image:', error)
+    aiError.value = 'Có lỗi khi tạo ảnh. Vui lòng thử lại.'
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+const applyAIImageToMesh = () => {
+  if (!generatedAIImage.value) return
+  const textureLoader = new THREE.TextureLoader()
+  textureLoader.load(generatedAIImage.value, (texture) => {
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+    texture.flipY = false
+    texture.encoding = THREE.sRGBEncoding
+    texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+    texture.offset.set(textureParams.offsetX, textureParams.offsetY)
+    texture.rotation = textureParams.rotation
+    texture.needsUpdate = true
+    customTextures['AI'] = { texture, imageData: generatedAIImage.value }
+    partTextures['AI'] = texture
+    materials['AI'] = new THREE.MeshStandardMaterial({
+      map: texture,
+      color: new THREE.Color(textureParams.brightness, textureParams.brightness, textureParams.brightness),
+      transparent: true,
+      side: THREE.DoubleSide,
+      metalness: 0.3,
+      roughness: 0.4
+    })
+    renderer.render(scene, camera)
+    calculateSurcharge()
+  })
+}
+
+const removeAIImage = () => {
+  generatedAIImage.value = null
+  delete customTextures['AI']
+  partTextures['AI'] = null
+  materials['AI'] = null
+  renderer.render(scene, camera)
+  calculateSurcharge()
+}
 </script>
-<style>
+<style scoped>
 .custom-detail-page {
   height: 100vh;
   display: flex;
@@ -2190,24 +2313,23 @@ const showNextImage = () => {
 }
 
 .tab-button {
-  background: none;
+  padding: 8px 16px;
   border: none;
-  padding: 10px 20px;
+  background: none;
   font-size: 14px;
-  font-weight: 500;
-  color: #666;
   cursor: pointer;
+  color: #666;
   border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.tab-button:hover {
-  color: #333;
+  transition: all 0.3s ease;
 }
 
 .tab-button.active {
-  color: #000;
-  border-bottom: 2px solid #000;
+  color: #4CAF50;
+  border-bottom-color: #4CAF50;
+}
+
+.tab-button:hover {
+  color: #4CAF50;
 }
 
 .button-group {
@@ -3497,5 +3619,124 @@ const showNextImage = () => {
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 12px;
+}
+
+.ai-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px;
+}
+
+.ai-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-form .input-text {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.ai-form .submit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ai-form .submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Điều chỉnh kích thước ảnh được gen */
+.result-section {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 300px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.generated-image {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.image-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.text-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.apply-text {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.remove-text {
+  background-color: #f44336;
+  color: white;
+}
+
+.text-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+#canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .result-section {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    top: auto;
+    transform: none;
+    width: calc(100% - 40px);
+    max-width: 300px;
+  }
 }
 </style>

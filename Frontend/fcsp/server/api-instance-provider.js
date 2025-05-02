@@ -3,9 +3,18 @@ import axios from "axios";
 export const instance = axios.create({
   baseURL:
     process.env.VITE_PUBLIC_BASE_URL || "https://wyp-somee-api.somee.com/api",
-    headers: {
-      'Content-Type': 'application/json',  // Đảm bảo header Content-Type được gửi đúng
-    },
+});
+
+// Thêm interceptor để xử lý headers
+instance.interceptors.request.use((config) => {
+  // Nếu data là FormData, để axios tự động set Content-Type: multipart/form-data
+  if (config.data instanceof FormData) {
+    config.headers['Content-Type'] = 'multipart/form-data';
+  } else {
+    // Mặc định là application/json
+    config.headers['Content-Type'] = 'application/json';
+  }
+  return config;
 });
 
 export const Login = {

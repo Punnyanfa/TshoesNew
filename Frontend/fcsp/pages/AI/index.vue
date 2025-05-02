@@ -5,19 +5,6 @@
       
       <form @submit.prevent="handleSubmit" class="ai-form">
         <div class="form-group">
-          <label>Image File</label>
-          <div class="file-input">
-            <input
-              type="file"
-              @change="handleFileChange"
-              accept="image/*"
-              class="input-file"
-            />
-            <span class="file-name">{{ fileName || 'No file chosen' }}</span>
-          </div>
-        </div>
-
-        <div class="form-group">
           <label>Prompt</label>
           <input
             v-model="prompt"
@@ -25,24 +12,6 @@
             class="input-text"
             placeholder="Enter your prompt here..."
           />
-        </div>
-
-        <div class="form-group">
-          <label>Owner ID</label>
-          <input
-            v-model="ownerId"
-            type="number"
-            class="input-text"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Status</label>
-          <select v-model="status" class="input-select">
-            <option value="">Select status</option>
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
-          </select>
         </div>
 
         <button type="submit" class="submit-button" :disabled="isLoading">
@@ -53,7 +22,12 @@
       <!-- Result Section -->
       <div v-if="generatedImage" class="result-section">
         <h3>Generated Image</h3>
-        <img :src="generatedImage" alt="Generated AI Image" class="generated-image"/>
+        <div class="image-container">
+          <img :src="generatedImage" alt="Generated AI Image" class="generated-image"/>
+          <div class="image-actions">
+            <a :href="generatedImage" download class="download-button">Download Image</a>
+          </div>
+        </div>
       </div>
 
       <!-- Error Message -->
@@ -71,42 +45,31 @@ export default {
   name: 'AIImageGenerator',
   data() {
     return {
-      imageFile: null,
-      fileName: '',
       prompt: '',
-      ownerId: '',
-      status: '',
       generatedImage: null,
       isLoading: false,
       error: null
     }
   },
   methods: {
-    handleFileChange(event) {
-      const file = event.target.files[0]
-      if (file) {
-        this.imageFile = file
-        this.fileName = file.name
-      }
-    },
     async handleSubmit() {
       this.error = null
       this.isLoading = true
+      this.generatedImage = null  // Reset the image before generating new one
 
       try {
         const formData = new FormData()
-        if (this.imageFile) {
-          formData.append('ImageFile', this.imageFile)
-        }
         formData.append('Prompt', this.prompt)
-        formData.append('OwnerId', this.ownerId)
-        formData.append('Status', this.status)
+        formData.append('OwnerId', localStorage.getItem('userId'))
+        formData.append('Status', '0')
 
         const result = await aiService.generateImage(formData)
-        this.generatedImage = result.imageUrl // Adjust based on your API response structure
-        
-        // Clear form after successful generation
-        this.clearForm()
+        console.log("img", result)
+        if (result.data && result.data.imageUrl) {
+          this.generatedImage = result.data.imageUrl
+        } else {
+          throw new Error('No image URL in response')
+        }
       } catch (error) {
         this.error = 'Failed to generate image. Please try again.'
         console.error('Error:', error)
@@ -115,11 +78,7 @@ export default {
       }
     },
     clearForm() {
-      this.imageFile = null
-      this.fileName = ''
       this.prompt = ''
-      this.ownerId = ''
-      this.status = ''
     }
   }
 }
@@ -208,11 +167,39 @@ export default {
   text-align: center;
 }
 
-.generated-image {
+.image-container {
+  margin: 1rem auto;
   max-width: 100%;
-  margin-top: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.generated-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.image-actions {
+  padding: 1rem;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+}
+
+.download-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.download-button:hover {
+  background-color: #45a049;
 }
 
 .error-message {

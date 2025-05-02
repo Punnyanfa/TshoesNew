@@ -24,9 +24,9 @@
         <CarOutlined />
         <span>Shipping Management</span>
       </router-link>
-      <router-link to="/admin/manageShoeDesigns" class="menu-item">
+      <router-link to="/admin/manageTemplate" class="menu-item">
         <ExperimentOutlined />
-        <span>Shoe Design Management</span>
+        <span>Template Management</span>
       </router-link>
       <router-link to="/admin/manageVoucher" class="menu-item">
         <GiftOutlined />
