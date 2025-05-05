@@ -99,5 +99,16 @@ export async function deleteTemplate(id) {
     console.error("Error deleting template:", error);
     throw error;
   }
+}  
+export async function getTemplateById(id) {
+  try {
+    const response = await instance.get(`/Template/${id}`);
+    if (response.data.code === 200) {
+      return response.data.data;  // Trả về data của sản phẩm cụ thể
+    }
+    throw new Error(response.data.message || `Failed to fetch template with id ${id}`);
+  } catch (error) {
+    console.error(`Error getting template with id ${id}:`, error);
+    throw error;
+  }
 }
-  

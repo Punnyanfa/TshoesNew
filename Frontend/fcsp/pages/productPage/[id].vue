@@ -38,7 +38,9 @@
             <div class="card-body">
               <h1 class="card-title fw-bold">{{ product.name }}</h1>
               <p class="card-text text-muted">{{ product.description }}</p>
-              <h3 class="mb-4 fw-bold text-primary">${{ product.price }}</h3>
+              <h3 class="mb-4 fw-bold text-primary">
+                {{ product.price !== undefined ? '$' + formatPrice(product.price) : 'N/A' }}
+              </h3>
               
               <!-- Size selection -->
               <div class="mb-4">
@@ -112,6 +114,7 @@ const fetchProduct = async () => {
     const productId = route.params.id;
     const response = await getProductById(productId);
     product.value = response;
+    console.log('Template data:', product.value);
   } catch (error) {
     console.error('Error fetching product:', error);
   } finally {
@@ -180,6 +183,11 @@ const addToCart = () => {
      console.warn('Please select size and quantity before adding to cart.');
      // Optional: Show warning message to user
   }
+};
+
+const formatPrice = (price) => {
+  if (typeof price !== 'number') return 'N/A';
+  return price.toFixed(2);
 };
 </script>
 

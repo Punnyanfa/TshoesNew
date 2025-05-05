@@ -36,27 +36,22 @@
       <div v-else>
         <div class="row g-4">
           <div v-for="product in paginatedProducts" :key="product.id" class="col-md-3">
-            <div class="card sneaker-card h-100 shadow-lg rounded overflow-hidden">
+            <div class="card sneaker-card h-100 shadow-lg rounded overflow-hidden" @click="goToDetailPage(product.id)" style="cursor: pointer">
               <div class="position-relative">
                 <img
-                  :src="product.image"
+                  :src="product.twoDImageUrl"
                   class="card-img-top sneaker-img"
-                  :alt="product.name"
-                  @click="goToDetailPage(product.id)"
+                  :alt="product.twoDImageUrl"
                 />
                 <span class="custom-badge">Customizable</span>
               </div>
               <div class="card-body d-flex flex-column">
-                <h5
-                  class="card-title text-dark fw-bold"
-                  @click="goToDetailPage(product.id)"
-                  style="cursor: pointer"
-                >
+                <h5 class="card-title text-dark fw-bold">
                   {{ product.name }}
                 </h5>
                 <p class="text-muted flex-grow-1">{{ product.description }}</p>
                 <h5 class="text-sneaker-blue mb-3">{{ formatPrice(product.price) }}</h5>
-                <NuxtLink to="/customdetailPage" class="btn btn-sneaker w-100 px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn">
+                <NuxtLink :to="`/customPage/${product.id}`" class="btn btn-sneaker w-100 px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn" @click.stop>
                   Customize Now
                 </NuxtLink>
               </div>
@@ -114,7 +109,7 @@ const fetchTemplates = async () => {
         name: template.name,
         description: template.description,
         price: template.price,
-        image: template.twoImageUrl
+        twoDImageUrl: template.twoDImageUrl
       }));
     }
   } catch (err) {
@@ -158,7 +153,9 @@ const changePage = (page) => {
   }
 };
 
-const goToDetailPage = (productId) => router.push(`/product/${productId}`);
+const goToDetailPage = (id) => {
+  router.push({ path: `/customPage/${id}` });
+};
 
 const formatPrice = (price) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);

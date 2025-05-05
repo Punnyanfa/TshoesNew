@@ -104,6 +104,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Sidebar from "~/components/sidebar.vue";
 import { getAllProducts } from "~/server/product-service";
+import { getTemplateById } from '~/server/custom-service'
 
 const router = useRouter();
 const products = ref([]);

@@ -541,7 +541,7 @@ const manufacturers = reactive([
         Details: 0.7
       }
     },
-    modelPath: '/Adidasrunningshoes.glb'
+    modelPath: 'https://fcspwebapistorage.blob.core.windows.net/images/template3DModel_05-05-2025_10-09.glb'
   },
   {
     id: 'nike',
