@@ -46,7 +46,7 @@ public class GoogleAuthService : IGoogleAuthService
                     IsDeleted = false,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
-                    AvatarImageUrl = payload.Picture // Optional: Use Google profile picture
+                    AvatarImageUrl = payload.Picture 
                 };
 
                 await _userRepository.AddAsync(user);
@@ -102,7 +102,7 @@ public class GoogleAuthService : IGoogleAuthService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddDays(7),
+            expires: DateTime.Now.AddDays(1),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

@@ -17,7 +17,7 @@ namespace FCSP.Services.ManufacturerService
         {
             _manufacturerRepository = manufacturerRepository;
             _userRepository = userRepository;
-            _logger = logger;
+            
         }
 
         public async Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetAllManufacturers()
