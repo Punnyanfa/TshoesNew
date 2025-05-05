@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using FCSP.Common.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace FCSP.DTOs.Texture
@@ -40,7 +39,6 @@ namespace FCSP.DTOs.Texture
         public IFormFile? ImageFile { get; set; } = null!;
         public string? Prompt { get; set; } = null!;
         public long OwnerId { get; set; }
-        public TextureStatus Status { get; set; } = TextureStatus.Private;
     }
 
     public class AddTextureResponse

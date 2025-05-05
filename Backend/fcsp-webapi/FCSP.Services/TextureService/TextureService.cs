@@ -280,7 +280,6 @@ public class TextureService : ITextureService
             UserId = request.OwnerId,
             ImageUrl = generateResponse.ImageUrl,
             Prompt = request.Prompt,
-            Status = request.Status,
             IsDeleted = false
         };
     }
@@ -309,7 +308,6 @@ public class TextureService : ITextureService
             UserId = request.OwnerId,
             ImageUrl = imageUrl,
             Prompt = request.Prompt,
-            Status = request.Status,
             IsDeleted = false
         };
     }

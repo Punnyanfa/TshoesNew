@@ -35,7 +35,7 @@ namespace FCSP.Services.PaymentService
         {
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
             int expireAt = (int)DateTime.Now.AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
-            PaymentData paymentData = new PaymentData(request.OrderId, request.Amount, "Payment for order " + request.OrderId, null, "https://tshoes.vercel.app/homePage", "https://tshoes.vercel.app");
+            PaymentData paymentData = new PaymentData(request.OrderId, request.Amount, "Payment for order " + request.OrderId, null, "https://tshoes.vercel.app/paymentSuccessPage", "https://tshoes.vercel.app/paymentCancelledPage");
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return new BaseResponseModel<AddPaymentResponse>
             {
@@ -339,7 +339,7 @@ namespace FCSP.Services.PaymentService
         private async Task<CreatePaymentResult> GetPayOSUrl(Payment payment)
         {
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
-            PaymentData paymentData = new PaymentData(payment.Id, (int)payment.Amount, "Payment for order " + payment.OrderId, null, "https://tshoes.vercel.app/", "https://tshoes.vercel.app/");
+            PaymentData paymentData = new PaymentData(payment.Id, (int)payment.Amount, "Payment for order " + payment.OrderId, null, "https://tshoes.vercel.app/paymentSuccessPage", "https://tshoes.vercel.app/paymentCancelledPage");
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return paymentResponse;
         }

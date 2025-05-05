@@ -1,4 +1,3 @@
-using FCSP.Common.Enums;
 using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -22,7 +21,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Texture>> GetAvailableTexturesAsync()
         {
             return await Entities
-                .Where(t => t.Status != TextureStatus.Archived && !t.IsDeleted)
+                .Where(t => !t.IsDeleted)
                 .OrderBy(t => t.Id)
                 .ToListAsync();
         }
