@@ -9,7 +9,7 @@
         <li class="breadcrumb-item">
           <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
         </li>
-        <li class="breadcrumb-item active" aria-current="page">About Us</li>
+        <li class="breadcrumb-item active" aria-current="page">About Uss</li>
       </ol>
     </nav>
 
