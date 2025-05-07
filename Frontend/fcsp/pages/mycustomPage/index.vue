@@ -24,7 +24,8 @@
               
               <div class="cart-item-details">
                 <h4>{{ item.name }}</h4>
-                <p class="price">{{ formatPrice(item.price) }}</p>
+                <p class="price">Giá gốc:{{ formatPrice(item.price) }}</p>
+                <p class="price">Size: {{ item.size }}</p>
                 <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Phụ phí: {{ formatPrice(item.surcharge) }}</p>
                 <p v-if="item.surcharge && item.surcharge > 0" class="price total">Tổng: {{ formatPrice(item.price + item.surcharge) }}</p>
                 
@@ -68,7 +69,7 @@
 
       <div v-else class="text-center mt-5 empty-cart">
         <h4>Bạn chưa có thiết kế nào!</h4>
-        <NuxtLink to="/customdetailPage" class="btn btn-primary mt-3">Bắt đầu thiết kế giày</NuxtLink>
+        <NuxtLink to="/customPage" class="btn btn-primary mt-3">Bắt đầu chọn mẫu thiết kế</NuxtLink>
       </div>
 
       <!-- Modal cập nhật thông tin sản phẩm -->
