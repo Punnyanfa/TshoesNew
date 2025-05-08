@@ -5,7 +5,7 @@
       <div class="product-name-container">
         <h2 class="product-name">{{ customProductName || 'Custom Running Shoes' }}</h2>
         <button class="edit-name-btn" @click="openEditNameModal">
-          <i class="fas fa-edit"></i> Sửa tên
+          <i class="fas fa-edit"></i>
         </button>
       </div>
       <p class="product-price">{{ formatPrice(2500000) }}</p>

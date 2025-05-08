@@ -2,16 +2,6 @@
   <div class="contact-wrapper">
     <Header />
     
-    <!-- Breadcrumb -->
-    <nav class="container py-3" aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <NuxtLink to="/homePage" class="text-decoration-none">Home</NuxtLink>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">Contact</li>
-      </ol>
-    </nav>
-
     <!-- Main Section -->
     <section class="container mt-5 py-5">
       <div class="row g-3 align-items-center">
@@ -144,36 +134,6 @@ const sendMessage = () => {
 </script>
 
 <style scoped>
-/* Các style hiện có giữ nguyên, thêm style cho breadcrumb */
-.breadcrumb {
-  background: transparent;
-  padding: 0;
-  margin-bottom: 0;
-}
-
-.breadcrumb-item a {
-  color: #3498db;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.breadcrumb-item a:hover {
-  color: #2980b9;
-  text-decoration: underline;
-}
-
-.breadcrumb-item.active {
-  color: #34495e;
-  font-weight: 500;
-}
-
-.contact-wrapper {
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
-  min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
-  position: relative;
-}
-
 .contact-wrapper {
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   min-height: 100vh;
@@ -202,7 +162,7 @@ const sendMessage = () => {
 .title {
   font-size: 3.5rem;
   font-weight: 800;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 1px;
@@ -268,7 +228,7 @@ const sendMessage = () => {
 
 .form-title {
   font-size: 1.8rem;
-  color: #2c3e50;
+  color: #007bff;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
@@ -303,7 +263,7 @@ const sendMessage = () => {
 }
 
 .btn-primary {
-  background: linear-gradient(45deg, #3498db, #1abc9c);
+  background-color: #007bff;
   border: none;
   padding: 12px;
   border-radius: 8px;
@@ -314,7 +274,7 @@ const sendMessage = () => {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(45deg, #2980b9, #16a085);
+  background-color: #0056b3;
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
 }

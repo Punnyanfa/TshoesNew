@@ -108,8 +108,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useCart } from '~/composables/useCart';
 
 const router = useRouter();
+const { updateCartCount } = useCart();
 const cartItems = ref([]);
 const loading = ref(true);
 const shippingCost = ref(10.00);
@@ -122,11 +124,20 @@ onMounted(() => {
   loading.value = true;
   try {
     const storedCart = sessionStorage.getItem('cart');
-    cartItems.value = storedCart ? JSON.parse(storedCart) : [];
-    console.log('Cart loaded from session:', cartItems.value);
+    if (storedCart) {
+      cartItems.value = JSON.parse(storedCart);
+      console.log('Cart loaded from session:', cartItems.value);
+      
+      // Cập nhật số lượng sản phẩm trong giỏ hàng
+      updateCartCount(cartItems.value.length);
+    } else {
+      cartItems.value = [];
+      updateCartCount(0);
+    }
   } catch (error) {
     console.error('Error loading cart from sessionStorage:', error);
     cartItems.value = []; // Clear cart on error
+    updateCartCount(0);
   } finally {
     loading.value = false;
   }
@@ -150,6 +161,9 @@ const saveCartToSession = () => {
   try {
     sessionStorage.setItem('cart', JSON.stringify(cartItems.value));
     console.log('Cart saved to session.');
+    
+    // Cập nhật số lượng sản phẩm trong giỏ hàng
+    updateCartCount(cartItems.value.length);
   } catch (error) {
     console.error('Error saving cart to sessionStorage:', error);
   }
@@ -161,11 +175,9 @@ const updateQuantity = (item, newQuantity) => {
     item.selectedQuantity = quantity;
     saveCartToSession(); // Save changes
   } else if (!isNaN(quantity) && quantity <= 0) {
-    // Optionally remove item if quantity is 0 or less, or just set minimum to 1
     removeItem(item);
   } else {
-     // Handle invalid input if needed
-     console.warn('Invalid quantity input');
+    console.warn('Invalid quantity input');
   }
 };
 
@@ -175,6 +187,9 @@ const removeItem = (itemToRemove) => {
     !(item.id === itemToRemove.id && item.selectedSize === itemToRemove.selectedSize)
   );
   saveCartToSession(); // Save changes
+
+  // Update cart count
+  updateCartCount(cartItems.value.length);
 };
 
 // Computed property to check if all items are selected
