@@ -133,7 +133,8 @@
                 </option>
               </select>
             </p>
-            <p><strong>Số lượng:</strong>
+            <div class="quantity-section">
+              <p><strong>Số lượng:</strong></p>
               <div class="quantity-input">
                 <button class="quantity-btn" @click="decreaseQuantity">-</button>
                 <input 
@@ -145,7 +146,7 @@
                 >
                 <button class="quantity-btn" @click="increaseQuantity">+</button>
               </div>
-            </p>
+            </div>
             </div>
           </div>
           
