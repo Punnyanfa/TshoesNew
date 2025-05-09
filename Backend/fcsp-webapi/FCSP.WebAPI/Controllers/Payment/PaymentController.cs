@@ -20,7 +20,7 @@ public class PaymentController : ControllerBase
     [HttpGet("test-payos")]
     public async Task<IActionResult> TestPayOS()
     {
-        var result = await _paymentService.TestPayOSAsync(new AddPaymentRequest { OrderId = 14, Amount = 2000 });
+        var result = await _paymentService.TestPayOSAsync(new AddPaymentRequest { OrderId = 15, Amount = 4000 });
         return StatusCode(result.Code, result);
     }
 

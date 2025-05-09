@@ -7,8 +7,8 @@ public class Order : BaseEntity
     public long UserId { get; set; }
     public long? VoucherId { get; set; }
     public long ShippingInfoId { get; set; }
-    public float TotalPrice { get; set; }
-    public float AmountPaid { get; set; }
+    public int TotalPrice { get; set; }
+    public int AmountPaid { get; set; }
     public OrderStatus Status { get; set; }
     public OrderShippingStatus ShippingStatus { get; set; }
 

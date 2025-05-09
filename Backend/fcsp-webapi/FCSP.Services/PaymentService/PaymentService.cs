@@ -339,7 +339,14 @@ namespace FCSP.Services.PaymentService
         private async Task<CreatePaymentResult> GetPayOSUrl(Payment payment)
         {
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
-            PaymentData paymentData = new PaymentData(payment.Id, (int)payment.Amount, "Payment for order " + payment.OrderId, null, "https://tshoes.vercel.app/paymentSuccessPage", "https://tshoes.vercel.app/paymentCancelledPage");
+            PaymentData paymentData = new PaymentData(
+                payment.Id,
+                payment.Amount,
+                "Payment for order " + payment.OrderId,
+                null,
+                "https://tshoes.vercel.app/paymentSuccessPage",
+                "https://tshoes.vercel.app/paymentCancelledPage"
+            );
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return paymentResponse;
         }

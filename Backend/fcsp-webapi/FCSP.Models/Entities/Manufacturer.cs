@@ -12,6 +12,5 @@ public class Manufacturer : BaseEntity
     // Navigation properties
     public virtual User User { get; set; } = null!;
     public virtual ICollection<Service> Services { get; } = [];
-    public virtual ICollection<ManufacturerCriteria> ManufacturerCriterias { get; } = [];
     public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
 } 

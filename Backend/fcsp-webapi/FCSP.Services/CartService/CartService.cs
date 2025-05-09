@@ -127,7 +127,7 @@ namespace FCSP.Services.CartService
 
                 // Get total items in cart
                 var cartItems = await _cartItemRepository.GetCartItemsByCartIdAsync(cart.Id);
-                int totalItems = cartItems.Sum(i => i.Quantity);
+                var totalItems = cartItems.Sum(i => i.Quantity);
 
                 return new BaseResponseModel<AddToCartResponse>
                 {
@@ -180,7 +180,7 @@ namespace FCSP.Services.CartService
 
                     // Recalculate cart totals
                     var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                    float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
+                    var cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
 
                     response.Data = new UpdateCartItemResponse
                     {
@@ -197,11 +197,11 @@ namespace FCSP.Services.CartService
                     cartItem.Quantity = request.Quantity;
                     await _cartItemRepository.UpdateAsync(cartItem);
 
-                    float subtotal = cartItem.CustomShoeDesign.TotalAmount * cartItem.Quantity;
+                    var subtotal = cartItem.CustomShoeDesign.TotalAmount * cartItem.Quantity;
 
                     // Calculate total cart value
                     var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                    float cartTotal = updatedCart.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity);
+                    var cartTotal = updatedCart.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity);
 
                     response.Data = new UpdateCartItemResponse
                     {
@@ -257,8 +257,8 @@ namespace FCSP.Services.CartService
 
                 // Recalculate cart totals
                 var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                int remainingItems = updatedCart?.CartItems.Sum(i => i.Quantity) ?? 0;
-                float cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
+                var remainingItems = updatedCart?.CartItems.Sum(i => i.Quantity) ?? 0;
+                var cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
 
                 response.Data = new RemoveFromCartResponse
                 {

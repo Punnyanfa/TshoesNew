@@ -30,13 +30,9 @@ public class User : BaseEntity
     public virtual ShippingInfo? DefaultAddress { get; set; }
     public virtual ICollection<CustomShoeDesign> CustomShoeDesigns { get; } = [];
     public virtual ICollection<Order> Orders { get; } = [];
-    public virtual ICollection<PaymentGateway> PaymentGateways { get; } = [];
     public virtual ICollection<ShippingInfo> ShippingInfos { get; } = [];
     public virtual ICollection<Posts> Posts { get; } = [];
     public virtual ICollection<PostsComments> PostsComments { get; } = [];
-    public virtual ICollection<Notification> Notifications { get; } = [];
-    public virtual ICollection<UserActivity> Activities { get; } = [];
-    public virtual ICollection<UserRecommendation> Recommendations { get; } = [];
     public virtual ICollection<Rating> Ratings { get; } = [];
     public virtual ICollection<Texture> Textures { get; } = [];
     public virtual ICollection<Transaction> ReceivedTransactions { get; } = [];

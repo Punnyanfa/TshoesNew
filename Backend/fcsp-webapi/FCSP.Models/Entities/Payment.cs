@@ -8,7 +8,7 @@ public class Payment : BaseEntity
 
     public virtual Order Order { get; set; } = null!;
 
-    public float Amount { get; set; }
+    public int Amount { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
 

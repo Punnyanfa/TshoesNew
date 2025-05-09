@@ -5,7 +5,6 @@ using FCSP.Services.CustomShoeDesignService;
 using FCSP.Services.CustomShoeDesignTextureService;
 using FCSP.Services.DesignPreviewService;
 using FCSP.Services.DesignServiceService;
-using FCSP.Services.NotificationService;
 using FCSP.Services.OrderDetailService;
 using FCSP.Services.OrderService;
 using FCSP.Services.PaymentService;
@@ -17,23 +16,14 @@ using FCSP.Services.ServiceService;
 using FCSP.Services.ShippingInfoService;
 using FCSP.Services.TemplateService;
 using FCSP.Services.TextureService;
-using FCSP.Services.UserActivityService;
-using FCSP.Services.UserRecommendationService;
 using FCSP.Services.VoucherService;
 using Microsoft.AspNet.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using FCSP.DTOs.Texture;
 using Microsoft.Extensions.Options;
 using FCSP.Common.Configurations;
 using FCSP.Services.SizeService;
 using FCSP.Services;
 using FCSP.Services.ManufacturerService;
 using FCSP.Services.CartService;
-using FCSP.Repositories.Implementations;
-using FCSP.Repositories.Interfaces;
-using FCSP.Services.ManufacturerCriteriaService;
-using FCSP.Services.CriteriaService;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -64,10 +54,6 @@ internal static class ServiceConfig
         services.AddScoped<ITokenService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
-
-        // User related services
-        services.AddScoped<IUserActivityService, UserActivityService>();
-        services.AddScoped<IUserRecommendationService, UserRecommendationService>();
         
         // Cart services
         services.AddScoped<ICartService, CartService>();
@@ -93,15 +79,10 @@ internal static class ServiceConfig
         // Service & Manufacturer services
         services.AddScoped<IServiceService, ServiceService>();
         services.AddScoped<IManufacturerService, ManufacturerService>();
-        services.AddScoped<IManufacturerCriteriaService, ManufacturerCriteriaService>();
-        services.AddScoped<ICriteriaService, CriteriaService>();
 
         // Texture & Rating services
         services.AddScoped<ITextureService, TextureService>();
         services.AddScoped<IRatingService, RatingService>();
-
-        // Notification service
-        services.AddScoped<INotificationService, NotificationService>();
 
         // Shipping & Size services
         services.AddScoped<IShippingInfoService, ShippingInfoService>();

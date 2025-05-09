@@ -64,7 +64,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public string? Name { get; set; }
         public string? Description { get; set; }
         public IFormFile? DesignData { get; set; }
-        public float? DesignerMarkup { get; set; } = 0;
+        public int? DesignerMarkup { get; set; } = 0;
         public List<IFormFile> CustomShoeDesignPreviewImages { get; set; } = new List<IFormFile>();
         public List<long>? TextureIds { get; set; }
         public List<long>? ServiceIds { get; set; }

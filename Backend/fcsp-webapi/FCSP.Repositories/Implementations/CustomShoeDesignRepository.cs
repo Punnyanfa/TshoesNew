@@ -57,7 +57,7 @@ namespace FCSP.Repositories.Implementations
                 .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }
-        public async Task<float> GetTotalAmountByIdAsync(long id)
+        public async Task<int> GetTotalAmountByIdAsync(long id)
         {
             var design = await Entities
                 .Where(d => d.Id == id && !d.IsDeleted)

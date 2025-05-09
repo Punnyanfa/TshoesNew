@@ -1,6 +1,7 @@
 ﻿using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Order;
+using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
@@ -40,12 +41,12 @@ namespace FCSP.Services.OrderService
         }
 
         #region Public Methods
-        public async Task<BaseResponseModel<List<GetOrderByIdResponse>>> GetOrdersByUserId(GetOrdersByUserIdRequest request)
+        public async Task<BaseResponseModel<IEnumerable<GetOrderByIdResponse>>> GetOrdersByUserId(GetOrdersByUserIdRequest request)
         {
             try
             {
                 var orders = await GetOrdersByUserIdAsync(request);
-                return new BaseResponseModel<List<GetOrderByIdResponse>>
+                return new BaseResponseModel<IEnumerable<GetOrderByIdResponse>>
                 {
                     Code = 200,
                     Message = "Orders retrieved successfully",
@@ -54,7 +55,7 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<List<GetOrderByIdResponse>>
+                return new BaseResponseModel<IEnumerable<GetOrderByIdResponse>>
                 {
                     Code = 500,
                     Message = $"Error retrieving orders by user ID: {ex.Message}",
@@ -86,12 +87,12 @@ namespace FCSP.Services.OrderService
             }
         }
 
-        public async Task<BaseResponseModel<List<GetOrderByIdResponse>>> GetAllOrders()
+        public async Task<BaseResponseModel<IEnumerable<GetOrderByIdResponse>>> GetAllOrders()
         {
             try
             {
                 var orders = await GetAllOrdersAsync();
-                return new BaseResponseModel<List<GetOrderByIdResponse>>
+                return new BaseResponseModel<IEnumerable<GetOrderByIdResponse>>
                 {
                     Code = 200,
                     Message = "All orders retrieved successfully",
@@ -100,7 +101,7 @@ namespace FCSP.Services.OrderService
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<List<GetOrderByIdResponse>>
+                return new BaseResponseModel<IEnumerable<GetOrderByIdResponse>>
                 {
                     Code = 500,
                     Message = $"Error retrieving all orders: {ex.Message}",
@@ -172,17 +173,49 @@ namespace FCSP.Services.OrderService
         #endregion
 
         #region Private Methods
-        private GetOrderByIdResponse MapToDetailResponse(Order order)
+
+        private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByUserIdAsync(GetOrdersByUserIdRequest request)
         {
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(request.UserId);
+            if (orders == null || !orders.Any())
+            {
+                throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
+            }
+
+            return orders.Select(o => new GetOrderByIdResponse
+            {
+                Id = o.Id,
+                UserName = o.User?.Name ?? string.Empty,
+                ShippingInfoId = o.ShippingInfoId,
+                VoucherCode = o.Voucher?.VoucherName ?? string.Empty,
+                Status = o.Status.ToString(),
+                ShippingStatus = o.ShippingStatus.ToString(),
+                PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
+                TotalPrice = o.TotalPrice,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt
+            }
+            );
+        }
+
+        private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(request.Id);
+
+            if (order == null)
+            {
+                throw new InvalidOperationException($"Order with ID {request.Id} not found");
+            }
+
             return new GetOrderByIdResponse
             {
                 Id = order.Id,
-                UserName = order.User?.Name,
+                UserName = order.User?.Name ?? string.Empty,
                 ShippingInfoId = order.ShippingInfoId,
-                VoucherCode = order.Voucher?.VoucherName,
+                VoucherCode = order.Voucher?.VoucherName ?? string.Empty,
                 Status = order.Status.ToString(),
                 ShippingStatus = order.ShippingStatus.ToString(),
-                PaymentMethod = order.Payments?.FirstOrDefault()?.PaymentMethod.ToString(),
+                PaymentMethod = order.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
                 TotalPrice = order.TotalPrice,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
@@ -196,36 +229,7 @@ namespace FCSP.Services.OrderService
             };
         }
 
-        private async Task<List<GetOrderByIdResponse>> GetOrdersByUserIdAsync(GetOrdersByUserIdRequest request)
-        {
-            var orders = await _orderRepository.GetOrdersByUserIdAsync(request.UserId);
-            if (orders == null || !orders.Any())
-            {
-                throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
-            }
-
-            return orders.Select(MapToDetailResponse).ToList();
-        }
-
-        private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
-        {
-            var order = await _orderRepository.GetAll()
-                                              .Include(o => o.User)
-                                              .Include(o => o.Voucher)
-                                              .Include(o => o.OrderDetails)
-
-                                              .ThenInclude(od => od.Size)
-                                              .Include(o => o.Payments)
-                                              .FirstOrDefaultAsync(o => o.Id == request.Id);
-            if (order == null)
-            {
-                throw new InvalidOperationException($"Order with ID {request.Id} not found");
-            }
-
-            return MapToDetailResponse(order);
-        }
-
-        private async Task<List<GetOrderByIdResponse>> GetAllOrdersAsync()
+        private async Task<IEnumerable<GetOrderByIdResponse>> GetAllOrdersAsync()
         {
             var orders = await _orderRepository.GetAll()
                                                .Include(o => o.OrderDetails)
@@ -240,12 +244,24 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException("No orders found");
             }
 
-            return orders.Select(MapToDetailResponse).ToList();
+            return orders.Select(o => new GetOrderByIdResponse
+            {
+                Id = o.Id,
+                UserName = o.User?.Name ?? string.Empty,
+                ShippingInfoId = o.ShippingInfoId,
+                VoucherCode = o.Voucher?.VoucherName ?? string.Empty,
+                Status = o.Status.ToString(),
+                ShippingStatus = o.ShippingStatus.ToString(),
+                PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
+                TotalPrice = o.TotalPrice,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt
+            });
         }
 
         private async Task<Order> GetEntityFromAddOrderRequest(AddOrderRequest request)
         {
-            float totalAmount = 0;
+            var totalAmount = 0;
             foreach (var od in request.OrderDetails)
             {
                 var customShoeDesign = await _customShoeDesignRepository.FindAsync(od.CustomShoeDesignId);
@@ -257,7 +273,7 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException("Order total must be greater than 0.");
             }
 
-            float amountPaid = totalAmount;
+            var amountPaid = totalAmount;
             if (request.VoucherId.HasValue)
             {
                 var voucher = await _voucherRepository.GetVoucherByOrderIdAsync(request.VoucherId.Value);
@@ -269,7 +285,7 @@ namespace FCSP.Services.OrderService
                 {
                     throw new InvalidOperationException(IsVoucherValid(voucher).message);
                 }
-                var discountAmount = float.TryParse(voucher.VoucherValue, out float discountValue) ? discountValue : 0;
+                var discountAmount = int.TryParse(voucher.VoucherValue, out int discountValue) ? discountValue : 0;
                 amountPaid = amountPaid - discountAmount;
             }
 
@@ -316,7 +332,8 @@ namespace FCSP.Services.OrderService
                     Quantity = od.Quantity,
                     Price = customShoeDesign.TotalAmount,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
+                    ManufacturerId = od.ManufacturerId
                 };
                 await _orderDetailRepository.AddAsync(orderDetail);
             }
@@ -324,12 +341,14 @@ namespace FCSP.Services.OrderService
 
         private async Task<string> AddPaymentAsync(Order order, PaymentMethod paymentMethod)
         {
-            var payment = new DTOs.Payment.AddPaymentRequest
+
+            var payment = new AddPaymentRequest
             {
                 OrderId = order.Id,
-                Amount = (int)order.TotalPrice,
+                Amount = order.TotalPrice,
                 PaymentMethod = paymentMethod,
             };
+            
             var paymentResponse = await _paymentService.AddPayment(payment);
             return paymentResponse.Data.Response;
         }
@@ -360,7 +379,7 @@ namespace FCSP.Services.OrderService
                 return (false, "Voucher has expired.");
             }
 
-            if (string.IsNullOrWhiteSpace(voucher.VoucherValue) || !float.TryParse(voucher.VoucherValue, out float discount) || discount <= 0)
+            if (string.IsNullOrWhiteSpace(voucher.VoucherValue) || !int.TryParse(voucher.VoucherValue, out int discount) || discount <= 0)
             {
                 return (false, "Invalid voucher value.");
             }
@@ -374,12 +393,10 @@ namespace FCSP.Services.OrderService
             {
                 (OrderStatus.Pending, OrderStatus.Confirmed) => true,
                 (OrderStatus.Pending, OrderStatus.Cancelled) => true,
-                (OrderStatus.Pending, OrderStatus.Failed) => true,
                 (OrderStatus.Confirmed, OrderStatus.Processing) => true,
                 (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
                 (OrderStatus.Processing, OrderStatus.Completed) => true,
                 (OrderStatus.Processing, OrderStatus.Cancelled) => true,
-                (OrderStatus.Failed, OrderStatus.Pending) => true,
                 _ => false
             };
         }
@@ -389,10 +406,8 @@ namespace FCSP.Services.OrderService
             return (current, next) switch
             {
                 (OrderShippingStatus.Preparing, OrderShippingStatus.Shipping) => true,
-                (OrderShippingStatus.Preparing, OrderShippingStatus.Cancelled) => true,
                 (OrderShippingStatus.Shipping, OrderShippingStatus.Delivered) => true,
                 (OrderShippingStatus.Shipping, OrderShippingStatus.Returned) => true,
-                (OrderShippingStatus.Shipping, OrderShippingStatus.Lost) => true,
                 _ => false
             };
         }

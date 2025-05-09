@@ -22,7 +22,7 @@ namespace FCSP.DTOs.Cart
         public long Id { get; set; }
         public long UserId { get; set; }
         public List<CartItemDto> CartItems { get; set; } = new List<CartItemDto>();
-        public float TotalPrice => CartItems.Sum(item => item.Price * item.Quantity);
+        public int TotalPrice => CartItems.Sum(item => item.Price * item.Quantity);
         public int TotalItems => CartItems.Sum(item => item.Quantity);
     }
 
@@ -32,8 +32,8 @@ namespace FCSP.DTOs.Cart
         public long CustomShoeDesignId { get; set; }
         public string CustomShoeDesignName { get; set; }
         public int Quantity { get; set; }
-        public float Price { get; set; }
-        public float Subtotal => Price * Quantity;
+        public int Price { get; set; }
+        public int Subtotal => Price * Quantity;
     }
 
     public class RemoveFromCartRequest
@@ -46,7 +46,7 @@ namespace FCSP.DTOs.Cart
     {
         public bool Success { get; set; }
         public int RemainingItems { get; set; }
-        public float CartTotal { get; set; }
+        public int CartTotal { get; set; }
     }
 
     public class UpdateCartItemRequest
@@ -61,7 +61,7 @@ namespace FCSP.DTOs.Cart
         public bool Success { get; set; }
         public long CartItemId { get; set; }
         public int Quantity { get; set; }
-        public float Subtotal { get; set; }
-        public float CartTotal { get; set; }
+        public int Subtotal { get; set; }
+        public int CartTotal { get; set; }
     }
 } 

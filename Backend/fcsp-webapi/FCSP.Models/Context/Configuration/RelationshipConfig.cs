@@ -138,46 +138,6 @@ internal static class RelationshipConfig
             .HasForeignKey(p => p.OrderId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // PaymentGateway relationships
-        modelBuilder.Entity<PaymentGateway>()
-            .HasOne(pg => pg.User)
-            .WithMany(u => u.PaymentGateways)
-            .HasForeignKey(pg => pg.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Notification relationships
-        modelBuilder.Entity<Notification>()
-            .HasOne(n => n.User)
-            .WithMany(u => u.Notifications)
-            .HasForeignKey(n => n.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // UserActivity relationships
-        modelBuilder.Entity<UserActivity>()
-            .HasOne(ua => ua.User)
-            .WithMany(u => u.Activities)
-            .HasForeignKey(ua => ua.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<UserActivity>()
-            .HasOne(ua => ua.ViewedDesign)
-            .WithMany(d => d.ViewedActivities)
-            .HasForeignKey(ua => ua.ViewedDesignId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // UserRecommendation relationships
-        modelBuilder.Entity<UserRecommendation>()
-            .HasOne(ur => ur.User)
-            .WithMany(u => u.Recommendations)
-            .HasForeignKey(ur => ur.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<UserRecommendation>()
-            .HasOne(ur => ur.RecommendDesign)
-            .WithMany(d => d.Recommendations)
-            .HasForeignKey(ur => ur.RecommendDesignId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // Rating relationships
         modelBuilder.Entity<Rating>()
             .HasOne(r => r.User)
@@ -216,20 +176,6 @@ internal static class RelationshipConfig
             .HasOne(m => m.User)
             .WithMany(u => u.Manufacturers)
             .HasForeignKey(m => m.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Criteria relationships
-        modelBuilder.Entity<Criteria>()
-            .HasMany(c => c.ManufacturerCriterias)
-            .WithOne(mc => mc.Criteria)
-            .HasForeignKey(mc => mc.CriteriaId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // ManufacturerCriteria relationships
-        modelBuilder.Entity<ManufacturerCriteria>()
-            .HasOne(mc => mc.Manufacturer)
-            .WithMany(m => m.ManufacturerCriterias)
-            .HasForeignKey(mc => mc.ManufacturerId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Service relationships
