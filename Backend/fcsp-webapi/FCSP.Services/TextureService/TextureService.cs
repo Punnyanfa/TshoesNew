@@ -28,7 +28,7 @@ public class TextureService : ITextureService
         _configuration = configuration;
         _httpClient = httpClientFactory.CreateClient("TextureService");
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
-        _azureContainerName = _configuration["AzureStorage:ContainerName"];
+        _azureContainerName = _configuration["AzureStorage:ImagesContainer"];
         _promptToImproveImage = _configuration["ImageStorage:PromptToImproveImage"];
     }
 
@@ -147,7 +147,7 @@ public class TextureService : ITextureService
         {
             var texture = await GetTextureFromAddTextureRequest(request);
 
-            await _textureRepository.AddAsync(texture);
+            var addedTexture = await _textureRepository.AddAsync(texture);
 
             return new BaseResponseModel<AddTextureResponse>
             {
@@ -155,8 +155,8 @@ public class TextureService : ITextureService
                 Message = "Texture added successfully",
                 Data = new AddTextureResponse
                 {
-                    Id = texture.Id,
-                    ImageUrl = texture.ImageUrl
+                    Id = addedTexture.Id,
+                    ImageUrl = addedTexture.ImageUrl
                 }
             };
         }

@@ -14,14 +14,16 @@ namespace FCSP.Services.TemplateService
         private readonly ICustomShoeDesignTemplateRepository _templateRepository;
         private readonly IConfiguration _configuration;
         private readonly string? _azureConnectionString;
-        private readonly string? _azureContainerName;
+        private readonly string? _imagesContainer;
+        private readonly string? _3dmodelsContainer;
 
         public TemplateService(ICustomShoeDesignTemplateRepository templateRepository, IConfiguration configuration)
         {
             _configuration = configuration;
             _templateRepository = templateRepository;
             _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
-            _azureContainerName = _configuration["AzureStorage:ContainerName"];
+            _3dmodelsContainer = _configuration["AzureStorage:3DModelsContainer"];
+            _imagesContainer = _configuration["AzureStorage:ImagesContainer"];
         }
 
         private BaseResponseModel<T> HandleException<T>(Exception ex, string action) =>
@@ -106,16 +108,23 @@ namespace FCSP.Services.TemplateService
                 var template = _templateRepository.Find(request.Id);
                 if (template == null)
                     return new BaseResponseModel<UpdateTemplateResponse> { Code = 404, Message = "Template not found" };
-
-                var previewImageUrl = await UploadPreviewImage(request.PreviewImage);
-                var model3DUrl = await Upload3DModel(request.Model3DFile);
+                string previewImageUrl = null;
+                string model3DUrl = null;
+                if (request.PreviewImage != null)
+                {
+                    previewImageUrl = await UploadPreviewImage(request.PreviewImage);
+                }
+                if (request.Model3DFile != null)
+                {
+                    model3DUrl = await Upload3DModel(request.Model3DFile);
+                }
 
                 template.Name = request.Name ?? template.Name;
                 template.Description = request.Description ?? template.Description;
                 template.Gender = request.Gender ?? template.Gender;
                 template.Color = request.Color ?? template.Color;
-                template.Price = (float)request.BasePrice;
-                template.TwoDImageUrl = previewImageUrl;
+                template.Price = request.BasePrice ?? template.Price;
+                template.TwoDImageUrl = previewImageUrl ?? template.TwoDImageUrl;
                 template.ThreeDFileUrl = model3DUrl;
                 template.UpdatedAt = DateTime.Now;
 
@@ -311,7 +320,7 @@ namespace FCSP.Services.TemplateService
                 Description = request.Description,
                 Gender = request.Gender,
                 Color = request.Color,
-                Price = (float)request.BasePrice,
+                Price = (int)request.BasePrice,
                 TwoDImageUrl = previewImageUrl,
                 ThreeDFileUrl = model3DUrl,
                 CreatedAt = DateTime.Now,
@@ -361,7 +370,7 @@ namespace FCSP.Services.TemplateService
             {
                 var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
-                var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+                var containerClient = blobServiceClient.GetBlobContainerClient(_3dmodelsContainer);
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
                 var blobClient = containerClient.GetBlobClient(fileName);
@@ -388,7 +397,7 @@ namespace FCSP.Services.TemplateService
             {
                 var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
-                var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+                var containerClient = blobServiceClient.GetBlobContainerClient(_imagesContainer);
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
                 var blobClient = containerClient.GetBlobClient(fileName);

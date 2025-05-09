@@ -53,7 +53,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         _sizeRepository = sizeRepository;
         _configuration = configuration;
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
-        _azureContainerName = _configuration["AzureStorage:ContainerName"];
+        _azureContainerName = _configuration["AzureStorage:ImagesContainer"];
     }
 
     #region Public Methods
@@ -450,7 +450,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         var template = await _customShoeDesignTemplateRepository.FindAsync(request.CustomShoeDesignTemplateId ?? 0);
         var templatePrice = template?.Price ?? 0;
 
-        float servicesPrice = 0;
+        int servicesPrice = 0;
         if (request.ServiceIds != null && request.ServiceIds.Any())
         {
             foreach (var serviceId in request.ServiceIds)

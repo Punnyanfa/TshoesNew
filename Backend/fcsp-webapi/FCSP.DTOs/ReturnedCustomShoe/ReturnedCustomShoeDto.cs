@@ -7,7 +7,7 @@ namespace FCSP.DTOs.ReturnedCustomShoe
     public class AddReturnedCustomShoeRequest
     {
         public long CustomShoeDesignId { get; set; }
-        public float Price { get; set; }
+        public int Price { get; set; }
         public int Quantity { get; set; }
     }
 
@@ -31,7 +31,7 @@ namespace FCSP.DTOs.ReturnedCustomShoe
     {
         public long Id { get; set; }
         public long CustomShoeDesignId { get; set; }
-        public float Price { get; set; }
+        public int Price { get; set; }
         public int Quantity { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
@@ -48,7 +48,7 @@ namespace FCSP.DTOs.ReturnedCustomShoe
     {
         public long Id { get; set; }
         public long CustomShoeDesignId { get; set; }
-        public float Price { get; set; }
+        public int Price { get; set; }
         public int Quantity { get; set; }
         public DateTime CreatedAt { get; set; }
     }

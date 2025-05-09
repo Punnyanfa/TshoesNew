@@ -29,7 +29,6 @@ public class FcspDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Payment> Payments { get; set; }
-    public DbSet<PaymentGateway> PaymentGateways { get; set; }
     public DbSet<ShippingInfo> ShippingInfos { get; set; }
     public DbSet<Texture> Textures { get; set; }
     public DbSet<User> Users { get; set; }
@@ -38,14 +37,9 @@ public class FcspDbContext : DbContext
     public DbSet<Service> Services { get; set; }
     public DbSet<DesignService> DesignServices { get; set; }
     public DbSet<DesignPreview> DesignPreviews { get; set; }
-    public DbSet<Notification> Notifications { get; set; }
-    public DbSet<UserActivity> UserActivities { get; set; }
-    public DbSet<UserRecommendation> UserRecommendations { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<Rating> Ratings { get; set; }
     public DbSet<Manufacturer> Manufacturers { get; set; }
-    public DbSet<Criteria> Criterias { get; set; }
-    public DbSet<ManufacturerCriteria> ManufacturerCriterias { get; set; }
     public DbSet<SetServiceAmount> SetServiceAmounts { get; set; }
     public DbSet<Designer> Designers { get; set; }
     public DbSet<Transaction> Transactions { get; set; }

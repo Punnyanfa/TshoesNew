@@ -30,7 +30,7 @@ public class AuthService : IAuthService
         _designerRepository = designerRepository;
         _manufacturerRepository = manufacturerRepository;
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
-        _azureContainerName = _configuration["AzureStorage:ContainerName"];
+        _azureContainerName = _configuration["AzureStorage:ImagesContainer"];
     }
 
     #region Public Methods

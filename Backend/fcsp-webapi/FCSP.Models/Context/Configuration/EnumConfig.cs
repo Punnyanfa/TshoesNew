@@ -27,10 +27,6 @@ internal static class EnumConfig
             .Property(p => p.PaymentStatus)
             .HasConversion<int>();
 
-        modelBuilder.Entity<PaymentGateway>()
-            .Property(p => p.PaymentMethod)
-            .HasConversion<int>();
-
         modelBuilder.Entity<User>()
             .Property(p => p.UserRole)
             .HasConversion<int>();
@@ -38,14 +34,6 @@ internal static class EnumConfig
         // Configure Status properties as enums stored as int
         modelBuilder.Entity<Manufacturer>()
             .Property(m => m.Status)
-            .HasConversion<int>();
-
-        modelBuilder.Entity<Criteria>()
-            .Property(c => c.Status)
-            .HasConversion<int>();
-
-        modelBuilder.Entity<ManufacturerCriteria>()
-            .Property(mc => mc.Status)
             .HasConversion<int>();
 
         modelBuilder.Entity<SetServiceAmount>()

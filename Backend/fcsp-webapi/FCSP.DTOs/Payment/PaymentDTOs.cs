@@ -17,7 +17,7 @@ namespace FCSP.DTOs.Payment
     {
         public long Id { get; set; }
         public long OrderId { get; set; }
-        public float Amount { get; set; }
+        public int Amount { get; set; }
         public PaymentStatus Status { get; set; }
     }
 

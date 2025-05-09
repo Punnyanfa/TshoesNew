@@ -10,8 +10,8 @@ public class CustomShoeDesign : BaseEntity
     public string? Name { get; set; }
     public string? Description { get; set; }
     public CustomShoeDesignStatus Status { get; set; }
-    public float DesignerMarkup { get; set; }
-    public float TotalAmount { get; set; }
+    public int DesignerMarkup { get; set; }
+    public int TotalAmount { get; set; }
 
     // Navigation properties
     public virtual User User { get; set; } = null!;
@@ -19,8 +19,6 @@ public class CustomShoeDesign : BaseEntity
     public virtual ICollection<CustomShoeDesignTextures> CustomShoeDesignTextures { get; } = [];
     public virtual ICollection<DesignPreview> DesignPreviews { get; } = [];
     public virtual ICollection<Rating> Ratings { get; } = [];
-    public virtual ICollection<UserActivity> ViewedActivities { get; } = [];
-    public virtual ICollection<UserRecommendation> Recommendations { get; } = [];
     public virtual ICollection<DesignService> DesignServices { get; } = [];
     public virtual ICollection<OrderDetail> OrderDetails { get; } = [];
     public virtual ICollection<ReturnedCustomShoe> ReturnedCustomShoes { get; } = [];

@@ -87,30 +87,30 @@ namespace FCSP.DTOs.CustomShoeDesignTemplate
 
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
-        public string Name { get; set; } = null!;
+        public string? Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Description is required")]
         [StringLength(500, MinimumLength = 10, ErrorMessage = "Description must be between 10 and 500 characters")]
-        public string Description { get; set; } = null!;
+        public string? Description { get; set; } = null!;
 
         [Required(ErrorMessage = "Gender is required")]
         [RegularExpression("^(Male|Female|Unisex)$", ErrorMessage = "Gender must be Male, Female, or Unisex")]
-        public string Gender { get; set; } = null!;
+        public string? Gender { get; set; } = null!;
 
         [Required(ErrorMessage = "Color is required")]
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Color must be between 2 and 50 characters")]
-        public string Color { get; set; } = null!;
+        public string? Color { get; set; } = null!;
 
         [Required(ErrorMessage = "PreviewImageUrl is required")]
         [Url(ErrorMessage = "Invalid URL format for PreviewImageUrl")]
-        public IFormFile PreviewImage { get; set; } = null!;
+        public IFormFile? PreviewImage { get; set; } = null!;
 
         [Required(ErrorMessage = "Model3DUrl is required")]
         [Url(ErrorMessage = "Invalid URL format for Model3DUrl")]
-        public IFormFile Model3DFile { get; set; } = null!;
+        public IFormFile? Model3DFile { get; set; } = null!;
 
         [Range(0, double.MaxValue, ErrorMessage = "BasePrice cannot be negative")]
-        public decimal BasePrice { get; set; }
+        public int? BasePrice { get; set; }
 
         public bool IsAvailable { get; set; }
     }

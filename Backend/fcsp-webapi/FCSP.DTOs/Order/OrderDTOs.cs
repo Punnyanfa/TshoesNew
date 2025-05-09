@@ -16,9 +16,9 @@ namespace FCSP.DTOs.Order
         public string UserName { get; set; }
         public long ShippingInfoId { get; set; }       
         public string VoucherCode { get; set; }
-        public float TotalPrice { get; set; }
+        public int TotalPrice { get; set; }
         public string Status { get; set; }
-       public string ShippingStatus { get; set; }
+        public string ShippingStatus { get; set; }
         public string PaymentMethod { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
@@ -99,6 +99,7 @@ namespace FCSP.DTOs.Order
         [Required(ErrorMessage = "SizeId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "SizeId must be greater than 0.")]
         public long SizeId { get; set; }
+        public long ManufacturerId { get; set; }
     }
 
     // DTO cho response (có UnitPrice)
@@ -106,7 +107,7 @@ namespace FCSP.DTOs.Order
     {
         public long CustomShoeDesignId { get; set; }
         public int Quantity { get; set; }
-        public float UnitPrice { get; set; }
+        public int UnitPrice { get; set; }
         public long SizeValue { get; set; }
     }
 

@@ -1,6 +1,7 @@
 ﻿using FCSP.Models.Context;
 using FCSP.Repositories.Implementations;
 using FCSP.Repositories.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FCSP.WebAPI.Configuration;
 
@@ -18,8 +19,6 @@ internal static class RepositoryConfig
         
         // User repositories
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IUserActivityRepository, UserActivityRepository>();
-        services.AddScoped<IUserRecommendationRepository, UserRecommendationRepository>();
         
         // Social (Posts & Comments) repositories
         services.AddScoped<IPostRepository, PostRepository>();
@@ -42,7 +41,6 @@ internal static class RepositoryConfig
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IPaymentGatewayRepository, PaymentGatewayRepository>();
         services.AddScoped<IVoucherRepository, VoucherRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         
@@ -50,15 +48,10 @@ internal static class RepositoryConfig
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<ISetServiceAmountRepository, SetServiceAmountRepository>();
         services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
-        services.AddScoped<IManufacturerCriteriaRepository, ManufacturerCriteriaRepository>();
-        services.AddScoped<ICriteriaRepository, CriteriaRepository>();
         
         // Texture & Rating repositories
         services.AddScoped<ITextureRepository, TextureRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
-        
-        // Notification repository
-        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         // Shipping & Size repositories
         services.AddScoped<IShippingInfoRepository, ShippingInfoRepository>();

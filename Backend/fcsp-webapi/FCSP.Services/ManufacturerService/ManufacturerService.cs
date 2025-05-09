@@ -269,11 +269,6 @@ namespace FCSP.Services.ManufacturerService
                     CurrentAmount = s.SetServiceAmounts?
                         .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow))?.Amount
                 }).ToList() ?? new List<ServiceDto>(),
-                Criterias = manufacturer.ManufacturerCriterias?.Select(mc => new CriteriaDto
-                {
-                    Id = mc.CriteriaId,
-                    Name = mc.Criteria.Name
-                }).ToList() ?? new List<CriteriaDto>(),
                 CreatedAt = manufacturer.CreatedAt,
                 UpdatedAt = manufacturer.UpdatedAt
             };

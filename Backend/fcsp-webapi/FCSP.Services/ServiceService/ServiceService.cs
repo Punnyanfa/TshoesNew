@@ -431,7 +431,7 @@ namespace FCSP.Services.ServiceService
             }
         }
 
-        public async Task<float?> GetServicePriceAsync(long serviceId)
+        public async Task<int?> GetServicePriceAsync(long serviceId)
         {
             try
             {
@@ -471,7 +471,7 @@ namespace FCSP.Services.ServiceService
             }
         }
 
-        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, float price, long manufacturerId = 0)
+        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, int price, long manufacturerId = 0)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -497,7 +497,7 @@ namespace FCSP.Services.ServiceService
         }
 
         // Update to include validation for Description and Component
-        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, string description, string component, float price, long manufacturerId = 0)
+        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, string description, string component, int price, long manufacturerId = 0)
         {
             var baseValidation = ValidateServiceInput<T>(name, price, manufacturerId);
             if (baseValidation != null) return baseValidation;
