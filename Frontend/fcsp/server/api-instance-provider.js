@@ -14,6 +14,11 @@ instance.interceptors.request.use((config) => {
     // Mặc định là application/json
     config.headers['Content-Type'] = 'application/json';
   }
+  // Thêm Authorization nếu có token
+  const token = localStorage.getItem('userToken');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
   return config;
 });
 

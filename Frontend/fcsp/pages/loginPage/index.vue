@@ -137,7 +137,7 @@ const login = async () => {
     if (role === "Admin") {
       redirectRoute = '/admin';
     } else if (role === "Manufacturer") {
-      redirectRoute = '/ManufacturerPage';
+      redirectRoute = '/Manufacturer';
     }
     
     if (result === "Login successful" || result === "Admin login") {

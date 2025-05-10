@@ -1875,7 +1875,6 @@ const generateAIImage = async () => {
     const formData = new FormData();
     formData.append('Prompt', aiPrompt.value);
     formData.append('OwnerId', localStorage.getItem('userId'));
-    formData.append('Status', '0');
 
     const result = await aiService.generateImage(formData);
     console.log('API Response:', result);
@@ -1887,8 +1886,11 @@ const generateAIImage = async () => {
       const imageUrl = `${result.data.imageUrl}${separator}t=${timestamp}`;
       generatedAIImage.value = imageUrl;
       
-      // Chuyển sang tab hình ảnh và thêm vào lịch sử
-      const file = dataURLtoFile(imageUrl, 'ai-generated.png');
+      // Fetch ảnh từ URL, chuyển sang File
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'ai-generated.png', { type: blob.type });
+
       uploadedImageHistory.push({
         file: file,
         name: 'AI Generated Image',

@@ -3,7 +3,7 @@
   <header class="sneaker-header" :class="{ 'scrolled': isScrolled }">
     <div class="header-container">
       <!-- Logo Section -->
-      <router-link to="/homePage" class="logo-wrapper">
+      <router-link to="/Manufacturer" class="logo-wrapper">
         <img 
           src="https://th.bing.com/th/id/OIP.EL5hPJ7k0B7W_D7EbZoexgHaEd?w=338&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7" 
           alt="Sneaker Logo" 
@@ -139,18 +139,10 @@ const isDarkTheme = ref(true);
 const isScrolled = ref(false);
 
 const navItems = [
-  { path: '/homePage', label: 'Home', icon: 'home' },
-  { path: '/productPage', label: 'Products', icon: 'shop' },
-  { path: '/customPage', label: 'Customize', icon: 'edit' },
-  { 
-    label: 'Pages', 
-    icon: 'appstore',
-    subItems: [
-      { path: '/contactPage', label: 'Contact', icon: 'mail' },
-      { path: '/aboutPage', label: 'About', icon: 'info-circle' },
-      { path: '/blogPage', label: 'Blog', icon: 'info-circle' }
-    ]
-  }
+  { path: '/Manufacturer', label: 'Home', icon: 'home' },
+  { path: '/Manufacturer/manageOrder', label: 'Manage Product', icon: '' },
+  { path: '/Manufacturer/manageService', label: 'Manage Service', icon: '' },
+  
 ];
 
 // Watch for authentication state changes

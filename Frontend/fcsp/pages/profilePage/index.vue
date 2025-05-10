@@ -1,157 +1,209 @@
 <template>
   <Header />
   <div class="container-fluid">
-  <div class="container py-4">
-    <div class="row">
-      <div class="col-12">
-        <h2 class="mb-0">My Profile</h2>
-        <p class="text-muted">Manage your profile information to secure your account</p>
-        <hr class="my-3" />
+    <div class="container py-4">
+      <div class="row">
+        <div class="col-12">
+          <h2 class="mb-0">My Profile</h2>
+          <p class="text-muted">Manage your profile information to secure your account</p>
+          <hr class="my-3" />
+        </div>
       </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-8">
-        <form @submit.prevent="saveProfile">
+      <div class="row">
+        <div class="col-md-8">
+          <!-- Nút Update Profile -->
           <div class="mb-3 row">
-            <label class="col-sm-3 col-form-label text-md-end">Username</label>
-            <div class="col-sm-9">
-              <span class="form-control-plaintext text-primary">biducbi</span>
+            <div class="col-sm-9 offset-sm-3">
+              <button type="button" class="button-btn" @click="showModal = true">Update Profile</button>
             </div>
           </div>
-
+          <!-- Thông tin profile -->
           <div class="mb-3 row">
             <label for="fullName" class="col-sm-3 col-form-label text-md-end">Full Name</label>
             <div class="col-sm-9">
-              <input
-                type="text"
-                class="form-control"
-                id="fullName"
-                v-model="profile.fullName"
-                placeholder="Enter your full name"
-              />
+              <span class="me-2">{{ profile.fullName }}</span>
             </div>
           </div>
-
           <div class="mb-3 row">
-            <label class="col-sm-3 col-form-label text-md-end">Email</label>
+            <label class="col-sm-3 col-form-label text-md-end">Email:</label>
             <div class="col-sm-9 d-flex align-items-center">
-              <span class="me-2">ho************@icloud.com</span>
-              <a href="#" class="text-primary">Change</a>
+              <span class="me-2">{{ profile.email }}</span>
             </div>
           </div>
-
           <div class="mb-3 row">
-            <label class="col-sm-3 col-form-label text-md-end">Phone Number</label>
+            <label class="col-sm-3 col-form-label text-md-end">Phone Number:</label>
             <div class="col-sm-9 d-flex align-items-center">
-              <span class="me-2">*********74</span>
-              <a href="#" class="text-primary">Change</a>
+              <span class="me-2">{{ profile.phone }}</span>
             </div>
           </div>
-
           <div class="mb-3 row">
             <label class="col-sm-3 col-form-label text-md-end">Gender</label>
             <div class="col-sm-9">
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  name="gender"
-                  id="male"
-                  value="Male"
-                  v-model="profile.gender"
-                />
-                <label class="form-check-label" for="male">Male</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  name="gender"
-                  id="female"
-                  value="Female"
-                  v-model="profile.gender"
-                />
-                <label class="form-check-label" for="female">Female</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  name="gender"
-                  id="other"
-                  value="Other"
-                  v-model="profile.gender"
-                />
-                <label class="form-check-label" for="other">Other</label>
-              </div>
+              <span class="me-2">{{ profile.gender }}</span>
             </div>
           </div>
-
           <div class="mb-3 row">
             <label class="col-sm-3 col-form-label text-md-end">Date of Birth</label>
             <div class="col-sm-9 d-flex align-items-center">
-              <span class="me-2">**/*/2002</span>
-              <a href="#" class="text-primary">Change</a>
+              <span class="me-2">{{ profile.birthdate }}</span>
             </div>
           </div>
-
-          <div class="mb-3 row">
-            <div class="col-sm-9 offset-sm-3">
-              <button type="submit" class="button-btn">Save</button>
+        </div>
+        <div class="col-md-4 text-center">
+          <div class="d-flex flex-column align-items-center">
+            <div class="position-relative mb-3">
+              <img
+                :src="profile.avatar || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Pg8Xar0cs5YJAv7GozxRFA8TXVJ7tP.png'"
+                alt="Profile Picture"
+                class="rounded-circle img-thumbnail"
+                style="width: 150px; height: 150px; object-fit: cover"
+              />
             </div>
-          </div>
-        </form>
-      </div>
-
-      <div class="col-md-4 text-center">
-        <div class="d-flex flex-column align-items-center">
-          <div class="position-relative mb-3">
-            <img
-              :src="profile.avatar || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Pg8Xar0cs5YJAv7GozxRFA8TXVJ7tP.png'"
-              alt="Profile Picture"
-              class="rounded-circle img-thumbnail"
-              style="width: 150px; height: 150px; object-fit: cover"
+            <button class="btn btn-outline-secondary mb-2" @click="selectImage">Choose Image</button>
+            <input
+              type="file"
+              ref="fileInput"
+              @change="onFileChange"
+              accept=".jpeg,.jpg,.png"
+              style="display: none"
             />
+            <p class="text-muted small mb-1">Maximum file size 1 MB</p>
+            <p class="text-muted small">Format: .JPEG, .PNG</p>
           </div>
-          <button class="btn btn-outline-secondary mb-2" @click="selectImage">Choose Image</button>
-          <input
-            type="file"
-            ref="fileInput"
-            @change="onFileChange"
-            accept=".jpeg,.jpg,.png"
-            style="display: none"
-          />
-          <p class="text-muted small mb-1">Maximum file size 1 MB</p>
-          <p class="text-muted small">Format: .JPEG, .PNG</p>
         </div>
       </div>
     </div>
-  </div>
+    <!-- Modal Update Profile (Bootstrap) -->
+    <div class="modal fade show" tabindex="-1" :style="showModal ? 'display: block; background: rgba(0,0,0,0.5);' : 'display: none;'" aria-modal="true" role="dialog" v-if="showModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Update Profile</h5>
+            <button type="button" class="btn-close" @click="showModal = false" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="submitUpdate">
+              <div class="mb-3">
+                <label for="modalFullName" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="modalFullName" v-model="editProfile.fullName" required />
+              </div>
+              <div class="mb-3">
+                <label for="modalPhone" class="form-label">Phone Number</label>
+                <input type="text" class="form-control" id="modalPhone" v-model="editProfile.phone" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Gender</label>
+                <select class="form-select" v-model="editProfile.gender" required>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="modalDob" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="modalDob" v-model="editProfile.birthdate" required />
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="showModal = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Thêm backdrop khi showModal -->
+    <div v-if="showModal" class="modal-backdrop"></div>
   </div>
   <Footer />
 </template>
 
 <script>
+import { getProfile, updateProfile } from '../../server/profile-service';
 export default {
   name: 'ProfilePage',
   data() {
     return {
       profile: {
-        username: 'biducbi',
-        fullName: 'Hoang Dinh Duc',
-        email: 'ho************@icloud.com',
-        phone: '*********74',
-        gender: 'Male',
-        birthdate: '**/*/2002',
+        username: '',
+        fullName: '',
+        email: '',
+        phone: '',
+        gender: '',
+        birthdate: '',
         avatar: null
+      },
+      showModal: false,
+      editProfile: {
+        fullName: '',
+        phone: '',
+        gender: '',
+        birthdate: ''
       }
     }
   },
+  async mounted() {
+    const id = localStorage.getItem('userId');
+    if (!id) {
+      alert('Bạn cần đăng nhập để truy cập trang này!');
+      this.$router.push('/loginPage');
+      return; 
+    }
+    try {
+      const data = await getProfile(id);
+      this.profile = {
+        username: data.name || '',
+        fullName: data.name || '',
+        email: data.email || '',
+        phone: data.phoneNumber || '',
+        gender: data.gender || '',
+        birthdate: data.dob || '',
+        avatar: null // Nếu API có trả về avatar thì map vào đây
+      };
+      // Khởi tạo dữ liệu cho modal
+      this.editProfile = {
+        fullName: this.profile.fullName,
+        phone: this.profile.phone,
+        gender: this.profile.gender,
+        birthdate: this.profile.birthdate
+      };
+    } catch (e) {
+      // Xử lý lỗi nếu cần
+      console.error('Failed to load profile', e);
+    }
+  },
   methods: {
-    saveProfile() {
-      // Here you would typically send the profile data to your backend
-      alert('Profile information has been saved!')
+    async submitUpdate() {
+      const id = localStorage.getItem('userId');
+      if (!id) {
+        alert('Bạn cần đăng nhập để cập nhật thông tin!');
+        this.$router.push('/loginPage');
+        return;
+      }
+      try {
+        const body = {
+          id: Number(id),
+          name: this.editProfile.fullName,
+          gender: this.editProfile.gender,
+          dob: this.editProfile.birthdate,
+          phoneNumber: this.editProfile.phone
+        };
+        await updateProfile(body);
+        // Cập nhật lại localStorage nếu tên mới khác tên cũ
+        if (localStorage.getItem('username') !== this.editProfile.fullName) {
+          localStorage.setItem('username', this.editProfile.fullName);
+        }
+        // Cập nhật lại profile hiển thị
+        this.profile.fullName = this.editProfile.fullName;
+        this.profile.phone = this.editProfile.phone;
+        this.profile.gender = this.editProfile.gender;
+        this.profile.birthdate = this.editProfile.birthdate;
+        this.showModal = false;
+        alert('Profile information has been updated!');
+      } catch (e) {
+        alert('Failed to update profile!');
+        console.error(e);
+      }
     },
     selectImage() {
       this.$refs.fileInput.click()
@@ -434,5 +486,111 @@ input[type="file"] {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2980b9;
+}
+
+/* Modern Bootstrap Modal Customization */
+.modal.fade.show {
+  display: block;
+  z-index: 2000;
+}
+.modal-dialog {
+  max-width: 430px;
+  margin: 2rem auto;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(30,41,59,0.18), 0 1.5px 6px rgba(52, 152, 219, 0.08);
+  background: transparent;
+}
+.modal-content {
+  border-radius: 18px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(30,41,59,0.18), 0 1.5px 6px rgba(52, 152, 219, 0.08);
+  background: #fff;
+  animation: modalPop 0.25s cubic-bezier(.4,2,.6,1) both;
+}
+@keyframes modalPop {
+  0% { transform: scale(0.95) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.modal-header {
+  border-bottom: none;
+  background: linear-gradient(90deg, #3498db 0%, #2c3e50 100%);
+  color: #fff;
+  border-radius: 18px 18px 0 0;
+  padding: 1.25rem 1.5rem 1rem 1.5rem;
+}
+.modal-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+}
+.btn-close {
+  filter: invert(1);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.btn-close:hover {
+  opacity: 1;
+}
+.modal-body {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+}
+.modal-footer {
+  border-top: none;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: transparent;
+}
+.modal-content input.form-control,
+.modal-content select.form-select {
+  border-radius: 12px;
+  border: 1.5px solid #e3e8ee;
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.modal-content input.form-control:focus,
+.modal-content select.form-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52,152,219,0.15);
+}
+.modal-footer .btn-primary {
+  background: linear-gradient(90deg, #3498db 0%, #2c3e50 100%);
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  padding: 0.6rem 2.2rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(52,152,219,0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.modal-footer .btn-primary:hover {
+  background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
+  box-shadow: 0 4px 16px rgba(52,152,219,0.18);
+  transform: translateY(-2px);
+}
+.modal-footer .btn-secondary {
+  border-radius: 50px;
+  font-weight: 500;
+  padding: 0.6rem 1.5rem;
+  background: #e3e8ee;
+  color: #2c3e50;
+  border: none;
+  transition: background 0.2s, color 0.2s;
+}
+.modal-footer .btn-secondary:hover {
+  background: #d1d8e0;
+  color: #3498db;
+}
+/* Backdrop chuẩn Bootstrap */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 41, 59, 0.35) !important;
+  z-index: 1050;
 }
 </style>
