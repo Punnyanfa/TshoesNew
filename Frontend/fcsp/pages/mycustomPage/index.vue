@@ -103,8 +103,16 @@
               </div>
               
               <div class="form-group">
-                <label for="productPrice">Giá (VNĐ):</label>
-                <input type="number" id="productPrice" v-model="selectedProduct.price" class="form-control" />
+                <label for="productTotalPrice">Giá tổng:</label>
+                <input type="text" id="productTotalPrice" :value="formatPrice(selectedProduct.price + selectedProduct.surcharge)" class="form-control" readonly />
+              </div>
+              
+              <div class="form-group">
+                <label for="productCommission">Giá hoa hồng:</label>
+                <div class="input-group">
+                  <input type="number" id="productCommission" v-model="selectedProduct.commission" class="form-control" min="0" />
+                  <span class="input-group-text">đ</span>
+                </div>
               </div>
               
               <div class="form-group">
@@ -179,6 +187,8 @@ const showProductModal = ref(false);
 const selectedProduct = ref({
   name: '',
   price: 0,
+  surcharge: 0,
+  commission: 0,
   image: '',
   description: '',
   designData: {
@@ -206,9 +216,8 @@ const togglePreviewImages = (item) => {
 const editDesign = (item) => {
   // Lưu thông tin sản phẩm đang chỉnh sửa vào localStorage
   localStorage.setItem('editingDesign', JSON.stringify(item));
-  
-  // Chuyển hướng đến trang thiết kế
-  window.location.href = '/customdetailPage?edit=true&id=' + item.id;
+  // Chuyển hướng đến trang thiết kế mới
+  window.location.href = `/customPage/${item.id}?edit=true`;
 };
 
 // Định dạng giá tiền VND
@@ -329,43 +338,57 @@ function removeFromCart(id) {
 // Thêm thiết kế vào giỏ hàng
 const duplicateToCart = (item) => {
   try {
-    // Lấy giỏ hàng hiện tại
-    const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // Tạo bản sao của item với ID mới để tránh trùng lặp
-    const newCartItem = {
-      ...item,
-      id: `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      showPreviews: false
-    };
-    
-    // Thêm vào giỏ hàng
-    cartItems.push(newCartItem);
-    
-    // Lưu lại vào localStorage
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-    
-    // Xóa khỏi danh sách nháp nếu đang tồn tại trong đó
-    try {
-      const designDrafts = JSON.parse(localStorage.getItem('designDrafts') || '[]');
-      const updatedDrafts = designDrafts.filter(draft => draft.id !== item.id);
-      localStorage.setItem('designDrafts', JSON.stringify(updatedDrafts));
-    } catch (e) {
-      console.error('Lỗi khi xóa thiết kế khỏi danh sách nháp:', e);
+    // Lấy giỏ hàng từ sessionStorage
+    let cart = []
+    const savedCart = sessionStorage.getItem('cart')
+    if (savedCart) {
+      cart = JSON.parse(savedCart)
     }
     
+    // Tạo bản sao của item với ID mới
+    const newCartItem = {
+      id: Date.now(),
+      name: item.name,
+      manufacturerId: item.manufacturerId,
+      price: item.price,
+      surcharge: item.surcharge,
+      selectedSize: item.selectedSize || item.size,
+      selectedQuantity: item.selectedQuantity || 1,
+      image: item.image,
+      designData: {
+        colors: item.designData?.colors || {},
+        textures: item.designData?.textures || {},
+        imagesData: item.designData?.imagesData || {},
+        customText: item.designData?.customText || '',
+        textureParams: item.designData?.textureParams || {},
+        timestamp: new Date().toISOString(),
+        manufacturerId: item.manufacturerId
+      },
+      previewImages: item.previewImages || []
+    }
+    
+    // Thêm vào giỏ hàng
+    cart.push(newCartItem)
+    
+    // Lưu giỏ hàng vào sessionStorage
+    sessionStorage.setItem('cart', JSON.stringify(cart))
+    
     // Thông báo đã thêm vào giỏ hàng
-    alert('Đã thêm thiết kế vào giỏ hàng!');
+    const totalPrice = newCartItem.price + newCartItem.surcharge
+    const formattedTotalPrice = formatPrice(totalPrice)
+    const formattedSurcharge = newCartItem.surcharge > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(newCartItem.surcharge)}` : ''
+    
+    alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: ${formatPrice(newCartItem.price)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}\nSize: ${newCartItem.selectedSize}`)
     
     // Chuyển hướng đến trang giỏ hàng
     setTimeout(() => {
-      window.location.href = '/cartcustomPage';
-    }, 500);
+      window.location.href = '/shoppingCartPage'
+    }, 500)
   } catch (e) {
-    console.error('Lỗi khi thêm vào giỏ hàng:', e);
-    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.');
+    console.error('Lỗi khi thêm vào giỏ hàng:', e)
+    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.')
   }
-};
+}
 
 // Thêm thiết kế vào danh sách sản phẩm
 const addToProduct = (item) => {
@@ -374,6 +397,7 @@ const addToProduct = (item) => {
     name: item.name,
     price: item.price,
     surcharge: item.surcharge,
+    commission: item.commission || 0,
     image: item.image,
     description: `Thiết kế tùy chỉnh từ ${item.name}`,
     designData: JSON.parse(JSON.stringify(item.designData || {})),
@@ -395,6 +419,8 @@ const saveToProduct = () => {
     const optimizedProduct = {
       name: selectedProduct.value.name,
       price: selectedProduct.value.price,
+      surcharge: selectedProduct.value.surcharge,
+      commission: selectedProduct.value.commission || 0,
       image: selectedProduct.value.image,
       description: selectedProduct.value.description || '',
       designData: {
@@ -501,13 +527,102 @@ const cleanupStorage = () => {
 };
 
 // 🔄 Khởi tạo cart và drafts từ localStorage
-onMounted(() => {
+onMounted(async () => {
   // Dọn dẹp localStorage trước khi load dữ liệu
   cleanupStorage();
   
   // Gọi hàm làm mới dữ liệu để tải từ localStorage
   refreshDataFromStorage();
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const isEditing = urlParams.get('edit') === 'true'
+  const editId = urlParams.get('id')
+
+  if (isEditing && editId) {
+    const editingDesignJson = localStorage.getItem('editingDesign')
+    if (editingDesignJson) {
+      try {
+        const editingDesign = JSON.parse(editingDesignJson)
+        if (editingDesign.id.toString() === editId.toString()) {
+          // Gán lại các giá trị vào các biến reactive của bạn ở đây
+          // Ví dụ:
+          customProductName.value = editingDesign.name
+          basePrice.value = editingDesign.price
+          surcharge.value = editingDesign.surcharge
+          // ... và các trường khác bạn cần khôi phục ...
+        }
+      } catch (e) {
+        console.error('Lỗi khi nạp lại thiết kế đang chỉnh sửa:', e)
+      }
+    }
+  }
 });
+
+const manufacturers = ref([
+  {
+    id: 'Shop Custom 1',
+    name: 'Shop Custom 1',
+    basePrice: 2500000,
+    surcharges: {
+      colorChange: 30000,
+      imageApplication: 50000,
+      componentRates: {
+        Base: 1.0,
+        Heel: 1.2,
+        Lace: 0.8,
+        OutSode: 1.5,
+        MidSole: 1.3,
+        Tip: 0.9,
+        Accent: 1.1,
+        Logo: 2.0,
+        Details: 0.7
+      }
+    },
+    modelPath: '/Adidasrunningshoes.glb'
+  },
+  {
+    id: 'Shop Custom 2',
+    name: 'Shop Custom 2',
+    basePrice: 2800000,
+    surcharges: {
+      colorChange: 35000,
+      imageApplication: 60000,
+      componentRates: {
+        Base: 1.2,
+        Heel: 1.5,
+        Lace: 0.9,
+        OutSode: 1.8,
+        MidSole: 1.5,
+        Tip: 1.0,
+        Accent: 1.3,
+        Logo: 2.5,
+        Details: 0.8
+      }
+    },
+    modelPath: '/Adidasrunningshoes.glb'
+  },
+  {
+    id: 'Shop Custom 3',
+    name: 'Shop Custom 3',
+    basePrice: 1800000,
+    surcharges: {
+      colorChange: 25000,
+      imageApplication: 40000,
+      componentRates: {
+        Base: 0.9,
+        Heel: 1.0,
+        Lace: 0.7,
+        OutSode: 1.2,
+        MidSole: 1.0,
+        Tip: 0.8,
+        Accent: 0.9,
+        Logo: 1.8,
+        Details: 0.6
+      }
+    },
+    modelPath: '/Adidasrunningshoes.glb'
+  }
+])
 </script>
 
 <style scoped>
@@ -1025,6 +1140,33 @@ h1 {
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
   outline: none;
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  text-align: center;
+  white-space: nowrap;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-left: none;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 
 .product-modal-actions {
