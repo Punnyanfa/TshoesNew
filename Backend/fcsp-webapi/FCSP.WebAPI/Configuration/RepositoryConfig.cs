@@ -19,6 +19,7 @@ internal static class RepositoryConfig
         
         // User repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserOtpRepository, UserOtpRepository>();
         
         // Social (Posts & Comments) repositories
         services.AddScoped<IPostRepository, PostRepository>();
@@ -46,7 +47,6 @@ internal static class RepositoryConfig
         
         // Service & Manufacturer repositories
         services.AddScoped<IServiceRepository, ServiceRepository>();
-        services.AddScoped<ISetServiceAmountRepository, SetServiceAmountRepository>();
         services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
         
         // Texture & Rating repositories

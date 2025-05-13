@@ -159,3 +159,27 @@ public class UpdateUserRoleResponse
     public bool Success { get; set; }
     public UserRole NewRole { get; set; }
 }
+
+public class SendEmailRequest
+{
+    public long UserId { get; set; }
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public bool IsHtml { get; set; } = false;
+} 
+
+public class SendEmailResponse
+{
+    public bool Success { get; set; }
+}
+
+public class ForgetUserPasswordRequest
+{
+    public long Id { get; set; }
+    public string Password { get; set; } = string.Empty;
+}
+
+public class ForgetUserPasswordResponse
+{
+    public bool Success { get; set; }
+}

@@ -114,9 +114,7 @@ namespace FCSP.Services.PaymentService
             try
             {
                 var payment = GetEntityFromAddRequest(request);
-
                 await _paymentRepository.AddAsync(payment);
-
                 if (request.PaymentMethod == PaymentMethod.PayOS)
                 {
                     var response = await GetPayOSUrl(payment);

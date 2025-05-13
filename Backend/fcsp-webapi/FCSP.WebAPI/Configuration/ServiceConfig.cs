@@ -4,7 +4,6 @@ using FCSP.Services.Auth.Token;
 using FCSP.Services.CustomShoeDesignService;
 using FCSP.Services.CustomShoeDesignTextureService;
 using FCSP.Services.DesignPreviewService;
-using FCSP.Services.DesignServiceService;
 using FCSP.Services.OrderDetailService;
 using FCSP.Services.OrderService;
 using FCSP.Services.PaymentService;
@@ -51,6 +50,7 @@ internal static class ServiceConfig
         // Authentication services
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IPasswordHashingService, PasswordHashingService>();
+        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ITokenService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
@@ -67,7 +67,6 @@ internal static class ServiceConfig
         services.AddScoped<ICustomShoeDesignTextureService, CustomShoeDesignTextureService>();
         services.AddScoped<ITemplateService, TemplateService>();
         services.AddScoped<IDesignPreviewService, DesignPreviewService>();
-        services.AddScoped<IDesignServiceService, DesignServiceService>();
         services.AddScoped<IReturnedCustomShoeService, ReturnedCustomShoeService>();
 
         // Order & Payment services

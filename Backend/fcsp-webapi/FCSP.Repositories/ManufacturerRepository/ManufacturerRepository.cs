@@ -17,7 +17,6 @@ namespace FCSP.Repositories.Implementations
             return await Entities
                 .Where(m => m.UserId == userId)
                 .Include(m => m.Services)
-                .ThenInclude(s => s.SetServiceAmounts)
                 .FirstOrDefaultAsync();
         }
 
@@ -26,7 +25,6 @@ namespace FCSP.Repositories.Implementations
             return await Entities
                 .Where(m => m.Status == (ManufacturerStatus)status)
                 .Include(m => m.Services)
-                .ThenInclude(s => s.SetServiceAmounts)
                 .ToListAsync();
         }
 
@@ -34,14 +32,13 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities               
                 .Include(m => m.Services)
-                .ThenInclude(s => s.SetServiceAmounts)
+                .Include(m => m.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
         public async Task<List<Manufacturer>> GetAllWithDetailsAsync()
         {
             return await _context.Manufacturers
                 .Include(m => m.Services)
-                .ThenInclude(s => s.SetServiceAmounts)
                 .ToListAsync();
         }
     }

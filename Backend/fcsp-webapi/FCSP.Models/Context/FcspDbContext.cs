@@ -40,11 +40,11 @@ public class FcspDbContext : DbContext
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<Rating> Ratings { get; set; }
     public DbSet<Manufacturer> Manufacturers { get; set; }
-    public DbSet<SetServiceAmount> SetServiceAmounts { get; set; }
     public DbSet<Designer> Designers { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<ReturnedCustomShoe> ReturnedCustomShoes { get; set; }
     public DbSet<Size> Sizes { get; set; }
+    public DbSet<UserOtp> UserOtps { get; set; }
     #endregion
 
     #region Private Methods
@@ -55,7 +55,7 @@ public class FcspDbContext : DbContext
             .AddJsonFile($"appsettings.json", false)
             .Build();
 
-        return config.GetConnectionString("FCSP_DB_SOMEE");
+        return config.GetConnectionString("FCSP_DB");
     }
 
     private static void ConfigureModel(ModelBuilder modelBuilder)

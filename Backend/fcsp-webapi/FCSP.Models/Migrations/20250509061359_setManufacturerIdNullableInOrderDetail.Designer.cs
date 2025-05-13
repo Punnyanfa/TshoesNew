@@ -4,6 +4,7 @@ using FCSP.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCSP.Models.Migrations
 {
     [DbContext(typeof(FcspDbContext))]
-    partial class FcspDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250509061359_setManufacturerIdNullableInOrderDetail")]
+    partial class setManufacturerIdNullableInOrderDetail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -650,16 +653,17 @@ namespace FCSP.Models.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<long>("ManufacturerId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -671,6 +675,45 @@ namespace FCSP.Models.Migrations
                     b.HasIndex("ManufacturerId");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("FCSP.Models.Entities.SetServiceAmount", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("SetServiceAmounts");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>
@@ -890,47 +933,6 @@ namespace FCSP.Models.Migrations
                         .HasFilter("[DefaultAddressId] IS NOT NULL");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.UserOtp", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ExpiryTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OtpCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PurposeType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserOtps");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Voucher", b =>
@@ -1232,6 +1234,17 @@ namespace FCSP.Models.Migrations
                     b.Navigation("Manufacturer");
                 });
 
+            modelBuilder.Entity("FCSP.Models.Entities.SetServiceAmount", b =>
+                {
+                    b.HasOne("FCSP.Models.Entities.Service", "Service")
+                        .WithMany("SetServiceAmounts")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>
                 {
                     b.HasOne("FCSP.Models.Entities.User", "User")
@@ -1289,17 +1302,6 @@ namespace FCSP.Models.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DefaultAddress");
-                });
-
-            modelBuilder.Entity("FCSP.Models.Entities.UserOtp", b =>
-                {
-                    b.HasOne("FCSP.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.Cart", b =>
@@ -1361,6 +1363,8 @@ namespace FCSP.Models.Migrations
             modelBuilder.Entity("FCSP.Models.Entities.Service", b =>
                 {
                     b.Navigation("DesignServices");
+
+                    b.Navigation("SetServiceAmounts");
                 });
 
             modelBuilder.Entity("FCSP.Models.Entities.ShippingInfo", b =>

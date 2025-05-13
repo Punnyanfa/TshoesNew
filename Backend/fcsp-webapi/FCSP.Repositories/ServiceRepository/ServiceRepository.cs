@@ -16,7 +16,6 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Where(s => s.ManufacturerId == manufacturerId && !s.IsDeleted)
-                .Include(s => s.SetServiceAmounts)
                 .ToListAsync();
         }
 
@@ -25,14 +24,12 @@ namespace FCSP.Repositories.Implementations
             return await Entities
                 .Where(s => !s.IsDeleted && s.Manufacturer.Status == ManufacturerStatus.Active)
                 .Include(s => s.Manufacturer)
-                .Include(s => s.SetServiceAmounts)
                 .ToListAsync();
         }
 
         public async Task<Service> GetServiceWithDetailsAsync(long id)
         {
             return await Entities
-                .Include(s => s.SetServiceAmounts)
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
     }
