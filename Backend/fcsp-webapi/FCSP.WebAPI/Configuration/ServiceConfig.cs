@@ -24,6 +24,7 @@ using FCSP.Services.SizeService;
 using FCSP.Services;
 using FCSP.Services.ManufacturerService;
 using FCSP.Services.CartService;
+using FCSP.Repositories.Interfaces;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
