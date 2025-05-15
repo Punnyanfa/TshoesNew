@@ -8,11 +8,13 @@
       <div class="row mb-6 intro-section">
         <div class="col-12">
           <div class="intro-content text-center">
-            <h2 class="intro-title blog-title-main">Custom Shoe 3D News & Articles</h2>
-            <p class="intro-text blog-archive">Tổng hợp tin tức & bài viết về giày tuỳ chỉnh 3D</p>
+            <h2 class="intro-title blog-title-main">Custom 3D Shoe News & Articles</h2>
+            <p class="intro-text blog-archive">A collection of news and stories about personalized 3D shoes</p>
           </div>
         </div>
       </div>
+
+      <!-- Blog Grid -->
       <div class="blog-grid">
         <div class="blog-card" v-for="(post, idx) in posts" :key="idx">
           <div class="blog-img-wrapper">
@@ -40,57 +42,57 @@ import Footer from '~/components/Footer.vue';
 const posts = [
   {
     image: "https://i.pinimg.com/736x/a9/6c/e1/a96ce1906ae0c00b82e514db4b612379.jpg",
-    label: "HƯỚNG DẪN",
+    label: "GUIDE",
     labelColor: "blue",
-    title: "Cách thiết kế giày 3D tuỳ chỉnh cho riêng bạn",
-    desc: "Khám phá quy trình tạo ra đôi giày 3D cá nhân hoá từ ý tưởng đến sản phẩm thực tế.",
-    date: "4 Tháng 2, 2023",
-    comments: "0 bình luận"
+    title: "How to Design Your Own Custom 3D Shoes",
+    desc: "Discover the process of creating personalized 3D shoes from concept to final product.",
+    date: "February 4, 2023",
+    comments: "142 comments"
   },
   {
     image: "https://i.pinimg.com/736x/33/76/f1/3376f184c88c94ccd759df1f36e2a8a7.jpg",
-    label: "CÔNG NGHỆ",
+    label: "TECHNOLOGY",
     labelColor: "green",
-    title: "Ứng dụng AI trong thiết kế giày 3D tuỳ chỉnh",
-    desc: "Tìm hiểu cách AI giúp cá nhân hoá từng đôi giày theo phong cách và kích thước của bạn.",
-    date: "4 Tháng 2, 2023",
-    comments: "0 bình luận"
+    title: "Applying AI in Custom 3D Shoe Design",
+    desc: "Learn how AI helps personalize every pair of shoes to fit your style and size.",
+    date: "February 4, 2023",
+    comments: "65 comments"
   },
   {
     image: "https://i.pinimg.com/736x/49/b3/7b/49b37b386d4eff750f3232fe9c391fbe.jpg",
-    label: "XU HƯỚNG",
+    label: "TRENDS",
     labelColor: "orange",
-    title: "Xu hướng giày 3D tuỳ chỉnh năm 2024",
-    desc: "Những mẫu giày 3D cá nhân hoá nổi bật và xu hướng thiết kế mới nhất trên thế giới.",
-    date: "4 Tháng 2, 2023",
-    comments: "0 bình luận"
+    title: "Custom 3D Shoe Trends for 2024",
+    desc: "Highlighting standout personalized 3D shoe models and the latest design trends worldwide.",
+    date: "February 4, 2023",
+    comments: "84 comments"
   },
   {
     image: "https://i.pinimg.com/736x/d7/4d/ca/d74dcaf34ee2446f2c49a28e0c6bdae3.jpg",
-    label: "SO SÁNH",
+    label: "COMPARISON",
     labelColor: "purple",
-    title: "So sánh các nền tảng thiết kế giày 3D online",
-    desc: "Đánh giá ưu nhược điểm của các công cụ thiết kế giày 3D phổ biến hiện nay.",
-    date: "4 Tháng 2, 2023",
-    comments: "0 bình luận"
+    title: "Comparing Popular Online 3D Shoe Design Platforms",
+    desc: "Reviewing the pros and cons of widely used 3D shoe design tools available today.",
+    date: "February 4, 2023",
+    comments: "29 comments"
   },
   {
     image: "https://i.pinimg.com/736x/38/2b/ac/382bac18bfbd2e6a3dc07353a53a3ad8.jpg",
-    label: "THỰC TẾ",
+    label: "REAL EXPERIENCE",
     labelColor: "teal",
-    title: "Trải nghiệm thực tế: Đặt giày 3D tuỳ chỉnh online",
-    desc: "Chia sẻ trải nghiệm đặt và nhận đôi giày 3D cá nhân hoá đầu tiên.",
-    date: "4 Tháng 2, 2023",
-    comments: "0 bình luận"
+    title: "Real Experience: Ordering Custom 3D Shoes Online",
+    desc: "Sharing the firsthand experience of ordering and receiving personalized 3D shoes.",
+    date: "February 4, 2023",
+    comments: "189 comments"
   },
   {
     image: "https://i.pinimg.com/736x/de/10/54/de1054b729278c8fc75099f4e27d12c8.jpg",
-    label: "ĐÁNH GIÁ",
+    label: "REVIEWS",
     labelColor: "purple",
-    title: "Top 5 xưởng sản xuất giày 3D tuỳ chỉnh uy tín",
-    desc: "Danh sách các xưởng/cửa hàng giày 3D tuỳ chỉnh chất lượng, được đánh giá cao.",
-    date: "4 Tháng 2, 2023",
-    comments: "0 bình luận"
+    title: "Top 5 Trusted Custom 3D Shoe Manufacturers",
+    desc: "A list of reputable custom 3D shoe workshops and stores highly rated by customers.",
+    date: "February 4, 2023",
+    comments: "69 comments"
   }
 ];
 </script>
@@ -245,9 +247,6 @@ const posts = [
 @media (max-width: 700px) {
   .blog-grid {
     grid-template-columns: 1fr;
-  }
-  .blog-header-bg {
-    height: 120px;
   }
   .blog-title-main {
     font-size: 1.5rem;

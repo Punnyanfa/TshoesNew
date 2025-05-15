@@ -28,21 +28,21 @@
           <div v-else>
             <div class="row g-4">
               <div v-for="product in paginatedProducts" :key="product.id" class="col-md-4">
-                <div class="card sneaker-card h-100 shadow-lg rounded overflow-hidden">
+                <div 
+                  class="card sneaker-card h-100 shadow-lg rounded overflow-hidden clickable-card"
+                  @click="goToDetailPage(product.id)"
+                >
                   <div class="position-relative">
                     <img
                       :src="product.previewImageUrl"
                       :alt="product.name"
                       class="card-img-top sneaker-img"
                       loading="lazy"
-                      @click="goToDetailPage(product.id)"
                     />
-                    <span class="custom-badge">Customizable</span>
                   </div>
                   <div class="card-body d-flex flex-column">
                     <h5
                       class="card-title text-dark fw-bold"
-                      @click="goToDetailPage(product.id)"
                       style="cursor: pointer"
                     >
                       {{ product.name }}
@@ -62,7 +62,7 @@
                     <h5 class="text-sneaker-blue mb-3">${{ formatPrice(product.price) }}</h5>
                     <button
                       class="btn btn-sneaker w-100 py-3 fw-bold text-uppercase"
-                      @click="goToDetailPage(product.id)"
+                      @click.stop="goToDetailPage(product.id)"
                       aria-label="View product details"
                     >
                       View Details
@@ -276,7 +276,11 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.sneaker-card:hover {
+.clickable-card {
+  cursor: pointer;
+}
+
+.clickable-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
 }
@@ -290,18 +294,6 @@ onMounted(async () => {
 
 .sneaker-img:hover {
   transform: scale(1.05);
-}
-
-.custom-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
 }
 
 /* Rating Styles */
@@ -571,11 +563,6 @@ onMounted(async () => {
 @media (max-width: 576px) {
   .sneaker-img {
     height: 160px;
-  }
-  
-  .custom-badge {
-    font-size: 0.8rem;
-    padding: 4px 8px;
   }
 
   .newsletter-section {

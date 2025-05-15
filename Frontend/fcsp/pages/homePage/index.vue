@@ -78,39 +78,39 @@
     <!-- How It Works Section -->
     <section class="how-it-works-section py-5 bg-light">
       <div class="container">
-        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Cách Chúng Tôi Hoạt Động</h2>
+        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">How It Works</h2>
         <div class="row align-items-center">
-          <!-- Text bên trái -->
+          <!-- Text on the left -->
           <div class="col-md-6 text-start">
             <h1 class="display-3 fw-bold text-new-arrivals mb-3">
-              Thiết Kế Của Riêng Bạn
+              Design Your Own
             </h1>
             <p class="lead text-muted mb-4">
-              Khám phá quy trình thiết kế giày tùy chỉnh của chúng tôi. Từ ý tưởng ban đầu đến sản phẩm hoàn chỉnh, chúng tôi sẽ đồng hành cùng bạn trong mọi bước của hành trình sáng tạo.
+              Discover our custom shoe design process. From your first idea to the final product, we’ll be with you every step of the creative journey.
             </p>
             <div class="steps-list">
               <div class="step-item mb-3">
                 <i class="bi bi-1-circle-fill text-sneaker-orange me-2"></i>
-                <span>Chọn mẫu giày cơ bản</span>
+                <span>Select a base shoe model</span>
               </div>
               <div class="step-item mb-3">
                 <i class="bi bi-2-circle-fill text-sneaker-orange me-2"></i>
-                <span>Tùy chỉnh màu sắc và chất liệu</span>
+                <span>Customize colors and materials</span>
               </div>
               <div class="step-item mb-3">
                 <i class="bi bi-3-circle-fill text-sneaker-orange me-2"></i>
-                <span>Thêm hình ảnh và chi tiết</span>
+                <span>Add graphics and personal details</span>
               </div>
               <div class="step-item">
                 <i class="bi bi-4-circle-fill text-sneaker-orange me-2"></i>
-                <span>Xem trước và đặt hàng</span>
+                <span>Preview and place your order</span>
               </div>
             </div>
             <NuxtLink to="/customPage" class="btn btn-view-purchase fw-bold mt-4">
-              Bắt Đầu Thiết Kế
+              Start Designing
             </NuxtLink>
           </div>
-          <!-- Ảnh minh họa bên phải -->
+          <!-- Image on the right -->
           <div class="col-md-6 text-center">
             <img src="https://i.pinimg.com/736x/1a/9b/31/1a9b3156a00590fa03ac2220850640ca.jpg" alt="Custom Shoe Design Process" class="img-fluid hero-shoe-img" />
           </div>
@@ -169,7 +169,6 @@
                 class="color-dot"
               ></span>
             </div>
-            <NuxtLink :to="bestSeller.link" class="btn btn-best-seller-buy">Buy Now</NuxtLink>
           </div>
         </div>
       </div>
@@ -178,7 +177,7 @@
     <!-- Testimonials Section -->
     <section class="testimonials-section py-5 bg-light">
       <div class="container">
-        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Khách Hàng Nói Gì Về Chúng Tôi</h2>
+        <h2 class="text-center fw-bold mb-5 text-sneaker-orange">What Our Customers Say</h2>
         <div class="row g-4">
           <div class="col-md-4" v-for="(item, idx) in testimonials" :key="idx">
             <div class="testimonial-box p-4 rounded">
@@ -193,9 +192,10 @@
       </div>
     </section>
 
+
     <!-- Readmore Section -->
     <section class="readmore-section container py-5">
-      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Câu Truyện Về Giày</h2>
+      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">The Story Behind the Shoes</h2>
       <div class="row g-4">
         <div class="col-md-6" v-for="article in readmoreArticles" :key="article.id">
           <div class="readmore-card d-flex">
@@ -209,17 +209,17 @@
       </div>
     </section>
 
+
     <!-- Call to Action Section -->
     <section class="cta-section text-center py-5">
       <div class="container">
-        <h2 class="fw-bold" style="color: #007bff;">Sẵn sàng nâng tầm phong cách của bạn?</h2>
-        <p class="mt-3" style="color: #000000;">Tham gia cùng hàng ngàn tín đồ sneakers đã biến ý tưởng thành đôi giày độc nhất của riêng mình.</p>
+        <h2 class="fw-bold" style="color: #007bff;">Ready to Elevate Your Style?</h2>
+        <p class="mt-3" style="color: #000000;">Join thousands of sneaker enthusiasts who’ve turned their ideas into one-of-a-kind custom shoes.</p>
         <NuxtLink to="/customPage" class="btn btn-sneaker px-5 py-3 mt-4 fw-bold text-uppercase">
-          Bắt đầu thiết kế
+          Start Designing
         </NuxtLink>
       </div>
     </section>
-
 
     <!-- Footer Component -->
     <Footer />
@@ -282,14 +282,14 @@ const navigateToProduct = (productId) => {
 // Slider cho Hero Section
 const heroSlides = [
   {
-    title: 'Thiết Kế Mới Nhất',
-    description: 'Trải nghiệm tương lai của giày dép với giày tùy chỉnh 3D. Thiết kế phong cách độc đáo của riêng bạn, chọn màu sắc, họa tiết và chi tiết phù hợp với cá tính của bạn. Với hình ảnh 3D tiên tiến, bạn có thể xem trước sáng tạo của mình theo thời gian thực trước khi thực hiện. Nổi bật, bước lên và đi trên đôi giày thực sự của bạn.',
+    title: 'Latest Designs',
+    description: 'Step into the future of footwear with 3D custom shoes. Create your own unique style by choosing colors, patterns, and details that match your personality. With advanced 3D previews, you can see your creation in real time before making it a reality. Stand out, step up, and walk in your truly one-of-a-kind shoes.',
     image: 'https://i.pinimg.com/736x/5a/3f/f9/5a3ff9bc476206eef0a072cfe24544c8.jpg',
     link: '/collection'
   },
   {
-    title: 'Hot Trend 2025',
-    description: 'Khám phá những mẫu giày custom hot nhất năm 2025, phong cách trẻ trung, năng động và cá tính.',
+    title: '2025 Hot Trends',
+    description: 'Discover the hottest custom shoe styles of 2025 — youthful, dynamic, and full of personality.',
     image: 'https://i.pinimg.com/736x/75/e0/8d/75e08dc38be9e3e97ddf2c71a940de81.jpg',
     link: '/collection'
   }
@@ -365,25 +365,25 @@ const featuredDesigns = [
   {
     image: 'https://i.pinimg.com/736x/04/57/9e/04579e0fb83da096f0e0fbad5f4fcfa7.jpg',
     dateDay: '22',
-    dateMonth: 'Th3',
-    title: 'Giảm 20% cho giày Nike Air tùy chỉnh',
-    desc: 'Tạo phong cách riêng với mẫu giày Nike Air được cá nhân hóa theo ý bạn bằng công nghệ 3D hiện đại.',
+    dateMonth: 'Mar',
+    title: '20% Off Custom Nike Air Shoes',
+    desc: 'Create your own signature look with personalized Nike Air shoes, crafted using cutting-edge 3D customization technology.',
     link: '/blog/1'
   },
   {
     image: 'https://i.pinimg.com/736x/de/a2/24/dea224f643ddb837ca7c9584df346ce2.jpg',
     dateDay: '10',
-    dateMonth: 'Th4',
-    title: 'Trải nghiệm thiết kế giày thể thao độc quyền',
-    desc: 'Khám phá mẫu giày thể thao Nike được thiết kế 3D, nơi bạn là nhà sáng tạo cho đôi giày của chính mình.',
+    dateMonth: 'Apr',
+    title: 'Exclusive Sneaker Design Experience',
+    desc: 'Explore custom-designed Nike sneakers in 3D, where you become the creator of your very own pair.',
     link: '/blog/2'
   },
   {
     image: 'https://i.pinimg.com/736x/66/e0/4a/66e04a329510d77f65bc12c7e6efabd9.jpg',
     dateDay: '11',
-    dateMonth: 'Th5',
-    title: 'Top 20 mẫu giày chạy bộ tùy chỉnh hot nhất',
-    desc: 'Danh sách những mẫu giày chạy bộ được yêu thích nhất với khả năng tùy chỉnh toàn diện từ màu sắc đến kiểu dáng.',
+    dateMonth: 'May',
+    title: 'Top 20 Hottest Custom Running Shoes',
+    desc: 'Check out the most popular custom running shoes with full personalization options—from color to style.',
     link: '/blog/3'
   }
 ]
@@ -392,9 +392,8 @@ const bestSeller = {
   name: 'Air Force 1 Custom',
   image: 'https://i.pinimg.com/736x/07/21/53/0721530efeb6ae4f880178a49a4a237e.jpg',
   rating: 5,
-  desc: 'Air Force 1 phiên bản tùy chỉnh mang đến sự độc đáo và cá tính riêng biệt. Tự tay lựa chọn màu sắc, chất liệu và họa tiết theo phong cách của bạn với công nghệ 3D tiên tiến.',
+  desc: 'The custom Air Force 1 brings a bold, personal touch to a classic icon. Choose your own colors, materials, and patterns to match your style using advanced 3D design technology.',
   colors: ['#bdbba7', '#c2b8a3', '#b6b6c7', '#aeb8c6'],
-  link: '/productPage/1'
 }
 
 const readmoreArticles = [
