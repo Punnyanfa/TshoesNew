@@ -16,7 +16,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         return await Entities
                         .Include(u => u.Designers)
                         .Include(u => u.Manufacturers)
-                        .FirstOrDefaultAsync(u => u.Email == email && (!u.IsDeleted || !u.IsBanned));
+                        .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
     }
 
     public async Task<User> GetEmailByUserIdAsync(long userId)
