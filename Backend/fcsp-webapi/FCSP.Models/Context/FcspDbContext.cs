@@ -55,7 +55,7 @@ public class FcspDbContext : DbContext
             .AddJsonFile($"appsettings.json", false)
             .Build();
 
-        return config.GetConnectionString("FCSP_DB");
+        return config.GetConnectionString("FCSP_DB_SOMEE");
     }
 
     private static void ConfigureModel(ModelBuilder modelBuilder)

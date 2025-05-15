@@ -3,6 +3,7 @@ using FCSP.WebAPI.Configuration;
 using Microsoft.AspNetCore.Builder;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Azure;
+using FCSP.Services.PaymentService;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
@@ -19,6 +20,7 @@ var services = builder.Services;
 
 services.AddControllers();
 builder.Services.AddHostedService<VoucherExpirationService>();
+builder.Services.AddHostedService<DesignerManufacturerPaymentService>();
 builder.Services.AddLogging(logging => logging.AddConsole());
 services.AddHttpClient();
 services.AddEndpointsApiExplorer();

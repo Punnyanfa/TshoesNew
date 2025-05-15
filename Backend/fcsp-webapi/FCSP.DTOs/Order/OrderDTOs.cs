@@ -108,6 +108,9 @@ namespace FCSP.DTOs.Order
         public long CustomShoeDesignId { get; set; }
         public int Quantity { get; set; }
         public int UnitPrice { get; set; }
+        public int TemplatePrice { get; set; }
+        public int ServicePrice { get; set; }
+        public int DesignerMarkup { get; set; }
         public long SizeValue { get; set; }
     }
 

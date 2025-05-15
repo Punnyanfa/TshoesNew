@@ -151,6 +151,10 @@ namespace FCSP.Services.PaymentService
                 return new BaseResponseModel<AddPaymentResponse>
                 {
                     Code = 500,
+                    Data = new AddPaymentResponse
+                    {
+                        Response = string.Empty
+                    },
                     Message = $"Error creating payment: {ex.Message}"
                 };
             }

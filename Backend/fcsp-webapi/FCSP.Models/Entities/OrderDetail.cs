@@ -20,7 +20,14 @@ public class OrderDetail : BaseEntity
 
     public int Quantity { get; set; }
 
-    public int Price { get; set; }
+    public int TotalPrice { get; set; }
+
+    // Template and service price details
+    public int TemplatePrice { get; set; }
+    
+    public int ServicePrice { get; set; }
+    
+    public int DesignerMarkup { get; set; }
 
     // Navigation properties
     public virtual ICollection<Transaction> Transactions { get; } = [];

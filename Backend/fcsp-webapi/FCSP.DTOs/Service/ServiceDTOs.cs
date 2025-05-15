@@ -37,20 +37,18 @@ namespace FCSP.DTOs.Service
 
     public class UpdateServiceRequest
     {
+        public IEnumerable<UpdateServices> UpdateServices { get; set; }
+    }
+
+    public class UpdateServices
+    {
         public long Id { get; set; }
-        public string Component { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
         public int Price { get; set; } 
     }
 
     public class UpdateServiceResponse
     {
-        public long Id { get; set; }
-        public string Component { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public int Price { get; set; } 
-        public long ManufacturerId { get; set; }
-        public bool IsDeleted { get; set; }
+        public bool Success { get; set; }
     }
 
     public class DeleteServiceRequest

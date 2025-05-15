@@ -13,7 +13,10 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     public async Task<User> GetByEmailAsync(string email)
     {
-        return await Entities.FirstOrDefaultAsync(u => u.Email == email && (!u.IsDeleted || !u.IsBanned));
+        return await Entities
+                        .Include(u => u.Designers)
+                        .Include(u => u.Manufacturers)
+                        .FirstOrDefaultAsync(u => u.Email == email && (!u.IsDeleted || !u.IsBanned));
     }
 
     public async Task<User> GetEmailByUserIdAsync(long userId)

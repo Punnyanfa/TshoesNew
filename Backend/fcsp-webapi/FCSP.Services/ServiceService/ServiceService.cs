@@ -196,37 +196,48 @@ namespace FCSP.Services.ServiceService
         {
             try
             {
-                var service = await _serviceRepository.GetServiceWithDetailsAsync(request.Id);
-                if (service == null)
+                if (request.UpdateServices == null || !request.UpdateServices.Any())
                 {
                     return new BaseResponseModel<UpdateServiceResponse>
                     {
-                        Code = 404,
-                        Message = "Service not found",
-                        Data = null
+                        Code = 400,
+                        Message = "No services to update",
+                        Data = new UpdateServiceResponse
+                        {
+                            Success = false
+                        }
                     };
                 }
 
-                service.Component = request.Component ?? service.Component;
-                service.Type = request.Type ?? service.Type;
-                if (request.Price > 0)
+                var updatedServices = new List<Service>();
+                
+                foreach (var serviceUpdate in request.UpdateServices)
                 {
-                    service.Price = request.Price;
+                    var service = await _serviceRepository.GetServiceWithDetailsAsync(serviceUpdate.Id);
+                    if (service == null)
+                    {
+                        return new BaseResponseModel<UpdateServiceResponse>
+                        {
+                            Code = 404,
+                            Message = $"Service with ID {serviceUpdate.Id} not found",
+                            Data = new UpdateServiceResponse
+                            {
+                                Success = false
+                            }
+                        };
+                    }
+                    service.Price = serviceUpdate.Price;
+                    await _serviceRepository.UpdateAsync(service);
+                    updatedServices.Add(service);
                 }
 
-                await _serviceRepository.UpdateAsync(service);
                 return new BaseResponseModel<UpdateServiceResponse>
                 {
                     Code = 200,
                     Message = "Success",
                     Data = new UpdateServiceResponse
                     {
-                        Id = service.Id,
-                        Component = service.Component,
-                        Type = service.Type,
-                        Price = service.Price,
-                        ManufacturerId = service.ManufacturerId,
-                        IsDeleted = service.IsDeleted
+                        Success = true
                     }
                 };
             }
@@ -236,7 +247,10 @@ namespace FCSP.Services.ServiceService
                 {
                     Code = 500,
                     Message = ex.Message,
-                    Data = null
+                    Data = new UpdateServiceResponse
+                    {
+                        Success = false
+                    }
                 };
             }
         }
