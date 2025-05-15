@@ -496,6 +496,7 @@ import { useRoute, useRouter } from 'vue-router'
 import aiService from '@/server/ai-service'
 import { getTemplateById } from '~/server/custom-service'
 import { useCart } from '~/composables/useCart'
+import { CustomShoeDesign } from '~/server/designUp-service'
 
 // Container reference và state
 const container = ref(null)
@@ -1202,11 +1203,13 @@ const saveAsDraft = () => {
   const productData = {
     id: Date.now(),
     name: customProductName.value || 'Custom Running Shoes (Nháp)',
+    templateId: route.params.id,
     manufacturerId: selectedManufacturer.value,
-    price: basePrice.value, // Giá cố định
+    price: basePrice.value,
     surcharge: surcharge.value,
     size: selectedSize.value,
     image: captureAngles[1].preview,
+    TextureIds:"1",
     designData: {
       colors: {},
       textures: {},
@@ -1239,22 +1242,30 @@ const saveAsDraft = () => {
       }
     })
   }
-  
-  let drafts = []
-  const savedDrafts = localStorage.getItem('designDrafts')
-  if (savedDrafts) {
-    drafts = JSON.parse(savedDrafts)
-  }
-  
-  drafts.push(productData)
-  localStorage.setItem('designDrafts', JSON.stringify(drafts))
-  
-  const totalPrice = basePrice.value + surcharge.value // Giá cố định + phụ phí
-  const formattedTotalPrice = formatPrice(totalPrice)
-  const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : ''
-  
-  alert(`Thiết kế đã được lưu vào bản nháp!\nGiá gốc: ${formatPrice(basePrice.value)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}\nSize: ${selectedSize.value}`)
-  window.location.href = '/mycustomPage'
+
+  // Gửi dữ liệu dưới dạng JSON
+  const designDataObj = {
+    colors: productData.designData.colors,
+    textures: productData.designData.textures,
+    imagesData: productData.designData.imagesData,
+    customText: productData.designData.customText,
+    textureParams: productData.designData.textureParams,
+    timestamp: productData.designData.timestamp,
+    manufacturerId: productData.designData.manufacturerId
+    // ... các trường khác nếu cần
+  };
+  const jsonString = JSON.stringify(designDataObj);
+  const designDataFile = new File([jsonString], "designData.json", { type: "application/json" });
+
+  CustomShoeDesign(productData)
+    .then(response => {
+      console.log('Lưu nháp thành công:', response)
+      alert('Đã lưu nháp thành công!')
+    })
+    .catch(error => {
+      console.error('Lỗi khi lưu nháp:', error)
+      alert('Có lỗi xảy ra khi lưu nháp. Vui lòng thử lại.')
+    })
 }
 
 // Updated Three.js initialization

@@ -118,7 +118,7 @@
 </template>
 
 <script>
-import { getAllVouchers, postVoucher, deleteVoucher } from '@/server/ManageVoucher-service';
+import { getAllVouchers, postVoucher, deleteVoucher } from '~/server/ManageVoucher-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 
 export default {

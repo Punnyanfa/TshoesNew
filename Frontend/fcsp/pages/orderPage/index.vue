@@ -176,7 +176,7 @@
   import Header from '@/components/Header.vue';
   import Footer from '@/components/Footer.vue';
   import { useRouter } from 'vue-router';
-  import { getAllVouchers } from '@/server/ManageVoucher-service';
+  import { getAllVouchers } from '~/server/ManageVoucher-service';
   import { postOrder } from '@/server/order-service';
   import { getSizeValueById, getSizeIdByValue } from '@/server/size-service';
   const order = ref(null);

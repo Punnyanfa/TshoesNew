@@ -41,155 +41,8 @@
             </div>
           </div>
 
-          <!-- Services Section -->
-          <div class="card">
-            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-              <h4 class="mb-0">My Services</h4>
-              <button class="btn btn-light" @click="showAddServiceModal">
-                <i class="bi bi-plus-lg"></i> Add New Service
-              </button>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                  <thead>
-                    <tr>
-                      <th>Service Name</th>
-                      <th>Description</th>
-                      <th>Price</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="service in services" :key="service.id">
-                      <td>{{ service.name }}</td>
-                      <td>{{ service.description }}</td>
-                      <td>{{ formatCurrency(service.price) }}</td>
-                      <td>
-                        <span 
-                          :class="{
-                            'badge bg-success': service.status === 1,
-                            'badge bg-danger': service.status === 0
-                          }"
-                        >
-                          {{ getStatusText(service.status) }}
-                        </span>
-                      </td>
-                      <td>
-                        <button class="btn btn-sm btn-info me-1" @click="editService(service)">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" @click="deleteService(service.id)">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr v-if="services.length === 0">
-                      <td colspan="5" class="text-center">No services found</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Add/Edit Service Modal -->
-          <div v-if="showServiceModal" class="modal-overlay">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header" :class="isEditing ? 'bg-info' : 'bg-success'">
-                  <h5 class="modal-title text-white">{{ isEditing ? 'Edit Service' : 'Add New Service' }}</h5>
-                  <button type="button" class="btn-close btn-close-white" @click="hideServiceModal"></button>
-                </div>
-                <div class="modal-body">
-                  <form @submit.prevent="saveService">
-                    <div class="form-group mb-3">
-                      <label for="serviceName">Service Name</label>
-                      <input 
-                        type="text" 
-                        class="form-control" 
-                        id="serviceName" 
-                        v-model="currentService.name"
-                        placeholder="Enter service name"
-                        required
-                      >
-                    </div>
-                    <div class="form-group mb-3">
-                      <label for="serviceDescription">Description</label>
-                      <textarea 
-                        class="form-control" 
-                        id="serviceDescription" 
-                        v-model="currentService.description"
-                        placeholder="Enter service description"
-                        rows="2"
-                      ></textarea>
-                    </div>
-                    <div class="form-group mb-3">
-                      <label for="servicePrice">Price (VND)</label>
-                      <input 
-                        type="number" 
-                        class="form-control" 
-                        id="servicePrice" 
-                        v-model="currentService.price"
-                        placeholder="Enter price"
-                        required
-                      >
-                    </div>
-                    <div class="form-group mb-3">
-                      <label for="serviceStatus">Status</label>
-                      <select 
-                        class="form-select" 
-                        id="serviceStatus" 
-                        v-model="currentService.status"
-                        required
-                      >
-                        <option value="1">Active</option>
-                        <option value="0">Inactive</option>
-                      </select>
-                    </div>
-
-                    <!-- Custom Fees Table -->
-                    <div class="form-group mb-3">
-                      <label>Bảng phụ phí tùy chỉnh</label>
-                      <div class="table-responsive">
-                        <table class="table table-bordered text-center align-middle">
-                          <thead class="table-primary">
-                            <tr>
-                              <th>Thành phần</th>
-                              <th>Phụ phí màu sắc (₫)</th>
-                              <th>Phụ phí hình ảnh (₫)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr v-for="(fee, idx) in currentService.customFees" :key="fee.part">
-                              <td>{{ fee.part }}</td>
-                              <td>
-                                <input type="number" min="0" class="form-control text-end" v-model.number="fee.colorFee" placeholder="0" />
-                              </td>
-                              <td>
-                                <input type="number" min="0" class="form-control text-end" v-model.number="fee.imageFee" placeholder="0" />
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                      <div class="alert alert-info mt-2" style="font-size: 0.95em">
-                        <b>Lưu ý:</b> Phụ phí sẽ được tính theo từng thành phần tuỳ chỉnh. Mỗi lần bạn thay đổi màu sắc hoặc áp dụng hình ảnh cho một thành phần, phụ phí tương ứng sẽ được cộng vào giá sản phẩm.
-                      </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end">
-                      <button type="button" class="btn btn-secondary me-2" @click="hideServiceModal">Cancel</button>
-                      <button type="submit" class="btn" :class="isEditing ? 'btn-info' : 'btn-success'">
-                        {{ isEditing ? 'Update' : 'Add' }} Service
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
+        
+         
         </div>
       </div>
     </div>
@@ -198,6 +51,8 @@
 
 <script>
 import HeaderManu from '@/components/HeaderManu.vue';
+import { addManufacture } from '@/server/manuService-service.js';
+
 export default {
   name: 'ManageService',
   components: { HeaderManu },
@@ -302,7 +157,7 @@ export default {
         customFees: this.defaultCustomFees.map(fee => ({ ...fee }))
       };
     },
-    saveService() {
+    async saveService() {
       if (this.isEditing) {
         const index = this.services.findIndex(s => s.id === this.currentService.id);
         if (index !== -1) {
@@ -316,6 +171,7 @@ export default {
         };
         this.services.push(newService);
       }
+      await this.submitServiceToBE();
       this.hideServiceModal();
     },
     deleteService(serviceId) {
@@ -326,10 +182,61 @@ export default {
     logout() {
       this.$router.push('/login');
     },
-    saveDefaultCustomFees() {
-      // TODO: Gọi API lưu nếu cần
-      this.defaultCustomFees = this.defaultCustomFees.map(fee => ({ ...fee }));
-      alert('Lưu phụ phí mặc định thành công!');
+    async saveDefaultCustomFees() {
+      let manufacturerId = localStorage.getItem('userid');
+      if (!manufacturerId) manufacturerId = 1;
+      const addServices = [];
+
+      this.defaultCustomFees.forEach(fee => {
+        addServices.push({
+          component: fee.part.toLowerCase(),
+          type: 'colorapplication',
+          price: Number(fee.colorFee) || 0,
+          manufacturerId: manufacturerId
+        });
+        addServices.push({
+          component: fee.part.toLowerCase(),
+          type: 'imageapplication',
+          price: Number(fee.imageFee) || 0,
+          manufacturerId: manufacturerId
+        });
+      });
+
+      try {
+        await addManufacture({ addServices });
+        console.log(addServices);
+        alert('Lưu phụ phí mặc định thành công!');
+      } catch (error) {
+        alert('Có lỗi khi lưu phụ phí mặc định!');
+      }
+    },
+    async submitServiceToBE() {
+      let manufacturerId = localStorage.getItem('ManufacturerId');
+      if (!manufacturerId) ;
+      const addServices = [];
+
+      this.currentService.customFees.forEach(fee => {
+        addServices.push({
+          component: fee.part.toLowerCase(),
+          type: 'colorapplication',
+          price: Number(fee.colorFee) || 0,
+          manufacturerId: manufacturerId
+        });
+        addServices.push({
+          component: fee.part.toLowerCase(),
+          type: 'imageapplication',
+          price: Number(fee.imageFee) || 0,
+          manufacturerId: manufacturerId
+        });
+      });
+
+      try {
+        console.log('Dữ liệu gửi đi:', addServices);
+        await addManufacture({ addServices });
+        alert('Thêm dịch vụ thành công!');
+      } catch (error) {
+        alert('Có lỗi khi thêm dịch vụ!');
+      }
     }
   }
 }
@@ -418,4 +325,3 @@ export default {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
 </style>
-

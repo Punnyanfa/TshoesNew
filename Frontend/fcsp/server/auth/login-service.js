@@ -13,6 +13,8 @@ const saveTokenAndUserInfo = (token, email, role) => {
     const userId = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
     const username = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
     const role = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+    const  ManufacturerId= decodedToken.ManufacturerId;
+    console.log("ManufacturerId", ManufacturerId);
     if (userId) {
       localStorage.setItem("userId", userId); 
     }
@@ -22,6 +24,9 @@ const saveTokenAndUserInfo = (token, email, role) => {
     }
     if (role) {
       localStorage.setItem("role", role); 
+    }
+    if (ManufacturerId) {
+      localStorage.setItem("ManufacturerId", ManufacturerId); 
     }
   }
 };
