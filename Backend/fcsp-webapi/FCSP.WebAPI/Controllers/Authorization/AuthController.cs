@@ -1,5 +1,6 @@
 ﻿using FCSP.DTOs;
 using FCSP.DTOs.Authentication;
+using FCSP.DTOs.UserOtp;
 using FCSP.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +48,14 @@ public class AuthController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    [HttpPost("[action]")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SendEmailToUser([FromBody] SendEmailRequest request)
+    {
+        var response = await _authService.SendEmailToUser(request);
+        return StatusCode(response.Code, response);
+    }
+
     [HttpGet("test")]
     [Authorize]
     public IActionResult TestLogin()
@@ -71,6 +80,22 @@ public class AuthController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    [HttpPut("avatar")]
+    [Authorize]
+    public async Task<IActionResult> UpdateUserAvatar([FromForm] UpdateUserAvatarRequest request)
+    {
+        var response = await _authService.UpdateUserAvatar(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPut("reset-password")]
+    [Authorize]
+    public async Task<IActionResult> ResetUserPassword([FromBody] ForgetUserPasswordRequest request)
+    {
+        var response = await _authService.ForgetUserPassword(request);
+        return StatusCode(response.Code, response);
+    }
+
     [HttpPut("role")]
     [Authorize(Roles = "Admin")] // Chỉ Admin mới được cập nhật UserRole
     public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleRequest request)
@@ -92,6 +117,22 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> DeleteUser([FromBody] UserDeleteRequest request)
     {
         var response = await _authService.DeleteUser(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPost("generate")]
+    [Authorize]
+    public async Task<IActionResult> GenerateOtp([FromBody] GenerateOtpRequest request)
+    {
+        var response = await _authService.GenerateOtpAsync(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPut("verify")]
+    [Authorize]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+    {
+        var response = await _authService.VerifyOtpAsync(request);
         return StatusCode(response.Code, response);
     }
 }

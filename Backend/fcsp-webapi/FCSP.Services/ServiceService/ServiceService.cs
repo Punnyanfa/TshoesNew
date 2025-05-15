@@ -5,6 +5,8 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FCSP.Services.ServiceService
 {
@@ -19,9 +21,9 @@ namespace FCSP.Services.ServiceService
             IManufacturerRepository manufacturerRepository,
             IUserRepository userRepository)
         {
-            _serviceRepository = serviceRepository;
-            _manufacturerRepository = manufacturerRepository ;
-            _userRepository = userRepository;
+            _serviceRepository = serviceRepository ?? throw new ArgumentNullException(nameof(serviceRepository));
+            _manufacturerRepository = manufacturerRepository ?? throw new ArgumentNullException(nameof(manufacturerRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         public async Task<BaseResponseModel<List<ServiceResponseDto>>> GetAllServices()
@@ -39,20 +41,14 @@ namespace FCSP.Services.ServiceService
                     };
                 }
 
-                var result = services.Select(s =>
+                var result = services.Select(s => new ServiceResponseDto
                 {
-                    var currentAmount = s.SetServiceAmounts
-                        .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
-                    return new ServiceResponseDto
-                    {
-                        Id = s.Id,
-                        Name = s.Name,
-                        Description = s.Description,
-                        Component = s.Component,
-                        Price = currentAmount?.Amount ?? 0,
-                        ManufacturerId = s.ManufacturerId,
-                        IsDeleted = s.IsDeleted
-                    };
+                    Id = s.Id,
+                    Component = s.Component,
+                    Type = s.Type,
+                    Price = s.Price,
+                    ManufacturerId = s.ManufacturerId,
+                    IsDeleted = s.IsDeleted
                 }).ToList();
 
                 return new BaseResponseModel<List<ServiceResponseDto>>
@@ -98,20 +94,14 @@ namespace FCSP.Services.ServiceService
                     };
                 }
 
-                var result = services.Select(s =>
+                var result = services.Select(s => new ServiceResponseDto
                 {
-                    var currentAmount = s.SetServiceAmounts
-                        .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
-                    return new ServiceResponseDto
-                    {
-                        Id = s.Id,
-                        Name = s.Name,
-                        Description = s.Description,
-                        Component = s.Component,
-                        Price = currentAmount?.Amount ?? 0,
-                        ManufacturerId = s.ManufacturerId,
-                        IsDeleted = s.IsDeleted
-                    };
+                    Id = s.Id,
+                    Component = s.Component,
+                    Type = s.Type,
+                    Price = s.Price,
+                    ManufacturerId = s.ManufacturerId,
+                    IsDeleted = s.IsDeleted
                 }).ToList();
 
                 return new BaseResponseModel<List<ServiceResponseDto>>
@@ -157,9 +147,6 @@ namespace FCSP.Services.ServiceService
                     };
                 }
 
-                var currentAmount = service.SetServiceAmounts
-                    .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
-
                 return new BaseResponseModel<ServiceResponseDto>
                 {
                     Code = 200,
@@ -167,10 +154,9 @@ namespace FCSP.Services.ServiceService
                     Data = new ServiceResponseDto
                     {
                         Id = service.Id,
-                        Name = service.Name,
-                        Description = service.Description,
                         Component = service.Component,
-                        Price = currentAmount?.Amount ?? 0,
+                        Type = service.Type,
+                        Price = service.Price,
                         ManufacturerId = service.ManufacturerId,
                         IsDeleted = service.IsDeleted
                     }
@@ -191,18 +177,24 @@ namespace FCSP.Services.ServiceService
         {
             try
             {
-                var validationResult = ValidateServiceInput<AddServiceResponse>(
-                    request.Name, request.Description, request.Component, request.Price, request.ManufacturerId);
-                if (validationResult != null) return validationResult;
+                if (request.AddServices == null || !request.AddServices.Any())
+                {
+                    return new BaseResponseModel<AddServiceResponse>
+                    {
+                        Code = 400,
+                        Message = "No services to add",
+                        Data = new AddServiceResponse { Success = false }
+                    };
+                }
 
-                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.ManufacturerId);
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.AddServices.First().ManufacturerId);
                 if (manufacturer == null)
                 {
                     return new BaseResponseModel<AddServiceResponse>
                     {
                         Code = 404,
                         Message = "Manufacturer not found",
-                        Data = null
+                        Data = new AddServiceResponse { Success = false }
                     };
                 }
 
@@ -213,7 +205,7 @@ namespace FCSP.Services.ServiceService
                     {
                         Code = 403,
                         Message = "Only users with Manufacturer role can add services",
-                        Data = null
+                        Data = new AddServiceResponse { Success = false }
                     };
                 }
 
@@ -223,45 +215,21 @@ namespace FCSP.Services.ServiceService
                     {
                         Code = 403,
                         Message = "Services can only be added by Manufacturers with Active status",
-                        Data = null
+                        Data = new AddServiceResponse { Success = false }
                     };
                 }
 
-                var service = new Service
+                var services = GetServicesFromAddServiceRequest(request);
+                if (services.Any())
                 {
-                    Name = request.Name,
-                    Description = request.Description,
-                    Component = request.Component,
-                    IsDeleted = false,
-                    ManufacturerId = request.ManufacturerId
-                };
-
-                service.SetServiceAmounts.Add(new SetServiceAmount
-                {
-                    StartDate = DateTime.UtcNow,
-                    EndDate = null,
-                    Amount = request.Price,
-                    Status = ServiceAmountStatus.Active
-                });
-
-                var addedService = await _serviceRepository.AddAsync(service);
-                service.SetServiceAmounts.First().ServiceId = addedService.Id;
-                await _serviceRepository.UpdateAsync(service);
+                    await _serviceRepository.AddRangeAsync(services);
+                }
 
                 return new BaseResponseModel<AddServiceResponse>
                 {
                     Code = 201,
                     Message = "Success",
-                    Data = new AddServiceResponse
-                    {
-                        Id = addedService.Id,
-                        Name = addedService.Name,
-                        Description = addedService.Description,
-                        Component = addedService.Component,
-                        Price = request.Price,
-                        ManufacturerId = addedService.ManufacturerId,
-                        IsDeleted = addedService.IsDeleted
-                    }
+                    Data = new AddServiceResponse { Success = true }
                 };
             }
             catch (Exception ex)
@@ -270,7 +238,7 @@ namespace FCSP.Services.ServiceService
                 {
                     Code = 500,
                     Message = ex.Message,
-                    Data = null
+                    Data = new AddServiceResponse { Success = false }
                 };
             }
         }
@@ -279,69 +247,53 @@ namespace FCSP.Services.ServiceService
         {
             try
             {
-                if (request.Id <= 0)
+                if (request.UpdateServices == null || !request.UpdateServices.Any())
                 {
                     return new BaseResponseModel<UpdateServiceResponse>
                     {
                         Code = 400,
-                        Message = "Service ID must be greater than 0",
-                        Data = null
+                        Message = "No services to update",
+                        Data = new UpdateServiceResponse { Success = false }
                     };
                 }
 
-                var validationResult = ValidateServiceInput<UpdateServiceResponse>(
-                    request.Name, request.Description, request.Component, request.Price);
-                if (validationResult != null) return validationResult;
-
-                var service = await _serviceRepository.GetServiceWithDetailsAsync(request.Id);
-                if (service == null)
+                var updatedServices = new List<Service>();
+                foreach (var serviceUpdate in request.UpdateServices)
                 {
-                    return new BaseResponseModel<UpdateServiceResponse>
+                    if (serviceUpdate.Price < 0)
                     {
-                        Code = 404,
-                        Message = "Service not found",
-                        Data = null
-                    };
-                }
-
-                service.Name = request.Name;
-                service.Description = request.Description;
-                service.Component = request.Component;
-
-                var currentAmount = service.SetServiceAmounts
-                    .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
-                if (currentAmount?.Amount != request.Price)
-                {
-                    if (currentAmount != null)
-                    {
-                        currentAmount.EndDate = DateTime.UtcNow;
-                        currentAmount.Status = ServiceAmountStatus.Expired;
+                        return new BaseResponseModel<UpdateServiceResponse>
+                        {
+                            Code = 400,
+                            Message = "Price cannot be negative",
+                            Data = new UpdateServiceResponse { Success = false }
+                        };
                     }
-                    service.SetServiceAmounts.Add(new SetServiceAmount
+
+                    var service = await _serviceRepository.GetServiceWithDetailsAsync(serviceUpdate.Id);
+                    if (service == null)
                     {
-                        ServiceId = service.Id,
-                        StartDate = DateTime.UtcNow,
-                        EndDate = null,
-                        Amount = request.Price,
-                        Status = ServiceAmountStatus.Active
-                    });
+                        return new BaseResponseModel<UpdateServiceResponse>
+                        {
+                            Code = 404,
+                            Message = $"Service with ID {serviceUpdate.Id} not found",
+                            Data = new UpdateServiceResponse { Success = false }
+                        };
+                    }
+
+                    service.Component = serviceUpdate.Component;
+                    service.Type = serviceUpdate.Type;
+                    service.Price = serviceUpdate.Price;
+                    service.ManufacturerId = serviceUpdate.ManufacturerId;
+                    await _serviceRepository.UpdateAsync(service);
+                    updatedServices.Add(service);
                 }
 
-                await _serviceRepository.UpdateAsync(service);
                 return new BaseResponseModel<UpdateServiceResponse>
                 {
                     Code = 200,
                     Message = "Success",
-                    Data = new UpdateServiceResponse
-                    {
-                        Id = service.Id,
-                        Name = service.Name,
-                        Description = service.Description,
-                        Component = service.Component,
-                        Price = request.Price,
-                        ManufacturerId = service.ManufacturerId,
-                        IsDeleted = service.IsDeleted
-                    }
+                    Data = new UpdateServiceResponse { Success = true }
                 };
             }
             catch (Exception ex)
@@ -350,7 +302,7 @@ namespace FCSP.Services.ServiceService
                 {
                     Code = 500,
                     Message = ex.Message,
-                    Data = null
+                    Data = new UpdateServiceResponse { Success = false }
                 };
             }
         }
@@ -400,82 +352,23 @@ namespace FCSP.Services.ServiceService
             }
         }
 
-        public async Task<int?> GetServicePriceAsync(long serviceId)
+        #region Private Methods
+        private IEnumerable<Service> GetServicesFromAddServiceRequest(AddServiceRequest request)
         {
-            try
+            if (request.AddServices == null || !request.AddServices.Any())
             {
-                var service = await _serviceRepository.GetServiceWithDetailsAsync(serviceId);
-                if (service == null)
-                {
-                    return null;
-                }
-
-                if (!service.SetServiceAmounts.Any())
-                {
-                    return null;
-                }
-
-                var currentAmount = service.SetServiceAmounts
-                    .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow));
-
-                if (currentAmount == null)
-                {
-                    return null;
-                }
-
-                return currentAmount.Amount;
+                return new List<Service>();
             }
-            catch (Exception)
+
+            return request.AddServices.Select(service => new Service
             {
-                return null;
-            }
+                Component = service.Component,
+                Type = service.Type,
+                Price = service.Price,
+                IsDeleted = false,
+                ManufacturerId = service.ManufacturerId
+            });
         }
-
-        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, int price, long manufacturerId = 0)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Service name is required", Data = default };
-            }
-            if (name.Length < 2 || name.Length > 100)
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Service name must be between 2 and 100 characters", Data = default };
-            }
-            if (price < 0)
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Price cannot be negative", Data = default };
-            }
-            if (manufacturerId < 0)
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Manufacturer ID must be greater than 0", Data = default };
-            }
-            return null;
-        }
-
-        private BaseResponseModel<T>? ValidateServiceInput<T>(string name, string description, string component, int price, long manufacturerId = 0)
-        {
-            var baseValidation = ValidateServiceInput<T>(name, price, manufacturerId);
-            if (baseValidation != null) return baseValidation;
-
-            if (string.IsNullOrWhiteSpace(description))
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Service description is required", Data = default };
-            }
-            if (description.Length > 500)
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Service description must not exceed 500 characters", Data = default };
-            }
-
-            if (string.IsNullOrWhiteSpace(component))
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Service component is required", Data = default };
-            }
-            if (component.Length > 100)
-            {
-                return new BaseResponseModel<T> { Code = 400, Message = "Service component must not exceed 100 characters", Data = default };
-            }
-
-            return null;
-        }
+        #endregion
     }
 }

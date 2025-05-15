@@ -31,8 +31,8 @@ namespace FCSP.DTOs.Manufacturer
     public class ServiceDto
     {
         public long Id { get; set; }
-        public string Name { get; set; } = null!;
-        public float? CurrentAmount { get; set; }
+        public string Component { get; set; } = null!;
+        public int? CurrentAmount { get; set; }
     }
 
     public class CriteriaDto

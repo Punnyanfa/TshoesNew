@@ -3,11 +3,13 @@ using Azure.Storage.Blobs.Models;
 using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Authentication;
+using FCSP.DTOs.UserOtp;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
 using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography;
 namespace FCSP.Services.Auth;
 
 public class AuthService : IAuthService
@@ -18,10 +20,20 @@ public class AuthService : IAuthService
     private readonly IDesignerRepository _designerRepository;
     private readonly IManufacturerRepository _manufacturerRepository;
     private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
+    private readonly IUserOtpRepository _userOtpRepository;
     private readonly string? _azureConnectionString;
     private readonly string? _azureContainerName;
 
-    public AuthService(IPasswordHashingService passwordHashingService, ITokenService tokenService, IUserRepository userRepository, IConfiguration configuration, IDesignerRepository designerRepository, IManufacturerRepository manufacturerRepository)
+    public AuthService(
+        IPasswordHashingService passwordHashingService, 
+        ITokenService tokenService, 
+        IUserRepository userRepository, 
+        IConfiguration configuration, 
+        IDesignerRepository designerRepository, 
+        IManufacturerRepository manufacturerRepository,
+        IEmailService emailService,
+        IUserOtpRepository userOtpRepository)
     {
         _passwordHashingService = passwordHashingService;
         _tokenService = tokenService;
@@ -29,6 +41,8 @@ public class AuthService : IAuthService
         _configuration = configuration;
         _designerRepository = designerRepository;
         _manufacturerRepository = manufacturerRepository;
+        _emailService = emailService;
+        _userOtpRepository = userOtpRepository ?? throw new ArgumentNullException(nameof(userOtpRepository));
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
         _azureContainerName = _configuration["AzureStorage:ImagesContainer"];
     }
@@ -54,7 +68,7 @@ public class AuthService : IAuthService
                     Name = user.Name,
                     Email = user.Email,
                     Role = user.UserRole.ToString(),
-                    Status = user.IsDeleted ? "Inactive" : "Active",
+                    Status = user.IsBanned ? "Banned" : "Active",
                     CreatedAt = user.CreatedAt.ToString("dd-MM-yyyy"),
                 }).ToList()
             }
@@ -170,6 +184,32 @@ public class AuthService : IAuthService
         catch (Exception ex)
         {
             return new BaseResponseModel<UpdateUserPasswordResponse>
+            {
+                Code = 500,
+                Message = ex.Message
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<ForgetUserPasswordResponse>> ForgetUserPassword(ForgetUserPasswordRequest request)
+    {
+        try
+        {
+            var user = await GetUserEntityFromForgetUserPasswordRequestAsync(request);
+            await _userRepository.UpdateAsync(user);
+
+            return new BaseResponseModel<ForgetUserPasswordResponse>
+            {
+                Code = 200,
+                Message = "Password updated successfully",
+                Data = new ForgetUserPasswordResponse
+                {
+                    Success = true
+                }
+            };
+        }catch (Exception ex)
+        {
+            return new BaseResponseModel<ForgetUserPasswordResponse>
             {
                 Code = 500,
                 Message = ex.Message
@@ -309,6 +349,153 @@ public class AuthService : IAuthService
             {
                 Code = 500,
                 Message = ex.Message
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<SendEmailResponse>> SendEmailToUser(SendEmailRequest request)
+    {
+        try
+        {
+            var user = await _userRepository.FindAsync(request.UserId);
+            if (user == null)
+            {
+                return new BaseResponseModel<SendEmailResponse>
+                {
+                    Code = 404,
+                    Message = "User not found",
+                    Data = new SendEmailResponse { Success = false }
+                };
+            }
+
+            var emailSent = await _emailService.SendEmailAsync(
+                user.Email,
+                request.Subject,
+                request.Body,
+                request.IsHtml
+            );
+
+            return new BaseResponseModel<SendEmailResponse>
+            {
+                Code = emailSent ? 200 : 500,
+                Message = emailSent ? "Email sent successfully" : "Failed to send email",
+                Data = new SendEmailResponse { Success = emailSent }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<SendEmailResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new SendEmailResponse { Success = false }
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<GenerateOtpResponse>> GenerateOtpAsync(GenerateOtpRequest request)
+    {
+        try
+        {
+            // Check if user exists
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if (user == null)
+            {
+                return new BaseResponseModel<GenerateOtpResponse>
+                {
+                    Code = 404,
+                    Message = "User not found",
+                    Data = null
+                };
+            }
+
+            // Invalidate any existing OTPs for the same purpose
+            var existingOtp = await _userOtpRepository.GetLatestOtpByUserIdAndPurposeAsync(request.UserId, request.PurposeType);
+            if (existingOtp != null)
+            {
+                existingOtp.IsUsed = true;
+                await _userOtpRepository.UpdateAsync(existingOtp);
+            }
+
+            // Generate new OTP
+            string otpCode = GenerateOtpCode();
+            DateTime expiryTime = DateTime.UtcNow.AddMinutes(request.ExpiryTimeInMinutes);
+
+            // Create new OTP record
+            var newOtp = new UserOtp
+            {
+                UserId = request.UserId,
+                OtpCode = otpCode,
+                ExpiryTime = expiryTime,
+                IsUsed = false,
+                PurposeType = request.PurposeType
+            };
+
+            await _userOtpRepository.AddAsync(newOtp);
+
+            await SendEmailToUser(new SendEmailRequest
+            {
+                UserId = request.UserId,
+                Subject = $"OTP Verification for {request.PurposeType}",
+                Body = $"Your OTP code is: {otpCode}",
+                IsHtml = false
+            });
+
+            return new BaseResponseModel<GenerateOtpResponse>
+            {
+                Code = 200,
+                Message = "OTP generated successfully",
+                Data = new GenerateOtpResponse
+                {
+                    OtpCode = otpCode,
+                    ExpiryTime = expiryTime
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<GenerateOtpResponse>
+            {
+                Code = 500,
+                Message = $"An error occurred: {ex.Message}",
+                Data = null
+            };
+        }
+    }
+
+    public async Task<BaseResponseModel<VerifyOtpResponse>> VerifyOtpAsync(VerifyOtpRequest request)
+    {
+        try
+        {
+            // Check if user exists
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if (user == null)
+            {
+                return new BaseResponseModel<VerifyOtpResponse>
+                {
+                    Code = 404,
+                    Message = "User not found",
+                    Data = new VerifyOtpResponse { IsValid = false }
+                };
+            }
+
+            // Verify OTP
+            bool isValid = await _userOtpRepository.VerifyOtpAsync(request.UserId, request.OtpCode, request.PurposeType);
+
+            return new BaseResponseModel<VerifyOtpResponse>
+            {
+                Code = isValid ? 200 : 400,
+                Message = isValid ? "OTP verified successfully" : "Invalid or expired OTP",
+                Data = new VerifyOtpResponse { IsValid = isValid }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<VerifyOtpResponse>
+            {
+                Code = 500,
+                Message = $"An error occurred: {ex.Message}",
+                Data = new VerifyOtpResponse { IsValid = false }
             };
         }
     }
@@ -493,6 +680,17 @@ public class AuthService : IAuthService
         return user;
     }
 
+    private async Task<User> GetUserEntityFromForgetUserPasswordRequestAsync(ForgetUserPasswordRequest request)
+    {
+        var user = await _userRepository.FindAsync(request.Id);
+        if (user == null || !_passwordHashingService.VerifyHashedPassword(request.Password, user.PasswordHash))
+        {
+            throw new InvalidOperationException("Invalid user forget password request");
+        }
+
+        return user;
+    }
+
     private async Task<User> GetUserEntityFromUpdateUserPasswordRequestAsync(UpdateUserPasswordRequest request)
     {
         var user = await _userRepository.FindAsync(request.Id);
@@ -550,6 +748,18 @@ public class AuthService : IAuthService
         user.UserRole = request.Role; // C?p nh?t UserRole
         user.UpdatedAt = DateTime.Now;
         return user;
+    }
+
+    private string GenerateOtpCode()
+    {
+        // Generate a 6-digit OTP
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            byte[] randomNumber = new byte[4];
+            rng.GetBytes(randomNumber);
+            int value = Math.Abs(BitConverter.ToInt32(randomNumber, 0));
+            return (value % 1000000).ToString("D6"); // Ensure it's a 6-digit number
+        }
     }
     #endregion
 }

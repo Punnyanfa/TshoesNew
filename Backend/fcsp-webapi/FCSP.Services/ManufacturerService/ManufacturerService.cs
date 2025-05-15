@@ -301,9 +301,8 @@ namespace FCSP.Services.ManufacturerService
                 Services = manufacturer.Services?.Select(s => new ServiceDto
                 {
                     Id = s.Id,
-                    Name = s.Name,
-                    CurrentAmount = s.SetServiceAmounts?
-                        .FirstOrDefault(a => a.Status == ServiceAmountStatus.Active && (a.EndDate == null || a.EndDate > DateTime.UtcNow))?.Amount
+                    Component = s.Component,
+                    CurrentAmount = s.Price
                 }).ToList() ?? new List<ServiceDto>(),
                 CreatedAt = manufacturer.CreatedAt,
                 UpdatedAt = manufacturer.UpdatedAt

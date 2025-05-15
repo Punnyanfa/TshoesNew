@@ -114,9 +114,7 @@ namespace FCSP.Services.PaymentService
             try
             {
                 var payment = GetEntityFromAddRequest(request);
-
                 await _paymentRepository.AddAsync(payment);
-
                 if (request.PaymentMethod == PaymentMethod.PayOS)
                 {
                     var response = await GetPayOSUrl(payment);
@@ -153,6 +151,10 @@ namespace FCSP.Services.PaymentService
                 return new BaseResponseModel<AddPaymentResponse>
                 {
                     Code = 500,
+                    Data = new AddPaymentResponse
+                    {
+                        Response = string.Empty
+                    },
                     Message = $"Error creating payment: {ex.Message}"
                 };
             }

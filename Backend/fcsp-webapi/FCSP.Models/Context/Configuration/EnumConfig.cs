@@ -36,10 +36,6 @@ internal static class EnumConfig
             .Property(m => m.Status)
             .HasConversion<int>();
 
-        modelBuilder.Entity<SetServiceAmount>()
-            .Property(ssa => ssa.Status)
-            .HasConversion<int>();
-
         modelBuilder.Entity<Designer>()
             .Property(d => d.Status)
             .HasConversion<int>();

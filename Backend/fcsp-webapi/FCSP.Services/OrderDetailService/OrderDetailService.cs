@@ -46,9 +46,12 @@ namespace FCSP.Services.OrderDetailService
                     {
                         Id = orderDetail.Id,
                         OrderId = orderDetail.OrderId,
-                        CustomShoeDesignName = orderDetail.CustomShoeDesign.Name,
+                        CustomShoeDesignName = orderDetail.CustomShoeDesign.Name ?? string.Empty,
                         Quantity = orderDetail.Quantity,
-                        UnitPrice = orderDetail.Price,
+                        UnitPrice = orderDetail.TotalPrice,
+                        TemplatePrice = orderDetail.TemplatePrice,
+                        ServicePrice = orderDetail.ServicePrice,
+                        DesignerMarkup = orderDetail.DesignerMarkup,
                         SizeId = orderDetail.SizeId,
                         ManufacturerId = orderDetail.ManufacturerId,
                         CreatedAt = orderDetail.CreatedAt,
@@ -107,7 +110,10 @@ namespace FCSP.Services.OrderDetailService
                     Data = new UpdateOrderDetailResponse
                     {
                         Id = orderDetail.Id,
-                        UnitPrice = orderDetail.Price
+                        UnitPrice = orderDetail.TotalPrice,
+                        TemplatePrice = orderDetail.TemplatePrice,
+                        ServicePrice = orderDetail.ServicePrice,
+                        DesignerMarkup = orderDetail.DesignerMarkup
                     }
                 };
             }
@@ -159,9 +165,12 @@ namespace FCSP.Services.OrderDetailService
                     {
                         Id = orderDetails.Id,
                         OrderId = orderDetails.OrderId,
-                        CustomShoeDesignName = orderDetails.CustomShoeDesign.Name,
+                        CustomShoeDesignName =  orderDetails.CustomShoeDesign.Name ?? string.Empty,
                         Quantity = orderDetails.Quantity,
-                        UnitPrice = orderDetails.Price,
+                        UnitPrice = orderDetails.TotalPrice,
+                        TemplatePrice = orderDetails.TemplatePrice,
+                        ServicePrice = orderDetails.ServicePrice,
+                        DesignerMarkup = orderDetails.DesignerMarkup,
                         SizeId = orderDetails.SizeId,
                         ManufacturerId = orderDetails.ManufacturerId,
                         CreatedAt = orderDetails.CreatedAt,
@@ -195,35 +204,50 @@ namespace FCSP.Services.OrderDetailService
                                                             .FirstOrDefaultAsync(od => od.Id == request.Id);
             if (orderDetail == null)
             {
-                return null;
+                throw new InvalidOperationException($"Order detail with ID {request.Id} not found");
             }
             return orderDetail;
         }
 
         private async Task<OrderDetail> GetEntityFromAddRequest(AddOrderDetailRequest request)
         {
-            var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
+            var customShoeDesign = await _customShoeDesignRepository.GetAll()
+                .Include(cd => cd.CustomShoeDesignTemplate)
+                .Include(cd => cd.DesignServices)
+                    .ThenInclude(ds => ds.Service)
+                .FirstOrDefaultAsync(cd => cd.Id == request.CustomShoeDesignId);
+            
             if (customShoeDesign == null)
             {
-                return null;
+                throw new InvalidOperationException($"Custom shoe design with ID {request.CustomShoeDesignId} not found");
             }
 
             var size = await _sizeRepository.FindAsync(request.SizeId);
             if (size == null)
             {
-                return null;
+                throw new InvalidOperationException($"Size with ID {request.SizeId} not found");
             }
 
             var order = await _orderRepository.FindAsync(request.OrderId);
             if (order == null)
             {
-                return null;
+                throw new InvalidOperationException($"Order with ID {request.OrderId} not found");
             }
 
             var manufacturer = await _manufacturerRepository.FindAsync(request.ManufacturerId);
             if (manufacturer == null)
             {
-                return null;
+                throw new InvalidOperationException($"Manufacturer with ID {request.ManufacturerId} not found");
+            }
+
+            // Get template price
+            var templatePrice = customShoeDesign.CustomShoeDesignTemplate?.Price ?? 0;
+            
+            // Calculate services price
+            int servicesPrice = 0;
+            if (customShoeDesign.DesignServices != null && customShoeDesign.DesignServices.Any())
+            {
+                servicesPrice = customShoeDesign.DesignServices.Sum(ds => ds.Service != null ? ds.Service.Price : 0);
             }
 
             return new OrderDetail
@@ -231,9 +255,12 @@ namespace FCSP.Services.OrderDetailService
                 OrderId = request.OrderId,
                 CustomShoeDesignId = customShoeDesign.Id,
                 Quantity = request.Quantity,
-                Price = customShoeDesign.TotalAmount,
+                TotalPrice = customShoeDesign.TotalAmount,
                 SizeId = size.Id,
                 ManufacturerId = request.ManufacturerId,
+                TemplatePrice = templatePrice,
+                ServicePrice = servicesPrice,
+                DesignerMarkup = customShoeDesign.DesignerMarkup,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -244,18 +271,40 @@ namespace FCSP.Services.OrderDetailService
             var orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
-                return null;
+                throw new InvalidOperationException($"Order detail with ID {request.Id} not found");
             }
 
             var manufacturer = await _manufacturerRepository.FindAsync(request.ManufacturerId);
             if (manufacturer == null)
             {
-                return null;
+                throw new InvalidOperationException($"Manufacturer with ID {request.ManufacturerId} not found");
             }
 
             orderDetail.Quantity = request.Quantity;
             orderDetail.SizeId = request.SizeId;
             orderDetail.ManufacturerId = request.ManufacturerId;
+            
+            // Update template price if provided
+            if (request.TemplatePrice.HasValue)
+            {
+                orderDetail.TemplatePrice = request.TemplatePrice.Value;
+            }
+            
+            // Update service price if provided
+            if (request.ServicePrice.HasValue)
+            {
+                orderDetail.ServicePrice = request.ServicePrice.Value;
+            }
+            
+            // Update designer markup if provided
+            if (request.DesignerMarkup.HasValue)
+            {
+                orderDetail.DesignerMarkup = request.DesignerMarkup.Value;
+            }
+            
+            // Recalculate total price
+            orderDetail.TotalPrice = orderDetail.TemplatePrice + orderDetail.ServicePrice + orderDetail.DesignerMarkup;
+            
             orderDetail.UpdatedAt = DateTime.UtcNow;
 
             return orderDetail;
@@ -266,7 +315,7 @@ namespace FCSP.Services.OrderDetailService
             var orderDetail = await _orderDetailRepository.FindAsync(request.Id);
             if (orderDetail == null)
             {
-                return null;
+                throw new InvalidOperationException($"Order detail with ID {request.Id} not found");
             }
             return orderDetail;
         }

@@ -20,6 +20,13 @@ internal static class RelationshipConfig
             .HasForeignKey(shippingInfo => shippingInfo.UserId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        // UserOtp relationships
+        modelBuilder.Entity<UserOtp>()
+            .HasOne(otp => otp.User)
+            .WithMany()
+            .HasForeignKey(otp => otp.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         // Cart relationships
         modelBuilder.Entity<Cart>()
             .HasOne(c => c.User)
@@ -183,13 +190,6 @@ internal static class RelationshipConfig
             .HasOne(s => s.Manufacturer)
             .WithMany(m => m.Services)
             .HasForeignKey(s => s.ManufacturerId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // SetServiceAmount relationships
-        modelBuilder.Entity<SetServiceAmount>()
-            .HasOne(ssa => ssa.Service)
-            .WithMany(s => s.SetServiceAmounts)
-            .HasForeignKey(ssa => ssa.ServiceId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Designer relationships

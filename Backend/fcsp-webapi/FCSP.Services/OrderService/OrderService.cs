@@ -223,7 +223,10 @@ namespace FCSP.Services.OrderService
                 {
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     Quantity = od.Quantity,
-                    UnitPrice = od.Price,
+                    UnitPrice = od.TotalPrice,
+                    TemplatePrice = od.TemplatePrice,
+                    ServicePrice = od.ServicePrice,
+                    DesignerMarkup = od.DesignerMarkup,
                     SizeValue = od.Size.SizeValue
                 }).ToList() ?? new List<OrderDetailResponseDto>()
             };
@@ -300,7 +303,7 @@ namespace FCSP.Services.OrderService
                 ShippingInfoId = request.ShippingInfoId,
                 VoucherId = request.VoucherId ?? null,
                 TotalPrice = totalAmount,
-                AmountPaid = amountPaid + 30000,
+                AmountPaid = amountPaid,
                 Status = OrderStatus.Pending,
                 ShippingStatus = OrderShippingStatus.Preparing,
                 CreatedAt = DateTime.UtcNow,
@@ -330,7 +333,7 @@ namespace FCSP.Services.OrderService
                     CustomShoeDesignId = od.CustomShoeDesignId,
                     SizeId = od.SizeId,
                     Quantity = od.Quantity,
-                    Price = customShoeDesign.TotalAmount,
+                    TotalPrice = customShoeDesign.TotalAmount,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     ManufacturerId = od.ManufacturerId
@@ -341,7 +344,6 @@ namespace FCSP.Services.OrderService
 
         private async Task<string> AddPaymentAsync(Order order, PaymentMethod paymentMethod)
         {
-
             var payment = new AddPaymentRequest
             {
                 OrderId = order.Id,
@@ -350,6 +352,12 @@ namespace FCSP.Services.OrderService
             };
             
             var paymentResponse = await _paymentService.AddPayment(payment);
+
+            if (paymentResponse == null || paymentResponse.Data == null)
+            {
+                throw new InvalidOperationException("Payment failed");
+            }
+
             return paymentResponse.Data.Response;
         }
 

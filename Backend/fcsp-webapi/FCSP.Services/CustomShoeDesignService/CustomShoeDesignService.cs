@@ -21,7 +21,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private readonly ICustomShoeDesignTexturesRepository _customShoeDesignTexturesRepository;
     private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
     private readonly IDesignServiceRepository _designServiceRepository;
-    private readonly ISetServiceAmountRepository _setServiceAmountRepository;
     private readonly IServiceRepository _serviceRepository;
     private readonly ISizeRepository _sizeRepository;
     private readonly IConfiguration _configuration;
@@ -36,7 +35,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         ICustomShoeDesignTexturesRepository customShoeDesignTexturesRepository,
         ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository,
         IDesignServiceRepository designServiceRepository,
-        ISetServiceAmountRepository setServiceAmountRepository,
         IServiceRepository serviceRepository,
         ISizeRepository sizeRepository,
         IConfiguration configuration)
@@ -48,7 +46,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         _customShoeDesignTexturesRepository = customShoeDesignTexturesRepository;
         _customShoeDesignTemplateRepository = customShoeDesignTemplateRepository;
         _designServiceRepository = designServiceRepository;
-        _setServiceAmountRepository = setServiceAmountRepository;
         _serviceRepository = serviceRepository;
         _sizeRepository = sizeRepository;
         _configuration = configuration;
@@ -397,6 +394,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                                                             .ThenInclude(s => s.Service)
                                                         .FirstOrDefaultAsync(d => d.Id == request.Id);
         var sizes = await _sizeRepository.GetAllAsync();
+        var services = await _serviceRepository.GetAllAsync();
         if (design == null)
         {
             return null;
@@ -416,10 +414,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 SizeValue = d.SizeValue
             }),
             TexturesUrls = design.CustomShoeDesignTextures?.Select(t => t.Texture?.ImageUrl),
-            Services = design.DesignServices?.Select(s => new GetCustomShoeDesignServiceByIdResponse
+            Services = services.Select(s => new DTOs.CustomShoeDesign.Services
             {
-                Id = s.Service.Id,
-                Name = s.Service.Name
+                Id = s.Id,
+                Price = s.Price
             })
         };
     }
@@ -455,10 +453,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             foreach (var serviceId in request.ServiceIds)
             {
-                var serviceAmount = await _setServiceAmountRepository.GetActiveAmountByServiceIdAsync(serviceId);
+                var serviceAmount = await _serviceRepository.FindAsync(serviceId);
                 if (serviceAmount != null)
                 {
-                    servicesPrice += serviceAmount.Amount;
+                    servicesPrice += serviceAmount.Price;
                 }
             }
         }

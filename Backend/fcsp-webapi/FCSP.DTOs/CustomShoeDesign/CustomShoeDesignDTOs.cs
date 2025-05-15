@@ -32,7 +32,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public string? PreviewImageUrl { get; set; }
         public float? Rating { get; set; }
         public int? RatingCount { get; set; }
-        public float? Price { get; set; }
+        public int? Price { get; set; }
         public string? Description { get; set; }
         public CustomShoeDesignStatus? Status { get; set; }
         public string? Gender { get; set; }
@@ -48,13 +48,14 @@ namespace FCSP.DTOs.CustomShoeDesign
         public float? Price { get; set; }
         public IEnumerable<ShoeSizes>? Sizes { get; set; }
         public IEnumerable<string>? TexturesUrls { get; set; }
-        public IEnumerable<GetCustomShoeDesignServiceByIdResponse>? Services { get; set; }
+        public IEnumerable<Services>? Services { get; set; }
     }
 
-    public class GetCustomShoeDesignServiceByIdResponse
+    public class Services
     {
         public long Id { get; set; }
-        public string? Name { get; set; }
+        public string? Component { get; set; }
+        public int? Price { get; set; }
     }
 
     public class AddCustomShoeDesignRequest
