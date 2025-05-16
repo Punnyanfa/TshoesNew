@@ -39,4 +39,13 @@ export async function getManufacturerAll() {
   }
 }
 
+export async function getManufacturerByManufacturerId(manufacturerId) {
+  try {
+    const response = await instance.get(`Service/Manufacturer/${manufacturerId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error getting manufacture:`, error);
+    throw error;
+  }
+}
 

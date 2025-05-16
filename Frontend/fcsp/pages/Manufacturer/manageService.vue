@@ -51,7 +51,7 @@
 
 <script>
 import HeaderManu from '@/components/HeaderManu.vue';
-import { addManufacture } from '@/server/manuService-service.js';
+import { addManufacture, getManufacturerById } from '@/server/manuService-service.js';
 
 export default {
   name: 'ManageService',
@@ -183,28 +183,31 @@ export default {
       this.$router.push('/login');
     },
     async saveDefaultCustomFees() {
-      let manufacturerId = localStorage.getItem('userid');
+      let manufacturerId = localStorage.getItem('ManufacturerId');
       if (!manufacturerId) manufacturerId = 1;
       const addServices = [];
 
       this.defaultCustomFees.forEach(fee => {
-        addServices.push({
-          component: fee.part.toLowerCase(),
-          type: 'colorapplication',
-          price: Number(fee.colorFee) || 0,
-          manufacturerId: manufacturerId
-        });
-        addServices.push({
-          component: fee.part.toLowerCase(),
-          type: 'imageapplication',
-          price: Number(fee.imageFee) || 0,
-          manufacturerId: manufacturerId
-        });
+        if (fee.colorFee > 0) {
+          addServices.push({
+            component: fee.part.toLowerCase(),
+            type: 'colorapplication',
+            price: Number(fee.colorFee),
+            manufacturerId: manufacturerId
+          });
+        }
+        if (fee.imageFee > 0) {
+          addServices.push({
+            component: fee.part.toLowerCase(),
+            type: 'imageapplication',
+            price: Number(fee.imageFee),
+            manufacturerId: manufacturerId
+          });
+        }
       });
 
       try {
         await addManufacture({ addServices });
-        console.log(addServices);
         alert('Lưu phụ phí mặc định thành công!');
       } catch (error) {
         alert('Có lỗi khi lưu phụ phí mặc định!');
@@ -237,7 +240,39 @@ export default {
       } catch (error) {
         alert('Có lỗi khi thêm dịch vụ!');
       }
+    },
+    async syncDefaultCustomFees() {
+      let manufacturerId = localStorage.getItem('ManufacturerId');
+      if (!manufacturerId) {
+        alert('Không tìm thấy manufacturerId!');
+        return;
+      }
+      try {
+        const res = await getManufacturerById(manufacturerId);
+        console.log(res);
+        if (!res || !res.data || !Array.isArray(res.data.services)) {
+          alert('Không có dữ liệu dịch vụ từ API!');
+          return;
+        }
+        // Map dữ liệu API về đúng defaultCustomFees
+        const colorMap = {};
+        const imageMap = {};
+        res.data.services.forEach(s => {
+          if (s.type === 'colorapplication') colorMap[s.component] = s.currentAmount;
+          if (s.type === 'imageapplication') imageMap[s.component] = s.currentAmount;
+        });
+        this.defaultCustomFees = this.defaultCustomFees.map(fee => ({
+          ...fee,
+          colorFee: colorMap[fee.part.toLowerCase()] ?? 0,
+          imageFee: imageMap[fee.part.toLowerCase()] ?? 0
+        }));
+      } catch (error) {
+        alert('Có lỗi khi đồng bộ phụ phí!');
+      }
     }
+  },
+  mounted() {
+    this.syncDefaultCustomFees();
   }
 }
 </script>

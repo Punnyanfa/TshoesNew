@@ -249,95 +249,37 @@
               </div>
             </div>
     
-            <!-- Edit Account Modal -->
-            <div class="modal fade" id="editAccountModal" tabindex="-1" ref="editAccountModal">
-              <div class="modal-dialog modal-lg">
+            <!-- Edit Account Modal (customized for role/commissionRate) -->
+            <div class="modal fade" :class="{ show: showEditModal }" style="display: block;" v-if="showEditModal">
+              <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">{{ isNewAccount ? 'Add New Account' : 'Edit Account' }}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Edit Account Role & Commission</h5>
+                    <button type="button" class="btn-close btn-close-white" @click="showEditModal = false"></button>
                   </div>
                   <div class="modal-body">
-                    <form @submit.prevent="saveAccount" id="accountForm">
-                      <div class="row g-3">
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" v-model="editedAccount.username" required>
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" v-model="editedAccount.email" required>
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label for="fullName" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="fullName" v-model="editedAccount.name" required>
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" v-model="editedAccount.phone">
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label for="role" class="form-label">Role</label>
-                            <select class="form-select" id="role" v-model="editedAccount.role" required>
-                              <option v-for="role in userRoles" :key="role" :value="role">
-                                {{ role }}
-                              </option>
-                            </select>
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" v-model="editedAccount.status" required>
-                              <option value="active">Active</option>
-                              <option value="inactive">Inactive</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div class="col-12" v-if="isNewAccount">
-                          <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" v-model="editedAccount.password" :required="isNewAccount">
-                          </div>
-                        </div>
-                        <div class="col-12">
-                          <div class="mb-3">
-                            <label class="form-label">Permissions</label>
-                            <div class="permission-checkboxes bg-light p-3 rounded">
-                              <div class="row g-2">
-                                <div class="col-md-4" v-for="(permission, index) in availablePermissions" :key="index">
-                                  <div class="form-check">
-                                    <input 
-                                      class="form-check-input" 
-                                      type="checkbox" 
-                                      :id="'permission-' + index"
-                                      :value="permission"
-                                      v-model="editedAccount.permissions"
-                                    >
-                                    <label class="form-check-label" :for="'permission-' + index">
-                                      {{ permission }}
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <form @submit.prevent="saveAccount">
+                      <div class="mb-3">
+                        <label class="form-label">ID</label>
+                        <input type="text" class="form-control" v-model="editedAccount.id" disabled />
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" v-model.number="editedAccount.role" required>
+                          <option v-for="role in userRoles" :key="role.value" :value="role.value">
+                            {{ role.label }} ({{ role.value }})
+                          </option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Commission Rate</label>
+                        <input type="number" class="form-control" v-model.number="editedAccount.commissionRate" min="0" step="0.01" />
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save</button>
                       </div>
                     </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="accountForm" class="btn btn-success">Save</button>
                   </div>
                 </div>
               </div>
@@ -379,7 +321,7 @@
 </template>
 
 <script>
-import { getAllUser, updateStatus } from '@/server/manageAccounts-service';
+import { getAllUser, updateStatus, updateRole } from '@/server/manageAccounts-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
@@ -402,10 +344,11 @@ export default {
       selectedAccount: null,
       editedAccount: {},
       isNewAccount: false,
+      showEditModal: false,
       userRoles: [
-        'Admin',
-        'Designer',
-        'Manufacturer'
+        { label: 'Admin', value: 3 },
+        { label: 'Designer', value: 2 },
+        { label: 'Manufacturer', value: 1 }
       ],
       availablePermissions: [
         'Manage Accounts',
@@ -561,84 +504,7 @@ export default {
     editAccount(account) {
       this.isNewAccount = false;
       this.editedAccount = JSON.parse(JSON.stringify(account));
-      
-      ElMessageBox.confirm(
-        `
-        <div class="p-3">
-          <h4 class="mb-3">Edit Account</h4>
-          <form class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Username</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                value="${this.editedAccount.username}"
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Email</label>
-              <input 
-                type="email" 
-                class="form-control" 
-                value="${this.editedAccount.email}"
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Role</label>
-              <select class="form-select" required>
-                ${this.userRoles.map(role => `
-                  <option value="${role}" ${this.editedAccount.role === role ? 'selected' : ''}>
-                    ${role}
-                  </option>
-                `).join('')}
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Status</label>
-              <select class="form-select" required>
-                <option value="active" ${this.editedAccount.status === 'active' ? 'selected' : ''}>Active</option>
-                <option value="inactive" ${this.editedAccount.status === 'inactive' ? 'selected' : ''}>Inactive</option>
-              </select>
-            </div>
-          </form>
-        </div>
-        `,
-        'Edit Account',
-        {
-          confirmButtonText: 'Save',
-          cancelButtonText: 'Cancel',
-          customClass: 'edit-account-dialog',
-          showClose: true,
-          closeOnClickModal: false,
-          closeOnPressEscape: false,
-          dangerouslyUseHTMLString: true
-        }
-      )
-      .then(async () => {
-        try {
-          // Save account changes
-          // Update existing account
-          const index = this.accounts.findIndex(acc => acc.id === this.editedAccount.id);
-          if (index !== -1) {
-            this.accounts[index] = { ...this.editedAccount };
-          }
-          
-          ElMessage({
-            type: 'success',
-            message: 'Account updated successfully'
-          });
-        } catch (error) {
-          ElMessage({
-            type: 'error',
-            message: error.message || 'Failed to update account'
-          });
-        }
-      })
-      .catch(() => {
-        // User cancelled the operation
-      });
+      this.showEditModal = true;
     },
     showAddAccountModal() {
       this.isNewAccount = true;
@@ -733,22 +599,22 @@ export default {
     async saveAccount() {
       try {
         if (this.isNewAccount) {
-          // Add new account
+          // Add new account (giữ nguyên logic cũ nếu cần)
           this.accounts.push(this.editedAccount);
           ElMessage({
             type: 'success',
             message: 'Account created successfully'
           });
         } else {
-          // Update existing account
-          const index = this.accounts.findIndex(acc => acc.id === this.editedAccount.id);
-          if (index !== -1) {
-            this.accounts[index] = { ...this.editedAccount };
-          }
+          // Gọi API updateRole
+          const roleNumber = typeof this.editedAccount.role === 'number' ? this.editedAccount.role : this.userRoles.find(r => r.label === this.editedAccount.role)?.value;
+          await updateRole(this.editedAccount.id, roleNumber, this.editedAccount.commissionRate || 0);
+          await this.fetchAccounts();
           ElMessage({
             type: 'success',
             message: 'Account updated successfully'
           });
+          this.showEditModal = false;
         }
       } catch (error) {
         ElMessage({

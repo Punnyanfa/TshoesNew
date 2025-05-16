@@ -42,3 +42,24 @@ export async function updateStatus(id, isBanned) {
 }
   
   
+export async function updateRole(id, role, commissionRate = 0) {
+  try {
+    const token = localStorage.getItem('userToken');
+    const response = await instance.put(`/Auth/role`, {
+      id: id,
+      role: role,
+      commissionRate: commissionRate
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (response.data.code === 200) {
+      return response.data;
+    }
+    throw new Error(response.data.message || 'Failed to update role');
+  } catch (error) {
+    console.error('Error updating role:', error);
+    throw error;
+  }
+}
