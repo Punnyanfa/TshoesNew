@@ -66,12 +66,13 @@
         <div class="hero-content text-left position-relative">
           <div class="hero-bg-overlay"></div>
           <div class="payment-hero-content">
-            <h1 class="payment-hero-title">Get paid faster and more securely with our payment gateway solution.</h1>
-            <p class="payment-hero-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.</p>
-            <NuxtLink to="/contactPage" class="btn btn-primary contact-btn">Contact us</NuxtLink>
+            <h1 class="payment-hero-title">Get Paid Faster and More Securely with Our Payment Gateway Solution</h1>
+            <p class="payment-hero-text">Simplify your transactions and boost customer trust with our fast, secure, and reliable payment processing system.</p>
+            <NuxtLink to="/contactPage" class="btn btn-primary contact-btn">Contact Us</NuxtLink>
           </div>
         </div>
       </div>
+
       <!-- Stats Section -->
       <div class="stats-section">
         <div class="stat-item">
