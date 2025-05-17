@@ -99,6 +99,14 @@ public class AuthService : IAuthService
         try
         {
             var user = await GetUserEntityFromUserLoginRequestAsync(request);
+            if (user.IsBanned == true)
+            {
+                return new BaseResponseModel<UserLoginResponse>
+                {
+                    Code = 401,
+                    Message = "This account has been banned"
+                };
+            }
             var token = _tokenService.GetToken(user);
 
             return new BaseResponseModel<UserLoginResponse>
@@ -293,18 +301,20 @@ public class AuthService : IAuthService
     {
         try
         {
-            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
-            await _userRepository.UpdateAsync(user);
             if (request.Role == UserRole.Designer)
             {
                 var designer = await GetDesignerEntityFromUpdateUserRoleRequest(request);
                 await _designerRepository.AddAsync(designer);
+                var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
+                await _userRepository.UpdateAsync(user);
             }
 
             if (request.Role == UserRole.Manufacturer)
             {
                 var manufacturer = await GetManufacturerEntityFromUpdateUserRoleRequest(request);
                 await _manufacturerRepository.AddAsync(manufacturer);
+                var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
+                await _userRepository.UpdateAsync(user);
             }
             
             return new BaseResponseModel<UpdateUserRoleResponse>
@@ -540,25 +550,11 @@ public class AuthService : IAuthService
             throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
 
-        if (user.UserRole != UserRole.Designer)
-        {
-            throw new InvalidOperationException("User is not a designer");
-        }
-
-        if (request.CommissionRate == null)
-        {
-            throw new InvalidOperationException("Commission rate is required");
-        }
-
-        if (request.CommissionRate < 0 || request.CommissionRate > 100)
-        {
-            throw new InvalidOperationException("Commission rate must be between 0 and 100");
-        }
-
         var designer = new Designer
         {
             UserId = user.Id,
             Rating = 0,
+            Description = string.Empty,
             CommissionRate = request.CommissionRate.Value
         };
 
@@ -573,24 +569,10 @@ public class AuthService : IAuthService
             throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
 
-        if (user.UserRole != UserRole.Manufacturer)
-        {
-            throw new InvalidOperationException("User is not a manufacturer");
-        }
-
-        if (request.CommissionRate == null)
-        {
-            throw new InvalidOperationException("Commission rate is required");
-        }
-
-        if (request.CommissionRate < 0 || request.CommissionRate > 100)
-        {
-            throw new InvalidOperationException("Commission rate must be between 0 and 100");
-        }
-
         var manufacturer = new Manufacturer
         {
             UserId = user.Id,
+            Description = string.Empty,
             CommissionRate = request.CommissionRate.Value
         };
 
