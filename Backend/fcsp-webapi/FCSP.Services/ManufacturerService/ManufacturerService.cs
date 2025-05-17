@@ -298,10 +298,11 @@ namespace FCSP.Services.ManufacturerService
                 Description = manufacturer.Description,
                 Status = manufacturer.Status.ToString(),
                 CommissionRate = manufacturer.CommissionRate,
-                Services = manufacturer.Services?.Select(s => new ServiceDto
+                Services = manufacturer.Services?.Where(s => s.IsDeleted != true).Select(s => new ServiceDto
                 {
                     Id = s.Id,
                     Component = s.Component,
+                    Type = s.Type,
                     CurrentAmount = s.Price
                 }).ToList() ?? new List<ServiceDto>(),
                 CreatedAt = manufacturer.CreatedAt,

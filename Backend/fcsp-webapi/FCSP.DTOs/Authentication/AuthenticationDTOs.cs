@@ -157,7 +157,6 @@ public class UpdateUserRoleRequest
 public class UpdateUserRoleResponse
 {
     public bool Success { get; set; }
-    public UserRole NewRole { get; set; }
 }
 
 public class SendEmailRequest

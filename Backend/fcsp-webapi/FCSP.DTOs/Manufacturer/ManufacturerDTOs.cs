@@ -32,6 +32,7 @@ namespace FCSP.DTOs.Manufacturer
     {
         public long Id { get; set; }
         public string Component { get; set; } = null!;
+        public string Type { get; set; } = null!;
         public int? CurrentAmount { get; set; }
     }
 
