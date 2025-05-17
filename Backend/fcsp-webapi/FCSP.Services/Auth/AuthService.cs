@@ -323,8 +323,7 @@ public class AuthService : IAuthService
                 Message = "User role updated successfully",
                 Data = new UpdateUserRoleResponse
                 {
-                    Success = true,
-                    NewRole = user.UserRole
+                    Success = true
                 }
             };
         }
@@ -555,6 +554,7 @@ public class AuthService : IAuthService
             UserId = user.Id,
             Rating = 0,
             Description = string.Empty,
+            Status = DesignerStatus.Active,
             CommissionRate = request.CommissionRate.Value
         };
 
@@ -568,11 +568,13 @@ public class AuthService : IAuthService
         {
             throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
+        
 
         var manufacturer = new Manufacturer
         {
             UserId = user.Id,
             Description = string.Empty,
+            Status = ManufacturerStatus.Active,
             CommissionRate = request.CommissionRate.Value
         };
 
