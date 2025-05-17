@@ -15,8 +15,8 @@
       <div class="manufacturer-selector">
         <label for="manufacturer">Shop Custom:</label>
         <select id="manufacturer" v-model="selectedManufacturer" @change="handleManufacturerChange">
-          <option v-for="(mfr, index) in manufacturers" :key="index" :value="mfr.id">
-            {{ mfr.name }}
+          <option v-for="mfr in manufacturerList" :key="mfr.id" :value="mfr.id">
+            {{ mfr.userName }}
           </option>
         </select>
       </div>
@@ -33,7 +33,7 @@
     <div v-if="showSurchargeInfo" class="surcharge-modal">
       <div class="surcharge-modal-content">
         <div class="surcharge-modal-header">
-          <h3>Thông tin phụ phí {{ currentManufacturer.name }}</h3>
+          <h3>Thông tin phụ phí Manufacturer #{{ selectedManufacturer }}</h3>
           <button class="close-button" @click="showSurchargeInfo = false">×</button>
         </div>
         <div class="surcharge-modal-body">
@@ -47,8 +47,20 @@
               </div>
               <div v-for="comp in components" :key="comp.value" class="surcharge-detail-row">
                 <div class="detail-col">{{ comp.name }}</div>
-                <div class="detail-col">{{ formatPrice(currentManufacturer.surcharges.colorChange * currentManufacturer.surcharges.componentRates[comp.value]) }}</div>
-                <div class="detail-col">{{ formatPrice(currentManufacturer.surcharges.imageApplication * currentManufacturer.surcharges.componentRates[comp.value]) }}</div>
+                <div class="detail-col">
+                  {{
+                    formatPrice(
+                      (apiSurcharges.find(s => s.component === comp.value.toLowerCase() && s.type === 'colorapplication')?.currentAmount) || 0
+                    )
+                  }}
+                </div>
+                <div class="detail-col">
+                  {{
+                    formatPrice(
+                      (apiSurcharges.find(s => s.component === comp.value.toLowerCase() && s.type === 'imageapplication')?.currentAmount) || 0
+                    )
+                  }}
+                </div>
               </div>
             </div>
           </div>
@@ -497,6 +509,7 @@ import aiService from '@/server/ai-service'
 import { getTemplateById } from '~/server/custom-service'
 import { useCart } from '~/composables/useCart'
 import { CustomShoeDesign } from '~/server/designUp-service'
+import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js';
 
 // Container reference và state
 const container = ref(null)
@@ -545,78 +558,202 @@ watch(showEditNameModal, (newValue) => {
 })
 
 // Danh sách nhà sản xuất với các mức phụ phí khác nhau
-const selectedManufacturer = ref('Shop Custom 1')
-const manufacturers = reactive([
-  {
-    id: 'Shop Custom 1',
-    name: 'Shop Custom 1',
-    basePrice: 2500000,
-    surcharges: {
-      colorChange: 30000,     // Phụ phí khi thay đổi màu sắc một thành phần
-      imageApplication: 50000, // Phụ phí khi áp dụng hình ảnh lên một thành phần
-      componentRates: {
-        // Hệ số nhân phụ phí cho từng thành phần
-        Base: 1.0,
-        Heel: 1.2,
-        Lace: 0.8,
-        OutSode: 1.5,
-        MidSole: 1.3,
-        Tip: 0.9,
-        Accent: 1.1,
-        Logo: 2.0,  // Logo có phụ phí cao hơn
-        Details: 0.7
-      }
-    },
-    modelPath: '/Adidasrunningshoes.glb'
-  },
-  {
-    id: 'Shop Custom 2',
-    name: 'Shop Custom 2',
-    basePrice: 2800000,
-    surcharges: {
-      colorChange: 35000,
-      imageApplication: 60000,
-      componentRates: {
-        Base: 1.2,
-        Heel: 1.5,
-        Lace: 0.9,
-        OutSode: 1.8,
-        MidSole: 1.5,
-        Tip: 1.0,
-        Accent: 1.3,
-        Logo: 2.5,  // Nike logo đắt hơn
-        Details: 0.8
-      }
-    },
-    modelPath: '/Adidasrunningshoes.glb' // Thay bằng đường dẫn mô hình Nike thực tế
-  },
-  {
-    id: 'Shop Custom 3',
-    name: 'Shop Custom 3',
-    basePrice: 1800000,
-    surcharges: {
-      colorChange: 25000,
-      imageApplication: 40000,
-      componentRates: {
-        Base: 0.9,
-        Heel: 1.0,
-        Lace: 0.7,
-        OutSode: 1.2,
-        MidSole: 1.0,
-        Tip: 0.8,
-        Accent: 0.9,
-        Logo: 1.8,
-        Details: 0.6
-      }
-    },
-    modelPath: '/Adidasrunningshoes.glb' // Thay bằng đường dẫn mô hình Vans thực tế
-  }
-])
+const apiSurcharges = ref([]); // Dữ liệu phụ phí từ API
+const basePrice = ref(0);      // Giá gốc từ API
+const manufacturerList = ref([]); // Danh sách manufacturer từ API nếu cần
+const selectedManufacturer = ref(null); // id của manufacturer được chọn
 
-// Lấy thông tin nhà sản xuất hiện tại
-const currentManufacturer = computed(() => {
-  return manufacturers.find(m => m.id === selectedManufacturer.value) || manufacturers[0]
-})
+// Hàm lấy dữ liệu phụ phí và giá gốc từ API
+const fetchSurchargeData = async (manufacturerId) => {
+  try {
+    const res = await getManufacturerById(manufacturerId);
+    if (res && res.data) {
+      apiSurcharges.value = res.data.services || [];
+      // Không lấy basePrice từ đây nữa vì nó không có trong API
+      // basePrice.value = res.data.basePrice || 0;
+    }
+  } catch (error) {
+    apiSurcharges.value = [];
+    // Không reset basePrice về 0 nữa
+    // basePrice.value = 0;
+  }
+};
+
+// Khi mounted hoặc đổi manufacturer, gọi API
+onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const isEditing = urlParams.get('edit') === 'true'
+  const editId = route.params.id
+
+  if (isEditing) {
+    // Lấy dữ liệu từ localStorage nếu đang chỉnh sửa
+    const editingDesignJson = localStorage.getItem('editingDesign')
+    if (editingDesignJson) {
+      try {
+        const editingDesign = JSON.parse(editingDesignJson)
+        if (editingDesign.id.toString() === editId.toString()) {
+          // Gán lại các giá trị vào các biến reactive của bạn ở đây
+          customProductName.value = editingDesign.name
+          basePrice.value = editingDesign.price
+          surcharge.value = editingDesign.surcharge
+          // ... và các trường khác bạn cần khôi phục ...
+          // Gọi hàm khởi tạo mô hình 3D
+          initThree();
+          // Khôi phục lại toàn bộ tùy chỉnh lên mô hình 3D
+          if (editingDesign.designData) {
+            // Áp dụng màu sắc
+            if (editingDesign.designData.colors) {
+              Object.entries(editingDesign.designData.colors).forEach(([part, color]) => {
+                if (partColors[part] !== undefined) {
+                  partColors[part] = color;
+                }
+              });
+            }
+            // Áp dụng text custom
+            if (editingDesign.designData.customText) {
+              customText.value = editingDesign.designData.customText;
+            }
+            // Áp dụng các tham số texture
+            if (editingDesign.designData.textureParams) {
+              Object.assign(textureParams, editingDesign.designData.textureParams);
+            }
+            // Áp dụng lại texture/hình ảnh
+            if (editingDesign.designData.textures && editingDesign.designData.imagesData) {
+              Object.entries(editingDesign.designData.textures).forEach(([part, textureInfo]) => {
+                if (textureInfo.type === 'image' && editingDesign.designData.imagesData[part]) {
+                  // Áp dụng lại hình ảnh cho part
+                  const imageUrl = editingDesign.designData.imagesData[part];
+                  // Gọi lại logic applyImageToMesh cho từng part với imageUrl
+                  if (typeof window.THREE !== 'undefined' && typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') {
+                    const textureLoader = new THREE.TextureLoader();
+                    textureLoader.load(
+                      imageUrl,
+                      (texture) => {
+                        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                        texture.flipY = false;
+                        texture.encoding = THREE.sRGBEncoding;
+                        texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale);
+                        texture.offset.set(textureParams.offsetX, textureParams.offsetY);
+                        texture.rotation = textureParams.rotation;
+                        texture.needsUpdate = true;
+                        if (materials[part]) {
+                          materials[part].map = texture;
+                          materials[part].transparent = true;
+                          materials[part].needsUpdate = true;
+                          materials[part].metalness = 0.3;
+                          materials[part].roughness = 0.4;
+                        }
+                      }
+                    );
+                  }
+                }
+                if (textureInfo.type === 'text' && textureInfo.textContent) {
+                  // Nếu có logic áp dụng text lên part, có thể bổ sung ở đây
+                  // (Hiện tại chỉ khôi phục customText.value)
+                }
+              });
+            }
+            // Render lại mô hình
+            if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') {
+              renderer.render(scene, camera);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi nạp lại thiết kế đang chỉnh sửa:', e)
+      }
+    }
+    return; // Không gọi API nữa
+  }
+
+  // Nếu không phải edit local thì mới gọi API
+  const response = await getTemplateById(editId)
+  if (response) {
+    templateData.value = response;
+    customProductName.value = response.name || '';
+    previewImageUrl.value = response.previewImageUrl || '';
+    basePrice.value = response.basePrice || 0;
+    model3DUrl.value = response.model3DUrl || '';
+    description.value = response.description || '';
+    color.value = response.color || '';
+    gender.value = response.gender || '';
+    isAvailable.value = response.isAvailable || false;
+    createdAt.value = response.createdAt || '';
+    updatedAt.value = response.updatedAt || '';
+  }
+  initThree();
+
+  // Lấy danh sách manufacturer nếu cần
+  // Gán selectedManufacturer.value = id mặc định hoặc lấy từ localStorage
+  const res = await getManufacturerAll();
+  console.log("res",res);
+  if (res && res.data && Array.isArray(res.data)) {
+    manufacturerList.value = res.data;
+    if (res.data.length > 0) {
+      selectedManufacturer.value = res.data[0].id;
+      await fetchSurchargeData(selectedManufacturer.value);
+      calculateSurcharge();
+    }
+  }
+});
+
+const handleManufacturerChange = async () => {
+  await fetchSurchargeData(selectedManufacturer.value);
+  calculateSurcharge();
+  loadModelForManufacturer(selectedManufacturer.value);
+};
+
+// Hàm tính phụ phí dựa trên data API
+const calculateSurcharge = () => {
+  let totalSurcharge = 0;
+  for (const comp of components) {
+    const partName = comp.value;
+    const partsToCheck = partGroups[partName] || [partName];
+    let hasColor = false;
+    let hasImage = false;
+    partsToCheck.forEach((subPart) => {
+      if (materials[subPart]) {
+        const hexColor = '#' + materials[subPart].color.getHexString();
+        if (hexColor.toLowerCase() !== '#ffffff') hasColor = true;
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
+          if (textureType === 'image') hasImage = true;
+        }
+      }
+    });
+    if (hasColor) {
+      const colorFee = apiSurcharges.value.find(
+        s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
+      );
+      if (colorFee) totalSurcharge += colorFee.currentAmount;
+    }
+    if (hasImage) {
+      const imageFee = apiSurcharges.value.find(
+        s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
+      );
+      if (imageFee) totalSurcharge += imageFee.currentAmount;
+    }
+  }
+  surcharge.value = Math.round(totalSurcharge);
+};
+
+const loadModelForManufacturer = (manufacturerId) => {
+  const manufacturer = manufacturers.find(m => m.id === manufacturerId) || manufacturers[0]
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+
+  // Ưu tiên model3DUrl nếu có
+  const modelPath = model3DUrl.value || manufacturer.modelPath
+  loader.load(
+    modelPath,
+    (gltf) => onModelLoaded(gltf),
+    (xhr) => null,
+    (error) => alert('Lỗi khi tải mô hình 3D')
+  )
+}
 
 const captureAngles = reactive([
   { name: 'Mặt sau', preview: null, position: { x: -6, y: 2, z: -6 } },
@@ -1112,7 +1249,7 @@ const addToCart = async () => {
   const productData = {
     id: isEditing && editId ? parseInt(editId) : Date.now(),
     name: customProductName.value || 'Custom Running Shoes',
-    manufacturerId: selectedManufacturer.value,
+    manufacturerId: 1,
     price: basePrice.value,
     surcharge: surcharge.value,
     selectedSize: selectedSize.value,
@@ -1125,7 +1262,7 @@ const addToCart = async () => {
       customText: customText.value,
       textureParams: { ...textureParams },
       timestamp: new Date().toISOString(),
-      manufacturerId: selectedManufacturer.value
+      manufacturerId: 1
     },
     previewImages: captureAngles.map(angle => angle.preview)
   }
@@ -1204,7 +1341,7 @@ const saveAsDraft = () => {
     id: Date.now(),
     name: customProductName.value || 'Custom Running Shoes (Nháp)',
     templateId: route.params.id,
-    manufacturerId: selectedManufacturer.value,
+    manufacturerId: 1,
     price: basePrice.value,
     surcharge: surcharge.value,
     size: selectedSize.value,
@@ -1217,7 +1354,7 @@ const saveAsDraft = () => {
       customText: customText.value,
       textureParams: { ...textureParams },
       timestamp: new Date().toISOString(),
-      manufacturerId: selectedManufacturer.value
+      manufacturerId: 1
     },
     previewImages: captureAngles.map(angle => angle.preview)
   }
@@ -1640,7 +1777,6 @@ const templateId = route.params.id;
 const templateData = ref(null);
 
 // Thêm các biến reactive ở đầu script setup nếu chưa có
-const basePrice = ref(0);
 const model3DUrl = ref('');
 const description = ref('');
 const color = ref('');
@@ -1648,111 +1784,6 @@ const gender = ref('');
 const isAvailable = ref(false);
 const createdAt = ref('');
 const updatedAt = ref('');
-
-onMounted(async () => {
-  const urlParams = new URLSearchParams(window.location.search)
-  const isEditing = urlParams.get('edit') === 'true'
-  const editId = route.params.id
-
-  if (isEditing) {
-    // Lấy dữ liệu từ localStorage nếu đang chỉnh sửa
-    const editingDesignJson = localStorage.getItem('editingDesign')
-    if (editingDesignJson) {
-      try {
-        const editingDesign = JSON.parse(editingDesignJson)
-        if (editingDesign.id.toString() === editId.toString()) {
-          // Gán lại các giá trị vào các biến reactive của bạn ở đây
-          customProductName.value = editingDesign.name
-          basePrice.value = editingDesign.price
-          surcharge.value = editingDesign.surcharge
-          // ... và các trường khác bạn cần khôi phục ...
-          // Gọi hàm khởi tạo mô hình 3D
-          initThree();
-          // Khôi phục lại toàn bộ tùy chỉnh lên mô hình 3D
-          if (editingDesign.designData) {
-            // Áp dụng màu sắc
-            if (editingDesign.designData.colors) {
-              Object.entries(editingDesign.designData.colors).forEach(([part, color]) => {
-                if (partColors[part] !== undefined) {
-                  partColors[part] = color;
-                }
-              });
-            }
-            // Áp dụng text custom
-            if (editingDesign.designData.customText) {
-              customText.value = editingDesign.designData.customText;
-            }
-            // Áp dụng các tham số texture
-            if (editingDesign.designData.textureParams) {
-              Object.assign(textureParams, editingDesign.designData.textureParams);
-            }
-            // Áp dụng lại texture/hình ảnh
-            if (editingDesign.designData.textures && editingDesign.designData.imagesData) {
-              Object.entries(editingDesign.designData.textures).forEach(([part, textureInfo]) => {
-                if (textureInfo.type === 'image' && editingDesign.designData.imagesData[part]) {
-                  // Áp dụng lại hình ảnh cho part
-                  const imageUrl = editingDesign.designData.imagesData[part];
-                  // Gọi lại logic applyImageToMesh cho từng part với imageUrl
-                  if (typeof window.THREE !== 'undefined' && typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') {
-                    const textureLoader = new THREE.TextureLoader();
-                    textureLoader.load(
-                      imageUrl,
-                      (texture) => {
-                        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                        texture.flipY = false;
-                        texture.encoding = THREE.sRGBEncoding;
-                        texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale);
-                        texture.offset.set(textureParams.offsetX, textureParams.offsetY);
-                        texture.rotation = textureParams.rotation;
-                        texture.needsUpdate = true;
-                        if (materials[part]) {
-                          materials[part].map = texture;
-                          materials[part].transparent = true;
-                          materials[part].needsUpdate = true;
-                          materials[part].metalness = 0.3;
-                          materials[part].roughness = 0.4;
-                        }
-                      }
-                    );
-                  }
-                }
-                if (textureInfo.type === 'text' && textureInfo.textContent) {
-                  // Nếu có logic áp dụng text lên part, có thể bổ sung ở đây
-                  // (Hiện tại chỉ khôi phục customText.value)
-                }
-              });
-            }
-            // Render lại mô hình
-            if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') {
-              renderer.render(scene, camera);
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Lỗi khi nạp lại thiết kế đang chỉnh sửa:', e)
-      }
-    }
-    return; // Không gọi API nữa
-  }
-
-  // Nếu không phải edit local thì mới gọi API
-  const response = await getTemplateById(editId)
-  if (response) {
-    templateData.value = response;
-    customProductName.value = response.name || '';
-    previewImageUrl.value = response.previewImageUrl || '';
-    basePrice.value = response.basePrice || 0;
-    model3DUrl.value = response.model3DUrl || '';
-    description.value = response.description || '';
-    color.value = response.color || '';
-    gender.value = response.gender || '';
-    isAvailable.value = response.isAvailable || false;
-    createdAt.value = response.createdAt || '';
-    updatedAt.value = response.updatedAt || '';
-  }
-  initThree();
-});
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
@@ -1781,74 +1812,6 @@ const formatPrice = (price) => {
   }).format(price || 0);
 };
 
-const calculateSurcharge = () => {
-  let totalSurcharge = 0
-  const manufacturer = currentManufacturer.value
-  
-  // Khởi tạo mảng để theo dõi các thành phần đã tùy chỉnh
-  const customizedComponents = {
-    colors: [],
-    textures: []
-  }
-  
-  // Kiểm tra tất cả các thành phần đã tùy chỉnh
-  for (const comp of components) {
-    const partName = comp.value
-    const partsToCheck = partGroups[partName] || [partName]
-    
-    partsToCheck.forEach((subPart) => {
-      if (materials[subPart]) {
-        // Kiểm tra nếu đã thay đổi màu sắc (không phải màu trắng mặc định)
-        const hexColor = '#' + materials[subPart].color.getHexString()
-        if (hexColor.toLowerCase() !== '#ffffff') {
-          // Thêm vào danh sách đã tùy chỉnh để tránh tính trùng
-          if (!customizedComponents.colors.includes(partName)) {
-            customizedComponents.colors.push(partName)
-            
-            // Tính phụ phí theo thành phần và nhà sản xuất
-            const componentFee = manufacturer.surcharges.colorChange * 
-                                (manufacturer.surcharges.componentRates[partName] || 1.0)
-            totalSurcharge += componentFee
-          }
-        }
-        
-        // Kiểm tra nếu đã áp dụng texture
-        if (customTextures[subPart]) {
-          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
-          if (textureType === 'image' && !customizedComponents.textures.includes(partName)) {
-            customizedComponents.textures.push(partName)
-            
-            // Phụ phí cho ứng dụng hình ảnh
-            const textureFee = manufacturer.surcharges.imageApplication * 
-                              (manufacturer.surcharges.componentRates[partName] || 1.0)
-            totalSurcharge += textureFee
-          }
-        }
-      }
-    })
-  }
-  
-  // Cập nhật giá trị phụ phí
-  surcharge.value = Math.round(totalSurcharge)
-  
-  // Cập nhật hiển thị phụ phí
-  updateSurchargeDisplay()
-}
-
-// Hàm hiển thị phụ phí
-const updateSurchargeDisplay = () => {
-  const productSurchargeElement = document.querySelector('.product-surcharge')
-  
-  if (productSurchargeElement) {
-    if (surcharge.value > 0) {
-      productSurchargeElement.textContent = `Phụ phí: ${formatPrice(surcharge.value)}`
-      productSurchargeElement.style.display = 'block'
-    } else {
-      productSurchargeElement.style.display = 'none'
-    }
-  }
-}
-
 const findAllLaceMeshes = () => {
   if (!model) return []
   
@@ -1868,58 +1831,6 @@ const findAllLaceMeshes = () => {
     laceMeshes.map(mesh => ({ name: mesh.name, uuid: mesh.uuid })))
   
   return laceMeshes
-}
-
-// Xử lý khi thay đổi nhà sản xuất
-const handleManufacturerChange = () => {
-  // Lấy thông tin nhà sản xuất hiện tại
-  const manufacturer = currentManufacturer.value
-  
-  // Tính lại phụ phí với nhà sản xuất mới
-  calculateSurcharge()
-  
-  // Khi thay đổi nhà sản xuất, có thể cần thay đổi mô hình 3D
-  loadModelForManufacturer(manufacturer.id)
-}
-
-// Tải mô hình 3D tương ứng với nhà sản xuất
-const loadModelForManufacturer = (manufacturerId) => {
-  const manufacturer = manufacturers.find(m => m.id === manufacturerId) || manufacturers[0]
-  const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
-  const loader = new GLTFLoader()
-  loader.setDRACOLoader(dracoLoader)
-
-  // Ưu tiên model3DUrl nếu có
-  const modelPath = model3DUrl.value || manufacturer.modelPath
-  loader.load(
-    modelPath,
-    (gltf) => onModelLoaded(gltf),
-    (xhr) => null,
-    (error) => alert('Lỗi khi tải mô hình 3D')
-  )
-}
-
-// Hàm hiển thị ảnh trước đó
-const showPreviousImage = () => {
-  if (currentImageIndex.value > 0) {
-    currentImageIndex.value--;
-    const prevImage = uploadedImageHistory[currentImageIndex.value];
-    selectedImage.value = prevImage.file;
-    selectedImageName.value = prevImage.name;
-    previewImageUrl.value = prevImage.imageUrl;
-  }
-}
-
-// Hàm hiển thị ảnh tiếp theo
-const showNextImage = () => {
-  if (currentImageIndex.value < uploadedImageHistory.length - 1) {
-    currentImageIndex.value++;
-    const nextImage = uploadedImageHistory[currentImageIndex.value];
-    selectedImage.value = nextImage.file;
-    selectedImageName.value = nextImage.name;
-    previewImageUrl.value = nextImage.imageUrl;
-  }
 }
 
 const goToAIPage = () => {

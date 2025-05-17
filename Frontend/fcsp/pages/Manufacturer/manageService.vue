@@ -51,7 +51,7 @@
 
 <script>
 import HeaderManu from '@/components/HeaderManu.vue';
-import { addManufacture, getManufacturerById } from '@/server/manuService-service.js';
+import { addManufacture, getManufacturerById, updateManufacturer } from '@/server/manuService-service.js';
 
 export default {
   name: 'ManageService',
@@ -185,32 +185,64 @@ export default {
     async saveDefaultCustomFees() {
       let manufacturerId = localStorage.getItem('ManufacturerId');
       if (!manufacturerId) manufacturerId = 1;
-      const addServices = [];
 
+      // Lấy dữ liệu dịch vụ hiện tại
+      const res = await getManufacturerById(manufacturerId);
+      const currentServices = (res && res.data && Array.isArray(res.data.services)) ? res.data.services : [];
+
+      // Tạo map để lấy id theo component + type
+      const idMap = {};
+      currentServices.forEach(s => {
+        idMap[`${s.component}_${s.type}`] = s.id;
+      });
+
+      const updateServices = [];
       this.defaultCustomFees.forEach(fee => {
         if (fee.colorFee > 0) {
-          addServices.push({
-            component: fee.part.toLowerCase(),
-            type: 'colorapplication',
-            price: Number(fee.colorFee),
-            manufacturerId: manufacturerId
+          updateServices.push({
+            id: idMap[`${fee.part.toLowerCase()}_colorapplication`],
+            price: Number(fee.colorFee)
           });
         }
         if (fee.imageFee > 0) {
-          addServices.push({
-            component: fee.part.toLowerCase(),
-            type: 'imageapplication',
-            price: Number(fee.imageFee),
-            manufacturerId: manufacturerId
+          updateServices.push({
+            id: idMap[`${fee.part.toLowerCase()}_imageapplication`],
+            price: Number(fee.imageFee)
           });
         }
       });
 
       try {
-        await addManufacture({ addServices });
-        alert('Lưu phụ phí mặc định thành công!');
+        if (currentServices.length > 0) {
+          // Đã có dịch vụ, gọi update
+          await updateManufacturer(updateServices);
+          alert('Cập nhật phụ phí mặc định thành công!');
+        } else {
+          // Chưa có dịch vụ, gọi add
+          const addServices = [];
+          this.defaultCustomFees.forEach(fee => {
+            if (fee.colorFee > 0) {
+              addServices.push({
+                component: fee.part.toLowerCase(),
+                type: 'colorapplication',
+                price: Number(fee.colorFee),
+                manufacturerId: manufacturerId
+              });
+            }
+            if (fee.imageFee > 0) {
+              addServices.push({
+                component: fee.part.toLowerCase(),
+                type: 'imageapplication',
+                price: Number(fee.imageFee),
+                manufacturerId: manufacturerId
+              });
+            }
+          });
+          await addManufacture({ addServices });
+          alert('Lưu phụ phí mặc định thành công!');
+        }
       } catch (error) {
-        alert('Có lỗi khi lưu phụ phí mặc định!');
+        alert('Có lỗi khi lưu/cập nhật phụ phí mặc định!');
       }
     },
     async submitServiceToBE() {
@@ -359,4 +391,4 @@ export default {
 .btn-close-white {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
-</style>
+</style> 

@@ -2,6 +2,7 @@ import { fr } from "element-plus/es/locale/index.mjs";
 import { instance } from "./api-instance-provider";
 
 export async function CustomShoeDesign(data) {
+  console.log("data",data);
   let formData = new FormData();
 
   // Thêm các trường đơn giản

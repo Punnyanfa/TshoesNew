@@ -9,7 +9,15 @@ export async function getManufacture() {
     throw error;
   }
 }
-
+export async function getManufactureAll() {
+  try {
+    const response = await instance.get(`/manufacturer`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error getting manufacture:`, error);
+    throw error;
+  }
+}
 export async function addManufacture(manufacture) {
   console.log(manufacture);
   try {
@@ -39,13 +47,17 @@ export async function getManufacturerAll() {
   }
 }
 
-export async function getManufacturerByManufacturerId(manufacturerId) {
+
+export async function updateManufacturer(updateServices) {
+  console.log("ghhhhh",updateServices);
   try {
-    const response = await instance.get(`Service/Manufacturer/${manufacturerId}`);
+    const response = await instance.put('/service', { updateServices });
     return response.data;
   } catch (error) {
-    console.error(`Error getting manufacture:`, error);
+    console.error(`Error updating manufacturer:`, error);
     throw error;
   }
 }
+
+
 
