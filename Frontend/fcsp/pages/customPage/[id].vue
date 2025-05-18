@@ -684,10 +684,8 @@ onMounted(async () => {
   }
   initThree();
 
-  // Lấy danh sách manufacturer nếu cần
-  // Gán selectedManufacturer.value = id mặc định hoặc lấy từ localStorage
+
   const res = await getManufacturerAll();
-  console.log("res",res);
   if (res && res.data && Array.isArray(res.data)) {
     manufacturerList.value = res.data;
     if (res.data.length > 0) {
@@ -1346,7 +1344,8 @@ const saveAsDraft = () => {
     surcharge: surcharge.value,
     size: selectedSize.value,
     image: captureAngles[1].preview,
-    TextureIds:"1",
+    TextureIds: "1",
+    ServiceIds: [], 
     designData: {
       colors: {},
       textures: {},
@@ -1366,6 +1365,15 @@ const saveAsDraft = () => {
       if (materials[subPart]) {
         const hexColor = '#' + materials[subPart].color.getHexString()
         productData.designData.colors[subPart] = hexColor
+        // Nếu part đã đổi màu (khác #ffffff)
+        if (hexColor.toLowerCase() !== '#ffffff') {
+          const colorService = apiSurcharges.value.find(
+            s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
+          )
+          if (colorService) {
+            productData.ServiceIds.push(colorService.id)
+          }
+        }
         if (customTextures[subPart]) {
           const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
           productData.designData.textures[subPart] = {
@@ -1374,11 +1382,20 @@ const saveAsDraft = () => {
           }
           if (textureType === 'image' && customTextures[subPart].imageData) {
             productData.designData.imagesData[subPart] = customTextures[subPart].imageData
+            // Nếu part đã áp dụng hình ảnh
+            const imageService = apiSurcharges.value.find(
+              s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
+            )
+            if (imageService) {
+              productData.ServiceIds.push(imageService.id)
+            }
           }
         }
       }
     })
   }
+  // Loại bỏ trùng lặp trong ServiceIds
+  productData.ServiceIds = Array.from(new Set(productData.ServiceIds));
 
   // Gửi dữ liệu dưới dạng JSON
   const designDataObj = {
@@ -1389,10 +1406,9 @@ const saveAsDraft = () => {
     textureParams: productData.designData.textureParams,
     timestamp: productData.designData.timestamp,
     manufacturerId: productData.designData.manufacturerId
-    // ... các trường khác nếu cần
   };
   const jsonString = JSON.stringify(designDataObj);
-  const designDataFile = new File([jsonString], "designData.json", { type: "application/json" });
+  // const designDataFile = new File([jsonString], "designData.json", { type: "application/json" });
 
   CustomShoeDesign(productData)
     .then(response => {

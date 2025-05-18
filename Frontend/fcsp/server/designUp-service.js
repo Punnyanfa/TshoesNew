@@ -12,7 +12,7 @@ export async function CustomShoeDesign(data) {
   formData.append('Name', data.name);
   formData.append('Description', data.description);
   formData.append('CustomShoeDesignPreviewImages', data.previewImages);
-  
+  formData.append('ServiceIds', data.ServiceIds);
 
   // DesignData: nếu là object, stringify rồi append như file
   if (typeof data.designData === 'object') {
