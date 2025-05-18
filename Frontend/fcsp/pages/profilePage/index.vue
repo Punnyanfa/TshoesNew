@@ -119,7 +119,7 @@
 </template>
 
 <script>
-import { getProfile, updateProfile } from '../../server/profile-service';
+import { getProfile, updateProfile, updateAvatar } from '../../server/profile-service';
 export default {
   name: 'ProfilePage',
   data() {
@@ -224,10 +224,25 @@ export default {
         return
       }
       
-      // Create a preview
+      // Create a preview and upload avatar
       const reader = new FileReader()
-      reader.onload = (e) => {
-        this.profile.avatar = e.target.result
+      reader.onload = async (e) => {
+        const base64Avatar = e.target.result
+        this.profile.avatar = base64Avatar
+        // Gọi API cập nhật avatar
+        const id = localStorage.getItem('userId')
+        if (!id) {
+          alert('Bạn cần đăng nhập để cập nhật avatar!')
+          this.$router.push('/loginPage')
+          return
+        }
+        try {
+          await updateAvatar({ id: Number(id), avatar: base64Avatar })
+          alert('Avatar updated successfully!')
+        } catch (err) {
+          alert('Failed to update avatar!')
+          console.error(err)
+        }
       }
       reader.readAsDataURL(file)
     }

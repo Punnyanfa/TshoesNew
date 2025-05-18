@@ -15,11 +15,41 @@ export async function getProfile(id) {
 // Thêm function updateProfile
 export async function updateProfile(profile) {
     console.log(profile);
+    try {
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            throw new Error('Bạn cần đăng nhập để cập nhật thông tin!');
+        }
+        const response = await instance.put('/Auth/information', profile, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        throw error;
+    }
+}
+// Thêm function updateProfile
+export async function updateAvatar({ id, avatar }) {
   try {
-    const response = await instance.put('/Auth/information', profile);
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      throw new Error('Bạn cần đăng nhập để cập nhật thông tin!');
+    }
+    // Gửi đúng định dạng API yêu cầu: id và avatar
+    const response = await instance.put('/Auth/information', {
+      id,
+      avatar
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     return response.data;
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error('Error updating avatar:', error);
     throw error;
   }
 }

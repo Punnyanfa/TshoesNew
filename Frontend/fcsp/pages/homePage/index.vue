@@ -34,7 +34,70 @@
         </button>
       </div>
     </section>
+    <section class="best-sellers-section container py-5">
+      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Giày Bán Chạy Nhất</h2>
+      
+      <Swiper
+        v-bind="swiperOptions"
+        class="best-seller-swiper"
+      >
+        <SwiperSlide v-for="product in products" :key="product.id">
+          <div class="product-card">
+            <div class="product-image position-relative">
+              <img 
+                :src="product.image" 
+                :alt="product.name" 
+                class="img-fluid rounded"
+                @load="handleImageLoad(product.id)"
+                :class="{ 'image-loaded': imageLoaded[product.id] }"
+              />
+              <div class="image-skeleton" v-if="!imageLoaded[product.id]"></div>
+              <div class="product-overlay">
+                <button 
+                  class="btn btn-add-cart"
+                  @click="addToCart(product)"
+                >
+                  <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                </button>
+              </div>
+            </div>
+            <div class="product-info mt-3">
+              <NuxtLink 
+                :to="`/product/${product.id}`" 
+                class="product-title text-decoration-none"
+              >
+                <h5 class="fw-bold mb-2">{{ product.name }}</h5>
+              </NuxtLink>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="price fw-bold">{{ product.price }}</span>
+                <span class="rating">
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <span class="ms-1">{{ product.rating }} ({{ product.reviews }})</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </SwiperSlide>
 
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-pagination"></div>
+      </Swiper>
+
+      <!-- Notification Toast -->
+      <div 
+        class="notification-toast"
+        :class="{ 'show': showNotification }"
+      >
+        {{ notificationMessage }}
+      </div>
+
+      <div class="text-center mt-5">
+        <NuxtLink to="/productPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
+          Xem Tất Cả Sản Phẩm
+        </NuxtLink>
+      </div>
+    </section>
     <!-- Collection Section -->
     <section class="collection-section container py-5">
       <h2 class="collection-title text-center">Our Collections</h2>
@@ -86,7 +149,7 @@
               Design Your Own
             </h1>
             <p class="lead text-muted mb-4">
-              Discover our custom shoe design process. From your first idea to the final product, we’ll be with you every step of the creative journey.
+              Discover our custom shoe design process. From your first idea to the final product, we'll be with you every step of the creative journey.
             </p>
             <div class="steps-list">
               <div class="step-item mb-3">
@@ -166,7 +229,7 @@
                 v-for="(color, idx) in bestSeller.colors"
                 :key="idx"
                 :style="{ background: color }"
-                class="color-dot"
+                class="color-dot" 
               ></span>
             </div>
           </div>
@@ -214,7 +277,7 @@
     <section class="cta-section text-center py-5">
       <div class="container">
         <h2 class="fw-bold" style="color: #007bff;">Ready to Elevate Your Style?</h2>
-        <p class="mt-3" style="color: #000000;">Join thousands of sneaker enthusiasts who’ve turned their ideas into one-of-a-kind custom shoes.</p>
+        <p class="mt-3" style="color: #000000;">Join thousands of sneaker enthusiasts who've turned their ideas into one-of-a-kind custom shoes.</p>
         <NuxtLink to="/customPage" class="btn btn-sneaker px-5 py-3 mt-4 fw-bold text-uppercase">
           Start Designing
         </NuxtLink>
@@ -227,18 +290,28 @@
 </template>
 
 <script setup>
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+
+// Import required modules
+import { Navigation, Pagination, Autoplay } from 'swiper/modules'
+import { GetBestSelling } from '~/server/BestSelling-service'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/server/cart'
-import { GetBestSelling } from '~/server/BestSelling-service'
 
 // Define reactive state
-const products = ref([])
+const showNotification = ref(false)
+const notificationMessage = ref('')
+const imageLoaded = ref({})
 const router = useRouter()
 const hoverIdx = ref(null)
 const cartStore = useCartStore()
 const isLoading = ref(false)
 const error = ref(null)
+const products = ref([])
 
 // Fetch products on component mount
 onMounted(async () => {
@@ -246,11 +319,12 @@ onMounted(async () => {
   error.value = null
   try {
     const response = await GetBestSelling()
+    console.log(response)
     if (response && response.data.designs) {
       products.value = response.data.designs.map(product => ({
         id: product.id,
         name: product.name,
-        image: product.previewImageUrl,
+        image: product.previewImageUrl || '/default-shoe.png',
         price: product.price,
         rating: product.rating,
         reviews: product.ratingCount
@@ -452,6 +526,21 @@ const testimonials = [
     stars: 5
   }
 ]
+
+const swiperOptions = {
+  modules: [Navigation, Pagination, Autoplay],
+  slidesPerView: 4,
+  spaceBetween: 30,
+  navigation: true,
+  pagination: { clickable: true },
+  autoplay: { delay: 3000, disableOnInteraction: false },
+  breakpoints: {
+    1200: { slidesPerView: 4 },
+    992: { slidesPerView: 3 },
+    768: { slidesPerView: 2 },
+    0: { slidesPerView: 1 }
+  }
+}
 </script>
 
 <style scoped>
@@ -957,6 +1046,231 @@ const testimonials = [
     .best-seller-img {
       max-width: 90vw;
       margin-bottom: 30px;
+    }
+  }
+
+  /* Best Seller Section Styles */
+  .best-seller-swiper {
+    padding: 20px 40px;
+    margin: 0 -20px;
+  }
+
+  .product-card {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    height: 100%;
+    padding: 15px;
+  }
+
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .product-image {
+    overflow: hidden;
+    position: relative;
+    padding-top: 100%;
+    border-radius: 10px;
+  }
+
+  .product-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .product-card:hover .product-image img {
+    transform: scale(1.1);
+  }
+
+  .product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+  }
+
+  .product-card:hover .product-overlay {
+    opacity: 1;
+  }
+
+  .product-info {
+    padding: 1rem 0.5rem;
+  }
+
+  .btn-add-cart {
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-add-cart:hover {
+    transform: scale(1.1);
+    background: linear-gradient(45deg, #3498db, #2c3e50);
+  }
+
+  .price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .rating i {
+    color: #f1c40f;
+  }
+
+  /* Swiper Navigation Styles */
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: #2c3e50;
+    background: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+  }
+
+  .swiper-button-next:hover,
+  .swiper-button-prev:hover {
+    background: #f8f9fa;
+    transform: scale(1.1);
+  }
+
+  .swiper-button-next:after,
+  .swiper-button-prev:after {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  /* Swiper Pagination Styles */
+  .swiper-pagination {
+    margin-top: 20px;
+  }
+
+  .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #2c3e50;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+  }
+
+  .swiper-pagination-bullet-active {
+    background: #3498db;
+    opacity: 1;
+    width: 24px;
+    border-radius: 5px;
+  }
+
+  /* Loading Effect */
+  .image-skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 10px;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Notification Toast Styles */
+  .notification-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+
+  .notification-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Product Title Hover Effect */
+  .product-title {
+    color: #2c3e50;
+    transition: color 0.3s ease;
+  }
+
+  .product-title:hover {
+    color: #3498db;
+  }
+
+  /* Image Loading Animation */
+  .image-loaded {
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .best-seller-swiper {
+      padding: 20px;
+    }
+    
+    .swiper-button-next,
+    .swiper-button-prev {
+      display: none;
+    }
+    
+    .product-overlay {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    
+    .btn-add-cart {
+      padding: 8px 15px;
+      font-size: 0.9rem;
     }
   }
 </style>
