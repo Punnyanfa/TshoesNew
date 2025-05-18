@@ -157,26 +157,27 @@ const formatPrice = (price) =>
 
 <style scoped>
 .product-wrapper {
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+  background: #f5f7fa;
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
   position: relative;
 }
 
-/* Các style hiện có chỉnh sửa màu */
 .text-sneaker-blue {
-  color: #3498db;
+  color: #007bff;
   height: auto;
 }
 
 .sneaker-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: none;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .sneaker-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 15px 30px rgba(0, 123, 255, 0.15) !important;
 }
 
 .sneaker-img {
@@ -194,54 +195,63 @@ const formatPrice = (price) =>
   position: absolute;
   top: 10px;
   right: 10px;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
   padding: 5px 10px;
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
 
 .btn-sneaker {
   display: inline-block;
   text-align: center;
   text-decoration: none;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
   border: none;
   border-radius: 10px;
   padding: 12px 24px;
   font-weight: bold;
   text-transform: uppercase;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
 
 .btn-sneaker:hover {
-  background: linear-gradient(45deg, #2c3e50 20%, #2980b9);
-  transform: scale(1.05);
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
 }
 
 .btn-sneaker:active {
-  transform: scale(0.95);
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2);
 }
 
 /* Pagination */
 .pagination .page-link {
-  color: #3498db;
+  color: #007bff;
   border: none;
   padding: 10px 15px;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .pagination .page-item.active .page-link {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
   border-radius: 5px;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
 
 .pagination .page-link:hover {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
 }
 
 /* Controls (Filters and Sort) */
@@ -250,35 +260,56 @@ const formatPrice = (price) =>
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  background: #fff;
+  background: #ffffff;
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.controls:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 .filters {
   font-weight: 600;
-  color: #1e293b;
+  color: #007bff;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filters:hover {
+  transform: translateX(5px);
 }
 
 .sort {
   font-size: 0.9rem;
-  color: #666;
+  color: #6B7280;
 }
 
 .sort-select {
   padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  background: #ffffff;
   font-size: 0.9rem;
+  transition: all 0.3s ease;
 }
 
 .sort-select:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+  border-color: #007bff;
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Loading spinner */
+.spinner-border {
+  color: #007bff;
+  width: 3rem;
+  height: 3rem;
 }
 
 /* Responsive adjustments */
@@ -301,5 +332,34 @@ const formatPrice = (price) =>
     gap: 1rem;
     align-items: flex-start;
   }
+}
+
+/* Dark mode styles */
+.dark-mode .product-wrapper {
+  background: #1a1a1a;
+}
+
+.dark-mode .sneaker-card {
+  background: #2d2d2d;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .controls {
+  background: #2d2d2d;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .sort-select {
+  background: #2d2d2d;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.dark-mode .filters {
+  color: #ffffff;
+}
+
+.dark-mode .sort {
+  color: #AAAAAA;
 }
 </style>

@@ -108,17 +108,7 @@ const posts = [
   display: flex;
   flex-direction: column;
 }
-.big-image-bg {
-  width: 100vw;
-  height: 550px;
-  min-height: 250px;
-  max-height: 500px;
-  background: url('https://kingshoes.vn/data/upload/media/af1-2.jpg') center center/cover no-repeat;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
+
 .container {
   position: relative;
   z-index: 1;

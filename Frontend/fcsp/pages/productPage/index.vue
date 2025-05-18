@@ -269,11 +269,33 @@ onMounted(async () => {
   position: relative;
 }
 
+.product-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
+  background-size: 30px 30px;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+}
+
 /* Card Styles */
 .sneaker-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: none;
-  overflow: hidden;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.5s ease;
 }
 
 .clickable-card {
@@ -290,6 +312,7 @@ onMounted(async () => {
   object-fit: cover;
   cursor: pointer;
   transition: transform 0.3s ease;
+  border-radius: 15px 15px 0 0;
 }
 
 .sneaker-img:hover {
@@ -310,41 +333,55 @@ onMounted(async () => {
 }
 
 .rating-value {
-  color: #666;
+  color: #34495e;
   font-size: 0.9rem;
 }
 
 /* Button Styles */
 .btn-sneaker {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
   border: none;
-  border-radius: 10px;
-  transition: background 0.3s ease, transform 0.2s ease;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
 .btn-sneaker:hover {
-  background: linear-gradient(45deg, #2c3e50 20%, #2980b9);
-  transform: scale(1.05);
+  background: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-sneaker:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.2);
 }
 
 /* Pagination Styles */
 .pagination .page-link {
-  color: #3498db;
+  color: #007bff;
   border: none;
   padding: 10px 15px;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin: 0 5px;
 }
 
 .pagination .page-item.active .page-link {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
-  border-radius: 5px;
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
 .pagination .page-link:hover {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #0056b3;
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
 .pagination .page-item.disabled .page-link {
@@ -358,6 +395,7 @@ onMounted(async () => {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
+  border-radius: 15px 15px 0 0;
 }
 
 .skeleton-text {
@@ -365,7 +403,7 @@ onMounted(async () => {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 10px;
 }
 
@@ -374,7 +412,7 @@ onMounted(async () => {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 @keyframes loading {
@@ -394,6 +432,7 @@ onMounted(async () => {
   overflow: hidden;
   width: 100%;
   max-width: 1300px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .newsletter-bg-img {
@@ -424,6 +463,7 @@ onMounted(async () => {
   font-size: 1rem;
   font-weight: bold;
   margin-bottom: 10px;
+  color: #007bff;
 }
 
 .newsletter-title {
@@ -445,17 +485,34 @@ onMounted(async () => {
   flex: 1;
   padding: 10px 20px;
   border-radius: 30px;
-  border: none;
+  border: 1px solid #e0e0e0;
   height: 44px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.newsletter-input:focus {
+  border-color: #3498db;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+  outline: none;
 }
 
 .newsletter-button {
   padding: 10px 30px;
   border-radius: 30px;
-  background-color: #333;
+  background: #007bff;
   color: white;
   border: none;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.newsletter-button:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
 }
 
 .newsletter-website {
@@ -466,6 +523,11 @@ onMounted(async () => {
 /* Services Section */
 .services-section {
   padding: 50px 0;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  margin: 50px auto;
+  max-width: 1300px;
 }
 
 .services-container {
@@ -475,6 +537,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .service-item {
@@ -482,6 +545,11 @@ onMounted(async () => {
   padding: 20px;
   flex: 1;
   min-width: 200px;
+  transition: transform 0.3s ease;
+}
+
+.service-item:hover {
+  transform: translateY(-5px);
 }
 
 .service-item i {
@@ -493,15 +561,27 @@ onMounted(async () => {
 .service-title {
   font-weight: bold;
   margin-bottom: 10px;
+  color: #34495e;
 }
 
 .service-description {
-  color: #666;
+  color: #7f8c8d;
   font-size: 0.9rem;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive Styles */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .sneaker-img {
     height: 180px;
   }
@@ -521,32 +601,6 @@ onMounted(async () => {
   
   .newsletter-section .newsletter-bg-img { 
     border-radius: 12px; 
-  }
-
-  .hero-section {
-    height: 400px;
-  }
-
-  .payment-hero-content {
-    padding: 50px 20px;
-  }
-
-  .payment-hero-title {
-    font-size: 2rem;
-  }
-
-  .stats-section {
-    flex-wrap: wrap;
-    padding: 30px 0;
-  }
-
-  .stat-item {
-    width: 50%;
-    margin-bottom: 20px;
-  }
-
-  .stat-divider {
-    display: none;
   }
 
   .services-container {

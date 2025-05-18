@@ -193,15 +193,61 @@ const formatPrice = (price) => {
 
 <style scoped>
 .product-detail {
-  background: #fff;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
+  position: relative;
+}
+
+.product-detail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
+  background-size: 30px 30px;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.5s ease;
+}
+
+.card-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: #007bff;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
+  transition: transform 0.3s ease;
+}
+
+.card-title:hover {
+  transform: translateY(-3px);
 }
 
 .texture-image {
-  border-radius: 8px;
+  border-radius: 15px;
   object-fit: cover;
   transition: transform 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.texture-image:hover {
+  transform: scale(1.02);
 }
 
 .texture-thumbnail {
@@ -209,8 +255,9 @@ const formatPrice = (price) => {
   height: 60px;
   cursor: pointer;
   overflow: hidden;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
 .texture-thumbnail img {
@@ -220,47 +267,115 @@ const formatPrice = (price) => {
 }
 
 .active-thumbnail {
-  border: 2px solid #2c3e50;
+  border: 2px solid #007bff;
   transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
 }
 
 .size-label {
   display: inline-block;
   padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-align: center;
   min-width: 45px;
+  background: #f9f9f9;
 }
 
 .size-label:hover {
-  background-color: #f8f9fa;
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .size-label.active {
-  background-color: #2c3e50;
+  background: #007bff;
   color: white;
-  border-color: #2c3e50;
+  border-color: #007bff;
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.form-control {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 15px;
+  background: #f9f9f9;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+  outline: none;
 }
 
 .btn-sneaker {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: #007bff;
   color: #fff;
   border: none;
   border-radius: 8px;
-  transition: background 0.3s ease, transform 0.2s ease;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
 .btn-sneaker:hover {
-  background: linear-gradient(45deg, #2c3e50 20%, #2980b9);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-sneaker:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.2);
 }
 
 .btn-sneaker:disabled {
   background: #6c757d;
   transform: none;
+  box-shadow: none;
+}
+
+.text-success {
+  color: #007bff !important;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 992px) {
+  .card-title {
+    font-size: 2rem;
+  }
+
+  .texture-thumbnail {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 576px) {
+  .card-title {
+    font-size: 1.8rem;
+  }
+
+  .texture-thumbnail {
+    width: 40px;
+    height: 40px;
+  }
 }
 </style>
