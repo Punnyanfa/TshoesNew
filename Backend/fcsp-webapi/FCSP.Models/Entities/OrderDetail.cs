@@ -22,7 +22,6 @@ public class OrderDetail : BaseEntity
 
     public int TotalPrice { get; set; }
 
-    // Template and service price details
     public int TemplatePrice { get; set; }
     
     public int ServicePrice { get; set; }

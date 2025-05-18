@@ -5,7 +5,7 @@ namespace FCSP.Services.OrderService
 {
     public interface IOrderService
     {
-        Task<BaseResponseModel<IEnumerable<GetOrderByIdResponse>>> GetOrdersByUserId(GetOrdersByUserIdRequest request);
+        Task<BaseResponseModel<GetOrdersByUserIdResponse>> GetOrdersByUserId(GetOrdersByUserIdRequest request);
         Task<BaseResponseModel<GetOrderByIdResponse>> GetOrderById(GetOrderByIdRequest request);
         Task<BaseResponseModel<IEnumerable<GetOrderByIdResponse>>> GetAllOrders();
         Task<BaseResponseModel<AddOrderResponse>> AddOrder(AddOrderRequest request);

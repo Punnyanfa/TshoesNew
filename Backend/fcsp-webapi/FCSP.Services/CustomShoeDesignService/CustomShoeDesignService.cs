@@ -349,18 +349,24 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
         }
-        return designs.Select(d => new GetSimpleCustomShoeDesignResponse
+        var responses = new List<GetSimpleCustomShoeDesignResponse>();
+        foreach (var d in designs)
         {
-            Id = d.Id,
-            Name = d.CustomShoeDesignTemplate?.Name,
-            Description = d.Description,
-            Gender = d.CustomShoeDesignTemplate?.Gender,
-            Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
-            Status = d.Status,
-            RatingCount = d.Ratings?.Count ?? 0,
-            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-            Price = d.TotalAmount
-        });
+            var totalAmount = await CalculateTotalAmount(d);
+            responses.Add(new GetSimpleCustomShoeDesignResponse
+            {
+                Id = d.Id,
+                Name = d.CustomShoeDesignTemplate?.Name,
+                Description = d.Description,
+                Gender = d.CustomShoeDesignTemplate?.Gender,
+                Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+                Status = d.Status,
+                RatingCount = d.Ratings?.Count ?? 0,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                Price = totalAmount
+            });
+        }
+        return responses;
     }
 
     private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetTopFiveBestSellingDesigns()
@@ -371,17 +377,23 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
         }
-        return designs.Select(d => new GetSimpleCustomShoeDesignResponse
+        var responses = new List<GetSimpleCustomShoeDesignResponse>();
+        foreach (var d in designs)
         {
-            Id = d.Id,
-            Name = d.CustomShoeDesignTemplate?.Name,
-            Description = d.Description,
-            Gender = d.CustomShoeDesignTemplate?.Gender,
-            Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
-            RatingCount = d.Ratings?.Count ?? 0,
-            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-            Price = d.TotalAmount
-        });
+            var totalAmount = await CalculateTotalAmount(d);
+            responses.Add(new GetSimpleCustomShoeDesignResponse
+            {
+                Id = d.Id,
+                Name = d.CustomShoeDesignTemplate?.Name,
+                Description = d.Description,
+                Gender = d.CustomShoeDesignTemplate?.Gender,
+                Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+                RatingCount = d.Ratings?.Count ?? 0,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                Price = totalAmount
+            });
+        }
+        return responses;
     }
 
     private async Task<GetCustomShoeDesignByIdResponse> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
@@ -400,12 +412,13 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             return null;
         }
 
+        var totalAmount = await CalculateTotalAmount(design);
         return new GetCustomShoeDesignByIdResponse
         {
             Id = design.Id,
             Name = design.CustomShoeDesignTemplate?.Name,
             Description = design.Description,
-            Price = design.TotalAmount,
+            Price = totalAmount,
             TemplateUrl = design.CustomShoeDesignTemplate?.ThreeDFileUrl,
             DesignData = design.DesignData,
             Sizes = sizes.Select(d => new DTOs.Size.ShoeSizes
@@ -429,22 +442,27 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
         }
-        return designs.Select(d => new GetSimpleCustomShoeDesignResponse
+        var responses = new List<GetSimpleCustomShoeDesignResponse>();
+        foreach (var d in designs)
         {
-            Id = d.Id,
-            Name = d.CustomShoeDesignTemplate?.Name,
-            Description = d.Description,
-            Gender = d.CustomShoeDesignTemplate?.Gender,
-            Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
-            RatingCount = d.Ratings?.Count ?? 0,
-            PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-            Price = d.TotalAmount
-        });
+            var totalAmount = await CalculateTotalAmount(d);
+            responses.Add(new GetSimpleCustomShoeDesignResponse
+            {
+                Id = d.Id,
+                Name = d.CustomShoeDesignTemplate?.Name,
+                Description = d.Description,
+                Gender = d.CustomShoeDesignTemplate?.Gender,
+                Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+                RatingCount = d.Ratings?.Count ?? 0,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                Price = totalAmount
+            });
+        }
+        return responses;
     }
 
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromAddDesignRequest(AddCustomShoeDesignRequest request)
     {
-
         var template = await _customShoeDesignTemplateRepository.FindAsync(request.CustomShoeDesignTemplateId ?? 0);
         var templatePrice = template?.Price ?? 0;
 
@@ -473,7 +491,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
         var designDataPath = await UploadDesignDataToAzureStorage(fileName, fileBytes);
 
-        var totalAmount = templatePrice + servicesPrice + request.DesignerMarkup.Value;
         var design = new CustomShoeDesign
         {
             UserId = request.UserId ?? 0,
@@ -482,12 +499,25 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Description = request.Description,
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
-            TotalAmount = totalAmount,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
         return design;
+    }
+
+    private async Task<int> CalculateTotalAmount(CustomShoeDesign design)
+    {
+        var template = await _customShoeDesignTemplateRepository.FindAsync(design.CustomShoeDesignTemplateId);
+        var templatePrice = template?.Price ?? 0;
+
+        int servicesPrice = 0;
+        if (design.DesignServices != null && design.DesignServices.Any())
+        {
+            servicesPrice = design.DesignServices.Sum(ds => ds.Service?.Price ?? 0);
+        }
+
+        return templatePrice + servicesPrice + design.DesignerMarkup;
     }
 
     private async Task<IEnumerable<DesignPreview>> GetDesignPreviewImagesFromAddDesignRequest(AddCustomShoeDesignRequest request, long designId)

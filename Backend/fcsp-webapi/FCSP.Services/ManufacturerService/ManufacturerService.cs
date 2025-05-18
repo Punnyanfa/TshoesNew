@@ -68,6 +68,11 @@ namespace FCSP.Services.ManufacturerService
                     return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 404, Message = "Manufacturer not found" };
                 }
 
+                if (manufacturer.Status == ManufacturerStatus.Suspended)
+                {
+                    return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 404, Message = "Manufacturer is suspended" };
+                }
+
                 return new BaseResponseModel<GetManufacturerDetailResponse>
                 {
                     Code = 200,
@@ -185,6 +190,7 @@ namespace FCSP.Services.ManufacturerService
                     return new BaseResponseModel<bool> { Code = 404, Message = "Manufacturer not found" };
                 }
 
+                manufacturer.IsDeleted = true;
                 manufacturer.Status = ManufacturerStatus.Inactive;
                 manufacturer.UpdatedAt = DateTime.UtcNow;
                 await _manufacturerRepository.UpdateAsync(manufacturer);

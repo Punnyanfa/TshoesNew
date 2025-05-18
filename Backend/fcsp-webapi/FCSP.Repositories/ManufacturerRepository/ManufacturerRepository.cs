@@ -15,7 +15,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<Manufacturer?> GetManufacturerByUserIdAsync(long userId)
         {
             return await Entities
-                .Where(m => m.UserId == userId)
+                .Where(m => m.UserId == userId && m.Status == ManufacturerStatus.Active)
                 .Include(m => m.Services)
                 .FirstOrDefaultAsync();
         }
@@ -23,7 +23,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Manufacturer>> GetManufacturersByStatusAsync(int status)
         {
             return await Entities
-                .Where(m => m.Status == (ManufacturerStatus)status)
+                .Where(m => m.Status == (ManufacturerStatus)status && m.IsDeleted != true)
                 .Include(m => m.Services)
                 .ToListAsync();
         }
@@ -33,12 +33,13 @@ namespace FCSP.Repositories.Implementations
             return await Entities               
                 .Include(m => m.Services)
                 .Include(m => m.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && m.Status == ManufacturerStatus.Active);
         }
         public async Task<List<Manufacturer>> GetAllWithDetailsAsync()
         {
             return await _context.Manufacturers
                 .Include(m => m.Services)
+                .Where(m => m.Status == ManufacturerStatus.Active)
                 .ToListAsync();
         }
     }

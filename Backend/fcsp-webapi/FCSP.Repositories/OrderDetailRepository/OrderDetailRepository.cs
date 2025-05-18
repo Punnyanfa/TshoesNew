@@ -14,10 +14,22 @@ namespace FCSP.Repositories.Implementations
         {
         }
 
-        public async Task<IEnumerable<OrderDetail>> GetByOrderIdAsync(long orderId)
+        public async Task<OrderDetail> GetByOrderIdAsync(long orderId)
         {
             return await _context.OrderDetails
-                .Where(od => od.OrderId == orderId)
+                .Include(od => od.Size)
+                .Include(od => od.CustomShoeDesign)
+                    .ThenInclude(cd => cd.DesignPreviews)
+                .Include(od => od.CustomShoeDesign)
+                    .ThenInclude(cd => cd.DesignServices)
+                        .ThenInclude(ds => ds.Service)
+                .FirstOrDefaultAsync(od => od.OrderId == orderId);
+        }
+
+        public async Task<IEnumerable<OrderDetail>> GetByManufacturerIdAsync(long manufacturerIdId)
+        {
+            return await _context.OrderDetails
+                .Where(od => od.ManufacturerId == manufacturerIdId)
                 .Include(od => od.Size)
                 .Include(od => od.CustomShoeDesign)
                     .ThenInclude(cd => cd.DesignPreviews)

@@ -659,6 +659,25 @@ public class AuthService : IAuthService
             throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
 
+        if (user.UserRole == UserRole.Admin)
+        {
+            throw new InvalidOperationException($"Can't ban Admin");
+        }
+
+        if(user.UserRole == UserRole.Manufacturer)
+        {
+            var manufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(user.Id);
+            manufacturer.Status = ManufacturerStatus.Suspended;
+            await _manufacturerRepository.UpdateAsync(manufacturer);
+        }
+
+        if(user.UserRole == UserRole.Designer)
+        {
+            var designer = await _designerRepository.GetDesignerByUserIdAsync(user.Id);
+            designer.Status = DesignerStatus.Suspended;
+            await _designerRepository.UpdateAsync(designer);
+        }
+
         user.IsBanned = request.IsBanned;
         user.UpdatedAt = DateTime.Now;
         return user;

@@ -10,6 +10,18 @@ namespace FCSP.DTOs.Order
         public long Id { get; set; }
     }
 
+    public class GetOrdersByUserIdRequest
+    {
+        [Required(ErrorMessage = "UserId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "UserId must be greater than 0.")]
+        public long UserId { get; set; }
+    }
+
+    public class GetOrdersByUserIdResponse
+    {
+        public IEnumerable<GetOrderByIdResponse> Orders { get; set; } = [];
+    }
+
     public class GetOrderByIdResponse
     {        
         public long Id { get; set; }       
@@ -22,7 +34,7 @@ namespace FCSP.DTOs.Order
         public string PaymentMethod { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public List<OrderDetailResponseDto> OrderDetails { get; set; } = [];
+        public OrderDetailResponseDto OrderDetail { get; set; } = null!;
     }
 
     public class AddOrderRequest
@@ -43,7 +55,7 @@ namespace FCSP.DTOs.Order
 
         [Required(ErrorMessage = "OrderDetails are required.")]
         [MinLength(1, ErrorMessage = "Order must contain at least one OrderDetail.")]
-        public List<OrderDetailRequestDto> OrderDetails { get; set; } = [];
+        public OrderDetailRequestDto OrderDetail { get; set; } = null!;
     }
 
     public class AddOrderResponse
@@ -76,13 +88,6 @@ namespace FCSP.DTOs.Order
     public class CancelOrderResponse
     {
         public bool Success { get; set; }
-    }
-
-    public class GetOrdersByUserIdRequest
-    {
-        [Required(ErrorMessage = "UserId is required.")]
-        [Range(1, long.MaxValue, ErrorMessage = "UserId must be greater than 0.")]
-        public long UserId { get; set; }
     }
 
     // DTO cho request (không có UnitPrice)

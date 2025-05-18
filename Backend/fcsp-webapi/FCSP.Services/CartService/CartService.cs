@@ -4,6 +4,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.CartService
 {
@@ -12,15 +13,18 @@ namespace FCSP.Services.CartService
         private readonly ICartRepository _cartRepository;
         private readonly ICartItemRepository _cartItemRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
+        private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
 
         public CartService(
             ICartRepository cartRepository,
             ICartItemRepository cartItemRepository,
-            ICustomShoeDesignRepository customShoeDesignRepository)
+            ICustomShoeDesignRepository customShoeDesignRepository,
+            ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository)
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
+            _customShoeDesignTemplateRepository = customShoeDesignTemplateRepository;
         }
 
         public async Task<BaseResponseModel<GetCartResponse>> GetCartByUserIdAsync(long userId)
@@ -39,37 +43,42 @@ namespace FCSP.Services.CartService
                 var cartItems = new List<CartItemDto>();
                 foreach (var ci in cart.CartItems)
                 {
-                    var price = await _customShoeDesignRepository.GetTotalAmountByIdAsync(ci.CustomShoeDesignId);
+                    var design = await _customShoeDesignRepository.GetAll()
+                        .Include(d => d.CustomShoeDesignTemplate)
+                        .Include(d => d.DesignServices)
+                            .ThenInclude(ds => ds.Service)
+                        .FirstOrDefaultAsync(d => d.Id == ci.CustomShoeDesignId);
+
+                    if (design == null) continue;
+
+                    var templatePrice = design.CustomShoeDesignTemplate?.Price ?? 0;
+                    var servicesPrice = design.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0;
+                    var totalAmount = templatePrice + servicesPrice + design.DesignerMarkup;
+
                     cartItems.Add(new CartItemDto
                     {
                         Id = ci.Id,
                         CustomShoeDesignId = ci.CustomShoeDesignId,
                         CustomShoeDesignName = ci.CustomShoeDesign?.Name ?? "Unknown Design",
-                        Price = price,
+                        Price = totalAmount,
                         Quantity = ci.Quantity
                     });
                 }
 
-                var cartResponse = new GetCartResponse
+                response.Data = new GetCartResponse
                 {
                     Id = cart.Id,
-                    UserId = cart.UserId,
                     CartItems = cartItems
                 };
-
-                return new BaseResponseModel<GetCartResponse>
-                {
-                    Code = 200,
-                    Data = cartResponse,
-                    Message = "Cart retrieved successfully"
-                };
+                response.Message = "Cart retrieved successfully";
+                return response;
             }
             catch (Exception ex)
             {
                 return new BaseResponseModel<GetCartResponse>
                 {
                     Code = 500,
-                    Message = $"Error retrieving cart: {ex.Message}"
+                    Message = ex.Message
                 };
             }
         }
@@ -180,7 +189,22 @@ namespace FCSP.Services.CartService
 
                     // Recalculate cart totals
                     var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                    var cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
+                    var cartTotal = 0;
+                    if (updatedCart?.CartItems != null)
+                    {
+                        foreach (var item in updatedCart.CartItems)
+                        {
+                            var design = await _customShoeDesignRepository.GetAll()
+                                .Include(d => d.CustomShoeDesignTemplate)
+                                .Include(d => d.DesignServices)
+                                    .ThenInclude(ds => ds.Service)
+                                .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId);
+                            if (design != null)
+                            {
+                                cartTotal += await CalculateTotalAmount(design) * item.Quantity;
+                            }
+                        }
+                    }
 
                     response.Data = new UpdateCartItemResponse
                     {
@@ -197,11 +221,31 @@ namespace FCSP.Services.CartService
                     cartItem.Quantity = request.Quantity;
                     await _cartItemRepository.UpdateAsync(cartItem);
 
-                    var subtotal = cartItem.CustomShoeDesign.TotalAmount * cartItem.Quantity;
+                    var design = await _customShoeDesignRepository.GetAll()
+                        .Include(d => d.CustomShoeDesignTemplate)
+                        .Include(d => d.DesignServices)
+                            .ThenInclude(ds => ds.Service)
+                        .FirstOrDefaultAsync(d => d.Id == cartItem.CustomShoeDesignId);
+                    var subtotal = design != null ? await CalculateTotalAmount(design) * cartItem.Quantity : 0;
 
                     // Calculate total cart value
                     var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
-                    var cartTotal = updatedCart.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity);
+                    var cartTotal = 0;
+                    if (updatedCart?.CartItems != null)
+                    {
+                        foreach (var item in updatedCart.CartItems)
+                        {
+                            var itemDesign = await _customShoeDesignRepository.GetAll()
+                                .Include(d => d.CustomShoeDesignTemplate)
+                                .Include(d => d.DesignServices)
+                                    .ThenInclude(ds => ds.Service)
+                                .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId);
+                            if (itemDesign != null)
+                            {
+                                cartTotal += await CalculateTotalAmount(itemDesign) * item.Quantity;
+                            }
+                        }
+                    }
 
                     response.Data = new UpdateCartItemResponse
                     {
@@ -258,7 +302,22 @@ namespace FCSP.Services.CartService
                 // Recalculate cart totals
                 var updatedCart = await _cartRepository.GetCartWithItemsByUserIdAsync(request.UserId);
                 var remainingItems = updatedCart?.CartItems.Sum(i => i.Quantity) ?? 0;
-                var cartTotal = updatedCart?.CartItems.Sum(i => i.CustomShoeDesign.TotalAmount * i.Quantity) ?? 0;
+                var cartTotal = 0;
+                if (updatedCart?.CartItems != null)
+                {
+                    foreach (var item in updatedCart.CartItems)
+                    {
+                        var design = await _customShoeDesignRepository.GetAll()
+                            .Include(d => d.CustomShoeDesignTemplate)
+                            .Include(d => d.DesignServices)
+                                .ThenInclude(ds => ds.Service)
+                            .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId);
+                        if (design != null)
+                        {
+                            cartTotal += await CalculateTotalAmount(design) * item.Quantity;
+                        }
+                    }
+                }
 
                 response.Data = new RemoveFromCartResponse
                 {
@@ -329,6 +388,20 @@ namespace FCSP.Services.CartService
                 cartItem.IsDeleted = true;
                 await _cartItemRepository.UpdateAsync(cartItem);
             }
+        }
+
+        private async Task<int> CalculateTotalAmount(CustomShoeDesign design)
+        {
+            var template = await _customShoeDesignTemplateRepository.FindAsync(design.CustomShoeDesignTemplateId);
+            var templatePrice = template?.Price ?? 0;
+
+            int servicesPrice = 0;
+            if (design.DesignServices != null && design.DesignServices.Any())
+            {
+                servicesPrice = design.DesignServices.Sum(ds => ds.Service?.Price ?? 0);
+            }
+
+            return templatePrice + servicesPrice + design.DesignerMarkup;
         }
     }
 }

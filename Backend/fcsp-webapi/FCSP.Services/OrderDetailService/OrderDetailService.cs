@@ -70,6 +70,47 @@ namespace FCSP.Services.OrderDetailService
             }
         }
 
+        public async Task<BaseResponseModel<GetOrderDetailByManufacturerIdResponse>> GetOrderDetailByManufacturerId(GetOrderDetailByManufacturerIdRequest request)
+        {
+            try
+            {
+                var response = await _orderDetailRepository.GetByManufacturerIdAsync(request.ManufacturerId);
+
+                return new BaseResponseModel<GetOrderDetailByManufacturerIdResponse>
+                {
+                    Code = 200,
+                    Message = "Order details retrieved successfully",
+                    Data = new GetOrderDetailByManufacturerIdResponse
+                    {
+                        OrderDetails = response.Select(orderDetail => new GetOrderDetailByIdResponse
+                        {
+                            Id = orderDetail.Id,
+                            OrderId = orderDetail.OrderId,
+                            CustomShoeDesignName = orderDetail.CustomShoeDesign.Name ?? string.Empty,
+                            Quantity = orderDetail.Quantity,
+                            UnitPrice = orderDetail.TotalPrice,
+                            TemplatePrice = orderDetail.TemplatePrice,
+                            ServicePrice = orderDetail.ServicePrice,
+                            DesignerMarkup = orderDetail.DesignerMarkup,
+                            SizeId = orderDetail.SizeId,
+                            ManufacturerId = orderDetail.ManufacturerId,
+                            CreatedAt = orderDetail.CreatedAt,
+                            UpdatedAt = orderDetail.UpdatedAt
+                        }).ToList()
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<GetOrderDetailByManufacturerIdResponse>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving order details: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
         public async Task<BaseResponseModel<AddOrderDetailResponse>> AddOrderDetail(AddOrderDetailRequest request)
         {
             try
@@ -250,12 +291,14 @@ namespace FCSP.Services.OrderDetailService
                 servicesPrice = customShoeDesign.DesignServices.Sum(ds => ds.Service != null ? ds.Service.Price : 0);
             }
 
+            var totalAmount = templatePrice + servicesPrice + customShoeDesign.DesignerMarkup;
+
             return new OrderDetail
             {
                 OrderId = request.OrderId,
                 CustomShoeDesignId = customShoeDesign.Id,
                 Quantity = request.Quantity,
-                TotalPrice = customShoeDesign.TotalAmount,
+                TotalPrice = totalAmount,
                 SizeId = size.Id,
                 ManufacturerId = request.ManufacturerId,
                 TemplatePrice = templatePrice,
