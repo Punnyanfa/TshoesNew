@@ -1986,7 +1986,7 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .edit-name-btn {
-  background: linear-gradient(135deg, #17a2b8, #138496);
+  background: linear-gradient(135deg, #007bff, #0056b3);
   color: white;
   border: none;
   border-radius: 4px;
@@ -1999,9 +1999,9 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .edit-name-btn:hover {
-  background: linear-gradient(135deg, #138496, #0f6674);
+  background: linear-gradient(135deg, #0056b3, #004494);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
 /* Modal sửa tên sản phẩm */
@@ -2111,7 +2111,7 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .edit-name-modal-actions .btn-primary:hover {
-  background: linear-gradient(135deg, #0069d9, #004494);
+  background: linear-gradient(135deg, #0056b3, #004494);
   box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
   transform: translateY(-3px);
 }
@@ -2649,13 +2649,13 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .apply-text {
-  background-color: #000;
+  background-color: #007bff;
   color: white;
-  border-color: #000;
+  border-color: #007bff;
 }
 
 .apply-text:hover {
-  background-color: #333;
+  background-color: #0056b3;
 }
 
 .remove-text:hover {
@@ -3114,18 +3114,18 @@ const dataURLtoFile = (dataurl, filename) => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #007bff;
   cursor: pointer;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
 }
 
 .slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #007bff;
   cursor: pointer;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
   border: none;
 }
 

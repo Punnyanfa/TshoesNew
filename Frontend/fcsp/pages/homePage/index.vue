@@ -16,7 +16,7 @@
             <p class="lead text-muted mb-4">
               {{ heroSlides[currentSlide].description }}
             </p>
-            <NuxtLink :to="heroSlides[currentSlide].link" class="btn btn-view-collection fw-bold">
+            <NuxtLink to="/productPage" class="btn btn-view-collection fw-bold">
               View Collection <span class="ms-2">&#8594;</span>
             </NuxtLink>
           </div>
@@ -37,9 +37,9 @@
 
     <!-- Collection Section -->
     <section class="collection-section container py-5">
-      <h2 class="collection-title text-center">Our Collections</h2>
+      <h2 class="collection-title text-center">3D Custom Shoe Collection</h2>
       <p class="collection-desc text-center">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi.
+        Personalize your perfect pair with our 3D custom shoe collection. Choose colors, materials, and styles to match your unique taste. Step into comfort and creativity—designed by you, made for you.
       </p>
       <div class="row g-4">
         <div
@@ -71,7 +71,7 @@
         </div>
       </div>
       <div class="text-center mt-4">
-        <NuxtLink to="/productPage" class="btn btn-outline-collection">View All Products</NuxtLink>
+        <NuxtLink to="/productPage" class="btn btn-outline-collection">View All Custom Shoes</NuxtLink>
       </div>
     </section>
 
@@ -86,7 +86,7 @@
               Design Your Own
             </h1>
             <p class="lead text-muted mb-4">
-              Discover our custom shoe design process. From your first idea to the final product, we’ll be with you every step of the creative journey.
+              Discover our custom shoe design process. From your first idea to the final product, we'll be with you every step of the creative journey.
             </p>
             <div class="steps-list">
               <div class="step-item mb-3">
@@ -214,7 +214,7 @@
     <section class="cta-section text-center py-5">
       <div class="container">
         <h2 class="fw-bold" style="color: #007bff;">Ready to Elevate Your Style?</h2>
-        <p class="mt-3" style="color: #000000;">Join thousands of sneaker enthusiasts who’ve turned their ideas into one-of-a-kind custom shoes.</p>
+        <p class="mt-3" style="color: #000000;">Join thousands of sneaker enthusiasts who've turned their ideas into one-of-a-kind custom shoes.</p>
         <NuxtLink to="/customPage" class="btn btn-sneaker px-5 py-3 mt-4 fw-bold text-uppercase">
           Start Designing
         </NuxtLink>
@@ -507,24 +507,19 @@ const testimonials = [
   }
 
   .text-sneaker-star {
-    color: var(--text-dark);
+    color: #d4c603;
   }
 
   .btn-sneaker {
-    background: var(--primary-color);
-    color: var(--white);
+    color: var(--text-dark);
+    background: none;
     border: none;
-    border-radius: 8px;
-    padding: 12px 30px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    transition: color 0.2s;
   }
 
   .btn-sneaker:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    color: var(--text-dark);
   }
 
   /* Best Seller Section */
@@ -671,24 +666,14 @@ const testimonials = [
   }
 
   .btn-view-purchase {
-    background: linear-gradient(90deg, var(--accent-color) 0%, var(--primary-color) 100%);
-    color: var(--white) !important;
+    color: var(--text-dark);
+    background: none;
     border: none;
-    border-radius: 8px;
-    padding: 12px 36px;
-    font-weight: 700;
     font-size: 1.1rem;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 16px rgba(62,198,167,0.08);
-    transition: background 0.2s, transform 0.2s;
-    outline: none;
+    transition: color 0.2s;
   }
   .btn-view-purchase:hover {
-    background: linear-gradient(90deg, var(--accent-dark) 0%, var(--primary-dark) 100%);
-    color: var(--white);
-    transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 8px 24px rgba(62,198,167,0.15);
-    text-decoration: none;
+    color: var(--text-dark);
   }
 
   .hero-shoe-img {

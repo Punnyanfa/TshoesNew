@@ -185,7 +185,7 @@ const handleForgotPassword = () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #CCCCCC 0%, #BBBBBB 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   padding: 20px;
   position: relative;
   overflow: hidden;
@@ -198,7 +198,8 @@ const handleForgotPassword = () => {
   width: 2000px;
   height: 2000px;
   border-radius: 50%;
-  background: linear-gradient(225deg, #AAAAAA 0%, #BBBBBB 100%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
+  background-size: 30px 30px;
   top: -10%;
   transform: translateY(-50%);
   z-index: 0;
@@ -280,10 +281,10 @@ const handleForgotPassword = () => {
   font-weight: 700;
   color: #111827;
   margin: 0;
-  background: linear-gradient(135deg, #555555, #555555);
+  background: #007bff;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 4px rgba(85, 85, 85, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
 }
 
 .form-group {
@@ -301,9 +302,9 @@ const handleForgotPassword = () => {
 }
 
 .form-control:focus {
-  border-color: #555555;
+  border-color: #007bff;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(85, 85, 85, 0.1);
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
   transform: translateY(-2px);
   background: white;
 }
@@ -326,14 +327,14 @@ const handleForgotPassword = () => {
 }
 
 .toggle-password:hover {
-  color: #555555;
+  color: #007bff;
   transform: translateY(-50%) scale(1.1);
 }
 
 .login-account-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #555555, #555555);
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 12px;
@@ -343,18 +344,18 @@ const handleForgotPassword = () => {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(85, 85, 85, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
 
 .login-account-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(85, 85, 85, 0.3);
-  background: linear-gradient(135deg, #555555, #555555);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+  background: #0056b3;
 }
 
 .login-account-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(85, 85, 85, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2);
 }
 
 .login-account-btn::after {
@@ -383,7 +384,7 @@ const handleForgotPassword = () => {
   content: "";
   position: absolute;
   top: 50%;
-  left: 0; /* Bám sát mép trái */
+  left: 0;
   width: calc(50% - 100px);
   height: 2px;
   background: linear-gradient(to right, transparent, #E5E7EB);
@@ -394,7 +395,7 @@ const handleForgotPassword = () => {
   content: "";
   position: absolute;
   top: 50%;
-  right: 0; /* Bám sát mép phải */
+  right: 0;
   width: calc(50% - 100px);
   height: 2px;
   background: linear-gradient(to left, transparent, #E5E7EB);
@@ -431,8 +432,8 @@ const handleForgotPassword = () => {
 
 .social-btn:hover {
   transform: translateY(-2px);
-  border-color: #555555;
-  box-shadow: 0 4px 12px rgba(85, 85, 85, 0.15);
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
   background: linear-gradient(135deg, #f8fafc, #ffffff);
 }
 
@@ -455,7 +456,7 @@ const handleForgotPassword = () => {
 }
 
 .link {
-  color: #555555;
+  color: #007bff;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -463,7 +464,7 @@ const handleForgotPassword = () => {
 }
 
 .link:hover {
-  color: #555555;
+  color: #0056b3;
 }
 
 .link::after {
@@ -473,7 +474,7 @@ const handleForgotPassword = () => {
   height: 2px;
   bottom: -2px;
   left: 0;
-  background: linear-gradient(to right, #555555, #555555);
+  background: linear-gradient(to right, #007bff, #0056b3);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -543,14 +544,14 @@ const handleForgotPassword = () => {
 }
 
 .forgot-password {
-  color: #555555;
+  color: #007bff;
   text-decoration: none;
   font-size: 14px;
   transition: all 0.3s ease;
 }
 
 .forgot-password:hover {
-  color: #555555;
+  color: #0056b3;
   text-decoration: underline;
 }
 

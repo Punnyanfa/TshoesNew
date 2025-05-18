@@ -246,7 +246,7 @@ const register = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #CCCCCC 0%, #BBBBBB 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   padding: 20px;
   position: relative;
   overflow: hidden;
@@ -259,7 +259,8 @@ const register = async () => {
   width: 2000px;
   height: 2000px;
   border-radius: 50%;
-  background: linear-gradient(225deg, #AAAAAA 0%, #BBBBBB 100%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
+  background-size: 30px 30px;
   top: -10%;
   transform: translateY(-50%);
   z-index: 0;
@@ -341,10 +342,10 @@ const register = async () => {
   font-weight: 700;
   color: #111827;
   margin: 0;
-  background: linear-gradient(135deg, #555555, #555555);
+  background: #007bff;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 4px rgba(85, 85, 85, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
 }
 
 .form-group {
@@ -362,9 +363,9 @@ const register = async () => {
 }
 
 .form-control:focus {
-  border-color: #555555;
+  border-color: #007bff;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(85, 85, 85, 0.1);
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
   transform: translateY(-2px);
   background: white;
 }
@@ -387,14 +388,14 @@ const register = async () => {
 }
 
 .toggle-password:hover {
-  color: #555555;
+  color: #007bff;
   transform: translateY(-50%) scale(1.1);
 }
 
 .register-account-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #555555, #555555);
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 12px;
@@ -404,18 +405,18 @@ const register = async () => {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(85, 85, 85, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
 
 .register-account-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(85, 85, 85, 0.3);
-  background: linear-gradient(135deg, #555555, #555555);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+  background: #0056b3;
 }
 
 .register-account-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(85, 85, 85, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2);
 }
 
 .register-account-btn::after {
@@ -443,7 +444,7 @@ const register = async () => {
 }
 
 .link {
-  color: #555555;
+  color: #007bff;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -451,7 +452,7 @@ const register = async () => {
 }
 
 .link:hover {
-  color: #555555;
+  color: #0056b3;
 }
 
 .link::after {
@@ -461,7 +462,7 @@ const register = async () => {
   height: 2px;
   bottom: -2px;
   left: 0;
-  background: linear-gradient(to right, #555555, #555555);
+  background: linear-gradient(to right, #007bff, #0056b3);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -526,14 +527,13 @@ const register = async () => {
 
 .remember-me input[type="checkbox"] {
   width: 16px;
-  height:16px;
-  margin-left: 5px;
+  height: 16px;
   cursor: pointer;
 }
 
 /* Dark mode styles */
 .dark-mode .register-container {
-  background: linear-gradient(135deg, #333333 0%, #222222 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
 }
 
 .dark-mode .register-box {

@@ -1,10 +1,10 @@
 <template>
-  <footer class="footer bg-dark text-light py-5">
+  <footer class="footer bg-white text-dark py-5">
     <div class="container">
       <!-- Newsletter Section -->
       <div class="row">
         <div class="col-md-12 text-center mb-5">
-          <h5 class="fw-bold mb-3">JOIN OUR NEWSLETTER</h5>
+          <h5 class="fw-bold mb-3 text-primary">JOIN OUR NEWSLETTER</h5>
           <div class="input-group newsletter-group mx-auto">
             <input 
               type="email" 
@@ -15,7 +15,7 @@
               @keyup.enter="subscribe"
             />
             <button 
-              class="btn btn-success" 
+              class="btn btn-primary" 
               @click="subscribe"
               :disabled="isLoading"
             >
@@ -32,39 +32,39 @@
       <!-- Quick Links Section -->
       <div class="row mb-4">
         <div class="col-md-3">
-          <h6 class="fw-bold mb-3">CUSTOM SHOES COLLECTIONS</h6>
+          <h6 class="fw-bold mb-3 text-primary">CUSTOM SHOES COLLECTIONS</h6>
           <ul class="list-unstyled footer-links">
-            <li><NuxtLink to="/productPage" class="text-light" aria-label="View our products">Products</NuxtLink></li>
-            <li><NuxtLink to="/customPage" class="text-light" aria-label="Customize your shoes">Customize Products</NuxtLink></li>
-            <li><NuxtLink to="/mycustomPage" class="text-light" aria-label="View my customizations">My Customize</NuxtLink></li>
+            <li><NuxtLink to="/productPage" class="text-dark" aria-label="View our products">Products</NuxtLink></li>
+            <li><NuxtLink to="/customPage" class="text-dark" aria-label="Customize your shoes">Customize Products</NuxtLink></li>
+            <li><NuxtLink to="/mycustomPage" class="text-dark" aria-label="View my customizations">My Customize</NuxtLink></li>
           </ul>
         </div>
 
         <div class="col-md-3">
-          <h6 class="fw-bold mb-3">SERVICES</h6>
+          <h6 class="fw-bold mb-3 text-primary">SERVICES</h6>
           <ul class="list-unstyled footer-links">
-            <li><NuxtLink to="/aboutPage" class="text-light" aria-label="Learn about us">About</NuxtLink></li>
-            <li><NuxtLink to="/contactPage" class="text-light" aria-label="Contact us">Contact</NuxtLink></li>
-            <li><NuxtLink to="/blogPage" class="text-light" aria-label="Read our blog">Blog</NuxtLink></li>
+            <li><NuxtLink to="/aboutPage" class="text-dark" aria-label="Learn about us">About</NuxtLink></li>
+            <li><NuxtLink to="/contactPage" class="text-dark" aria-label="Contact us">Contact</NuxtLink></li>
+            <li><NuxtLink to="/blogPage" class="text-dark" aria-label="Read our blog">Blog</NuxtLink></li>
           </ul>
         </div>
 
         <div class="col-md-3">
-          <h6 class="fw-bold mb-3">NEWSLETTER</h6>
+          <h6 class="fw-bold mb-3 text-primary">NEWSLETTER</h6>
           <ul class="list-unstyled footer-links">
-            <li><a href="https://www.facebook.com" target="_blank" class="text-light" aria-label="Follow us on Facebook">Facebook</a></li>
-            <li><a href="https://www.instagram.com" target="_blank" class="text-light" aria-label="Follow us on Instagram">Instagram</a></li>
-            <li><a href="https://www.twitter.com" target="_blank" class="text-light" aria-label="Follow us on Twitter">Twitter</a></li>
+            <li><a href="https://www.facebook.com" target="_blank" class="text-dark" aria-label="Follow us on Facebook">Facebook</a></li>
+            <li><a href="https://www.instagram.com" target="_blank" class="text-dark" aria-label="Follow us on Instagram">Instagram</a></li>
+            <li><a href="https://www.twitter.com" target="_blank" class="text-dark" aria-label="Follow us on Twitter">Twitter</a></li>
           </ul>
         </div>
       </div>
 
       <!-- Contact Information & Copyright Section -->
       <div class="text-center border-top pt-4">
-        <p>
+        <p class="text-secondary">
           ADDRESS: 290 Nơ Trang Long Street, HCM city | EMAIL: shoedesignwpy@gmail.com | PHONE: (090) 946-1569
         </p>
-        <small>&copy; {{ currentYear }} CustomShoes. Made with ❤️ by WPY</small>
+        <small class="text-secondary">&copy; {{ currentYear }} CustomShoes. Made with ❤️ by WPY</small>
       </div>
     </div>
   </footer>
@@ -96,7 +96,7 @@ const subscribe = async () => {
   text-decoration: none;
 }
 .footer a:hover {
-  color: #8bc34a;
+  color: #007bff;
 }
 
 /* Newsletter Input Group */
@@ -104,22 +104,26 @@ const subscribe = async () => {
   max-width: 400px;
   border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 123, 255, 0.1);
 }
 .newsletter-group .form-control {
   border-radius: 20px 0 0 20px;
   padding: 10px 15px;
+  border: 1px solid rgba(0, 123, 255, 0.2);
 }
 .newsletter-group .btn {
   border-radius: 0 20px 20px 0;
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: linear-gradient(135deg, #007bff, #0056b3);
   color: white;
   transition: all 0.3s ease;
   padding: 10px 20px;
+  border: none;
 }
 
 .newsletter-group .btn:hover {
-  background: linear-gradient(45deg, #1f2d3d, #2980b9);
+  background: linear-gradient(135deg, #0056b3, #004494);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
 }
 
 .newsletter-group .btn:disabled {
@@ -138,5 +142,11 @@ const subscribe = async () => {
   .footer .col-md-3 {
     margin-bottom: 2rem;
   }
+}
+
+.footer {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -4px 20px rgba(0, 123, 255, 0.1);
 }
 </style>

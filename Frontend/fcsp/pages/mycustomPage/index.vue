@@ -2,64 +2,64 @@
   <div>
     <Header />
     <div class="container mt-5">
-      <h1 class="text-center text-primary">Thiết kế của bạn</h1>
+      <h1 class="text-center text-primary">Your Designs</h1>
 
       <div v-if="cart.length > 0">
-        <!-- Tiêu đề và nút xóa hết -->
+        <!-- Header and Clear All Button -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5>Danh sách thiết kế ({{ cart.length }})</h5>
+          <h5>Design List ({{ cart.length }})</h5>
           <button class="btn btn-outline-danger btn-sm" @click="clearAllDesigns">
-            <i class="fas fa-trash-alt mr-1"></i> Xóa tất cả
+            <i class="fas fa-trash-alt mr-1"></i> Clear All
           </button>
         </div>
-        
-        <!-- Giỏ hàng có sản phẩm -->
+
+        <!-- Cart with items -->
         <div class="cart-items mt-4">
           <div v-for="item in cart" :key="item.id" class="cart-item-card">
             <div class="cart-item-content">
-              <!-- Hiển thị hình ảnh thiết kế -->
+              <!-- Display design image -->
               <div class="cart-item-image">
-                <img :src="item.image" alt="Thiết kế giày" class="product-image" />
+                <img :src="item.image" alt="Shoe Design" class="product-image" />
               </div>
-              
+
               <div class="cart-item-details">
                 <h4>{{ item.name }}</h4>
-                <p class="price">Giá gốc:{{ formatPrice(item.price) }}</p>
+                <p class="price">Base Price: {{ formatPrice(item.price) }}</p>
                 <p class="price">Size: {{ item.size }}</p>
-                <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Phụ phí: {{ formatPrice(item.surcharge) }}</p>
-                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Tổng: {{ formatPrice(item.price + item.surcharge) }}</p>
-                
-                <!-- Hiển thị thông tin thiết kế nếu có -->
+                <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Surcharge: {{ formatPrice(item.surcharge) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Total: {{ formatPrice(item.price + item.surcharge) }}</p>
+
+                <!-- Display design info if exists -->
                 <div v-if="item.designData" class="design-info">
                   <p v-if="item.designData.customText" class="custom-text">
-                    <strong>Văn bản tùy chỉnh:</strong> {{ item.designData.customText }}
+                    <strong>Custom Text:</strong> {{ item.designData.customText }}
                   </p>
                   <p class="timestamp">
-                    <small>Thiết kế vào: {{ formatDate(item.designData.timestamp) }}</small>
+                    <small>Designed on: {{ formatDate(item.designData.timestamp) }}</small>
                   </p>
                 </div>
-                
-                <!-- Nút hiển thị thêm ảnh từ các góc khác -->
+
+                <!-- Show button to preview all angles -->
                 <div v-if="item.previewImages && item.previewImages.length > 1" class="mt-2">
                   <button class="btn btn-sm btn-outline-secondary" @click="togglePreviewImages(item)">
-                    {{ item.showPreviews ? 'Ẩn' : 'Xem' }} tất cả góc nhìn
+                    {{ item.showPreviews ? 'Hide' : 'View' }} all angles
                   </button>
                 </div>
               </div>
 
               <div class="cart-item-actions">
-                <button class="btn btn-primary edit-btn" @click="editDesign(item)">Sửa</button>
-                <button class="btn btn-success add-to-cart-btn" @click="duplicateToCart(item)">Thêm vào giỏ hàng</button>
-                <button class="btn btn-info add-to-product-btn" @click="addToProduct(item)">Thêm vào sản phẩm</button>
-                <button class="btn btn-danger delete-btn" @click="removeFromCart(item.id)">Xóa</button>
+                <button class="btn btn-primary edit-btn" @click="editDesign(item)">Edit</button>
+                <button class="btn btn-success add-to-cart-btn" @click="duplicateToCart(item)">Add to Cart</button>
+                <button class="btn btn-info add-to-product-btn" @click="addToProduct(item)">Add as Product</button>
+                <button class="btn btn-danger delete-btn" @click="removeFromCart(item.id)">Delete</button>
               </div>
             </div>
-            
-            <!-- Hiển thị các góc nhìn khác khi được nhấp -->
+
+            <!-- Preview extra angles when toggled -->
             <div v-if="item.showPreviews && item.previewImages" class="preview-images-container">
               <div class="preview-images">
                 <div v-for="(preview, index) in item.previewImages" :key="`preview_${item.id}_${index}`" class="preview-image-item">
-                  <img :src="preview" alt="Góc nhìn" class="preview-image" />
+                  <img :src="preview" alt="View Angle" class="preview-image" />
                 </div>
               </div>
             </div>
@@ -68,67 +68,67 @@
       </div>
 
       <div v-else class="text-center mt-5 empty-cart">
-        <h4>Bạn chưa có thiết kế nào!</h4>
-        <NuxtLink to="/customPage" class="btn btn-primary mt-3">Bắt đầu chọn mẫu thiết kế</NuxtLink>
+        <h4>You don’t have any designs yet!</h4>
+        <NuxtLink to="/customPage" class="btn btn-primary mt-3">Start Designing Now</NuxtLink>
       </div>
 
-      <!-- Modal cập nhật thông tin sản phẩm -->
+      <!-- Modal for creating product -->
       <div class="product-modal" v-if="showProductModal">
         <div class="product-modal-content">
           <div class="product-modal-header">
-            <h3>Tạo sản phẩm từ thiết kế</h3>
+            <h3>Create Product from Design</h3>
             <button class="close-button" @click="showProductModal = false">×</button>
           </div>
           <div class="product-modal-body">
             <div class="product-preview">
-              <img :src="selectedProduct.image" alt="Hình ảnh sản phẩm" class="product-preview-image" />
-              
-              <!-- Thêm phần xem trước các góc nhìn -->
+              <img :src="selectedProduct.image" alt="Product Image" class="product-preview-image" />
+
+              <!-- Preview other view angles -->
               <div class="preview-angles-section" v-if="selectedProduct.previewImages && selectedProduct.previewImages.length > 1">
-                <h4>Các góc nhìn</h4>
+                <h4>View Angles</h4>
                 <div class="preview-angles-container">
                   <div v-for="(preview, index) in selectedProduct.previewImages" :key="`modal_preview_${index}`" 
                        class="preview-angle-item"
                        @click="selectedProduct.image = preview">
-                    <img :src="preview" alt="Góc nhìn" class="preview-angle-image" />
+                    <img :src="preview" alt="View Angle" class="preview-angle-image" />
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div class="product-form">
               <div class="form-group">
-                <label for="productName">Tên sản phẩm:</label>
+                <label for="productName">Product Name:</label>
                 <input type="text" id="productName" v-model="selectedProduct.name" class="form-control" />
               </div>
-              
+
               <div class="form-group">
-                <label for="productTotalPrice">Giá tổng:</label>
+                <label for="productTotalPrice">Total Price:</label>
                 <input type="text" id="productTotalPrice" :value="formatPrice(selectedProduct.price + selectedProduct.surcharge)" class="form-control" readonly />
               </div>
-              
+
               <div class="form-group">
-                <label for="productCommission">Giá hoa hồng:</label>
+                <label for="productCommission">Commission Price:</label>
                 <div class="input-group">
                   <input type="number" id="productCommission" v-model="selectedProduct.commission" class="form-control" min="0" />
                   <span class="input-group-text">đ</span>
                 </div>
               </div>
-              
+
               <div class="form-group">
-                <label for="productDescription">Mô tả:</label>
+                <label for="productDescription">Description:</label>
                 <textarea id="productDescription" v-model="selectedProduct.description" class="form-control" rows="3"></textarea>
               </div>
-              
+
               <div class="form-group" v-if="selectedProduct.designData && selectedProduct.designData.customText">
-                <label for="customText">Văn bản tùy chỉnh:</label>
+                <label for="customText">Custom Text:</label>
                 <input type="text" id="customText" v-model="selectedProduct.designData.customText" class="form-control" />
               </div>
             </div>
-            
+
             <div class="product-modal-actions">
-              <button class="btn btn-secondary" @click="showProductModal = false">Hủy</button>
-              <button class="btn btn-primary" @click="saveToProduct">Tạo sản phẩm</button>
+              <button class="btn btn-secondary" @click="showProductModal = false">Cancel</button>
+              <button class="btn btn-primary" @click="saveToProduct">Create Product</button>
             </div>
           </div>
         </div>
@@ -628,16 +628,22 @@ const manufacturers = ref([
 <style scoped>
 /* 🌟 Cấu trúc và màu sắc */
 .container {
-  /* max-width: 900px; */
   margin: 0 auto;
   padding: 0 15px;
 }
 
 h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #007bff;
-  margin-bottom: 30px;
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: #007bff;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
+  transition: transform 0.3s ease;
+}
+
+h1:hover {
+  transform: translateY(-3px);
 }
 
 /* 🛒 Giỏ hàng */
@@ -696,19 +702,19 @@ h1 {
 .price {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: #007bff;
   margin: 8px 0;
 }
 
 .price.surcharge {
   font-size: 1.1rem;
-  color: #f39c12;
+  color: #0056b3;
   margin: 4px 0;
 }
 
 .price.total {
   font-size: 1.2rem;
-  color: #2ecc71;
+  color: #007bff;
   margin: 4px 0;
   border-top: 1px dashed #ddd;
   padding-top: 6px;
@@ -740,7 +746,7 @@ h1 {
 
 /* Kiểu dáng chung cho tất cả các nút */
 .btn {
-  border-radius: 50px;
+  border-radius: 8px;
   font-weight: 600;
   padding: 8px 18px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -765,45 +771,45 @@ h1 {
 
 /* Nút chỉnh sửa */
 .edit-btn {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background-color: #007bff;
   color: white;
   border: none;
 }
 
 .edit-btn:hover {
-  background: linear-gradient(135deg, #0069d9, #00489e);
+  background-color: #0056b3;
 }
 
 /* Nút thêm vào giỏ hàng */
 .add-to-cart-btn {
-  background: linear-gradient(135deg, #28a745, #1e7e34);
+  background-color: #007bff;
   color: white;
   border: none;
 }
 
 .add-to-cart-btn:hover {
-  background: linear-gradient(135deg, #218838, #186429);
+  background-color: #0056b3;
 }
 
 /* Nút thêm vào sản phẩm */
 .add-to-product-btn {
-  background: linear-gradient(135deg, #17a2b8, #117a8b);
+  background-color: #007bff;
   color: white;
   border: none;
 }
 
 .add-to-product-btn:hover {
-  background: linear-gradient(135deg, #138496, #0f6674);
+  background-color: #0056b3;
 }
 
 /* Nút xóa */
 .delete-btn {
-  background: linear-gradient(135deg, #dc3545, #bd2130);
+  background-color: #dc3545;
   color: white;
 }
 
 .delete-btn:hover {
-  background: linear-gradient(135deg, #c82333, #a71d2a);
+  background-color: #c82333;
 }
 
 /* Nút hiển thị góc nhìn */
@@ -885,71 +891,28 @@ h1 {
 .empty-cart h4 {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: #007bff;
   margin-bottom: 20px;
 }
 
 .empty-cart .btn {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background-color: #007bff;
   color: white;
-  border-radius: 50px;
+  border-radius: 8px;
   padding: 12px 30px;
   text-transform: uppercase;
   font-weight: bold;
   transition: all 0.3s ease;
   border: none;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
   position: relative;
   overflow: hidden;
 }
 
 .empty-cart .btn:hover {
-  background: linear-gradient(135deg, #2980b9, #2471a3);
+  background-color: #0056b3;
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .cart-item-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .cart-item-image {
-    width: 100%;
-    height: 200px;
-    margin: 0 0 15px 0;
-  }
-  
-  .cart-item-actions {
-    margin: 15px 0 0 0;
-    align-self: flex-end;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  
-  .cart-item-actions .btn {
-    font-size: 0.85rem;
-    padding: 6px 10px;
-  }
-  
-  .cart-footer {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .cart-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-  
-  .checkout-btn, .cart-actions .btn {
-    width: 100%;
-    text-align: center;
-  }
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
 }
 
 /* Product Modal */
@@ -969,11 +932,6 @@ h1 {
   backdrop-filter: blur(5px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .product-modal-content {
   background-color: white;
   border-radius: 16px;
@@ -984,11 +942,6 @@ h1 {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   animation: slideIn 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-@keyframes slideIn {
-  from { transform: translateY(-50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
 
 .product-modal-header {
@@ -1004,11 +957,7 @@ h1 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #333333, #666666);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  color: #007bff;
 }
 
 .close-button {
@@ -1050,7 +999,6 @@ h1 {
   margin-bottom: 15px;
 }
 
-/* Styles cho phần xem các góc nhìn */
 .preview-angles-section {
   width: 100%;
   margin-top: 15px;
@@ -1073,7 +1021,7 @@ h1 {
 .preview-angle-item {
   width: 70px;
   height: 70px;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   border: 2px solid #eee;
@@ -1086,22 +1034,6 @@ h1 {
   transform: translateY(-5px) scale(1.05);
   box-shadow: 0 8px 15px rgba(0, 123, 255, 0.2);
   z-index: 1;
-}
-
-.preview-angle-item::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.3));
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.preview-angle-item:hover::after {
-  opacity: 1;
 }
 
 .preview-angle-image {
@@ -1142,33 +1074,6 @@ h1 {
   outline: none;
 }
 
-.input-group {
-  display: flex;
-  align-items: stretch;
-}
-
-.input-group .form-control {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.input-group-text {
-  display: flex;
-  align-items: center;
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #495057;
-  text-align: center;
-  white-space: nowrap;
-  background-color: #e9ecef;
-  border: 1px solid #ced4da;
-  border-left: none;
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-
 .product-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -1183,27 +1088,27 @@ h1 {
 }
 
 .product-modal-actions .btn-primary {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background-color: #007bff;
   color: white;
   font-weight: 600;
   border: none;
 }
 
 .product-modal-actions .btn-primary:hover {
-  background: linear-gradient(135deg, #0069d9, #004494);
+  background-color: #0056b3;
   box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
   transform: translateY(-3px);
 }
 
 .product-modal-actions .btn-secondary {
-  background: linear-gradient(135deg, #6c757d, #545b62);
+  background-color: #6c757d;
   color: white;
   font-weight: 500;
   border: none;
 }
 
 .product-modal-actions .btn-secondary:hover {
-  background: linear-gradient(135deg, #5a6268, #4e555b);
+  background-color: #5a6268;
   box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
   transform: translateY(-3px);
 }
@@ -1213,6 +1118,46 @@ h1 {
   .product-modal-content {
     width: 100%;
     max-width: 100%;
+  }
+  
+  .cart-item-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .cart-item-image {
+    width: 100%;
+    height: 200px;
+    margin: 0 0 15px 0;
+  }
+  
+  .cart-item-actions {
+    margin: 15px 0 0 0;
+    align-self: flex-end;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  .cart-item-actions .btn {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+  
+  .cart-footer {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .cart-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .checkout-btn, .cart-actions .btn {
+    width: 100%;
+    text-align: center;
   }
 }
 </style>
