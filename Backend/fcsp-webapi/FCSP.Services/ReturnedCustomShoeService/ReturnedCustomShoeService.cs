@@ -4,6 +4,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.ReturnedCustomShoeService
 {
@@ -24,16 +25,25 @@ namespace FCSP.Services.ReturnedCustomShoeService
         {
             try
             {
-                var design = await _customShoeDesignRepository.FindAsync((object)request.CustomShoeDesignId);
+                var design = await _customShoeDesignRepository.GetAll()
+                    .Include(d => d.CustomShoeDesignTemplate)
+                    .Include(d => d.DesignServices)
+                        .ThenInclude(ds => ds.Service)
+                    .FirstOrDefaultAsync(d => d.Id == request.CustomShoeDesignId);
+
                 if (design == null)
                 {
                     throw new InvalidOperationException($"Custom shoe design with ID {request.CustomShoeDesignId} not found");
                 }
 
+                var templatePrice = design.CustomShoeDesignTemplate?.Price ?? 0;
+                var servicesPrice = design.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0;
+                var totalAmount = templatePrice + servicesPrice + design.DesignerMarkup;
+
                 var returnedShoe = new ReturnedCustomShoe
                 {
                     CustomShoeDesignId = request.CustomShoeDesignId,
-                    Price = request.Price,
+                    Price = totalAmount,
                     Quantity = request.Quantity,
                     IsDeleted = false,
                     CreatedAt = DateTime.UtcNow,

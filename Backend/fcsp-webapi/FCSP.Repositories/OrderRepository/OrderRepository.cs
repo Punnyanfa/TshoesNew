@@ -27,7 +27,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(o => o.Payments)
                 .ToListAsync();
         }
-
+    
         public async Task<Order?> GetOrderByIdAsync(long orderId)
         {
             return await Entities

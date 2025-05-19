@@ -22,6 +22,16 @@ namespace FCSP.DTOs.OrderDetail
         public DateTime UpdatedAt { get; set; }
     }
 
+    public class GetOrderDetailByManufacturerIdRequest
+    {
+        public long ManufacturerId { get; set; }
+    }
+
+    public class GetOrderDetailByManufacturerIdResponse
+    {
+        public IEnumerable<GetOrderDetailByIdResponse> OrderDetails { get; set; } = [];
+    }
+
     public class AddOrderDetailRequest
     {
         public long OrderId { get; set; }

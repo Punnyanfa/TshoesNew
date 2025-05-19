@@ -50,8 +50,25 @@ namespace FCSP.Services.ManufacturerService
         {
             try
             {
-                var manufacturer = await GetManufacturerEntityById(request);
-                var response = await MapToDetailResponse(manufacturer);
+                if (request.Id <= 0)
+                {
+                   
+                    return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
+                }
+
+               
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
+                if (manufacturer == null)
+                {
+                    
+                    return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 404, Message = "Manufacturer not found" };
+                }
+
+                if (manufacturer.Status == ManufacturerStatus.Suspended)
+                {
+                    return new BaseResponseModel<GetManufacturerDetailResponse> { Code = 404, Message = "Manufacturer is suspended" };
+                }
+
                 return new BaseResponseModel<GetManufacturerDetailResponse>
                 {
                     Code = 200,
@@ -184,7 +201,17 @@ namespace FCSP.Services.ManufacturerService
         {
             try
             {
-                var manufacturer = await GetManufacturerEntityById(request);
+                if (request.Id <= 0)
+                {
+                    return new BaseResponseModel<bool> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
+                }
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
+                if (manufacturer == null)
+                {
+                    return new BaseResponseModel<bool> { Code = 404, Message = "Manufacturer not found" };
+                }
+
+                manufacturer.IsDeleted = true;
                 manufacturer.Status = ManufacturerStatus.Inactive;
                 manufacturer.UpdatedAt = DateTime.UtcNow;
                 await _manufacturerRepository.UpdateAsync(manufacturer);

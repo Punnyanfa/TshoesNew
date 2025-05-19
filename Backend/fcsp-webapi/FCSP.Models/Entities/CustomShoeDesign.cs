@@ -11,7 +11,6 @@ public class CustomShoeDesign : BaseEntity
     public string? Description { get; set; }
     public CustomShoeDesignStatus Status { get; set; }
     public int DesignerMarkup { get; set; }
-    public int TotalAmount { get; set; }
 
     // Navigation properties
     public virtual User User { get; set; } = null!;
