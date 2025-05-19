@@ -281,10 +281,9 @@ namespace FCSP.Services.ServiceService
                         };
                     }
 
-                    service.Component = serviceUpdate.Component;
-                    service.Type = serviceUpdate.Type;
+                 
                     service.Price = serviceUpdate.Price;
-                    service.ManufacturerId = serviceUpdate.ManufacturerId;
+                   
                     await _serviceRepository.UpdateAsync(service);
                     updatedServices.Add(service);
                 }

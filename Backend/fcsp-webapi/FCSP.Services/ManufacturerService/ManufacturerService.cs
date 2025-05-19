@@ -73,7 +73,7 @@ namespace FCSP.Services.ManufacturerService
                 {
                     Code = 200,
                     Message = "Manufacturer retrieved successfully",
-                    Data = response
+               
                 };
             }
             catch (Exception ex)
