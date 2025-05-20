@@ -31,6 +31,14 @@ namespace FCSP.WebAPI.Controllers.Voucher
             return StatusCode(result.Code, result);
         }
 
+        [HttpGet("by-code/{code}")] // Changed to long
+        public async Task<IActionResult> GetVoucherByCode(string code)
+        {
+            var request = new GetVoucherByCodeRequest { Code = code };
+            var result = await _voucherService.GetVoucherByCode(request);
+            return StatusCode(result.Code, result);
+        }
+
         [HttpGet("by-order/{orderId}")]
         public async Task<IActionResult> GetVoucherByOrderId(long orderId)
         {

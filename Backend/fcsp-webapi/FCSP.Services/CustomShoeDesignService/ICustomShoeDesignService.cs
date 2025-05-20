@@ -5,6 +5,7 @@ namespace FCSP.Services.CustomShoeDesignService
 {
     public interface ICustomShoeDesignService
     {
+        Task<BaseResponseModel<GetAllCustomShoeDesignResponse>> GetAllDesigns();
         Task<BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>> GetAllPublicDesigns();
         Task<BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>> GetTopFiveBestSellingPublicDesigns();
         Task<BaseResponseModel<GetCustomShoeDesignByIdResponse>> GetDesignById(GetCustomShoeDesignByIdRequest request);

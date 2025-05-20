@@ -5,6 +5,11 @@ using System.Collections.Generic;
 
 namespace FCSP.DTOs.CustomShoeDesign
 {
+    public class GetAllCustomShoeDesignResponse
+    {
+        public IEnumerable<GetSimpleCustomShoeDesignResponse>? Designs { get; set; }    
+    }
+
     public class GetCustomShoeDesignByIdRequest
     {
         public long Id { get; set; }

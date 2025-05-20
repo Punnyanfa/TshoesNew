@@ -54,6 +54,41 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     }
 
     #region Public Methods
+    public async Task<BaseResponseModel<GetAllCustomShoeDesignResponse>> GetAllDesigns()
+    {
+        try
+        {
+            var designs = await GetAllCustomShoeDesigns();
+            if(designs == null || !designs.Any())
+            {
+                return new BaseResponseModel<GetAllCustomShoeDesignResponse>
+                {
+                    Code = 404,
+                    Message = "No custom shoe designs found",
+                    Data = null
+                };
+            }
+            return new BaseResponseModel<GetAllCustomShoeDesignResponse>
+            {
+                Code = 200,
+                Message = "Custom shoe designs retrieved successfully",
+                Data = new GetAllCustomShoeDesignResponse
+                {
+                    Designs = designs
+                }
+            };
+        }   
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<GetAllCustomShoeDesignResponse>
+            {
+                Code = 500,
+                Message = "Error retrieving custom shoe designs. Error: " + ex.Message,
+                Data = null
+            };
+        } 
+    }
+
     public async Task<BaseResponseModel<GetAllPublicCustomShoeDesignsResponse>> GetAllPublicDesigns()
     {
         try
@@ -342,6 +377,34 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     #endregion
 
     #region Private Methods
+    private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetAllCustomShoeDesigns()
+    {
+        var designs = await _customShoeDesignRepository.GetAllAsync();
+        if (designs == null || !designs.Any())
+        {
+            return new List<GetSimpleCustomShoeDesignResponse>();
+        }
+
+        var responses = new List<GetSimpleCustomShoeDesignResponse>();
+        foreach (var d in designs)
+        {
+            var totalAmount = await CalculateTotalAmount(d);
+            responses.Add(new GetSimpleCustomShoeDesignResponse
+            {
+                Id = d.Id,
+                Name = d.CustomShoeDesignTemplate?.Name,
+                Description = d.Description,
+                Gender = d.CustomShoeDesignTemplate?.Gender,
+                Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+                Status = d.Status,
+                RatingCount = d.Ratings?.Count ?? 0,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                Price = totalAmount
+            });
+        }
+        return responses;
+    }
+
     private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetAllPublicCustomShoeDesigns()
     {
         var designs = await _customShoeDesignRepository.GetAllPublicCustomShoeDesignsAsync();
