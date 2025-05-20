@@ -23,6 +23,13 @@ public class CustomShoeDesignController : ControllerBase
     /// </summary>
     /// <returns>List of all custom shoe designs</returns>
     [HttpGet]
+    public async Task<IActionResult> GetAllDesigns()
+    {
+        var response = await _customShoeDesignService.GetAllDesigns();
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpGet("public")]
     public async Task<IActionResult> GetAllPublicDesigns()
     {
         var response = await _customShoeDesignService.GetAllPublicDesigns();

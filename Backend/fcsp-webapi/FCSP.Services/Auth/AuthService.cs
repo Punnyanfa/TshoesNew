@@ -89,6 +89,7 @@ public class AuthService : IAuthService
                 Email = user.Email,
                 Dob = user.Dob ?? string.Empty,
                 Gender = user.Gender ?? string.Empty,
+                AvatarImageUrl = user.AvatarImageUrl ?? string.Empty,
                 PhoneNumber = user.PhoneNumber ?? string.Empty
             }
         };

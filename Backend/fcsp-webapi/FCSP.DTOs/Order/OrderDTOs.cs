@@ -37,6 +37,18 @@ namespace FCSP.DTOs.Order
         public OrderDetailResponseDto OrderDetail { get; set; } = null!;
     }
 
+    public class GetOrderByManufacturerIdRequest
+    {
+        [Required(ErrorMessage = "ManufacturerId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "ManufacturerId must be greater than 0.")]
+        public long ManufacturerId { get; set; }
+    }
+
+    public class GetOrderByManufacturerIdResponse
+    {
+        public IEnumerable<GetOrderByIdResponse> Orders { get; set; } = [];
+    }
+
     public class AddOrderRequest
     {
         [Required(ErrorMessage = "UserId is required.")]

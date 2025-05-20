@@ -1,6 +1,7 @@
 ﻿using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.Order;
+using FCSP.DTOs.OrderDetail;
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
@@ -65,6 +66,32 @@ namespace FCSP.Services.OrderService
                 {
                     Code = 500,
                     Message = $"Error retrieving orders by user ID: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<GetOrderByManufacturerIdResponse>> GetOrdersByManufacturerId(GetOrderByManufacturerIdRequest request)
+        {
+            try
+            {
+                var order = await GetOrdersByManufacturerIdAsync(request);
+                return new BaseResponseModel<GetOrderByManufacturerIdResponse>
+                {
+                    Code = 200,
+                    Message = "Orders retrieved successfully",
+                    Data = new GetOrderByManufacturerIdResponse
+                    {
+                        Orders = order
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<GetOrderByManufacturerIdResponse>
+                {
+                    Code = 500,
+                    Message = $"Error retrieving orders by manufacturer ID: {ex.Message}",
                     Data = null
                 };
             }
@@ -239,6 +266,36 @@ namespace FCSP.Services.OrderService
                     SizeValue = orderDetail.Size.SizeValue
                 }
             };
+        }
+
+        private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByManufacturerIdAsync(GetOrderByManufacturerIdRequest request)
+        {
+            var orders = await _orderRepository.GetAll()
+                                                .Include(o => o.OrderDetails)
+                                                .ThenInclude(od => od.Size)
+                                                .Include(o => o.User)
+                                                .Include(o => o.Voucher)
+                                                .Include(o => o.Payments)
+                                                .Where(o => o.OrderDetails.Any(o => o.ManufacturerId == request.ManufacturerId))
+                                                .ToListAsync();
+            if (orders == null || !orders.Any())
+            {
+                throw new InvalidOperationException($"No orders found for manufacturer with ID {request.ManufacturerId}");
+            }
+
+            return orders.Select(o => new GetOrderByIdResponse
+            {
+                Id = o.Id,
+                UserName = o.User?.Name ?? string.Empty,
+                ShippingInfoId = o.ShippingInfoId,
+                VoucherCode = o.Voucher?.VoucherName ?? string.Empty,
+                Status = o.Status.ToString(),
+                ShippingStatus = o.ShippingStatus.ToString(),
+                PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
+                TotalPrice = o.TotalPrice,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt
+            });
         }
 
         private async Task<IEnumerable<GetOrderByIdResponse>> GetAllOrdersAsync()

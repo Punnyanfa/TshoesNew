@@ -20,6 +20,19 @@ namespace FCSP.DTOs.Voucher
         public DateTime ExpiryDate { get; set; }
         public bool IsUsed { get; set; }
     }
+
+    public class GetVoucherByCodeRequest
+    {
+        public string Code { get; set; } = string.Empty;
+    }
+
+    public class GetVoucherByCodeResponse
+    {
+        
+        public long Id { get; set; }
+        public bool IsValid { get; set; }
+    }
+
     public class GetVoucherByIdResponse
     {
         

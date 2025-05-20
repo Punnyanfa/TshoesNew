@@ -6,6 +6,8 @@ namespace FCSP.DTOs.Cart
     {
         public long UserId { get; set; }
         public long CustomShoeDesignId { get; set; }
+        public long SizeId { get; set; }
+        public long? ManufacturerId { get; set; }
         public int Quantity { get; set; } = 1;
     }
 
@@ -31,6 +33,10 @@ namespace FCSP.DTOs.Cart
         public long Id { get; set; }
         public long CustomShoeDesignId { get; set; }
         public string CustomShoeDesignName { get; set; }
+        public long SizeId { get; set; }
+        public string SizeValue { get; set; }
+        public long? ManufacturerId { get; set; }
+        public string? ManufacturerName { get; set; }
         public int Quantity { get; set; }
         public int Price { get; set; }
         public int Subtotal => Price * Quantity;

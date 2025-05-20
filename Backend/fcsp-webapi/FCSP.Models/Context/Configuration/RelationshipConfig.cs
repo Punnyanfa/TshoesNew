@@ -43,8 +43,20 @@ internal static class RelationshipConfig
 
         modelBuilder.Entity<CartItem>()
             .HasOne(ci => ci.CustomShoeDesign)
-            .WithMany(csd => csd.CartItems)
+            .WithMany(cd => cd.CartItems)
             .HasForeignKey(ci => ci.CustomShoeDesignId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Size)
+            .WithMany()
+            .HasForeignKey(ci => ci.SizeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Manufacturer)
+            .WithMany()
+            .HasForeignKey(ci => ci.ManufacturerId)
             .OnDelete(DeleteBehavior.Restrict);
             
         // CustomShoeDesign relationships

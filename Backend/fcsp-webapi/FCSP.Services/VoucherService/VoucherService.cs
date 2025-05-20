@@ -46,6 +46,72 @@ namespace FCSP.Services.VoucherService
             }
         }
 
+        public async Task<BaseResponseModel<GetVoucherByCodeResponse>> GetVoucherByCode(GetVoucherByCodeRequest request)
+        {
+            try
+            {
+                var voucher = await _voucherRepository.GetAll()
+                                                      .Include(v => v.Orders)
+                                                      .FirstOrDefaultAsync(o => o.VoucherName == request.Code);
+                if (voucher == null)
+                {
+                    return new BaseResponseModel<GetVoucherByCodeResponse>
+                    {
+                        Code = 404,
+                        Message = "Voucher not found",
+                        Data = null
+                    };
+                }
+                
+                if(voucher.Status == (int)VoucherStatus.Expired)
+                {
+                    return new BaseResponseModel<GetVoucherByCodeResponse>
+                    {
+                        Code = 200,
+                        Message = "Voucher is expired",
+                        Data = new GetVoucherByCodeResponse
+                        {
+                            Id = voucher.Id,
+                            IsValid = false
+                        }
+                    };
+                }
+
+                if (voucher.Status == (int)VoucherStatus.Used)
+                {
+                    return new BaseResponseModel<GetVoucherByCodeResponse>
+                    {
+                        Code = 200,
+                        Message = "Voucher is used",
+                        Data = new GetVoucherByCodeResponse
+                        {
+                            Id = voucher.Id,
+                            IsValid = false
+                        }
+                    };
+                }
+
+                return new BaseResponseModel<GetVoucherByCodeResponse>
+                {
+                    Code = 200,
+                    Message = "Voucher retrieved successfully",
+                    Data = new GetVoucherByCodeResponse
+                    {
+                        Id = voucher.Id,
+                        IsValid = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<GetVoucherByCodeResponse>
+                {
+                    Code = 500,
+                    Message = "Error retrieving voucher by code. Error: " + ex.Message
+                };
+            }
+        }
+
         public async Task<BaseResponseModel<GetVoucherByIdResponse>> GetVoucherById(GetVoucherByIdRequest request)
         {
             try
