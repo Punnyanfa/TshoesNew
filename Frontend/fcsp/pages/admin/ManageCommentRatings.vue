@@ -7,7 +7,7 @@
           <div class="col-12">
             <h1 class="mb-3 text-primary fw-bold d-flex align-items-center">
               <i class="bi bi-chat-square-text me-2"></i>
-              Quản lý đánh giá & bình luận
+              Manage Ratings & Comments
             </h1>
           </div>
         </div>
@@ -20,7 +20,7 @@
                 <i class="bi bi-chat-square-text"></i>
               </div>
               <div class="stat-content">
-                <h6 class="stat-label">Tổng đánh giá</h6>
+                <h6 class="stat-label">Total Ratings</h6>
                 <h2 class="stat-value">{{ comments.length }}</h2>
               </div>
             </div>
@@ -31,7 +31,7 @@
                 <i class="bi bi-star"></i>
               </div>
               <div class="stat-content">
-                <h6 class="stat-label">Đánh giá trung bình</h6>
+                <h6 class="stat-label">Average Rating</h6>
                 <h2 class="stat-value">{{ averageRating }}/5</h2>
               </div>
             </div>
@@ -42,7 +42,7 @@
                 <i class="bi bi-hourglass-split"></i>
               </div>
               <div class="stat-content">
-                <h6 class="stat-label">Chờ duyệt</h6>
+                <h6 class="stat-label">Pending</h6>
                 <h2 class="stat-value">{{ pendingCount }}</h2>
               </div>
             </div>
@@ -53,7 +53,7 @@
                 <i class="bi bi-reply"></i>
               </div>
               <div class="stat-content">
-                <h6 class="stat-label">Tỷ lệ phản hồi</h6>
+                <h6 class="stat-label">Response Rate</h6>
                 <h2 class="stat-value">75%</h2>
               </div>
             </div>
@@ -66,7 +66,7 @@
             <div class="col-md-4">
               <div class="search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" class="form-control" v-model="search" placeholder="Tìm kiếm đánh giá...">
+                <input type="text" class="form-control" v-model="search" placeholder="Search ratings...">
                 <button v-if="search" class="btn-clear" @click="search = ''">
                   <i class="bi bi-x"></i>
                 </button>
@@ -75,20 +75,20 @@
             <div class="col-md-8">
               <div class="filter-pills">
                 <select class="filter-select" v-model="productFilter">
-                  <option value="">Tất cả sản phẩm</option>
+                  <option value="">All Products</option>
                   <option v-for="product in uniqueProducts" :key="product" :value="product">{{ product }}</option>
                 </select>
                 
                 <select class="filter-select" v-model="ratingFilter">
-                  <option value="">Tất cả sao</option>
+                  <option value="">All Ratings</option>
                   <option v-for="i in 5" :key="i" :value="i">{{ i }} sao</option>
                 </select>
                 
                 <select class="filter-select" v-model="statusFilter">
-                  <option value="">Tất cả trạng thái</option>
-                  <option value="approved">Đã duyệt</option>
-                  <option value="pending">Chờ duyệt</option>
-                  <option value="rejected">Đã từ chối</option>
+                  <option value="">All Status</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="rejected">Rejected</option>
                 </select>
               </div>
             </div>
@@ -105,7 +105,7 @@
           
           <div v-else-if="filteredComments.length === 0" class="empty-state">
             <i class="bi bi-inbox-fill"></i>
-            <p>Không tìm thấy đánh giá nào</p>
+            <p>No ratings found</p>
           </div>
           
           <div v-else class="comment-list">
@@ -144,7 +144,7 @@
                   <p>{{ comment.comment }}</p>
                   <div v-if="comment.response" class="comment-response">
                     <div class="response-header">
-                      <i class="bi bi-reply-fill"></i> Phản hồi
+                      <i class="bi bi-reply-fill"></i> Response
                     </div>
                     <p>{{ comment.response }}</p>
                   </div>
@@ -172,9 +172,9 @@
           </div>
           
           <div class="comments-footer">
-            <div>Hiển thị {{ filteredComments.length }} / {{ comments.length }} đánh giá</div>
+            <div>Displaying {{ filteredComments.length }} / {{ comments.length }} ratings</div>
             <button v-if="pendingCount > 0" class="bulk-action-btn" @click="showBulkModal">
-              <i class="bi bi-check2-all me-1"></i> Duyệt hàng loạt ({{ pendingCount }})
+              <i class="bi bi-check2-all me-1"></i> Bulk Approve ({{ pendingCount }})
             </button>
           </div>
         </div>
@@ -222,7 +222,7 @@
                       </div>
                       
                       <div v-if="selectedComment.response" class="response-box">
-                        <h6><i class="bi bi-reply-fill"></i> Phản hồi</h6>
+                        <h6><i class="bi bi-reply-fill"></i> Response</h6>
                         <p>{{ selectedComment.response }}</p>
                       </div>
                     </div>
@@ -236,24 +236,24 @@
                   <p>{{ selectedComment.comment }}</p>
                 </div>
                 <div class="response-form">
-                  <label for="responseText">Phản hồi của bạn</label>
+                  <label for="responseText">Response from you</label>
                   <textarea id="responseText" rows="4" v-model="responseText" 
-                            placeholder="Nhập phản hồi của bạn..."></textarea>
+                            placeholder="Enter response from you..."></textarea>
                 </div>
               </div>
               
               <!-- Approve/Reject Confirmation -->
               <div v-if="modalType === 'approve' || modalType === 'reject'" class="modal-body">
                 <div class="confirmation-message">
-                  <p>Bạn có chắc chắn muốn {{ modalType === 'approve' ? 'duyệt' : 'từ chối' }} đánh giá này?</p>
+                  <p>Are you sure you want to {{ modalType === 'approve' ? 'approve' : 'reject' }} this rating?</p>
                 </div>
                 <div class="comment-preview" v-if="selectedComment">
                   <p>{{ selectedComment.comment }}</p>
                 </div>
                 <div v-if="modalType === 'reject'" class="reject-reason">
-                  <label for="rejectReason">Lý do từ chối (tùy chọn)</label>
+                  <label for="rejectReason">Rejection Reason (optional)</label>
                   <textarea id="rejectReason" rows="3" v-model="rejectReason" 
-                            placeholder="Nhập lý do từ chối..."></textarea>
+                            placeholder="Enter rejection reason..."></textarea>
                 </div>
               </div>
               
@@ -262,12 +262,12 @@
                 <div class="bulk-header">
                   <div class="alert-box">
                     <i class="bi bi-info-circle"></i>
-                    Có <strong>{{ pendingCount }}</strong> đánh giá đang chờ duyệt.
+                    There are <strong>{{ pendingCount }}</strong> ratings pending approval.
                   </div>
                   
                   <div class="select-all-option">
                     <input type="checkbox" id="selectAll" v-model="selectAll" @change="toggleSelectAll">
-                    <label for="selectAll">Chọn tất cả</label>
+                    <label for="selectAll">Select All</label>
                   </div>
                 </div>
                 
@@ -292,42 +292,42 @@
               <!-- Modal Footer -->
               <div class="modal-footer">
                 <button type="button" class="cancel-btn" data-bs-dismiss="modal">
-                  {{ modalType === 'view' ? 'Đóng' : 'Hủy' }}
+                  {{ modalType === 'view' ? 'Close' : 'Cancel' }}
                 </button>
                 
                 <template v-if="modalType === 'view' && selectedComment">
                   <button v-if="selectedComment.status === 'pending'" class="approve-btn-lg" 
                           @click="handleComment(selectedComment, 'approve')">
-                    <i class="bi bi-check-lg"></i> Duyệt
+                    <i class="bi bi-check-lg"></i> Approve
                   </button>
                   <button v-if="selectedComment.status === 'pending'" class="reject-btn-lg" 
                           @click="handleComment(selectedComment, 'reject')">
-                    <i class="bi bi-x-lg"></i> Từ chối
+                    <i class="bi bi-x-lg"></i> Reject
                   </button>
                   <button v-if="selectedComment.status !== 'pending'" class="respond-btn-lg" 
                           @click="handleComment(selectedComment, 'respond')">
-                    <i class="bi bi-reply"></i> Phản hồi
+                    <i class="bi bi-reply"></i> Respond
                   </button>
                 </template>
                 
                 <button v-if="modalType === 'respond'" class="submit-btn" @click="submitAction">
-                  Gửi phản hồi
+                  Send Response
                 </button>
                 
                 <button v-if="modalType === 'approve' || modalType === 'reject'" 
                         :class="modalType === 'approve' ? 'approve-btn-lg' : 'reject-btn-lg'"
                         @click="submitAction">
-                  {{ modalType === 'approve' ? 'Duyệt' : 'Từ chối' }}
+                  {{ modalType === 'approve' ? 'Approve' : 'Reject' }}
                 </button>
                 
                 <template v-if="modalType === 'bulk'">
                   <button class="reject-btn-lg" @click="bulkAction('reject')" 
                           :disabled="selectedIds.length === 0">
-                    <i class="bi bi-x-lg"></i> Từ chối ({{ selectedIds.length }})
+                    <i class="bi bi-x-lg"></i> Reject ({{ selectedIds.length }})
                   </button>
                   <button class="approve-btn-lg" @click="bulkAction('approve')" 
                           :disabled="selectedIds.length === 0">
-                    <i class="bi bi-check-lg"></i> Duyệt ({{ selectedIds.length }})
+                    <i class="bi bi-check-lg"></i> Approve ({{ selectedIds.length }})
                   </button>
                 </template>
               </div>
@@ -413,9 +413,9 @@ export default {
     },
     getStatusText(status) {
       return {
-        'approved': 'Đã duyệt',
-        'pending': 'Chờ duyệt',
-        'rejected': 'Đã từ chối'
+        'approved': 'Approved',
+        'pending': 'Pending',
+        'rejected': 'Rejected'
       }[status] || status;
     },
     getStatusClass(status) {
@@ -436,12 +436,12 @@ export default {
     },
     getModalTitle() {
       return {
-        'view': 'Chi tiết đánh giá',
-        'respond': 'Phản hồi đánh giá',
-        'approve': 'Duyệt đánh giá',
-        'reject': 'Từ chối đánh giá',
-        'bulk': 'Duyệt đánh giá hàng loạt'
-      }[this.modalType] || 'Quản lý đánh giá';
+        'view': 'Rating Details',
+        'respond': 'Respond to Rating',
+        'approve': 'Approve Rating',
+        'reject': 'Reject Rating',
+        'bulk': 'Bulk Approve Ratings'
+      }[this.modalType] || 'Manage Ratings';
     },
     handleComment(comment, action) {
       this.selectedComment = comment;
@@ -471,14 +471,14 @@ export default {
     updateStatus(status) {
       if (this.selectedComment) {
         this.selectedComment.status = status;
-        this.showToast(`Đánh giá đã được ${status === 'approved' ? 'duyệt' : 'từ chối'} thành công`);
+        this.showToast(`Rating has been ${status === 'approved' ? 'approved' : 'rejected'} successfully`);
         this.commentModal.hide();
       }
     },
     submitResponse() {
       if (this.selectedComment && this.responseText.trim()) {
         this.selectedComment.response = this.responseText;
-        this.showToast('Phản hồi đã được gửi thành công');
+        this.showToast('Response has been sent successfully');
         this.commentModal.hide();
       }
     },
@@ -498,7 +498,7 @@ export default {
         }
       });
       
-      this.showToast(`Đã ${action === 'approve' ? 'duyệt' : 'từ chối'} ${this.selectedIds.length} đánh giá thành công`);
+      this.showToast(`Successfully ${action === 'approve' ? 'approved' : 'rejected'} ${this.selectedIds.length} ratings`);
       this.commentModal.hide();
     },
     showToast(message, type = 'success') {
@@ -541,13 +541,13 @@ export default {
             userRating: rating.userRating,
             comment: rating.comment,
             createdAt: rating.createdAt,
-            status: 'pending', // Mặc định là pending, có thể thay đổi tùy theo API trả về
+            status: 'pending', // Default is pending, can be changed based on API response
             response: null
           }));
         }
       } catch (error) {
         console.error('Error fetching ratings:', error);
-        this.showToast('Có lỗi xảy ra khi tải dữ liệu', 'error');
+        this.showToast('An error occurred while loading data', 'error');
       } finally {
         this.loading = false;
       }

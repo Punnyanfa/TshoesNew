@@ -39,10 +39,7 @@
                 <b>Lưu ý:</b> Phụ phí này sẽ được lấy làm mặc định khi thêm dịch vụ mới.
               </div>
             </div>
-          </div>
-
-        
-         
+          </div>      
         </div>
       </div>
     </div>

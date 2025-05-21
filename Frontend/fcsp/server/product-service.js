@@ -5,7 +5,6 @@ import { instance } from "./api-instance-provider";
 export async function getAllProducts() {
     try {
       const response = await instance.get('/CustomShoeDesign');
-      
       // Kiểm tra mã phản hồi và trả về toàn bộ phản hồi nếu mã là 200
       if (response.data.code === 200) {
         return response.data;  // Trả về toàn bộ đối tượng chứa 'designs' và các thông tin khác
@@ -24,6 +23,7 @@ export async function getAllProducts() {
 export async function getProductById(id) {
   try {
     const response = await instance.get(`/CustomShoeDesign/${id}`);
+    console.log(response.data);
     if (response.data.code === 200) {
       return response.data.data;  // Trả về data của sản phẩm cụ thể
     }

@@ -53,7 +53,7 @@
           <div class="d-flex flex-column align-items-center">
             <div class="position-relative mb-3">
               <img
-                :src="profile.avatar || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Pg8Xar0cs5YJAv7GozxRFA8TXVJ7tP.png'"
+                :src="profile.avatarImageUrl || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Pg8Xar0cs5YJAv7GozxRFA8TXVJ7tP.png'"
                 alt="Profile Picture"
                 class="rounded-circle img-thumbnail"
                 style="width: 150px; height: 150px; object-fit: cover"
@@ -158,7 +158,7 @@ export default {
         phone: data.phoneNumber || '',
         gender: data.gender || '',
         birthdate: data.dob || '',
-        avatar: null // Nếu API có trả về avatar thì map vào đây
+        avatarImageUrl: data.avatarImageUrl || '' // Nếu API có trả về avatar thì map vào đây
       };
       // Khởi tạo dữ liệu cho modal
       this.editProfile = {

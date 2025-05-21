@@ -64,10 +64,10 @@
 <!-- User Actions -->
 <div class="user-actions">
         <!-- Cart Button -->
-        <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
+        <!-- <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
           <ShoppingCartOutlined />
           <span class="sneaker-badge">{{ cartCount }}</span>
-        </router-link>
+        </router-link> -->
 
   <!-- User Section -->
   <section v-if="isAuthenticated">
@@ -77,15 +77,11 @@
       </div>
       <ul class="dropdown-content" aria-labelledby="userDropdown">
         <li>
-          <router-link class="dropdown-item" to="/profilePage">
+          <router-link class="dropdown-item" to="/profileManuPage">
             <i class="bi bi-person me-2"></i> Profile
           </router-link>
         </li>
-        <li>
-          <router-link class="dropdown-item" to="/settingsPage">
-            <i class="bi bi-gear me-2"></i> Settings
-          </router-link>
-        </li>
+      
         <li><hr class="dropdown-divider"></li>
         <li>
           <a class="dropdown-item text-danger" href="#" @click.prevent="logout">

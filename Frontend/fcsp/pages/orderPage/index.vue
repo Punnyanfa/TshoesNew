@@ -374,6 +374,7 @@
       const orderDetailsPromises = order.value.items.map(async (item) => {
         // Get the correct size ID for the size value
         const sizeId = await getSizeIdByValue(Number(item.selectedSize));
+        const manufacturerId = 1;
         if (!sizeId) {
           throw new Error(`Không tìm thấy size ID cho size ${item.selectedSize}`);
         }
@@ -381,19 +382,21 @@
         return {
           customShoeDesignId: parseInt(item.id),
           quantity: parseInt(item.quantity || 1),
-          sizeId: sizeId // Use the looked up sizeId
+          sizeId: sizeId, // Use the looked up sizeId
+          manufacturerId: manufacturerId
         };
       });
 
       // Wait for all size ID lookups to complete
       const orderDetails = await Promise.all(orderDetailsPromises);
-
-      // Prepare request body
+      
+      // Predpare request body
       const orderData = {
         userId: parseInt(userId),
         shippingInfoId: parseInt(shippingAddress.value.id),
         paymentMethod: 0,
-        orderDetails: orderDetails
+        orderDetails: orderDetails,
+        
       };
 
       console.log('Sending order data:', JSON.stringify(orderData, null, 2));
