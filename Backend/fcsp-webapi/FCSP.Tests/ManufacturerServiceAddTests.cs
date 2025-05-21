@@ -1,13 +1,9 @@
 ﻿using FCSP.Common.Enums;
-using FCSP.DTOs;
 using FCSP.DTOs.Manufacturer;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.ManufacturerService;
 using Moq;
-using System;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace FCSP.Tests
 {
@@ -15,7 +11,7 @@ namespace FCSP.Tests
     {
         private readonly Mock<IManufacturerRepository> _manufacturerRepositoryMock;
         private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly FCSP.Services.ManufacturerService.ManufacturerService _manufacturerService;
+        private readonly ManufacturerService _manufacturerService;
 
         public ManufacturerServiceAddTests()
         {

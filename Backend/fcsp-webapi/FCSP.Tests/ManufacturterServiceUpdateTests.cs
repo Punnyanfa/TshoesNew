@@ -146,7 +146,12 @@ namespace FCSP.Tests
         public async Task UpdateManufacturer_InvalidStatus()
         {
             // Arrange
-            var manufacturer = new Manufacturer { Id = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = ManufacturerStatus.Active };
+            var manufacturer = new Manufacturer 
+            { Id = 1, 
+              Description = "Highly recommended for GenZ style", 
+              CommissionRate = 10,
+              Status = ManufacturerStatus.Active 
+            };
             var request = new UpdateManufacturerRequest { Id = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = 10 }; 
             _manufacturerRepositoryMock.Setup(x => x.GetManufacturerWithDetailsAsync(1)).ReturnsAsync(manufacturer);
 

@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using FCSP.Common.Enums;
 using FCSP.DTOs;
 using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
@@ -155,7 +156,7 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                var template = _templateRepository.Find(request.Id);
+                var template = await _templateRepository.FindAsync(request.Id);
                 if (template == null)
                     return new BaseResponseModel<DeleteTemplateResponse> { Code = 404, Message = "Template not found" };
 
@@ -262,9 +263,12 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
-                var template = _templateRepository.Find(request.Id);
+                var template = await _templateRepository.FindAsync(request.Id); 
                 if (template == null)
                     return new BaseResponseModel<UpdateTemplateStatusResponse> { Code = 404, Message = "Template not found" };
+
+                if (!Enum.IsDefined(typeof(TemplateStatus), request.Status))
+                    return new BaseResponseModel<UpdateTemplateStatusResponse> { Code = 400, Message = "status is invalid" };
 
                 template.Status = request.Status;
                 template.UpdatedAt = DateTime.Now;

@@ -15,7 +15,7 @@ namespace FCSP.Tests
     {
         private readonly Mock<IManufacturerRepository> _manufacturerRepositoryMock;
         private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly FCSP.Services.ManufacturerService.ManufacturerService _manufacturerService;
+        private readonly ManufacturerService _manufacturerService;
         public ManufacturerServiceDeleteTests()
         {
             _manufacturerRepositoryMock = new Mock<IManufacturerRepository>();
