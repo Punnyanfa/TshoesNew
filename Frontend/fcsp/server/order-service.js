@@ -31,7 +31,7 @@ export async function getOrderById(id) {
 
 // Post order
 export async function postOrder(orderData) {
-  console.log('Sending order data:', JSON.stringify(orderData, null, 2));
+  console.log('Sending order data:', orderData);
   try {
     const response = await instance.post('/Order', orderData);
     console.log('Raw API response:', response);

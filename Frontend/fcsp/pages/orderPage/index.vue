@@ -378,25 +378,27 @@
         if (!sizeId) {
           throw new Error(`Không tìm thấy size ID cho size ${item.selectedSize}`);
         }
-        
         return {
           customShoeDesignId: parseInt(item.id),
           quantity: parseInt(item.quantity || 1),
-          sizeId: sizeId, // Use the looked up sizeId
+          sizeId: sizeId,  // Use the looked up sizeId
           manufacturerId: manufacturerId
         };
       });
 
       // Wait for all size ID lookups to complete
-      const orderDetails = await Promise.all(orderDetailsPromises);
-      
+      const orderDetailsArr = await Promise.all(orderDetailsPromises);
+      // Nếu chỉ có 1 sản phẩm, gửi object, nếu nhiều sản phẩm, gửi object đầu tiên (theo API mẫu)
+      const orderDetail = orderDetailsArr[0];
+      // Nếu có voucherId, lấy từ state hoặc mặc định null
+      const voucherId = typeof selectedVoucherId !== 'undefined' ? selectedVoucherId : null;
       // Predpare request body
       const orderData = {
         userId: parseInt(userId),
         shippingInfoId: parseInt(shippingAddress.value.id),
         paymentMethod: 0,
-        orderDetails: orderDetails,
-        
+        voucherId: voucherId,
+        orderDetail: orderDetail,
       };
 
       console.log('Sending order data:', JSON.stringify(orderData, null, 2));
@@ -620,7 +622,7 @@
   }
   
   .text-primary {
-    color: #555555 !important;
+    color: #2196f3 !important;
   }
   
   .text-danger {
