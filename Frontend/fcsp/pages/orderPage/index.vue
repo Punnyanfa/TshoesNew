@@ -617,7 +617,7 @@
   }
   
   .text-primary {
-    color: #2196f3 !important;
+    color: #555555 !important;
   }
   
   .text-danger {

@@ -3,7 +3,7 @@
     <AdminSidebar />
     <div class="content">
       <div class="header">
-        <h1>Manage Templates</h1>
+        <h1 class="text-primary fw-bold">Manage Templates</h1>
         <button class="add-button" @click="showAddModal = true">
           <i class="fas fa-plus"></i> Add New Template
         </button>
@@ -168,6 +168,7 @@ export default {
   padding: 20px;
   width: 100%;
   overflow-x: auto;
+  background-color: white;
 }
 
 .header {
@@ -175,6 +176,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .search-filter {

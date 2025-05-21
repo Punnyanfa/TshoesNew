@@ -6,8 +6,7 @@
         <div class="row mb-4">
           <div class="col-12">
             <h1 class="mb-3 text-primary fw-bold d-flex align-items-center">
-              <i class="bi bi-chat-square-text me-2"></i>
-              Quản lý đánh giá & bình luận
+              Manage reviews & comments
             </h1>
           </div>
         </div>

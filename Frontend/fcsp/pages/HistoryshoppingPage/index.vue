@@ -357,11 +357,11 @@
   }
   
   .pagination .page-link {
-    color: #0d6efd;
+    color: #777777;
   }
   
   .pagination .page-item.active .page-link {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: #777777;
+    border-color: #777777;
   }
   </style>

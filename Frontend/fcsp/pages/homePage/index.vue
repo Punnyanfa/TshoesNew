@@ -35,7 +35,10 @@
       </div>
     </section>
     <section class="best-sellers-section container py-5">
-      <h2 class="text-center fw-bold mb-5 text-sneaker-orange">Giày Bán Chạy Nhất</h2>
+      <h2 class="collection-title text-center">3D Custom Shoe Collection</h2>
+      <p class="collection-desc text-center">
+        Personalize your perfect pair with our 3D custom shoe collection. Choose colors, materials, and styles to match your unique taste. Step into comfort and creativity—designed by you, made for you.
+      </p>
       
       <Swiper
         v-bind="swiperOptions"
@@ -96,45 +99,6 @@
         <NuxtLink to="/productPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
           Xem Tất Cả Sản Phẩm
         </NuxtLink>
-      </div>
-    </section>
-    <!-- Collection Section -->
-    <section class="collection-section container py-5">
-      <h2 class="collection-title text-center">3D Custom Shoe Collection</h2>
-      <p class="collection-desc text-center">
-        Personalize your perfect pair with our 3D custom shoe collection. Choose colors, materials, and styles to match your unique taste. Step into comfort and creativity—designed by you, made for you.
-      </p>
-      <div class="row g-4">
-        <div
-          v-for="(product, idx) in collections"
-          :key="product.id"
-          class="col-md-3 col-6"
-        >
-          <div class="product-card-collection" @mouseenter="hoverIdx = idx" @mouseleave="hoverIdx = null">
-            <div class="product-img-wrap">
-              <img :src="product.image" :alt="product.name" class="img-fluid" />
-              <div
-                class="product-overlay"
-                v-if="hoverIdx === idx"
-              >
-                <button class="overlay-btn"><i class="bi bi-eye"></i></button>
-                <button class="overlay-btn"><i class="bi bi-bag"></i></button>
-              </div>
-            </div>
-            <div class="product-info text-center mt-2">
-              <div class="product-name">{{ product.name }}</div>
-              <div class="product-price" v-html="product.price"></div>
-              <div class="product-rating">
-                <span v-for="star in 5" :key="star">
-                  <i class="bi" :class="star <= product.rating ? 'bi-star-fill text-warning' : 'bi-star text-muted'"></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="text-center mt-4">
-        <NuxtLink to="/productPage" class="btn btn-outline-collection">View All Custom Shoes</NuxtLink>
       </div>
     </section>
 
@@ -276,7 +240,7 @@
     <!-- Call to Action Section -->
     <section class="cta-section text-center py-5">
       <div class="container">
-        <h2 class="fw-bold" style="color: #007bff;">Ready to Elevate Your Style?</h2>
+        <h2 class="fw-bold" style="color: #777777;">Ready to Elevate Your Style?</h2>
         <p class="mt-3" style="color: #000000;">Join thousands of sneaker enthusiasts who've turned their ideas into one-of-a-kind custom shoes.</p>
         <NuxtLink to="/customPage" class="btn btn-sneaker px-5 py-3 mt-4 fw-bold text-uppercase">
           Start Designing
@@ -546,11 +510,11 @@ const swiperOptions = {
 <style scoped>
   /* Global Styles */
   :root {
-    --primary-color: #00bcd4;
-    --primary-dark: #008ba3;
-    --primary-light: #e0f7f4;
-    --accent-color: #3ec6a7;
-    --accent-dark: #249e7a;
+    --primary-color: #AAAAAA;
+    --primary-dark: #888888;
+    --primary-light: #CCCCCC;
+    --accent-color: #AAAAAA;
+    --accent-dark: #888888;
     --text-dark: #000000;
     --text-light: #333333;
     --white: #fff;
@@ -592,7 +556,7 @@ const swiperOptions = {
   .text-sneaker-orange {
     color: var(--text-dark);
     font-weight: bold;
-    color: #007bff;
+    color: #777777;
   }
 
   .text-sneaker-star {
@@ -741,7 +705,7 @@ const swiperOptions = {
     color: var(--accent-color);
     font-size: 3rem;
     font-weight: bold;
-    color: #007bff;
+    color: #777777;
   }
   .btn-view-collection {
     color: var(--text-dark);
@@ -808,7 +772,7 @@ const swiperOptions = {
     font-weight: bold;
     color: var(--text-dark);
     margin-bottom: 10px;
-    color: #007bff;
+    color: #777777;
   }
   .collection-desc {
     color: var(--text-dark);
@@ -1100,7 +1064,7 @@ const swiperOptions = {
   }
 
   .btn-add-cart {
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #AAAAAA, #888888);
     color: #fff;
     border: none;
     padding: 12px 24px;
@@ -1112,14 +1076,14 @@ const swiperOptions = {
 
   .btn-add-cart:hover {
     transform: scale(1.1);
-    background: linear-gradient(45deg, #3498db, #2c3e50);
+    background: linear-gradient(45deg, #888888, #AAAAAA);
   }
 
   .price {
     font-size: 1.2rem;
     font-weight: 700;
     color: #2c3e50;
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #AAAAAA, #888888);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -1137,7 +1101,7 @@ const swiperOptions = {
   /* Swiper Navigation Styles */
   .swiper-button-next,
   .swiper-button-prev {
-    color: #2c3e50;
+    color: #AAAAAA;
     background: white;
     width: 44px;
     height: 44px;
@@ -1172,7 +1136,7 @@ const swiperOptions = {
   }
 
   .swiper-pagination-bullet-active {
-    background: #3498db;
+    background: #AAAAAA;
     opacity: 1;
     width: 24px;
     border-radius: 5px;
@@ -1201,7 +1165,7 @@ const swiperOptions = {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: linear-gradient(45deg, #2c3e50, #3498db);
+    background: linear-gradient(45deg, #AAAAAA, #888888);
     color: white;
     padding: 15px 25px;
     border-radius: 8px;
@@ -1224,7 +1188,7 @@ const swiperOptions = {
   }
 
   .product-title:hover {
-    color: #3498db;
+    color: #AAAAAA;
   }
 
   /* Image Loading Animation */

@@ -96,7 +96,11 @@ const subscribe = async () => {
   text-decoration: none;
 }
 .footer a:hover {
-  color: #007bff;
+  color: #555555;
+}
+
+.text-primary {
+  color: #555555!important;
 }
 
 /* Newsletter Input Group */
@@ -104,16 +108,16 @@ const subscribe = async () => {
   max-width: 400px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 123, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(102, 102, 102, 0.1);
 }
 .newsletter-group .form-control {
   border-radius: 20px 0 0 20px;
   padding: 10px 15px;
-  border: 1px solid rgba(0, 123, 255, 0.2);
+  border: 1px solid rgba(102, 102, 102, 0.2);
 }
 .newsletter-group .btn {
   border-radius: 0 20px 20px 0;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #555555, #444444);
   color: white;
   transition: all 0.3s ease;
   padding: 10px 20px;
@@ -121,9 +125,9 @@ const subscribe = async () => {
 }
 
 .newsletter-group .btn:hover {
-  background: linear-gradient(135deg, #0056b3, #004494);
+  background: linear-gradient(135deg, #444444, #333333);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.2);
 }
 
 .newsletter-group .btn:disabled {
@@ -147,6 +151,6 @@ const subscribe = async () => {
 .footer {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  box-shadow: 0 -4px 20px rgba(0, 123, 255, 0.1);
+  box-shadow: 0 -4px 20px rgba(102, 102, 102, 0.1);
 }
 </style>

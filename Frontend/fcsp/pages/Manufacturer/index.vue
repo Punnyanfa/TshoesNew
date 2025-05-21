@@ -6,7 +6,7 @@
         <div class="container-fluid mt-4">
           <!-- Profile Section -->
           <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header" style="background-color: #AAAAAA; color: white;">
               <h4>Manufacturer Profile</h4>
             </div>
             <div class="card-body">
@@ -78,7 +78,7 @@
                 </div>
                 
                 <div class="d-flex justify-content-end">
-                  <button type="submit" class="btn btn-primary">Save Profile</button>
+                  <button type="submit" class="btn" style="background-color: #AAAAAA; color: white; border: none;">Save Profile</button>
                 </div>
               </form>
             </div>
@@ -135,5 +135,10 @@ export default {
 
 .card-header {
   border-bottom: 0;
+}
+
+.btn:hover {
+  background-color: #888888 !important;
+  color: white !important;
 }
 </style>

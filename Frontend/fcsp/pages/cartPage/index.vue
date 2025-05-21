@@ -73,7 +73,7 @@ onMounted(() => {
 h1 {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #007bff;
+  color: #777777;
   margin-bottom: 20px;
 }
 

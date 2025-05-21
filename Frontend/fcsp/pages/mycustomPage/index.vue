@@ -68,7 +68,7 @@
       </div>
 
       <div v-else class="text-center mt-5 empty-cart">
-        <h4>You don’t have any designs yet!</h4>
+        <h4>You don't have any designs yet!</h4>
         <NuxtLink to="/customPage" class="btn btn-primary mt-3">Start Designing Now</NuxtLink>
       </div>
 
@@ -635,7 +635,7 @@ const manufacturers = ref([
 h1 {
   font-size: 3.5rem;
   font-weight: 800;
-  background: #007bff;
+  background: #AAAAAA;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 1px;
@@ -702,19 +702,19 @@ h1:hover {
 .price {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #007bff;
+  color: #AAAAAA;
   margin: 8px 0;
 }
 
 .price.surcharge {
   font-size: 1.1rem;
-  color: #0056b3;
+  color: #888888;
   margin: 4px 0;
 }
 
 .price.total {
   font-size: 1.2rem;
-  color: #007bff;
+  color: #AAAAAA;
   margin: 4px 0;
   border-top: 1px dashed #ddd;
   padding-top: 6px;
@@ -771,35 +771,35 @@ h1:hover {
 
 /* Nút chỉnh sửa */
 .edit-btn {
-  background-color: #007bff;
+  background-color: #AAAAAA;
   color: white;
   border: none;
 }
 
 .edit-btn:hover {
-  background-color: #0056b3;
+  background-color: #888888;
 }
 
 /* Nút thêm vào giỏ hàng */
 .add-to-cart-btn {
-  background-color: #007bff;
+  background-color: #AAAAAA;
   color: white;
   border: none;
 }
 
 .add-to-cart-btn:hover {
-  background-color: #0056b3;
+  background-color: #888888;
 }
 
 /* Nút thêm vào sản phẩm */
 .add-to-product-btn {
-  background-color: #007bff;
+  background-color: #AAAAAA;
   color: white;
   border: none;
 }
 
 .add-to-product-btn:hover {
-  background-color: #0056b3;
+  background-color: #888888;
 }
 
 /* Nút xóa */
@@ -891,12 +891,12 @@ h1:hover {
 .empty-cart h4 {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #007bff;
+  color: #AAAAAA;
   margin-bottom: 20px;
 }
 
 .empty-cart .btn {
-  background-color: #007bff;
+  background-color: #AAAAAA;
   color: white;
   border-radius: 8px;
   padding: 12px 30px;
@@ -904,15 +904,15 @@ h1:hover {
   font-weight: bold;
   transition: all 0.3s ease;
   border: none;
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(170, 170, 170, 0.3);
   position: relative;
   overflow: hidden;
 }
 
 .empty-cart .btn:hover {
-  background-color: #0056b3;
+  background-color: #888888;
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 8px 25px rgba(170, 170, 170, 0.4);
 }
 
 /* Product Modal */
@@ -957,7 +957,7 @@ h1:hover {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #007bff;
+  color: #AAAAAA;
 }
 
 .close-button {
@@ -1030,9 +1030,9 @@ h1:hover {
 }
 
 .preview-angle-item:hover {
-  border-color: #007bff;
+  border-color: #AAAAAA;
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 8px 15px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 8px 15px rgba(170, 170, 170, 0.2);
   z-index: 1;
 }
 
@@ -1069,8 +1069,8 @@ h1:hover {
 }
 
 .form-control:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 3px rgba(170, 170, 170, 0.15);
   outline: none;
 }
 
@@ -1088,15 +1088,15 @@ h1:hover {
 }
 
 .product-modal-actions .btn-primary {
-  background-color: #007bff;
+  background-color: #AAAAAA;
   color: white;
   font-weight: 600;
   border: none;
 }
 
 .product-modal-actions .btn-primary:hover {
-  background-color: #0056b3;
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+  background-color: #888888;
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
   transform: translateY(-3px);
 }
 
