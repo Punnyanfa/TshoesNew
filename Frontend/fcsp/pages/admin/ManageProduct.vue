@@ -2,12 +2,13 @@
   <div class="admin-container">
     <AdminSidebar />
     <div class="content">
+      
       <!-- <div class="header">
         <h1>Manage Products</h1>
         <button class="add-btn" @click="showAddModal = true">
           <i class="fas fa-plus"></i> Add Product
         </button>
-      </div> -->
+      </div>
 
       <!-- Search and Filter -->
       <div class="search-filter">
@@ -437,7 +438,7 @@ export default {
 .admin-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: white;
   margin-left: 250px; /* Add margin for sidebar */
   width: calc(100% - 250px); /* Adjust width to account for sidebar */
 }

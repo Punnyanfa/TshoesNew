@@ -287,7 +287,7 @@ const resetLogo = (e) => {
 .brand-text {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #007bff;
+  color: #555555;
   letter-spacing: 1px;
   transition: all 0.3s ease;
 }
@@ -302,7 +302,7 @@ const resetLogo = (e) => {
 .nav-link {
   display: flex;
   align-items: center;
-  color: #007bff;
+  color: #555555;
   font-weight: 600;
   text-decoration: none;
   padding: 0.5rem 1rem;
@@ -318,7 +318,7 @@ const resetLogo = (e) => {
   left: 50%;
   width: 0;
   height: 2px;
-  background: #007bff;
+  background: #555555;
   transition: all 0.3s ease;
   transform: translateX(-50%);
 }
@@ -341,7 +341,7 @@ const resetLogo = (e) => {
 
 .sneaker-btn-icon {
   position: relative;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #555555, #444444);
   color: #fff;
   border-radius: 24px;
   padding: 0.5rem;
@@ -350,20 +350,20 @@ const resetLogo = (e) => {
 
 .sneaker-btn-icon:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
-  background: linear-gradient(135deg, #0056b3, #004494);
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.2);
+  background: linear-gradient(135deg, #444444, #333333);
 }
 
 .sneaker-badge {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: #007bff;
+  background: #555555;
   color: #fff;
   border-radius: 50%;
   padding: 0.2rem 0.5rem;
   font-size: 0.75rem;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2);
 }
 
 /* Dropdown styling */
@@ -474,19 +474,19 @@ const resetLogo = (e) => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #555555, #444444);
   color: white;
   border-radius: 24px;
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2);
 }
 
 .login-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-  background: linear-gradient(135deg, #0056b3, #004494);
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3);
+  background: linear-gradient(135deg, #444444, #333333);
 }
 
 .login-btn:active {
@@ -508,12 +508,12 @@ const resetLogo = (e) => {
 
 .user-dropdown .nav-link {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #555555, #444444);
   color: white;
   border-radius: 24px;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2);
 }
 
 /* Xóa gạch ngang cho user dropdown */
@@ -523,8 +523,8 @@ const resetLogo = (e) => {
 
 .user-dropdown .nav-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-  background: linear-gradient(135deg, #0056b3, #004494);
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3);
+  background: linear-gradient(135deg, #444444, #333333);
 }
 
 .user-dropdown .dropdown-content {

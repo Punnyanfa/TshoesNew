@@ -339,7 +339,7 @@ onMounted(async () => {
 
 /* Button Styles */
 .btn-sneaker {
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -347,23 +347,23 @@ onMounted(async () => {
   font-weight: 600;
   font-size: 1.1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .btn-sneaker:hover {
-  background: #0056b3;
+  background: #888888;
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+  box-shadow: 0 8px 20px rgba(170, 170, 170, 0.4);
 }
 
 .btn-sneaker:active {
   transform: translateY(0);
-  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 3px 10px rgba(170, 170, 170, 0.2);
 }
 
 /* Pagination Styles */
 .pagination .page-link {
-  color: #007bff;
+  color: #AAAAAA;
   border: none;
   padding: 10px 15px;
   transition: all 0.3s ease;
@@ -372,16 +372,16 @@ onMounted(async () => {
 }
 
 .pagination .page-item.active .page-link {
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .pagination .page-link:hover {
-  background: #0056b3;
+  background: #888888;
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .pagination .page-item.disabled .page-link {
@@ -463,7 +463,7 @@ onMounted(async () => {
   font-size: 1rem;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #007bff;
+  color: #AAAAAA;
 }
 
 .newsletter-title {
@@ -501,7 +501,7 @@ onMounted(async () => {
 .newsletter-button {
   padding: 10px 30px;
   border-radius: 30px;
-  background: #007bff;
+  background: #777777;
   color: white;
   border: none;
   cursor: pointer;
@@ -510,7 +510,7 @@ onMounted(async () => {
 }
 
 .newsletter-button:hover {
-  background: #0056b3;
+  background: #555555;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
 }
@@ -554,7 +554,7 @@ onMounted(async () => {
 
 .service-item i {
   font-size: 2rem;
-  color: #007bff;
+  color: #777777;
   margin-bottom: 15px;
 }
 

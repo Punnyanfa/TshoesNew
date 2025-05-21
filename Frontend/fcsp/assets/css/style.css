@@ -4474,7 +4474,7 @@ ul.minicart-pricing-box li:last-child {
   display: block;
 }
 .blog-title a:hover {
-  color: #007bff;
+  color: #777777;
 }
 .blog-meta {
   padding-top: 10px;
@@ -4482,7 +4482,7 @@ ul.minicart-pricing-box li:last-child {
 }
 .blog-meta span {
   font-size: 14px;
-  color: #007bff;
+  color: #777777;
   margin-right: 15px;
 }
 .blog-meta span i {

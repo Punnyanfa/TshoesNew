@@ -3,6 +3,7 @@
     <HeaderManu @logout="logout" />
     <div class="manufacturer-layout">
       <div class="main-content">
+<<<<<<< HEAD
         <!-- Welcome Banner -->
         <div class="welcome-banner">
           <h1>Welcome to Manufacturer Dashboard</h1>
@@ -31,6 +32,86 @@
                 <h3>{{ formatCurrency(totalRevenue) }}</h3>
                 <p>Total Revenue</p>
               </div>
+=======
+        <div class="container-fluid mt-4">
+          <!-- Profile Section -->
+          <div class="card mb-4">
+            <div class="card-header" style="background-color: #AAAAAA; color: white;">
+              <h4>Manufacturer Profile</h4>
+            </div>
+            <div class="card-body">
+              <form @submit.prevent="saveProfile">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <div class="form-group mb-3">
+                      <label for="manufacturerName">Company Name</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        id="manufacturerName" 
+                        v-model="profile.name"
+                        placeholder="Enter company name"
+                        required
+                      >
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                      <label for="contactPerson">Contact Person</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        id="contactPerson" 
+                        v-model="profile.contactPerson"
+                        placeholder="Enter contact person name"
+                        required
+                      >
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                      <label for="email">Email</label>
+                      <input 
+                        type="email" 
+                        class="form-control" 
+                        id="email" 
+                        v-model="profile.email"
+                        placeholder="Enter email address"
+                        required
+                      >
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="form-group mb-3">
+                      <label for="phone">Phone</label>
+                      <input 
+                        type="tel" 
+                        class="form-control" 
+                        id="phone" 
+                        v-model="profile.phone"
+                        placeholder="Enter phone number"
+                        required
+                      >
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                      <label for="address">Address</label>
+                      <textarea 
+                        class="form-control" 
+                        id="address" 
+                        v-model="profile.address"
+                        placeholder="Enter address"
+                        rows="2"
+                        required
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                  <button type="submit" class="btn" style="background-color: #AAAAAA; color: white; border: none;">Save Profile</button>
+                </div>
+              </form>
+>>>>>>> dc745b7b0a6bb2f544edd39b200d6912ef520236
             </div>
           </div>
           <div class="col-md-4">
@@ -254,5 +335,10 @@ export default {
   .stat-box {
     margin-bottom: 1rem;
   }
+}
+
+.btn:hover {
+  background-color: #888888 !important;
+  color: white !important;
 }
 </style>

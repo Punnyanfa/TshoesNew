@@ -228,7 +228,7 @@ const formatPrice = (price) => {
 .card-title {
   font-size: 2.5rem;
   font-weight: 800;
-  background: #007bff;
+  background: #AAAAAA;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 1px;
@@ -267,9 +267,9 @@ const formatPrice = (price) => {
 }
 
 .active-thumbnail {
-  border: 2px solid #007bff;
+  border: 2px solid #AAAAAA;
   transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .size-label {
@@ -291,10 +291,10 @@ const formatPrice = (price) => {
 }
 
 .size-label.active {
-  background: #007bff;
+  background: #AAAAAA;
   color: white;
-  border-color: #007bff;
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+  border-color: #AAAAAA;
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .form-control {
@@ -307,14 +307,14 @@ const formatPrice = (price) => {
 }
 
 .form-control:focus {
-  border-color: #3498db;
+  border-color: #AAAAAA;
   background: #fff;
-  box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 0 10px rgba(170, 170, 170, 0.2);
   outline: none;
 }
 
 .btn-sneaker {
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -322,18 +322,18 @@ const formatPrice = (price) => {
   font-weight: 600;
   font-size: 1.1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .btn-sneaker:hover {
-  background: #0056b3;
+  background: #888888;
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+  box-shadow: 0 8px 20px rgba(170, 170, 170, 0.4);
 }
 
 .btn-sneaker:active {
   transform: translateY(0);
-  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 3px 10px rgba(170, 170, 170, 0.2);
 }
 
 .btn-sneaker:disabled {
@@ -343,7 +343,7 @@ const formatPrice = (price) => {
 }
 
 .text-success {
-  color: #007bff !important;
+  color: #AAAAAA !important;
 }
 
 @keyframes fadeInUp {

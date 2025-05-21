@@ -138,7 +138,7 @@ const posts = [
 .intro-title {
   font-size: 2.5rem;
   font-weight: 600;
-  background: #007bff;
+  background: #AAAAAA;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -193,7 +193,7 @@ const posts = [
   position: absolute;
   top: 12px;
   right: 12px;
-  background: #1976d2;
+  background: #AAAAAA;
   color: #fff;
   padding: 4px 12px;
   border-radius: 12px;
@@ -201,11 +201,11 @@ const posts = [
   font-weight: bold;
   z-index: 2;
 }
-.label-blue { background: #1976d2; }
-.label-green { background: #1976d2; }
-.label-orange { background: #1976d2; }
-.label-purple { background: #1976d2; }
-.label-teal { background: #1976d2; }
+.label-blue { background: #AAAAAA; }
+.label-green { background: #AAAAAA; }
+.label-orange { background: #AAAAAA; }
+.label-purple { background: #AAAAAA; }
+.label-teal { background: #AAAAAA; }
 .blog-title {
   font-size: 20px;
   margin: 16px 16px 8px 16px;

@@ -4,7 +4,7 @@
     <div class="main-content">
       <div class="manage-shipping-container">
         <div class="container py-4">
-          <h2 class="mb-4">Shipping Management</h2>
+          <h1 class="mb-4 text-primary fw-bold">Shipping Management</h1>
           
           <!-- Shipping Information Table -->
           <div class="card">
@@ -261,7 +261,6 @@ export default {
 }
 
 .manage-shipping-container {
-  background-color: #f8f9fa;
   min-height: 100vh;
 }
 

@@ -292,8 +292,8 @@ hr {
 }
 
 .form-control:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 0.2rem rgba(170, 170, 170, 0.25);
 }
 
 .form-control-plaintext {
@@ -302,13 +302,13 @@ hr {
 }
 
 .text-primary {
-  color: #3498db !important;
+  color: #AAAAAA !important;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .text-primary:hover {
-  color: #2980b9 !important;
+  color: #888888 !important;
 }
 
 .form-check-input {
@@ -316,8 +316,8 @@ hr {
 }
 
 .form-check-input:checked {
-  background-color: #3498db;
-  border-color: #3498db;
+  background-color: #AAAAAA;
+  border-color: #AAAAAA;
 }
 
 .btn-danger {
@@ -336,8 +336,8 @@ hr {
 }
 
 .btn-outline-secondary {
-  border: 2px solid #3498db;
-  color: #3498db;
+  border: 2px solid #AAAAAA;
+  color: #AAAAAA;
   padding: 0.5rem 1.5rem;
   border-radius: 8px;
   font-weight: 500;
@@ -345,20 +345,20 @@ hr {
 }
 
 .btn-outline-secondary:hover {
-  background: #3498db;
+  background: #AAAAAA;
   color: white;
   transform: translateY(-2px);
 }
 
 .img-thumbnail {
-  border: 3px solid #3498db;
+  border: 3px solid #AAAAAA;
   padding: 0.25rem;
   transition: all 0.3s ease;
 }
 
 .img-thumbnail:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 15px rgba(170, 170, 170, 0.3);
 }
 
 .small {
@@ -418,7 +418,7 @@ input[type="file"] {
 }
 
 .button-btn {
-  background: linear-gradient(45deg, #2c3e50, #3498db);
+  background: linear-gradient(45deg, #2c3e50, #AAAAAA);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -428,7 +428,7 @@ input[type="file"] {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 15px rgba(170, 170, 170, 0.2);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -437,14 +437,14 @@ input[type="file"] {
 }
 
 .button-btn:hover {
-  background: linear-gradient(45deg, #3498db, #2c3e50);
+  background: linear-gradient(45deg, #AAAAAA, #2c3e50);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 6px 20px rgba(170, 170, 170, 0.3);
 }
 
 .button-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 2px 10px rgba(170, 170, 170, 0.2);
 }
 
 .button-btn::before {
@@ -495,12 +495,12 @@ input[type="file"] {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3498db;
+  background: #AAAAAA;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2980b9;
+  background: #888888;
 }
 
 /* Modern Bootstrap Modal Customization */
@@ -528,7 +528,7 @@ input[type="file"] {
 }
 .modal-header {
   border-bottom: none;
-  background: linear-gradient(90deg, #3498db 0%, #2c3e50 100%);
+  background: linear-gradient(90deg, #AAAAAA 0%, #2c3e50 100%);
   color: #fff;
   border-radius: 18px 18px 0 0;
   padding: 1.25rem 1.5rem 1rem 1.5rem;
@@ -567,22 +567,22 @@ input[type="file"] {
 }
 .modal-content input.form-control:focus,
 .modal-content select.form-select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52,152,219,0.15);
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 2px rgba(170, 170, 170, 0.15);
 }
 .modal-footer .btn-primary {
-  background: linear-gradient(90deg, #3498db 0%, #2c3e50 100%);
+  background: linear-gradient(90deg, #AAAAAA 0%, #2c3e50 100%);
   border: none;
   border-radius: 50px;
   font-weight: 600;
   padding: 0.6rem 2.2rem;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(52,152,219,0.10);
+  box-shadow: 0 2px 8px rgba(170, 170, 170, 0.10);
   transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .modal-footer .btn-primary:hover {
-  background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
-  box-shadow: 0 4px 16px rgba(52,152,219,0.18);
+  background: linear-gradient(90deg, #2c3e50 0%, #AAAAAA 100%);
+  box-shadow: 0 4px 16px rgba(170, 170, 170, 0.18);
   transform: translateY(-2px);
 }
 .modal-footer .btn-secondary {
@@ -596,7 +596,7 @@ input[type="file"] {
 }
 .modal-footer .btn-secondary:hover {
   background: #d1d8e0;
-  color: #3498db;
+  color: #AAAAAA;
 }
 /* Backdrop chuẩn Bootstrap */
 .modal-backdrop {

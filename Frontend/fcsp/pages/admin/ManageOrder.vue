@@ -589,6 +589,7 @@ export default {
   flex: 1;
   margin-left: 250px;
   padding: 20px;
+  background-color: white;
 }
 
 /* Custom styling */
@@ -622,7 +623,7 @@ export default {
 
 .total-amount {
   font-weight: 600;
-  color: #0d6efd;
+  color: #777777;
 }
 
 .date-text {

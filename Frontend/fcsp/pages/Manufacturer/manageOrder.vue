@@ -818,7 +818,7 @@ h1 {
   font-size: 2.5rem;
   font-weight: bold;
   margin-bottom: 2rem;
-  color: #1976d2;
+  color: #AAAAAA;
   letter-spacing: 1px;
 }
 </style>

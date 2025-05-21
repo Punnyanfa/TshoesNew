@@ -164,7 +164,7 @@ const formatPrice = (price) =>
 }
 
 .text-sneaker-blue {
-  color: #007bff;
+  color: #AAAAAA;
   height: auto;
 }
 
@@ -177,7 +177,7 @@ const formatPrice = (price) =>
 
 .sneaker-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 123, 255, 0.15) !important;
+  box-shadow: 0 15px 30px rgba(170, 170, 170, 0.15) !important;
 }
 
 .sneaker-img {
@@ -195,20 +195,20 @@ const formatPrice = (price) =>
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
   padding: 5px 10px;
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(170, 170, 170, 0.2);
 }
 
 .btn-sneaker {
   display: inline-block;
   text-align: center;
   text-decoration: none;
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -216,23 +216,23 @@ const formatPrice = (price) =>
   font-weight: bold;
   text-transform: uppercase;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(170, 170, 170, 0.2);
 }
 
 .btn-sneaker:hover {
-  background: #0056b3;
+  background: #888888;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(170, 170, 170, 0.3);
 }
 
 .btn-sneaker:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 2px 10px rgba(170, 170, 170, 0.2);
 }
 
 /* Pagination */
 .pagination .page-link {
-  color: #007bff;
+  color: #AAAAAA;
   border: none;
   padding: 10px 15px;
   transition: all 0.3s ease;
@@ -241,17 +241,17 @@ const formatPrice = (price) =>
 }
 
 .pagination .page-item.active .page-link {
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
   border-radius: 5px;
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(170, 170, 170, 0.2);
 }
 
 .pagination .page-link:hover {
-  background: #007bff;
+  background: #AAAAAA;
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(170, 170, 170, 0.3);
 }
 
 /* Controls (Filters and Sort) */
@@ -275,7 +275,7 @@ const formatPrice = (price) =>
 
 .filters {
   font-weight: 600;
-  color: #007bff;
+  color: #AAAAAA;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -300,14 +300,14 @@ const formatPrice = (price) =>
 
 .sort-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 4px rgba(170, 170, 170, 0.1);
   transform: translateY(-2px);
 }
 
 /* Loading spinner */
 .spinner-border {
-  color: #007bff;
+  color: #AAAAAA;
   width: 3rem;
   height: 3rem;
 }

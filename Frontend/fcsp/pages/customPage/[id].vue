@@ -2002,7 +2002,7 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .edit-name-btn {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #AAAAAA, #888888);
   color: white;
   border: none;
   border-radius: 4px;
@@ -2015,9 +2015,9 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .edit-name-btn:hover {
-  background: linear-gradient(135deg, #0056b3, #004494);
+  background: linear-gradient(135deg, #888888, #666666);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(170, 170, 170, 0.3);
 }
 
 /* Modal sửa tên sản phẩm */
@@ -2099,8 +2099,8 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .form-control:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 3px rgba(170, 170, 170, 0.15);
   outline: none;
 }
 
@@ -2122,13 +2122,13 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .edit-name-modal-actions .btn-primary {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #AAAAAA, #888888);
   color: white;
 }
 
 .edit-name-modal-actions .btn-primary:hover {
-  background: linear-gradient(135deg, #0056b3, #004494);
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+  background: linear-gradient(135deg, #888888, #666666);
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
   transform: translateY(-3px);
 }
 
@@ -3130,18 +3130,18 @@ const dataURLtoFile = (dataurl, filename) => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #007bff;
+  background: #AAAAAA;
   cursor: pointer;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(170, 170, 170, 0.3);
 }
 
 .slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #007bff;
+  background: #AAAAAA;
   cursor: pointer;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(170, 170, 170, 0.3);
   border: none;
 }
 
@@ -3468,8 +3468,8 @@ const dataURLtoFile = (dataurl, filename) => {
 
 .manufacturer-selector select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 3px rgba(170, 170, 170, 0.15);
 }
 
 /* Surcharge Modal */
@@ -3681,7 +3681,7 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 .ai-form .submit-button {
-  background-color: #007bff;
+  background-color: #AAAAAA;
   color: white;
   border: none;
   border-radius: 4px;
@@ -3802,7 +3802,7 @@ const dataURLtoFile = (dataurl, filename) => {
 
 .generate-button {
   padding: 8px 16px;
-  background: #007bff;
+  background: #AAAAAA;
   color: white;
   border: none;
   border-radius: 4px;
@@ -3810,13 +3810,13 @@ const dataURLtoFile = (dataurl, filename) => {
   transition: background 0.3s;
 }
 
+.generate-button:not(:disabled):hover {
+  background: #888888;
+}
+
 .generate-button:disabled {
   background: #ccc;
   cursor: not-allowed;
-}
-
-.generate-button:not(:disabled):hover {
-  background: #0056b3;
 }
 
 .error-message {

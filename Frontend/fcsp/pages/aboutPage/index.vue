@@ -282,7 +282,7 @@ const currentYear = new Date().getFullYear();
   padding: 12px 30px;
   font-size: 1.1rem;
   font-weight: 500;
-  background-color: #007bff;
+  background-color: #AAAAAA;
   border: none;
   border-radius: 5px;
   transition: all 0.3s ease;
@@ -291,7 +291,7 @@ const currentYear = new Date().getFullYear();
 }
 
 .contact-btn:hover {
-  background-color: #0056b3;
+  background-color: #888888;
   transform: translateY(-2px);
 }
 
@@ -596,7 +596,7 @@ const currentYear = new Date().getFullYear();
 .stat-number {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #002aff;
+  color: #AAAAAA;
   margin-bottom: 0.5rem;
 }
 
@@ -636,6 +636,6 @@ const currentYear = new Date().getFullYear();
   background: none;
   -webkit-background-clip: initial;
   background-clip: initial;
-  color: #007bff;
+  color: #AAAAAA;
 }
 </style>
