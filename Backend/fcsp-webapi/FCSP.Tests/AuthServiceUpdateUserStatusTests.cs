@@ -62,7 +62,6 @@ namespace FCSP.Tests
             Assert.Equal("User with ID 9999 not found", result.Message);
             Assert.Null(result.Data);
         }
-
         [Fact]
         public async Task UpdateUserStatus_UserIsAdmin()
         {
@@ -87,7 +86,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
             
         }
-
         [Fact]
         public async Task UpdateUserStatus_ValidCustomerUser()
         {
@@ -113,7 +111,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
            
         }
-
         [Fact]
         public async Task UpdateUserStatus_ValidDesignerUser()
         {
@@ -147,7 +144,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
             
         }
-
         [Fact]
         public async Task UpdateUserStatus_ValidManufacturerUser()
         {
@@ -181,7 +177,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
            
         }
-
         [Fact]
         public async Task UpdateUserStatus_UnbanUser()
         {

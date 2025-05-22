@@ -21,7 +21,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenUserIdIsZero()
+        public async Task AddManufacturer_UserIdIsZero()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId  = 0, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
@@ -36,7 +36,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenUserDoesNotExist()
+        public async Task AddManufacturer_UserDoesNotExist()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1123, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
@@ -52,7 +52,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenUserRoleIsNotManufacturer()
+        public async Task AddManufacturer_UserRoleIsNotManufacturer()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
@@ -69,7 +69,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenDescriptionIsEmpty()
+        public async Task AddManufacturer_DescriptionIsEmpty()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
@@ -87,7 +87,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacture_WhenDescriptionIsLessThanFiveWords()
+        public async Task AddManufacture_DescriptionIsLessThanFiveWords()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Short desc", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
@@ -105,7 +105,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenDescriptionIsMoreThanFiftyWords()
+        public async Task AddManufacturer_DescriptionIsMoreThanFiftyWords()
         {
             // Arrange
             var longDescription = string.Join(" ", new string[51].Select((_, i) => $"word{i}")); // 51 words
@@ -124,7 +124,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenCommissionRateIsLessThanFive()
+        public async Task AddManufacturer_CommissionRateIsLessThanFive()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 4, Status = (int)ManufacturerStatus.Active };
@@ -142,7 +142,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenCommissionRateIsGreaterThanFifty()
+        public async Task AddManufacturer_CommissionRateIsGreaterThanFifty()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 51, Status = (int)ManufacturerStatus.Active };
@@ -160,7 +160,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenStatusIsInvalid()
+        public async Task AddManufacturer_StatusIsInvalid()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = 999 }; 
@@ -178,7 +178,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenAllInputsAreValid()
+        public async Task AddManufacturer_AllInputsAreValid()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
@@ -199,7 +199,7 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task AddManufacturer_WhenManufacturerAlreadyExistsForUser()
+        public async Task AddManufacturer_ManufacturerAlreadyExistsForUser()
         {
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };

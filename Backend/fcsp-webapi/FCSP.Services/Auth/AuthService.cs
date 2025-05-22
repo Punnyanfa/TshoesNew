@@ -99,6 +99,14 @@ public class AuthService : IAuthService
     {
         try
         {
+            if (string.IsNullOrEmpty(request.Password))
+            {
+                throw new InvalidOperationException("Password can not be empty");
+            }
+            if (request.Password.Length < 8)
+            {
+                throw new InvalidOperationException("Password can not less than 8 character ");
+            }
             var user = await GetUserEntityFromUserLoginRequestAsync(request);
             if (user.IsBanned == true)
             {
@@ -131,6 +139,30 @@ public class AuthService : IAuthService
     {
         try
         {
+            // Validate name
+            if (string.IsNullOrWhiteSpace(request.Name))
+                throw new ArgumentException("Name cannot be empty");
+
+            // Validate email
+            if (string.IsNullOrWhiteSpace(request.Email))
+                throw new ArgumentException("Email can not be empty");
+            if (!IsValidEmail(request.Email))
+                throw new ArgumentException("Invalid email format");
+
+            // Validate password
+            if (string.IsNullOrWhiteSpace(request.Password))
+                throw new ArgumentException("Password cannot be empty");
+            if (request.Password.Length < 8)
+                throw new ArgumentException("Password can not less than 8 character");
+            if (request.Password.Length > 20)
+                throw new ArgumentException("Password can not greater than 20 character");
+            if (!IsValidPassword(request.Password)) 
+                throw new ArgumentException("Password does not format");
+
+            // Validate confirm password
+            if (request.ConfirmPassword != request.Password)
+                throw new ArgumentException("Password not match");
+
             var user = await GetUserEntityFromUserRegisterRequestAsync(request);
             await _userRepository.AddAsync(user);
 
@@ -139,6 +171,24 @@ public class AuthService : IAuthService
                 Code = 200,
                 Message = "User registered successfully",
                 Data = new UserRegisterResponse { Success = true }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UserRegisterResponse>
+            {
+                Code = 400,
+                Message = ex.Message,
+                Data = new UserRegisterResponse { Success = false }
+            };
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new BaseResponseModel<UserRegisterResponse>
+            {
+                Code = 409, // Conflict for existing email
+                Message = ex.Message,
+                Data = new UserRegisterResponse { Success = false }
             };
         }
         catch (Exception ex)
@@ -151,6 +201,19 @@ public class AuthService : IAuthService
             };
         }
     }
+
+    private bool IsValidEmail(string email)
+    {
+        try { var addr = new System.Net.Mail.MailAddress(email); return addr.Address == email; }
+        catch { return false; }
+    }
+
+    private bool IsValidPassword(string password)
+    {
+        
+        return password.Any(char.IsLetter) && password.Any(char.IsDigit);
+    }
+
 
     public async Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request)
     {

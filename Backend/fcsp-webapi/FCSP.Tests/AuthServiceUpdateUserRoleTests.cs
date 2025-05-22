@@ -46,7 +46,6 @@ namespace FCSP.Tests
                 _userOtpRepositoryMock.Object
             );
         }
-
         [Fact]
         public async Task UpdateUserRole_InvalidId()
         {
@@ -67,7 +66,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
             Assert.False(result.Data.Success);
         }
-
         [Fact]
         public async Task UpdateUserRole_NonExistentId()
         {
@@ -89,7 +87,6 @@ namespace FCSP.Tests
             Assert.Equal("User with ID 9999 not found", result.Message);
             Assert.Null(result.Data);
         }
-
         [Fact]
         public async Task UpdateUserRole_InvalidRole()
         {
@@ -118,7 +115,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
             Assert.False(result.Data.Success);
         }
-
         [Fact]
         public async Task UpdateUserRole_InvalidCommissionRate_LessThanFive()
         {
@@ -238,7 +234,6 @@ namespace FCSP.Tests
             Assert.NotNull(result.Data);
            
         }
-
         [Fact]
         public async Task UpdateUserRole_ToManufacturer_Success()
         {
