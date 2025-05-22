@@ -246,15 +246,54 @@ public class AuthService : IAuthService
     public async Task<BaseResponseModel<UpdateUserPasswordResponse>> UpdateUserPassword(UpdateUserPasswordRequest request)
     {
         try
-        {
-            var user = await GetUserEntityFromUpdateUserPasswordRequestAsync(request);
+        {            
+            // Validate Id
+            if (request.Id <= 0)
+                throw new ArgumentException("Id required");
+
+            // Validate current password
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+                throw new ArgumentException("Current password is required");
+            if (!IsValidPassword(request.CurrentPassword))
+                throw new ArgumentException("Current password not format");
+            if (request.CurrentPassword.Length < 8)
+                throw new ArgumentException("Current password cannot be less than 8 character");
+            if (request.CurrentPassword.Length > 20)
+                throw new ArgumentException("Current password cannot be greater than 20 character");
+
+            // Validate new password
+            if (string.IsNullOrWhiteSpace(request.NewPassword))
+                throw new ArgumentException("New password cannot be empty");
+            if (!IsValidPassword(request.NewPassword))
+                throw new ArgumentException("New password does not format");
+            if (request.NewPassword.Length < 8)
+                throw new ArgumentException("New password less than 8 character");
+            if (request.NewPassword.Length > 20)
+                throw new ArgumentException("New password greater than 20 character");
+            
+
+            var user = await _userRepository.GetByIdAsync(request.Id);
+            if (user == null)
+                throw new ArgumentException("Id not found");
+            if (!_passwordHashingService.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash))
+                throw new ArgumentException("Current password does not match");
+            user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
             await _userRepository.UpdateAsync(user);
 
             return new BaseResponseModel<UpdateUserPasswordResponse>
             {
                 Code = 200,
-                Message = "Password updated successfully",
+                Message = "Success",
                 Data = new UpdateUserPasswordResponse { Success = true }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UpdateUserPasswordResponse>
+            {
+                Code = 400,
+                Message = ex.Message,
+                Data = new UpdateUserPasswordResponse { Success = false }
             };
         }
         catch (Exception ex)
@@ -262,10 +301,14 @@ public class AuthService : IAuthService
             return new BaseResponseModel<UpdateUserPasswordResponse>
             {
                 Code = 500,
-                Message = ex.Message
+                Message = ex.Message,
+                Data = new UpdateUserPasswordResponse { Success = false }
             };
         }
     }
+
+   
+
 
     public async Task<BaseResponseModel<ForgetUserPasswordResponse>> ForgetUserPassword(ForgetUserPasswordRequest request)
     {
@@ -797,24 +840,6 @@ public class AuthService : IAuthService
 
         return user;
     }
-
-    private async Task<User> GetUserEntityFromUpdateUserPasswordRequestAsync(UpdateUserPasswordRequest request)
-    {
-        var user = await _userRepository.FindAsync(request.Id);
-        if (user == null)
-        {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
-        }
-        if (string.IsNullOrEmpty(request.NewPassword) || request.NewPassword.Length < 8 || string.IsNullOrEmpty(request.CurrentPassword) || !_passwordHashingService.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash))
-        {
-            throw new InvalidOperationException("Invalid password update request");
-        }
-
-        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
-        user.UpdatedAt = DateTime.Now;
-        return user;
-    }
-
     private async Task<User> GetUserEntityFromUpdateUserInformationRequestAsync(UpdateUserInformationRequest request)
     {
         var user = await _userRepository.FindAsync(request.Id);
