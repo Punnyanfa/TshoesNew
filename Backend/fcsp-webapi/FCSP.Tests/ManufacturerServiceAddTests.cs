@@ -17,7 +17,7 @@ namespace FCSP.Tests
         {
             _manufacturerRepositoryMock = new Mock<IManufacturerRepository>();
             _userRepositoryMock = new Mock<IUserRepository>();
-            _manufacturerService = new FCSP.Services.ManufacturerService.ManufacturerService(_manufacturerRepositoryMock.Object, _userRepositoryMock.Object);
+            _manufacturerService = new ManufacturerService(_manufacturerRepositoryMock.Object, _userRepositoryMock.Object);
         }
 
         [Fact]

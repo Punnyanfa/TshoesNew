@@ -1,13 +1,11 @@
 ﻿using FCSP.Common.Enums;
-using FCSP.DTOs;
+
 using FCSP.DTOs.Manufacturer;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.ManufacturerService;
 using Moq;
-using System;
-using System.Threading.Tasks;
-using Xunit;
+
 
 namespace FCSP.Tests
 {

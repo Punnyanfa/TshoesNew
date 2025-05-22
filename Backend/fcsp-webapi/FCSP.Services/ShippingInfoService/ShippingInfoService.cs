@@ -191,6 +191,15 @@ namespace FCSP.Services.ShippingInfoService
                     Data = new DeleteShippingInfoResponse { Success = true }
                 };
             }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<DeleteShippingInfoResponse>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = ex.Message.Contains("not found") ? null : new DeleteShippingInfoResponse { Success = false }
+                };
+            }
             catch (Exception ex)
             {
                 return new BaseResponseModel<DeleteShippingInfoResponse>
@@ -325,7 +334,12 @@ namespace FCSP.Services.ShippingInfoService
 
         private async Task<ShippingInfo> GetShippingInfoFromDeleteRequest(DeleteShippingInfoRequest request)
         {
-            var shippingInfo = await _shippingInfoRepository.FindAsync(request.Id);
+            if (request.Id <= 0)
+            {
+                throw new InvalidOperationException("Shipping info Id is required");
+            }
+
+            var shippingInfo = await _shippingInfoRepository.FindAsync(new object[] { request.Id });
             if (shippingInfo == null || shippingInfo.IsDeleted)
             {
                 throw new InvalidOperationException($"Shipping information with ID {request.Id} not found");

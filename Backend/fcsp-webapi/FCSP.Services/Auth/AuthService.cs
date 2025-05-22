@@ -151,14 +151,13 @@ public class AuthService : IAuthService
             };
         }
     }
-    
+
     public async Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request)
     {
         try
         {
             var user = await GetUserEntityFromUpdateUserStatusRequestAsync(request);
             await _userRepository.UpdateAsync(user);
-
             return new BaseResponseModel<UpdateUserStatusResponse>
             {
                 Code = 200,
@@ -166,13 +165,18 @@ public class AuthService : IAuthService
                 Data = new UpdateUserStatusResponse { Success = true }
             };
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return new BaseResponseModel<UpdateUserStatusResponse>
             {
-                Code = 500,
-                Message = ex.Message
+                Code = ex.Message.Contains("Admin") ? 400 : (ex.Message.Contains("not found") ? 404 : 400),
+                Message = ex.Message,
+                Data = ex.Message.Contains("Admin") ? new UpdateUserStatusResponse { Success = false } : null
             };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<UpdateUserStatusResponse> { Code = 500, Message = ex.Message };
         }
     }
 
@@ -302,19 +306,40 @@ public class AuthService : IAuthService
     {
         try
         {
+            // Validate role
+            if (request.Role != UserRole.Manufacturer && request.Role != UserRole.Designer)
+            {
+                throw new InvalidOperationException("Role is invalid");
+            }
+
+            // Validate CommissionRate
+            if (!request.CommissionRate.HasValue)
+            {
+                throw new InvalidOperationException("Commission is reqiure");
+            }
+            if ( request.CommissionRate.Value < 5)
+            {
+                throw new InvalidOperationException("commissionRate can not less than 5");
+            }
+            if ( request.CommissionRate.Value > 50)
+            {
+                throw new InvalidOperationException("commissionRate can not greater than 50");
+            }
+           
+
+
+            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
             if (request.Role == UserRole.Designer)
             {
                 var designer = await GetDesignerEntityFromUpdateUserRoleRequest(request);
-                await _designerRepository.AddAsync(designer);
-                var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
+                await _designerRepository.AddAsync(designer);                
                 await _userRepository.UpdateAsync(user);
             }
 
             if (request.Role == UserRole.Manufacturer)
             {
                 var manufacturer = await GetManufacturerEntityFromUpdateUserRoleRequest(request);
-                await _manufacturerRepository.AddAsync(manufacturer);
-                var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
+                await _manufacturerRepository.AddAsync(manufacturer);               
                 await _userRepository.UpdateAsync(user);
             }
             
@@ -326,6 +351,15 @@ public class AuthService : IAuthService
                 {
                     Success = true
                 }
+            };
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new BaseResponseModel<UpdateUserRoleResponse>
+            {
+                Code = ex.Message.Contains("not found") ? 404 : 400,
+                Message = ex.Message,
+                Data = ex.Message.Contains("not found") ? null : new UpdateUserRoleResponse { Success = false }
             };
         }
         catch (Exception ex)
@@ -665,22 +699,28 @@ public class AuthService : IAuthService
             throw new InvalidOperationException($"Can't ban Admin");
         }
 
-        if(user.UserRole == UserRole.Manufacturer)
+        if (user.UserRole == UserRole.Manufacturer)
         {
             var manufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(user.Id);
-            manufacturer.Status = ManufacturerStatus.Suspended;
-            await _manufacturerRepository.UpdateAsync(manufacturer);
+            if (manufacturer != null)
+            {
+                manufacturer.Status = ManufacturerStatus.Suspended;
+                await _manufacturerRepository.UpdateAsync(manufacturer);
+            }
         }
 
-        if(user.UserRole == UserRole.Designer)
+        if (user.UserRole == UserRole.Designer)
         {
             var designer = await _designerRepository.GetDesignerByUserIdAsync(user.Id);
-            designer.Status = DesignerStatus.Suspended;
-            await _designerRepository.UpdateAsync(designer);
+            if (designer != null)
+            {
+                designer.Status = DesignerStatus.Suspended;
+                await _designerRepository.UpdateAsync(designer);
+            }
         }
 
         user.IsBanned = request.IsBanned;
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTime.UtcNow.AddHours(7);
         return user;
     }
 
@@ -743,7 +783,12 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserRoleRequestAsync(UpdateUserRoleRequest request)
     {
-        var user = await _userRepository.FindAsync(request.Id);
+        if (request.Id <= 0 || request.Id == null)
+        {
+            throw new InvalidOperationException("User Id is required");
+        }
+
+        var user = await _userRepository.FindAsync(new object[] { request.Id });
         if (user == null)
         {
             throw new InvalidOperationException($"User with ID {request.Id} not found");
