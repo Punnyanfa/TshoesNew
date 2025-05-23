@@ -52,7 +52,6 @@ public class AuthService : IAuthService
     {
         return _passwordHashingService.GetHashedPassword(password);
     }
-
     public async Task<BaseResponseModel<GetAllUsersResponse>> GetAllUsers()
     {
         var users = await _userRepository.GetAllAsync();
@@ -98,15 +97,7 @@ public class AuthService : IAuthService
     public async Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request)
     {
         try
-        {
-            if (string.IsNullOrEmpty(request.Password))
-            {
-                throw new InvalidOperationException("Password can not be empty");
-            }
-            if (request.Password.Length < 8)
-            {
-                throw new InvalidOperationException("Password can not less than 8 character ");
-            }
+        {         
             var user = await GetUserEntityFromUserLoginRequestAsync(request);
             if (user.IsBanned == true)
             {
@@ -138,31 +129,7 @@ public class AuthService : IAuthService
     public async Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request)
     {
         try
-        {
-            // Validate name
-            if (string.IsNullOrWhiteSpace(request.Name))
-                throw new ArgumentException("Name cannot be empty");
-
-            // Validate email
-            if (string.IsNullOrWhiteSpace(request.Email))
-                throw new ArgumentException("Email can not be empty");
-            if (!IsValidEmail(request.Email))
-                throw new ArgumentException("Invalid email format");
-
-            // Validate password
-            if (string.IsNullOrWhiteSpace(request.Password))
-                throw new ArgumentException("Password cannot be empty");
-            if (request.Password.Length < 8)
-                throw new ArgumentException("Password can not less than 8 character");
-            if (request.Password.Length > 20)
-                throw new ArgumentException("Password can not greater than 20 character");
-            if (!IsValidPassword(request.Password)) 
-                throw new ArgumentException("Password does not format");
-
-            // Validate confirm password
-            if (request.ConfirmPassword != request.Password)
-                throw new ArgumentException("Password not match");
-
+        {           
             var user = await GetUserEntityFromUserRegisterRequestAsync(request);
             await _userRepository.AddAsync(user);
 
@@ -201,20 +168,6 @@ public class AuthService : IAuthService
             };
         }
     }
-
-    private bool IsValidEmail(string email)
-    {
-        try { var addr = new System.Net.Mail.MailAddress(email); return addr.Address == email; }
-        catch { return false; }
-    }
-
-    private bool IsValidPassword(string password)
-    {
-        
-        return password.Any(char.IsLetter) && password.Any(char.IsDigit);
-    }
-
-
     public async Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request)
     {
         try
@@ -242,42 +195,11 @@ public class AuthService : IAuthService
             return new BaseResponseModel<UpdateUserStatusResponse> { Code = 500, Message = ex.Message };
         }
     }
-
     public async Task<BaseResponseModel<UpdateUserPasswordResponse>> UpdateUserPassword(UpdateUserPasswordRequest request)
     {
         try
         {            
-            // Validate Id
-            if (request.Id <= 0)
-                throw new ArgumentException("Id required");
-
-            // Validate current password
-            if (string.IsNullOrWhiteSpace(request.CurrentPassword))
-                throw new ArgumentException("Current password is required");
-            if (!IsValidPassword(request.CurrentPassword))
-                throw new ArgumentException("Current password not format");
-            if (request.CurrentPassword.Length < 8)
-                throw new ArgumentException("Current password cannot be less than 8 character");
-            if (request.CurrentPassword.Length > 20)
-                throw new ArgumentException("Current password cannot be greater than 20 character");
-
-            // Validate new password
-            if (string.IsNullOrWhiteSpace(request.NewPassword))
-                throw new ArgumentException("New password cannot be empty");
-            if (!IsValidPassword(request.NewPassword))
-                throw new ArgumentException("New password does not format");
-            if (request.NewPassword.Length < 8)
-                throw new ArgumentException("New password less than 8 character");
-            if (request.NewPassword.Length > 20)
-                throw new ArgumentException("New password greater than 20 character");
-            
-
-            var user = await _userRepository.GetByIdAsync(request.Id);
-            if (user == null)
-                throw new ArgumentException("Id not found");
-            if (!_passwordHashingService.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash))
-                throw new ArgumentException("Current password does not match");
-            user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
+           var user = await GetUserEntityFromUpdateUserPasswordRequestAsync(request);
             await _userRepository.UpdateAsync(user);
 
             return new BaseResponseModel<UpdateUserPasswordResponse>
@@ -306,10 +228,6 @@ public class AuthService : IAuthService
             };
         }
     }
-
-   
-
-
     public async Task<BaseResponseModel<ForgetUserPasswordResponse>> ForgetUserPassword(ForgetUserPasswordRequest request)
     {
         try
@@ -394,8 +312,17 @@ public class AuthService : IAuthService
             return new BaseResponseModel<UpdateUserInformationResponse>
             {
                 Code = 200,
-                Message = "User information updated successfully",
+                Message = "Success",
                 Data = new UpdateUserInformationResponse { Success = true }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UpdateUserInformationResponse>
+            {
+                Code = 400,
+                Message = ex.Message,
+                Data = new UpdateUserInformationResponse { Success = false }
             };
         }
         catch (Exception ex)
@@ -403,7 +330,8 @@ public class AuthService : IAuthService
             return new BaseResponseModel<UpdateUserInformationResponse>
             {
                 Code = 500,
-                Message = ex.Message
+                Message = ex.Message,
+                Data = new UpdateUserInformationResponse { Success = false }
             };
         }
     }
@@ -417,7 +345,6 @@ public class AuthService : IAuthService
             {
                 throw new InvalidOperationException("Role is invalid");
             }
-
             // Validate CommissionRate
             if (!request.CommissionRate.HasValue)
             {
@@ -430,10 +357,7 @@ public class AuthService : IAuthService
             if ( request.CommissionRate.Value > 50)
             {
                 throw new InvalidOperationException("commissionRate can not greater than 50");
-            }
-           
-
-
+            }       
             var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
             if (request.Role == UserRole.Designer)
             {
@@ -652,8 +576,36 @@ public class AuthService : IAuthService
     #endregion
 
     #region Private methods
+    private bool IsValidEmail(string email)
+    {
+        try { var addr = new System.Net.Mail.MailAddress(email); return addr.Address == email; }
+        catch { return false; }
+    }
+
+    private bool IsValidPassword(string password)
+    {
+
+        return password.Any(char.IsLetter) && password.Any(char.IsDigit);
+    }
+    private bool IsValidName(string name)
+    {
+        return name.All(c => char.IsLetter(c) || char.IsWhiteSpace(c));
+    }
+
+    private bool IsValidPhoneNumber(string phoneNumber)
+    {
+        return phoneNumber.All(char.IsDigit) && phoneNumber.Length >= 10 && phoneNumber.Length <= 12;
+    }
     private async Task<User> GetUserEntityFromUserLoginRequestAsync(UserLoginRequest request)
     {
+        if (string.IsNullOrEmpty(request.Password))
+        {
+            throw new InvalidOperationException("Password can not be empty");
+        }
+        if (request.Password.Length < 8)
+        {
+            throw new InvalidOperationException("Password can not less than 8 character ");
+        }
         var user = await _userRepository.GetByEmailAsync(request.Email);
         if (user == null || !_passwordHashingService.VerifyHashedPassword(request.Password, user.PasswordHash))
         {
@@ -664,6 +616,29 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUserRegisterRequestAsync(UserRegisterRequest request)
     {
+        // Validate name
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw new ArgumentException("Name cannot be empty");
+
+        // Validate email
+        if (string.IsNullOrWhiteSpace(request.Email))
+            throw new ArgumentException("Email can not be empty");
+        if (!IsValidEmail(request.Email))
+            throw new ArgumentException("Invalid email format");
+
+        // Validate password
+        if (string.IsNullOrWhiteSpace(request.Password))
+            throw new ArgumentException("Password cannot be empty");
+        if (request.Password.Length < 8)
+            throw new ArgumentException("Password can not less than 8 character");
+        if (request.Password.Length > 20)
+            throw new ArgumentException("Password can not greater than 20 character");
+        if (!IsValidPassword(request.Password))
+            throw new ArgumentException("Password does not format");
+
+        // Validate confirm password
+        if (request.ConfirmPassword != request.Password)
+            throw new ArgumentException("Password not match");
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
         {
@@ -840,19 +815,83 @@ public class AuthService : IAuthService
 
         return user;
     }
+    private async Task<User> GetUserEntityFromUpdateUserPasswordRequestAsync(UpdateUserPasswordRequest request)
+    {
+        // Validate Id
+        if (request.Id <= 0)
+            throw new ArgumentException("Id required");
+
+        // Validate current password
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+            throw new ArgumentException("Current password is required");
+        if (!IsValidPassword(request.CurrentPassword))
+            throw new ArgumentException("Current password not format");
+        if (request.CurrentPassword.Length < 8)
+            throw new ArgumentException("Current password cannot be less than 8 character");
+        if (request.CurrentPassword.Length > 20)
+            throw new ArgumentException("Current password cannot be greater than 20 character");
+
+        // Validate new password
+        if (string.IsNullOrWhiteSpace(request.NewPassword))
+            throw new ArgumentException("New password cannot be empty");
+        if (!IsValidPassword(request.NewPassword))
+            throw new ArgumentException("New password does not format");
+        if (request.NewPassword.Length < 8)
+            throw new ArgumentException("New password less than 8 character");
+        if (request.NewPassword.Length > 20)
+            throw new ArgumentException("New password greater than 20 character");
+
+
+        var user = await _userRepository.GetByIdAsync(request.Id);
+        if (user == null)
+            throw new ArgumentException("Id not found");
+        if (!_passwordHashingService.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash))
+            throw new ArgumentException("Current password does not match");
+        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
+        return user;
+    }
     private async Task<User> GetUserEntityFromUpdateUserInformationRequestAsync(UpdateUserInformationRequest request)
     {
-        var user = await _userRepository.FindAsync(request.Id);
-        if (user == null)
-        {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
-        }
+        // Validate Id
+        if (request.Id <= 0)
+            throw new ArgumentException("Id is required");
 
-        user.Name = request.Name ?? user.Name;
-        user.Gender = request.Gender ?? user.Gender;
-        user.Dob = request.Dob ?? user.Dob;
-        user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
-        user.UpdatedAt = DateTime.Now;
+        // Validate Name
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw new ArgumentException("Name is not in correct format (Name can not be empty)");
+        if (!IsValidName(request.Name))
+            throw new ArgumentException("Name is not in correct format (Name can not be empty)");
+        if (request.Name.Length < 5)
+            throw new ArgumentException("Name can not less than 5 characters");
+        if (request.Name.Length > 25)
+            throw new ArgumentException("Name can not greater than 25 characters");
+
+        // Validate PhoneNumber
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            throw new ArgumentException("PhoneNumber can not be empty");
+        if (!IsValidPhoneNumber(request.PhoneNumber))
+            throw new ArgumentException("Invalid phone format");
+
+        // Validate Gender
+        if (string.IsNullOrWhiteSpace(request.Gender))
+            throw new ArgumentException("Gender can not be empty");
+        if (!new[] { "Male", "Female", "Other" }.Contains(request.Gender))
+            throw new ArgumentException("Invalid gender value");
+
+        // Validate Dob
+        if (string.IsNullOrWhiteSpace(request.Dob))
+            throw new ArgumentException("Date of birth can not be empty");
+        if (!DateTime.TryParse(request.Dob, out _))
+            throw new ArgumentException("Invalid date of birth");
+
+        var user = await _userRepository.GetByIdAsync(request.Id);
+        if (user == null)
+            throw new ArgumentException("Id not found");
+
+        user.Name = request.Name;
+        user.PhoneNumber = request.PhoneNumber;
+        user.Gender = request.Gender;
+        user.Dob = request.Dob;
         return user;
     }
 

@@ -136,65 +136,7 @@ namespace FCSP.Services.ManufacturerService
         public async Task<BaseResponseModel<AddManufacturerResponse>> AddManufacturer(AddManufacturerRequest request)
         {
             try
-            {             
-                // Validate UserId
-                if (request.UserId <= 0)
-                {
-                    throw new ArgumentException("UserId is required");
-                }
-
-                // Validate user existence and role
-                var user = await _userRepository.GetByIdAsync(request.UserId);
-                if (user == null)
-                {
-                    throw new InvalidOperationException("User not found");
-                }
-                if (user.UserRole != UserRole.Manufacturer)
-                {
-                    throw new InvalidOperationException("Only users with Manufacturer role can be added as manufacturers");
-                }
-
-                // Check for existing manufacturer
-                var existingManufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(request.UserId);
-                if (existingManufacturer != null)
-                {
-                    throw new InvalidOperationException("User already has a Manufacturer");
-                }
-
-                // Validate Description
-                if (string.IsNullOrWhiteSpace(request.Description))
-                {
-                    throw new ArgumentException("Description can not be empty");
-                }
-                var words = request.Description.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (words.Length < 5)
-                {
-                    throw new ArgumentException("Description must be greater than 5 words");
-                }
-                if (words.Length > 50)
-                {
-                    throw new ArgumentException("Description must be less than 50 words");
-                }
-
-                // Validate CommissionRate
-                if (request.CommissionRate <= 0)
-                {
-                    throw new ArgumentException("CommissionRate can not be empty");
-                }
-                if (request.CommissionRate < 5)
-                {
-                    throw new ArgumentException("commissionRate must be greater than 5");
-                }
-                if (request.CommissionRate > 50)
-                {
-                    throw new ArgumentException("commissionRate must be less than 50");
-                }
-
-                // Validate Status
-                if (!Enum.IsDefined(typeof(ManufacturerStatus), request.Status))
-                {
-                    throw new ArgumentException("status is invalid");
-                }
+            {                           
                 var manufacturer = await CreateManufacturerFromRequest(request);
                 var addedManufacturer = await _manufacturerRepository.AddAsync(manufacturer);
                 return new BaseResponseModel<AddManufacturerResponse>
@@ -223,52 +165,8 @@ namespace FCSP.Services.ManufacturerService
         public async Task<BaseResponseModel<UpdateManufacturerResponse>> UpdateManufacturer(UpdateManufacturerRequest request)
         {
             try
-            {
-                // Validate Id
-                if (request.Id <= 0)
-                {
-                    throw new ArgumentException("Manufacturer ID must be greater than 0");
-                }
-                // Validate Description
-                if (string.IsNullOrWhiteSpace(request.Description))
-                {
-                    throw new ArgumentException("Description can not be empty");
-                }
-                var words = request.Description.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (words.Length < 5)
-                {
-                    throw new ArgumentException("Description must be greater than 5 words");
-                }
-                if (words.Length > 50)
-                {
-                    throw new ArgumentException("Description must be less than 50 words");
-                }
-
-                // Validate CommissionRate
-                if (request.CommissionRate <= 0)
-                {
-                    throw new ArgumentException("CommissionRate can not be empty");
-                }
-                if (request.CommissionRate < 5)
-                {
-                    throw new ArgumentException("commissionRate must be greater than 5");
-                }
-                if (request.CommissionRate > 50)
-                {
-                    throw new ArgumentException("commissionRate must be less than 50");
-                }
-
-                // Validate Status
-                if (!Enum.IsDefined(typeof(ManufacturerStatus), request.Status))
-                {
-                    throw new ArgumentException("status is invalid");
-                }
-                var manufacturer = await GetManufacturerEntityById(new GetManufacturerRequest { Id = request.Id });
-                manufacturer.Description = request.Description;
-                manufacturer.CommissionRate = request.CommissionRate;
-                manufacturer.Status = (ManufacturerStatus)request.Status;
-                manufacturer.UpdatedAt = DateTime.UtcNow;
-
+            { 
+                var manufacturer = await GetManufacturerFromUpdateRequest(request);
                 await _manufacturerRepository.UpdateAsync(manufacturer);
                 return new BaseResponseModel<UpdateManufacturerResponse>
                 {
@@ -298,25 +196,22 @@ namespace FCSP.Services.ManufacturerService
         {
             try
             {
-                if (request.Id <= 0)
-                {
-                    return new BaseResponseModel<bool> { Code = 400, Message = "Manufacturer ID must be greater than 0" };
-                }
-                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
-                if (manufacturer == null)
-                {
-                    return new BaseResponseModel<bool> { Code = 404, Message = "Manufacturer not found" };
-                }
-
-                manufacturer.IsDeleted = true;
-                manufacturer.Status = ManufacturerStatus.Inactive;
-                manufacturer.UpdatedAt = DateTime.UtcNow;
+              var manufacturer = await DeleteManufacturerFromRequest(request);
                 await _manufacturerRepository.UpdateAsync(manufacturer);
                 return new BaseResponseModel<bool>
                 {
                     Code = 200,
                     Message = "Manufacturer marked as inactive successfully",
                     Data = true
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<bool>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = false
                 };
             }
             catch (Exception ex)
@@ -351,12 +246,58 @@ namespace FCSP.Services.ManufacturerService
             {
                 throw new ArgumentException("Manufacturer ID must be greater than 0");
             }
-
             var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
             if (manufacturer == null)
             {
                 throw new InvalidOperationException("Manufacturer not found");
             }
+            return manufacturer;
+        }
+        private async Task<Manufacturer> GetManufacturerFromUpdateRequest(UpdateManufacturerRequest request)
+        {
+            // Validate Id
+            if (request.Id <= 0)
+            {
+                throw new ArgumentException("Manufacturer ID must be greater than 0");
+            }
+            // Validate Description
+            if (string.IsNullOrWhiteSpace(request.Description))
+            {
+                throw new ArgumentException("Description can not be empty");
+            }
+            var words = request.Description.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length < 5)
+            {
+                throw new ArgumentException("Description must be greater than 5 words");
+            }
+            if (words.Length > 50)
+            {
+                throw new ArgumentException("Description must be less than 50 words");
+            }
+
+            // Validate CommissionRate
+            if (request.CommissionRate <= 0)
+            {
+                throw new ArgumentException("CommissionRate can not be empty");
+            }
+            if (request.CommissionRate < 5)
+            {
+                throw new ArgumentException("commissionRate must be greater than 5");
+            }
+            if (request.CommissionRate > 50)
+            {
+                throw new ArgumentException("commissionRate must be less than 50");
+            }
+            // Validate Status
+            if (!Enum.IsDefined(typeof(ManufacturerStatus), request.Status))
+            {
+                throw new ArgumentException("status is invalid");
+            }
+            var manufacturer = await GetManufacturerEntityById(new GetManufacturerRequest { Id = request.Id });
+            manufacturer.Description = request.Description;
+            manufacturer.CommissionRate = request.CommissionRate;
+            manufacturer.Status = (ManufacturerStatus)request.Status;
+            manufacturer.UpdatedAt = DateTime.UtcNow;           
             return manufacturer;
         }
 
@@ -389,18 +330,56 @@ namespace FCSP.Services.ManufacturerService
 
         private async Task<Manufacturer> CreateManufacturerFromRequest(AddManufacturerRequest request)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId);
-            if (user == null || user.UserRole != UserRole.Manufacturer)
-            {
-                throw new InvalidOperationException("Only users with Manufacturer role can be added as manufacturers");
-            }
 
+            var user = await _userRepository.GetByIdAsync(request.UserId);          
+            // Validate UserId
+            if (request.UserId <= 0)
+            {
+                throw new ArgumentException("UserId is required");
+            }
+            // Validate user existence and role           
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }          
+            // Check for existing manufacturer
             var existingManufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(request.UserId);
             if (existingManufacturer != null)
             {
                 throw new InvalidOperationException("User already has a Manufacturer");
             }
-
+            // Validate Description
+            if (string.IsNullOrWhiteSpace(request.Description))
+            {
+                throw new ArgumentException("Description can not be empty");
+            }
+            var words = request.Description.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length < 5)
+            {
+                throw new ArgumentException("Description must be greater than 5 words");
+            }
+            if (words.Length > 50)
+            {
+                throw new ArgumentException("Description must be less than 50 words");
+            }
+            // Validate CommissionRate
+            if (request.CommissionRate <= 0)
+            {
+                throw new ArgumentException("CommissionRate can not be empty");
+            }
+            if (request.CommissionRate < 5)
+            {
+                throw new ArgumentException("commissionRate must be greater than 5");
+            }
+            if (request.CommissionRate > 50)
+            {
+                throw new ArgumentException("commissionRate must be less than 50");
+            }
+            // Validate Status
+            if (!Enum.IsDefined(typeof(ManufacturerStatus), request.Status))
+            {
+                throw new ArgumentException("status is invalid");
+            }
             return new Manufacturer
             {
                 UserId = request.UserId,
@@ -410,6 +389,24 @@ namespace FCSP.Services.ManufacturerService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+        }
+        private async Task<Manufacturer> DeleteManufacturerFromRequest(GetManufacturerRequest request)
+        {
+            if (request.Id <= 0)
+            {
+                throw new InvalidOperationException("Manufacturer ID must be greater than 0");
+               
+            }
+            var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.Id);
+            if (manufacturer == null)
+            {
+                throw new InvalidOperationException("Manufacturer not found");
+            }
+
+            manufacturer.IsDeleted = true;
+            manufacturer.Status = ManufacturerStatus.Inactive;
+            manufacturer.UpdatedAt = DateTime.UtcNow;
+            return manufacturer;
         }
 
         private async Task<GetManufacturerDetailResponse> MapToDetailResponse(Manufacturer manufacturer)

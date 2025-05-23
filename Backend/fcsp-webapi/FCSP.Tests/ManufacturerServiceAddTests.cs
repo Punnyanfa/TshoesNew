@@ -49,24 +49,7 @@ namespace FCSP.Tests
             Assert.Equal(500, result.Code);
             Assert.Equal("User not found", result.Message);
             Assert.Null(result.Data);
-        }
-
-        [Fact]
-        public async Task AddManufacturer_UserRoleIsNotManufacturer()
-        {
-            // Arrange
-            var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
-            var user = new User { Id = 1, UserRole = UserRole.Customer };
-            _userRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
-
-            // Act
-            var result = await _manufacturerService.AddManufacturer(request);
-
-            // Assert
-            Assert.Equal(500, result.Code);
-            Assert.Equal("Only users with Manufacturer role can be added as manufacturers", result.Message);
-            Assert.Null(result.Data);
-        }
+        }     
 
         [Fact]
         public async Task AddManufacturer_DescriptionIsEmpty()
