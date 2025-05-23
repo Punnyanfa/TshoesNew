@@ -142,6 +142,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import Header from '~/components/Header.vue';
 import Footer from '~/components/Footer.vue';
+import { getMyCustom, deleteCustom, getMyCustomById } from '~/server/myCustom-service.js';
 
 // Hàm giới hạn kích thước dữ liệu của giỏ hàng
 const limitCartSize = (cartData) => {
@@ -213,11 +214,28 @@ const togglePreviewImages = (item) => {
 };
 
 // Chỉnh sửa thiết kế
-const editDesign = (item) => {
-  // Lưu thông tin sản phẩm đang chỉnh sửa vào localStorage
-  localStorage.setItem('editingDesign', JSON.stringify(item));
-  // Chuyển hướng đến trang thiết kế mới
-  window.location.href = `/customPage/${item.id}?edit=true`;
+const editDesign = async (item) => {
+  try {
+    // Gọi API lấy chi tiết custom để lấy link file json
+    const detail = await getMyCustomById(item.id);
+    let editingItem = { ...item };
+    if (detail && detail.data && detail.data.designData) {
+      try {
+        const response = await fetch(detail.data.designData);
+        if (response.ok) {
+          const designDataObj = await response.json();
+          editingItem.designData = designDataObj;
+        }
+      } catch (e) {
+        console.error('Không thể tải lại file json model 3D:', e);
+      }
+    }
+    localStorage.setItem('editingDesign', JSON.stringify(editingItem));
+    window.location.href = `/customPage/${item.id}?edit=true`;
+  } catch (e) {
+    alert('Không thể lấy dữ liệu chi tiết thiết kế!');
+    console.error(e);
+  }
 };
 
 // Định dạng giá tiền VND
@@ -280,58 +298,20 @@ const refreshDataFromStorage = () => {
 };
 
 // 🗑 Xóa sản phẩm khỏi giỏ hàng
-function removeFromCart(id) {
+async function removeFromCart(id) {
+  if (!confirm('Bạn có chắc chắn muốn xóa thiết kế này?')) return;
   try {
-    // Xóa sản phẩm khỏi cart trong state
-    cart.value = cart.value.filter(item => item.id !== id);
-    
-    // Xóa khỏi tất cả local storage liên quan
-    
-    // 1. Xóa khỏi designDrafts
-    const designDrafts = JSON.parse(localStorage.getItem('designDrafts') || '[]');
-    const updatedDrafts = designDrafts.filter(draft => draft.id !== id);
-    localStorage.setItem('designDrafts', JSON.stringify(updatedDrafts));
-    
-    // 2. Xóa khỏi cart trong localStorage
-    const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const updatedCart = storedCart.filter(item => item.id !== id);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    
-    // 3. Xóa khỏi products trong localStorage
-    const products = JSON.parse(localStorage.getItem('products') || '[]');
-    const updatedProducts = products.filter(product => product.id !== id);
-    localStorage.setItem('products', JSON.stringify(updatedProducts));
-    
-    // 4. Xóa bất kỳ key nào có chứa ID sản phẩm
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      try {
-        const value = JSON.parse(localStorage.getItem(key) || '{}');
-        // Nếu key chứa mảng, kiểm tra xem có phần tử nào có ID cần xóa không
-        if (Array.isArray(value)) {
-          const updated = value.filter(item => item.id !== id);
-          if (updated.length !== value.length) {
-            localStorage.setItem(key, JSON.stringify(updated));
-          }
-        }
-        // Nếu key chứa object và có thuộc tính id trùng khớp
-        else if (value && typeof value === 'object' && value.id === id) {
-          localStorage.removeItem(key);
-        }
-      } catch (e) {
-        // Bỏ qua nếu không phải JSON
-      }
+    const result = await deleteCustom(id);
+    if (result.code === 200) {
+      // Xóa khỏi cart local
+      cart.value = cart.value.filter(item => item.id !== id);
+      alert('Xóa thành công!');
+    } else {
+      alert(result.message || 'Xóa thất bại!');
     }
-    
-    console.log(`Đã xóa sản phẩm ID: ${id} khỏi tất cả bộ nhớ`);
-    
-    // Làm mới trang sau khi xóa để đảm bảo dữ liệu được cập nhật
-    setTimeout(() => {
-      window.location.reload();
-    }, 300);
   } catch (e) {
-    console.error('Lỗi khi xóa sản phẩm:', e);
-    alert('Có lỗi xảy ra khi xóa sản phẩm. Vui lòng thử lại.');
+    alert('Có lỗi khi xóa!');
+    console.error(e);
   }
 }
 
@@ -528,11 +508,33 @@ const cleanupStorage = () => {
 
 // 🔄 Khởi tạo cart và drafts từ localStorage
 onMounted(async () => {
-  // Dọn dẹp localStorage trước khi load dữ liệu
   cleanupStorage();
-  
-  // Gọi hàm làm mới dữ liệu để tải từ localStorage
-  refreshDataFromStorage();
+  // Gọi API lấy dữ liệu custom của user
+  try {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      const apiData = await getMyCustom(userId);
+      console.log("uyu",apiData);
+      cart.value = (apiData && apiData.data && Array.isArray(apiData.data.designs))
+        ? apiData.data.designs.map(item => ({
+            id: item.id,
+            name: item.name,
+            image: item.previewImageUrl || null,
+            price: item.total || 0,
+            surcharge: item.servicePrice || 0,
+            size: item.size || '',
+            designData: item.customText ? { customText: item.customText } : undefined,
+            previewImages: item.previewImageUrl ? [item.previewImageUrl] : [],
+            showPreviews: false
+          }))
+        : [];
+    } else {
+      cart.value = [];
+    }
+  } catch (e) {
+    console.error('Lỗi khi lấy dữ liệu từ API:', e);
+    cart.value = [];
+  }
 
   const urlParams = new URLSearchParams(window.location.search)
   const isEditing = urlParams.get('edit') === 'true'
