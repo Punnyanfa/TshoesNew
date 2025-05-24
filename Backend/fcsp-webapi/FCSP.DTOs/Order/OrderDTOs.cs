@@ -66,8 +66,7 @@ namespace FCSP.DTOs.Order
         public PaymentMethod PaymentMethod { get; set; }
 
         [Required(ErrorMessage = "OrderDetails are required.")]
-        [MinLength(1, ErrorMessage = "Order must contain at least one OrderDetail.")]
-        public OrderDetailRequestDto OrderDetail { get; set; } = null!;
+        public OrderDetailRequestDto OrderDetail { get; set; } = new OrderDetailRequestDto();
     }
 
     public class AddOrderResponse

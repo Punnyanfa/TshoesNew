@@ -25,6 +25,22 @@ namespace FCSP.DTOs.CustomShoeDesign
         public long UserId { get; set; }
     }
 
+    public class GetCustomDesignsByUserIdResponse
+    {
+        public IEnumerable<CustomDesignShoeGetByUserIdResponse>? Designs { get; set; }
+    }
+
+    public class CustomDesignShoeGetByUserIdResponse
+    {
+        public long Id { get; set; }
+        public string? Name { get; set; }
+        public string? PreviewImageUrl { get; set; }
+        public int TemplatePrice { get; set; }
+        public int ServicePrice { get; set; }
+        public int Total { get; set; }
+        public string? CreatedAt { get; set; }
+    }
+
     public class GetListCustomShoeDesignsResponse 
     {
         public IEnumerable<GetSimpleCustomShoeDesignResponse>? Designs { get; set; }
@@ -37,8 +53,10 @@ namespace FCSP.DTOs.CustomShoeDesign
         public string? PreviewImageUrl { get; set; }
         public float? Rating { get; set; }
         public int? RatingCount { get; set; }
-        public int? Price { get; set; }
-        public string? Description { get; set; }
+        public int TemplatePrice { get; set; }
+        public int ServicePrice { get; set; }
+        public int Total { get; set; }
+        public string? CreatedAt { get; set; }
         public CustomShoeDesignStatus? Status { get; set; }
         public string? Gender { get; set; }
     }

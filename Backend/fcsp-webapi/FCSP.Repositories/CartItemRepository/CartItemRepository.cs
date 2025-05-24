@@ -19,12 +19,14 @@ namespace FCSP.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<CartItem> GetCartItemByDesignIdAndCartIdAsync(long designId, long cartId)
+        public async Task<CartItem> GetCartItemByDesignIdAndCartIdAsync(long designId, long cartId, long sizeId)
         {
             return await Entities.FirstOrDefaultAsync(
-                ci => ci.CartId == cartId && 
-                      ci.CustomShoeDesignId == designId && 
-                      !ci.IsDeleted);
+                    ci => ci.CartId == cartId && 
+                    ci.CustomShoeDesignId == designId &&
+                    ci.SizeId == sizeId && 
+                    !ci.IsDeleted);    
         }
+            
     }
-} 
+}

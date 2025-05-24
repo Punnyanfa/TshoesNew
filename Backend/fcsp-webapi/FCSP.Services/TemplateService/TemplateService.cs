@@ -372,6 +372,18 @@ namespace FCSP.Services.TemplateService
         {
             try
             {
+                // Check GLB file signature
+                if (fileBytes.Length < 12)
+                {
+                    throw new InvalidOperationException("File is too small to be a valid GLB file.");
+                }
+
+                // GLB files start with "glTF" (0x67 0x6C 0x54 0x46) followed by version and length
+                if (fileBytes[0] != 0x67 || fileBytes[1] != 0x6C || fileBytes[2] != 0x54 || fileBytes[3] != 0x46)
+                {
+                    throw new InvalidOperationException("Invalid GLB file format. File must be a valid GLB binary file.");
+                }
+
                 var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
                 var containerClient = blobServiceClient.GetBlobContainerClient(_3dmodelsContainer);
@@ -406,11 +418,35 @@ namespace FCSP.Services.TemplateService
 
                 var blobClient = containerClient.GetBlobClient(fileName);
 
+                // Determine content type by checking file signature (magic numbers)
+                string contentType;
+                if (fileBytes.Length >= 2)
+                {
+                    // Check for PNG signature
+                    if (fileBytes[0] == 0x89 && fileBytes[1] == 0x50)
+                    {
+                        contentType = "image/png";
+                    }
+                    // Check for JPEG signature
+                    else if (fileBytes[0] == 0xFF && fileBytes[1] == 0xD8)
+                    {
+                        contentType = "image/jpeg";
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unsupported image format. Only PNG and JPEG are supported.");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Invalid image file: File is too small or empty.");
+                }
+
                 using (var stream = new MemoryStream(fileBytes))
                 {
                     await blobClient.UploadAsync(stream, new BlobHttpHeaders
                     {
-                        ContentType = "image/jpeg"
+                        ContentType = contentType
                     });
                 }
 

@@ -9,9 +9,6 @@ public class DesignService : BaseEntity
     
     // This float property matches the database column
     public long ServiceId { get; set; }
-    
-    // Service price for this design
-    public float? Price { get; set; }
 
     // Navigation properties
     public virtual CustomShoeDesign CustomShoeDesign { get; set; } = null!;

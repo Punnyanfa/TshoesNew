@@ -194,14 +194,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
     }
 
-    public async Task<BaseResponseModel<GetListCustomShoeDesignsResponse>> GetDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
+    public async Task<BaseResponseModel<GetCustomDesignsByUserIdResponse>> GetDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
     {
         try
         {
             var designs = await GetCustomShoeDesignsByUserId(request);
-            if (designs == null || !designs.Any())
+            if (designs == null || designs.Designs == null || !designs.Designs.Any())
             {
-                return new BaseResponseModel<GetListCustomShoeDesignsResponse>
+                return new BaseResponseModel<GetCustomDesignsByUserIdResponse>
                 {
                     Code = 404,
                     Message = "No custom shoe designs found for user with ID {request.UserId}",
@@ -209,19 +209,19 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 };
             }
 
-            return new BaseResponseModel<GetListCustomShoeDesignsResponse>
+            return new BaseResponseModel<GetCustomDesignsByUserIdResponse>
             {
                 Code = 200,
                 Message = "Custom shoe designs retrieved successfully",
-                Data = new GetListCustomShoeDesignsResponse
+                Data = new GetCustomDesignsByUserIdResponse
                 {
-                    Designs = designs
+                    Designs = designs.Designs
                 }
             };
         }
         catch (Exception ex)
         {
-            return new BaseResponseModel<GetListCustomShoeDesignsResponse>
+            return new BaseResponseModel<GetCustomDesignsByUserIdResponse>
             {
                 Code = 500,
                 Message = ex.Message,
@@ -379,7 +379,17 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     #region Private Methods
     private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetAllCustomShoeDesigns()
     {
-        var designs = await _customShoeDesignRepository.GetAllAsync();
+        var designs = await _customShoeDesignRepository.GetAll()
+                                                        .Include(d => d.Ratings)
+                                                        .Include(d => d.User)
+                                                        .Include(d => d.CustomShoeDesignTemplate)
+                                                        .Include(d => d.CustomShoeDesignTextures)
+                                                            .ThenInclude(t => t.Texture)
+                                                        .Include(d => d.DesignPreviews)
+                                                        .Include(d => d.DesignServices)
+                                                            .ThenInclude(s => s.Service)
+                                                        .Where(d => d.IsDeleted == false)
+                                                        .ToListAsync();
         if (designs == null || !designs.Any())
         {
             return new List<GetSimpleCustomShoeDesignResponse>();
@@ -393,13 +403,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Id = d.Id,
                 Name = d.CustomShoeDesignTemplate?.Name,
-                Description = d.Description,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-                Price = totalAmount
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
+                ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
+                Total = totalAmount
             });
         }
         return responses;
@@ -420,13 +431,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Id = d.Id,
                 Name = d.CustomShoeDesignTemplate?.Name,
-                Description = d.Description,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-                Price = totalAmount
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
+                ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
+                Total = totalAmount
             });
         }
         return responses;
@@ -448,12 +460,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Id = d.Id,
                 Name = d.CustomShoeDesignTemplate?.Name,
-                Description = d.Description,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
+                Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-                Price = totalAmount
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
+                ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
+                Total = totalAmount
             });
         }
         return responses;
@@ -462,11 +476,15 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private async Task<GetCustomShoeDesignByIdResponse> GetCustomShoeDesignById(GetCustomShoeDesignByIdRequest request)
     {
         var design = await _customShoeDesignRepository.GetAll()
+                                                        .Include(d => d.Ratings)
+                                                        .Include(d => d.User)
                                                         .Include(d => d.CustomShoeDesignTemplate)
                                                         .Include(d => d.CustomShoeDesignTextures)
                                                             .ThenInclude(t => t.Texture)
+                                                        .Include(d => d.DesignPreviews)
                                                         .Include(d => d.DesignServices)
                                                             .ThenInclude(s => s.Service)
+                                                        .Where(d => d.IsDeleted == false)
                                                         .FirstOrDefaultAsync(d => d.Id == request.Id);
         var sizes = await _sizeRepository.GetAllAsync();
         var services = await _serviceRepository.GetAllAsync();
@@ -490,7 +508,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 SizeValue = d.SizeValue
             }),
             TexturesUrls = design.CustomShoeDesignTextures?.Select(t => t.Texture?.ImageUrl),
-            Services = services.Select(s => new DTOs.CustomShoeDesign.Services
+            Services = design.DesignServices.Select(s => s.Service).Select(s => new DTOs.CustomShoeDesign.Services
             {
                 Id = s.Id,
                 Price = s.Price
@@ -498,36 +516,55 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         };
     }
 
-    private async Task<IEnumerable<GetSimpleCustomShoeDesignResponse>> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
+    private async Task<GetCustomDesignsByUserIdResponse> GetCustomShoeDesignsByUserId(GetCustomShoeDesignsByUserIdRequest request)
     {
-        var designs = await _customShoeDesignRepository.GetDesignsByUserIdAsync(request.UserId);
+        var designs = await _customShoeDesignRepository.GetAll()
+                                                        .Include(d => d.Ratings)
+                                                        .Include(d => d.User)
+                                                        .Include(d => d.CustomShoeDesignTemplate)
+                                                        .Include(d => d.CustomShoeDesignTextures)
+                                                            .ThenInclude(t => t.Texture)
+                                                        .Include(d => d.DesignPreviews)
+                                                        .Include(d => d.DesignServices)
+                                                            .ThenInclude(s => s.Service)
+                                                        .Where(d => d.IsDeleted == false)
+                                                        .Where(d => d.UserId == request.UserId)
+                                                        .ToListAsync();
         if (designs == null || !designs.Any())
         {
-            return new List<GetSimpleCustomShoeDesignResponse>();
+            return new GetCustomDesignsByUserIdResponse
+            {
+                Designs = new List<CustomDesignShoeGetByUserIdResponse>()
+            };
         }
-        var responses = new List<GetSimpleCustomShoeDesignResponse>();
+        var responses = new List<CustomDesignShoeGetByUserIdResponse>();
         foreach (var d in designs)
         {
             var totalAmount = await CalculateTotalAmount(d);
-            responses.Add(new GetSimpleCustomShoeDesignResponse
+            responses.Add(new CustomDesignShoeGetByUserIdResponse
             {
                 Id = d.Id,
                 Name = d.CustomShoeDesignTemplate?.Name,
-                Description = d.Description,
-                Gender = d.CustomShoeDesignTemplate?.Gender,
-                Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
-                RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
-                Price = totalAmount
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
+                ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
+                Total = totalAmount,
+                CreatedAt = $"{d.CreatedAt:HH:mm:ss dd/MM/yyyy}"
             });
         }
-        return responses;
+        return new GetCustomDesignsByUserIdResponse
+        {
+            Designs = responses
+        };
     }
 
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromAddDesignRequest(AddCustomShoeDesignRequest request)
     {
         var template = await _customShoeDesignTemplateRepository.FindAsync(request.CustomShoeDesignTemplateId ?? 0);
-        var templatePrice = template?.Price ?? 0;
+        if (template.IsDeleted == true)
+        {
+            throw new InvalidOperationException("Template not found");
+        }
 
         int servicesPrice = 0;
         if (request.ServiceIds != null && request.ServiceIds.Any())
@@ -559,6 +596,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             UserId = request.UserId ?? 0,
             CustomShoeDesignTemplateId = request.CustomShoeDesignTemplateId ?? 0,
             DesignData = designDataPath,
+            Name = request.Name,
             Description = request.Description,
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
@@ -743,11 +781,35 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
             var blobClient = containerClient.GetBlobClient(fileName);
 
+            // Determine content type by checking file signature (magic numbers)
+            string contentType;
+            if (fileBytes.Length >= 2)
+            {
+                // Check for PNG signature
+                if (fileBytes[0] == 0x89 && fileBytes[1] == 0x50)
+                {
+                    contentType = "image/png";
+                }
+                // Check for JPEG signature
+                else if (fileBytes[0] == 0xFF && fileBytes[1] == 0xD8)
+                {
+                    contentType = "image/jpeg";
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported image format. Only PNG and JPEG are supported.");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid image file: File is too small or empty.");
+            }
+
             using (var stream = new MemoryStream(fileBytes))
             {
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders
                 {
-                    ContentType = "image/jpeg"
+                    ContentType = contentType
                 });
             }
 
@@ -762,6 +824,18 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         try
         {
+            // Check JSON file signature
+            if (fileBytes.Length == 0)
+            {
+                throw new InvalidOperationException("File is empty.");
+            }
+
+            // JSON files start with either '{' (0x7B) or '[' (0x5B) in UTF-8
+            if (fileBytes[0] != 0x7B && fileBytes[0] != 0x5B)
+            {
+                throw new InvalidOperationException("Invalid JSON file format. File must start with '{' or '['.");
+            }
+
             var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
             var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
