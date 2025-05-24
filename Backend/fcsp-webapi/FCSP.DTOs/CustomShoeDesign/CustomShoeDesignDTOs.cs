@@ -64,11 +64,12 @@ namespace FCSP.DTOs.CustomShoeDesign
     public class GetCustomShoeDesignByIdResponse
     {
         public long Id { get; set; }
+        public long ManufacturerId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? TemplateUrl { get; set; }
         public string? DesignData { get; set; }
-        public float? Price { get; set; }
+        public int? Price { get; set; }
         public IEnumerable<ShoeSizes>? Sizes { get; set; }
         public IEnumerable<string>? TexturesUrls { get; set; }
         public IEnumerable<Services>? Services { get; set; }

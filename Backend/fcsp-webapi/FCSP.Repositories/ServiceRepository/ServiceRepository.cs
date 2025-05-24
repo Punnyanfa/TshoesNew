@@ -30,6 +30,9 @@ namespace FCSP.Repositories.Implementations
         public async Task<Service> GetServiceWithDetailsAsync(long id)
         {
             return await Entities
+                .Include(m => m.Manufacturer)
+                .Include(ds => ds.DesignServices)
+                    .ThenInclude(s => s.Service)
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
     }
