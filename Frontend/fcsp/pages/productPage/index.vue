@@ -190,6 +190,7 @@ const fetchProducts = async () => {
   try {
     loading.value = true;
     const response = await getAllProducts();
+    console.log(response);
 
     if (response.data?.designs?.length) {
       const activeProducts = response.data.designs.filter(product => product.status === 1);
@@ -238,7 +239,12 @@ const getStarClass = (rating, position) => {
   return 'bi-star text-warning';
 };
 
-const formatPrice = (price) => price.toFixed(2);
+const formatPrice = (price) => {
+  if (typeof price === 'number') {
+    return price.toFixed(2);
+  }
+  return '0.00';
+};
 
 const handleFilterChange = (filters) => {
   filteredProducts.value = products.value.filter((product) => {

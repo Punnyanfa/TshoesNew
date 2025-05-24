@@ -18,6 +18,15 @@ export async function getAllTemplate() {
       throw error;
     }
   }
+  export async function deleteTemplate(id) {
+    try {
+      const response = await instance.delete(`/Template/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting template:", error); 
+      throw error;
+    }
+  }
   
 export async function addTemplate(templateData) {
   try {
@@ -84,22 +93,7 @@ export async function updateTemplate(id, templateData) {
   }
 }
   
-export async function deleteTemplate(id) {
-  try {
-    const response = await instance.delete(`/Template/${id}`);
-    
-    // Check if response code is 200
-    if (response.data.code === 200) {
-      return response.data;
-    }
-    
-    // If code is not 200, throw error
-    throw new Error(response.data.message || 'Failed to delete template');
-  } catch (error) {
-    console.error("Error deleting template:", error);
-    throw error;
-  }
-}  
+
 export async function getTemplateById(id) {
   try {
     const response = await instance.get(`/Template/${id}`);

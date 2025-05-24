@@ -33,17 +33,16 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Preview</th>
               <th>Template Name</th>
               <th>Category</th>
               <th>Price</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="template in filteredTemplates" :key="template.id">
-              <td>{{ template.id }}</td>
               <td>
                 <img :src="template.previewImage" :alt="template.name" class="template-image">
               </td>
@@ -56,6 +55,11 @@
                     {{ getStatusText(template.isAvailable) }}
                   </span>
                 </div>
+              </td>
+              <td>
+                <button class="action-button delete" @click="handleDelete(template)">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
               </td>
             </tr>
           </tbody>
@@ -76,6 +80,7 @@
 import AdminSidebar from '@/components/AdminSidebar.vue'
 import TemplateModal from '@/components/TemplateModal.vue'
 import { getAllTemplate } from '@/server/custom-service'
+import { deleteTemplate } from '@/server/custom-service'
 
 export default {
   name: 'ManageTemplate',
@@ -149,6 +154,21 @@ export default {
     },
     async handleTemplateAdded() {
       await this.fetchTemplates()
+    },
+    async handleDelete(template) {
+      if (confirm('Bạn có chắc chắn muốn xóa template này?')) {
+        try {
+          const response = await deleteTemplate(template.id)
+          if (response && response.code === 200) {
+            await this.fetchTemplates()
+            alert('Xóa thành công!')
+          } else {
+            alert(response.message || 'Xóa thất bại!')
+          }
+        } catch (error) {
+          alert('Xóa thất bại!')
+        }
+      }
     }
   }
 }
@@ -229,6 +249,11 @@ th:last-child, td:last-child {
   text-align: center;
 }
 
+th:nth-last-child(2), td:nth-last-child(2) {
+  width: 120px;
+  text-align: center;
+}
+
 th {
   background-color: #f8f9fa;
   font-weight: 600;
@@ -279,5 +304,23 @@ th {
 
 .add-button i {
   font-size: 14px;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.action-button.delete {
+  color: #dc3545;
+}
+
+.action-button.delete:hover {
+  background-color: #dc3545;
+  color: white;
 }
 </style>

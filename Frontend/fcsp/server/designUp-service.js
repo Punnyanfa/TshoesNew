@@ -11,8 +11,7 @@ export async function CustomShoeDesign(data) {
   formData.append('CustomShoeDesignTemplateId', data.templateId);
   formData.append('Name', data.name);
   formData.append('Description', data.description);
-  formData.append('CustomShoeDesignPreviewImages', data.previewImages);
-  formData.append('ServiceIds', data.ServiceIds);
+  formData.append('DesignerMarkup', data.DesignerMarkup || 0);
 
   // DesignData: nếu là object, stringify rồi append như file
   if (typeof data.designData === 'object') {
@@ -32,6 +31,11 @@ export async function CustomShoeDesign(data) {
   // TextureIds: là mảng số
   if (Array.isArray(data.textureIds)) {
     data.textureIds.forEach(id => formData.append('TextureIds', id));
+  }
+
+  // ServiceIds: là mảng số
+  if (Array.isArray(data.ServiceIds)) {
+    data.ServiceIds.forEach(id => formData.append('ServiceIds', id));
   }
 
   // Gửi request

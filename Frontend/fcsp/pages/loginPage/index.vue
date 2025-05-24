@@ -110,6 +110,16 @@ const isLoading = ref(false);
 const router = useRouter();
 const rememberMe = ref(false);
 
+// Add route validation function
+const validateRouteAccess = (role, path) => {
+  if (role === "Admin") {
+    return path.startsWith('/admin');
+  } else if (role === "Manufacturer") {
+    return path.startsWith('/Manufacturer');
+  }
+  return true; // Allow access to other routes for other roles
+};
+
 // Validation and UI handlers
 const validateInputs = () => {
   emailError.value = email.value ? '' : 'Email is required';
@@ -141,6 +151,17 @@ const login = async () => {
     }
     
     if (result === "Login successful" || result === "Admin login") {
+      // Validate if user has access to the redirect route
+      if (!validateRouteAccess(role, redirectRoute)) {
+        ElNotification({
+          title: 'Lỗi',
+          message: 'Bạn không có quyền truy cập vào trang này.',
+          type: 'error',
+          duration: 3000
+        });
+        return;
+      }
+
       ElNotification({
         title: 'Success',
         message: 'Đăng nhập thành công! Đang chuyển hướng...',

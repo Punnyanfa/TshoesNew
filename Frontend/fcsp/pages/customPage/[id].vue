@@ -510,6 +510,7 @@ import { getTemplateById } from '~/server/custom-service'
 import { useCart } from '~/composables/useCart'
 import { CustomShoeDesign } from '~/server/designUp-service'
 import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js';
+import { getMyCustomById } from '~/server/myCustom-service';
 
 // Container reference và state
 const container = ref(null)
@@ -590,40 +591,20 @@ onMounted(async () => {
   const isEditing = urlParams.get('edit') === 'true'
   const editId = route.params.id
 
+  let response;
   if (isEditing) {
-    // Lấy dữ liệu từ localStorage nếu đang chỉnh sửa
-    const editingDesignJson = localStorage.getItem('editingDesign')
-    if (editingDesignJson) {
-      try {
-        const editingDesign = JSON.parse(editingDesignJson)
-        if (editingDesign.id.toString() === editId.toString()) {
-          customProductName.value = editingDesign.name
-          basePrice.value = editingDesign.price
-          surcharge.value = editingDesign.surcharge
-          // Gán đúng đường dẫn file 3D
-          model3DUrl.value = editingDesign.templateUrl || editingDesign.model3DUrl || '';
-          // ... các logic khác ...
-          initThree();
-          // ... giữ lại logic khôi phục designData ...
-          if (editingDesign.designData) {
-            // ... giữ nguyên logic cũ ...
-          }
-        }
-      } catch (e) {
-        console.error('Lỗi khi nạp lại thiết kế đang chỉnh sửa:', e)
-      }
-    }
-    return; // Không gọi API nữa
+    // Gọi API lấy custom design theo id
+    response = await getMyCustomById(editId);
+    if (response && response.data) response = response.data;
+  } else {
+    response = await getTemplateById(editId);
   }
-
-  // Nếu không phải edit local thì mới gọi API
-  const response = await getTemplateById(editId)
   if (response) {
     templateData.value = response;
     customProductName.value = response.name || '';
     previewImageUrl.value = response.previewImageUrl || '';
-    basePrice.value = response.basePrice || 0;
-    model3DUrl.value = response.model3DUrl || '';
+    basePrice.value = response.basePrice || response.price || 0;
+    model3DUrl.value = response.model3DUrl || response.templateUrl || '';
     description.value = response.description || '';
     color.value = response.color || '';
     gender.value = response.gender || '';
@@ -632,7 +613,6 @@ onMounted(async () => {
     updatedAt.value = response.updatedAt || '';
   }
   initThree();
-
 
   const res = await getManufacturerAll();
   if (res && res.data && Array.isArray(res.data)) {
@@ -1288,6 +1268,10 @@ const saveAsDraft = () => {
   showCompleteModal.value = false
   calculateSurcharge()
   
+  // Chuẩn bị ServiceIds và textureIds là mảng số
+  let serviceIds = [];
+  let textureIds = [1]; // Thay bằng logic thực tế nếu có
+
   const productData = {
     id: Date.now(),
     name: customProductName.value || 'Custom Running Shoes (Nháp)',
@@ -1297,8 +1281,8 @@ const saveAsDraft = () => {
     surcharge: surcharge.value,
     size: selectedSize.value,
     image: captureAngles[1].preview,
-    TextureIds: "1",
-    ServiceIds: [], 
+    textureIds: textureIds, // Đúng chuẩn mảng số
+    ServiceIds: serviceIds, // Sẽ được push ở dưới
     designData: {
       colors: {},
       textures: {},
@@ -1308,7 +1292,7 @@ const saveAsDraft = () => {
       timestamp: new Date().toISOString(),
       manufacturerId: 1
     },
-    previewImages: captureAngles.map(angle => angle.preview)
+    previewImages: [] // Sẽ xử lý ở dưới
   }
   
   for (const comp of components) {
@@ -1348,25 +1332,31 @@ const saveAsDraft = () => {
     })
   }
   // Loại bỏ trùng lặp trong ServiceIds
-  productData.ServiceIds = Array.from(new Set(productData.ServiceIds));
+  productData.ServiceIds = Array.from(new Set(productData.ServiceIds)).map(Number);
 
-  // Gửi dữ liệu dưới dạng JSON
-  const designDataObj = {
-    colors: productData.designData.colors,
-    textures: productData.designData.textures,
-    imagesData: productData.designData.imagesData,
-    customText: productData.designData.customText,
-    textureParams: productData.designData.textureParams,
-    timestamp: productData.designData.timestamp,
-    manufacturerId: productData.designData.manufacturerId
-  };
-  const jsonString = JSON.stringify(designDataObj);
-  // const designDataFile = new File([jsonString], "designData.json", { type: "application/json" });
+  // Đảm bảo textureIds là mảng số (nếu có logic thực tế thì thay thế)
+  productData.textureIds = productData.textureIds.map(Number);
+
+  // Convert previewImages (nếu là base64) sang File
+  productData.previewImages = captureAngles.map((angle, idx) => {
+    if (angle.preview && angle.preview.startsWith('data:image')) {
+      // Convert base64 to File
+      const arr = angle.preview.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while(n--) u8arr[n] = bstr.charCodeAt(n);
+      return new File([u8arr], `preview_${idx}.png`, {type: mime});
+    }
+    return angle.preview;
+  });
 
   CustomShoeDesign(productData)
     .then(response => {
       console.log('Lưu nháp thành công:', response)
       alert('Đã lưu nháp thành công!')
+      window.location.href = '/mycustomPage';
     })
     .catch(error => {
       console.error('Lỗi khi lưu nháp:', error)
