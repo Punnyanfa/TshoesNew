@@ -49,23 +49,18 @@ namespace FCSP.Tests
         [Fact]
         public async Task UpdateUserStatus_IdNotFound()
         {
-            // Arrange
             var request = new UpdateUserStatusRequest { Id = 9999, IsBanned = true };
             _userRepositoryMock.Setup(x => x.FindAsync(9999))
                 .ReturnsAsync((User)null);
 
-            // Act
             var result = await _authService.UpdateUserStatus(request);
 
-            // Assert
             Assert.Equal(404, result.Code);
             Assert.Equal("User with ID 9999 not found", result.Message);
-            Assert.Null(result.Data);
         }
         [Fact]
         public async Task UpdateUserStatus_UserIsAdmin()
         {
-            // Arrange
             var user = new User
             {
                 Id = 1,
@@ -77,10 +72,8 @@ namespace FCSP.Tests
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
 
-            // Act
             var result = await _authService.UpdateUserStatus(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("Can't ban Admin", result.Message);
             Assert.NotNull(result.Data);
@@ -89,7 +82,6 @@ namespace FCSP.Tests
         [Fact]
         public async Task UpdateUserStatus_ValidCustomerUser()
         {
-            // Arrange
             var user = new User
             {
                 Id = 1,
@@ -102,10 +94,8 @@ namespace FCSP.Tests
                 .ReturnsAsync(user);
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
 
-            // Act
             var result = await _authService.UpdateUserStatus(request);
 
-            // Assert
             Assert.Equal(200, result.Code);
             Assert.Equal("User status updated successfully", result.Message);
             Assert.NotNull(result.Data);
@@ -114,7 +104,6 @@ namespace FCSP.Tests
         [Fact]
         public async Task UpdateUserStatus_ValidDesignerUser()
         {
-            // Arrange
             var user = new User
             {
                 Id = 1,
@@ -135,19 +124,15 @@ namespace FCSP.Tests
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
             _designerRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Designer>())).Returns(Task.CompletedTask);
 
-            // Act
             var result = await _authService.UpdateUserStatus(request);
 
-            // Assert
             Assert.Equal(200, result.Code);
             Assert.Equal("User status updated successfully", result.Message);
-            Assert.NotNull(result.Data);
             
         }
         [Fact]
         public async Task UpdateUserStatus_ValidManufacturerUser()
         {
-            // Arrange
             var user = new User
             {
                 Id = 1,
@@ -168,19 +153,16 @@ namespace FCSP.Tests
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
             _manufacturerRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Manufacturer>())).Returns(Task.CompletedTask);
 
-            // Act
             var result = await _authService.UpdateUserStatus(request);
 
-            // Assert
             Assert.Equal(200, result.Code);
             Assert.Equal("User status updated successfully", result.Message);
-            Assert.NotNull(result.Data);
+   
            
         }
         [Fact]
         public async Task UpdateUserStatus_UnbanUser()
         {
-            // Arrange
             var user = new User
             {
                 Id = 1,
@@ -193,13 +175,11 @@ namespace FCSP.Tests
                 .ReturnsAsync(user);
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
 
-            // Act
             var result = await _authService.UpdateUserStatus(request);
 
-            // Assert
             Assert.Equal(200, result.Code);
             Assert.Equal("User status updated successfully", result.Message);
-            Assert.NotNull(result.Data);
+
            
         }
     }

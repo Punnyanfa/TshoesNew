@@ -88,6 +88,15 @@ namespace FCSP.DTOs.Manufacturer
         public string Status { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
+    public class UpdateManufacturerStatusRequest 
+    {
+        public long Id { get; set; }
+        public int Status { get; set; }
+    }
+    public class UpdateManufacturerStatusResponse
+    {
+       public bool Success { get; set; }
+    }
 
     public class DeleteManufacturerResponse
     {

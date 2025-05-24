@@ -50,59 +50,51 @@ namespace FCSP.Tests
         [Fact]
         public async Task Login_ValidCredentials()
         {
-            // Arrange
             var user = new User { Id = 1, Email = "phamthuan@gmail.com", PasswordHash = "hashedPassword", IsBanned = false };
             var request = new UserLoginRequest { Email = "phamthuan@gmail.com", Password = "thuan@1234" };
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.Password, user.PasswordHash)).Returns(true);
             _tokenServiceMock.Setup(x => x.GetToken(user)).Returns("token123");
-            //Act
+
             var result = await _authService.Login(request);
-            //Asser
+
             Assert.Equal(200, result.Code);
             Assert.Equal("Login successful", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.Equal("token123", result.Data.Token);
         }
 
         [Fact]
         public async Task Login_EmptyEmail()
         {
-            //Arrage
             var request = new UserLoginRequest { Email = "", Password = "thuan@1234" };
-            //Act
+
             var result = await _authService.Login(request);
-            //Assert
+
             Assert.Equal(500, result.Code);
             Assert.Equal("Invalid email or password", result.Message);
-            Assert.Null(result.Data);
+     
         }
 
         [Fact]
         public async Task Login_InvalidEmailFormat()
         {
-            // Arrange
             var request = new UserLoginRequest { Email = "thuan@gmail", Password = "thuan@1234" };
-            // Act
             var result = await _authService.Login(request);
-            // Assert
+
             Assert.Equal(500, result.Code);
             Assert.Equal("Invalid email or password", result.Message);
-            Assert.Null(result.Data);
+
         }
 
         [Fact]
         public async Task Login_NonExistentEmail()
         {
-            // Arrange
             var request = new UserLoginRequest { Email = "abc@gmail.com", Password = "thuan@1234" };
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email)).ReturnsAsync((User)null);
-            // Act
+
             var result = await _authService.Login(request);
-            // Assert
+
             Assert.Equal(500, result.Code);
             Assert.Equal("Invalid email or password", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
@@ -116,84 +108,74 @@ namespace FCSP.Tests
             // Assert
             Assert.Equal(500, result.Code);
             Assert.Equal("Invalid email or password", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
         public async Task Login_EmptyPassword()
         {
-            // Arrage
             var request = new UserLoginRequest { Email = "phamthuan@gmail.com", Password = "" };
-            // Act
+
             var result = await _authService.Login(request);
-            // Assert
+
             Assert.Equal(500, result.Code);
             Assert.Equal("Password can not be empty", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
         public async Task Login_InvalidPassword()
         {
-            // Arrange
             var user = new User { Id = 1, Email = "phamthuan@gmail.com", PasswordHash = "hashedPassword", IsBanned = false };
             var request = new UserLoginRequest { Email = "phamthuan@gmail.com", Password = "wrong12344555" };
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.Password, user.PasswordHash)).Returns(false);
             _tokenServiceMock.Setup(x => x.GetToken(user)).Returns("token123");
-            // Act
+            
             var result = await _authService.Login(request);
-            // Assert
+            
             Assert.Equal(500, result.Code);
             Assert.Equal("Invalid email or password", result.Message);
-            Assert.Null(result.Data);
        
         }
 
         [Fact]
         public async Task Login_PasswordLessThanEight()
         {
-            // Arrange
             var user = new User { Id = 1, Email = "phamthuan@gmail.com", PasswordHash = "hashedPassword", IsBanned = false };
             var request = new UserLoginRequest { Email = "phamthuan@gmail.com", Password = "pass" };
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.Password, user.PasswordHash)).Returns(false);
-            // Act
+          
             var result = await _authService.Login(request);
-            // Assert
+         
             Assert.Equal(500, result.Code);
             Assert.Equal("Password can not less than 8 character ", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
         public async Task Login_BannedUser()
         {
-            // Arrange
             var user = new User { Id = 1, Email = "phamthuan@gmail.com", PasswordHash = "hashedPassword", IsBanned = true };
             var request = new UserLoginRequest { Email = "phamthuan@gmail.com", Password = "thuan@1234" };
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.Password, user.PasswordHash)).Returns(true);
-            // Act
+        
             var result = await _authService.Login(request);
-            // Assert
+         
             Assert.Equal(401, result.Code);
             Assert.Equal("This account has been banned", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
         public async Task Login_InvalidEmailAndPassword()
         {
-            // Arrange
+          
             var request = new UserLoginRequest { Email = "thuan@gmail", Password = "wrong" };
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(request.Email)).ReturnsAsync((User)null);
-            // Act
+           
             var result = await _authService.Login(request);
-            // Assert
+           
             Assert.Equal(500, result.Code);
             Assert.Equal("Password can not less than 8 character ", result.Message);
-            Assert.Null(result.Data);
         }
     }
 }

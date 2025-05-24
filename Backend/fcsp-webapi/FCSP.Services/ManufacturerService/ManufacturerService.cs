@@ -6,6 +6,7 @@ using FCSP.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Threading.Tasks;
 
 namespace FCSP.Services.ManufacturerService
@@ -138,7 +139,13 @@ namespace FCSP.Services.ManufacturerService
             try
             {                           
                 var manufacturer = await CreateManufacturerFromRequest(request);
+                var user = await _userRepository.GetByIdAsync(request.UserId);
+                if (manufacturer.UserId == user.Id)
+                {
+                    user.UserRole = UserRole.Manufacturer;
+                }
                 var addedManufacturer = await _manufacturerRepository.AddAsync(manufacturer);
+               
                 return new BaseResponseModel<AddManufacturerResponse>
                 {
                     Code = 201,
@@ -184,6 +191,34 @@ namespace FCSP.Services.ManufacturerService
             catch (Exception ex)
             {
                 return new BaseResponseModel<UpdateManufacturerResponse>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+        public async Task<BaseResponseModel<UpdateManufacturerStatusResponse>> UpdateManufacturerStatus(UpdateManufacturerStatusRequest request)
+        {
+            try
+            {
+                var manufacturer = await GetManufacturer(request.Id);
+                manufacturer.Status = (ManufacturerStatus)request.Status;
+                manufacturer.UpdatedAt = DateTime.UtcNow;
+                await _manufacturerRepository.UpdateAsync(manufacturer);
+                return new BaseResponseModel<UpdateManufacturerStatusResponse>
+                {
+                    Code = 200,
+                    Message = "Manufacturer status updated successfully",
+                    Data = new UpdateManufacturerStatusResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateManufacturerStatusResponse>
                 {
                     Code = 500,
                     Message = ex.Message,
@@ -239,7 +274,13 @@ namespace FCSP.Services.ManufacturerService
             }
             return result;
         }
-
+        private async Task<Manufacturer> GetManufacturer(long manuId)
+        {
+            var manufacturer = await _manufacturerRepository.FindAsync(manuId);
+            if (manufacturer == null)
+                throw new ArgumentException("manufacturer not found");
+            return manufacturer;
+        }
         private async Task<Manufacturer> GetManufacturerEntityById(GetManufacturerRequest request)
         {
             if (request.Id <= 0)
@@ -300,7 +341,6 @@ namespace FCSP.Services.ManufacturerService
             manufacturer.UpdatedAt = DateTime.UtcNow;           
             return manufacturer;
         }
-
         private async Task<List<GetManufacturerDetailResponse>> GetManufacturersByUserIdAsync(long userId)
         {
             if (userId <= 0)
@@ -316,7 +356,6 @@ namespace FCSP.Services.ManufacturerService
 
             return new List<GetManufacturerDetailResponse> { await MapToDetailResponse(manufacturer) };
         }
-
         private async Task<List<GetManufacturerDetailResponse>> GetActiveManufacturersAsync()
         {
             var manufacturers = await _manufacturerRepository.GetManufacturersByStatusAsync((int)ManufacturerStatus.Active);
@@ -327,7 +366,6 @@ namespace FCSP.Services.ManufacturerService
             }
             return result;
         }
-
         private async Task<Manufacturer> CreateManufacturerFromRequest(AddManufacturerRequest request)
         {
 
@@ -408,7 +446,6 @@ namespace FCSP.Services.ManufacturerService
             manufacturer.UpdatedAt = DateTime.UtcNow;
             return manufacturer;
         }
-
         private async Task<GetManufacturerDetailResponse> MapToDetailResponse(Manufacturer manufacturer)
         {
             var user = await _userRepository.GetUserNameByUserIdAsync(manufacturer.UserId);
@@ -430,7 +467,6 @@ namespace FCSP.Services.ManufacturerService
                 UpdatedAt = manufacturer.UpdatedAt
             };
         }
-
         #endregion
     }
 }

@@ -12,6 +12,7 @@ namespace FCSP.Repositories.Interfaces
         Task<BaseResponseModel<List<GetManufacturerDetailResponse>>> GetActiveManufacturers();
         Task<BaseResponseModel<AddManufacturerResponse>> AddManufacturer(AddManufacturerRequest request);
         Task<BaseResponseModel<UpdateManufacturerResponse>> UpdateManufacturer(UpdateManufacturerRequest request);
+        Task<BaseResponseModel<UpdateManufacturerStatusResponse>> UpdateManufacturerStatus(UpdateManufacturerStatusRequest request);
         Task<BaseResponseModel<bool>> DeleteManufacturer(GetManufacturerRequest request);
     }
 }

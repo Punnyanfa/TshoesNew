@@ -9,6 +9,7 @@ using FCSP.Repositories.Interfaces;
 using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 namespace FCSP.Services.Auth;
 
@@ -76,22 +77,34 @@ public class AuthService : IAuthService
 
     public async Task<BaseResponseModel<GetUserByIdResponse>> GetUserById(GetUserByIdRequest request)
     {
-        var user = await _userRepository.FindAsync(request.Id);
-        return new BaseResponseModel<GetUserByIdResponse>
+        try
         {
-            Code = 200,
-            Message = "Get user by id successfully",
-            Data = new GetUserByIdResponse
+            var user = await _userRepository.FindAsync(request.Id);         
+            return new BaseResponseModel<GetUserByIdResponse>
             {
-                Id = user.Id,
-                Name = user.Name,
-                Email = user.Email,
-                Dob = user.Dob ?? string.Empty,
-                Gender = user.Gender ?? string.Empty,
-                AvatarImageUrl = user.AvatarImageUrl ?? string.Empty,
-                PhoneNumber = user.PhoneNumber ?? string.Empty
-            }
-        };
+                Code = 200,
+                Message = "Get user by id successfully",
+                Data = new GetUserByIdResponse
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Dob = user.Dob ?? string.Empty,
+                    Gender = user.Gender ?? string.Empty,
+                    AvatarImageUrl = user.AvatarImageUrl ?? string.Empty,
+                    PhoneNumber = user.PhoneNumber ?? string.Empty
+                }
+            };
+        }
+        catch(Exception ex)
+        {
+            return new BaseResponseModel<GetUserByIdResponse>
+            {
+                Code = 500,
+                Message = ex.Message
+            };
+        }
+       
     }
 
     public async Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request)
@@ -292,6 +305,15 @@ public class AuthService : IAuthService
                 Data = new UpdateUserAvatarResponse { Success = true }
             };
         }
+        catch (InvalidOperationException ex)
+        {
+            return new BaseResponseModel<UpdateUserAvatarResponse>
+            {
+                Code = ex.Message.Contains("not found") ? 404 : 400,
+                Message = ex.Message,
+                Data = ex.Message.Contains("not found") ? null : new UpdateUserAvatarResponse { Success = false }
+            };
+        }
         catch (Exception ex)
         {
             return new BaseResponseModel<UpdateUserAvatarResponse>
@@ -339,25 +361,7 @@ public class AuthService : IAuthService
     public async Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request)
     {
         try
-        {
-            // Validate role
-            if (request.Role != UserRole.Manufacturer && request.Role != UserRole.Designer)
-            {
-                throw new InvalidOperationException("Role is invalid");
-            }
-            // Validate CommissionRate
-            if (!request.CommissionRate.HasValue)
-            {
-                throw new InvalidOperationException("Commission is reqiure");
-            }
-            if ( request.CommissionRate.Value < 5)
-            {
-                throw new InvalidOperationException("commissionRate can not less than 5");
-            }
-            if ( request.CommissionRate.Value > 50)
-            {
-                throw new InvalidOperationException("commissionRate can not greater than 50");
-            }       
+        {     
             var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
             if (request.Role == UserRole.Designer)
             {
@@ -712,7 +716,11 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserAvatarRequestAsync(UpdateUserAvatarRequest request)
     {
-        var user = await _userRepository.FindAsync(request.Id);
+        if (request.Id == 0)
+        {
+            throw new InvalidOperationException("Id can not be 0");
+        }
+        var user = await _userRepository.FindAsync(new object[] { request.Id });
         if (user == null)
         {
             throw new InvalidOperationException($"User with ID {request.Id} not found");
@@ -723,16 +731,33 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Avatar is required");
         }
 
+        // Validate file type (case-insensitive)
+        var contentType = request.Avatar.ContentType?.ToLowerInvariant();
+        if (contentType != "image/jpeg" && contentType != "image/png")
+        {
+            throw new InvalidOperationException("Only JPEG or PNG images are allowed");
+        }
+
         DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
         string fileName = $"avatar_{user.Id}_{formattedDateTime}.jpeg";
         byte[] fileBytes;
 
-        using (var memoryStream = new MemoryStream())
+        try
         {
-            await request.Avatar.CopyToAsync(memoryStream);
-            fileBytes = memoryStream.ToArray();
+            using (var memoryStream = new MemoryStream())
+            {
+                Console.WriteLine("Starting CopyToAsync...");
+                await request.Avatar.CopyToAsync(memoryStream);
+                Console.WriteLine("CopyToAsync completed");
+                fileBytes = memoryStream.ToArray();
+            }
         }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to copy avatar stream: {ex.Message}");
+        }
+
         var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
 
         user.AvatarImageUrl = avatarPath;
@@ -745,10 +770,8 @@ public class AuthService : IAuthService
         try
         {
             var blobServiceClient = new BlobServiceClient(_azureConnectionString);
-
             var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
-
             var blobClient = containerClient.GetBlobClient(fileName);
 
             using (var stream = new MemoryStream(fileBytes))
@@ -920,8 +943,25 @@ public class AuthService : IAuthService
         {
             throw new InvalidOperationException($"User with ID {request.Id} not found");
         }
-
-        user.UserRole = request.Role; // C?p nh?t UserRole
+        // Validate role
+        if (request.Role != UserRole.Manufacturer && request.Role != UserRole.Designer)
+        {
+            throw new InvalidOperationException("Role is invalid");
+        }
+        // Validate CommissionRate
+        if (!request.CommissionRate.HasValue)
+        {
+            throw new InvalidOperationException("Commission is reqiure");
+        }
+        if (request.CommissionRate.Value < 5)
+        {
+            throw new InvalidOperationException("commissionRate can not less than 5");
+        }
+        if (request.CommissionRate.Value > 50)
+        {
+            throw new InvalidOperationException("commissionRate can not greater than 50");
+        }
+        user.UserRole = request.Role; 
         user.UpdatedAt = DateTime.Now;
         return user;
     }

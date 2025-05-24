@@ -38,8 +38,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<List<Manufacturer>> GetAllWithDetailsAsync()
         {
             return await _context.Manufacturers
-                .Include(m => m.Services)
-                .Where(m => m.Status == ManufacturerStatus.Active)
+                .Include(m => m.Services)              
                 .ToListAsync();
         }
     }
