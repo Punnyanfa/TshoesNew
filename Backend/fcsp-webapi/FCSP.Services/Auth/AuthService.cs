@@ -636,11 +636,35 @@ public class AuthService : IAuthService
 
             var blobClient = containerClient.GetBlobClient(fileName);
 
+            // Determine content type by checking file signature (magic numbers)
+            string contentType;
+            if (fileBytes.Length >= 2)
+            {
+                // Check for PNG signature
+                if (fileBytes[0] == 0x89 && fileBytes[1] == 0x50)
+                {
+                    contentType = "image/png";
+                }
+                // Check for JPEG signature
+                else if (fileBytes[0] == 0xFF && fileBytes[1] == 0xD8)
+                {
+                    contentType = "image/jpeg";
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported image format. Only PNG and JPEG are supported.");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid image file: File is too small or empty.");
+            }
+
             using (var stream = new MemoryStream(fileBytes))
             {
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders
                 {
-                    ContentType = "image/jpeg"
+                    ContentType = contentType
                 });
             }
 

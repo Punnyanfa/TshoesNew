@@ -52,12 +52,6 @@ internal static class RelationshipConfig
             .WithMany()
             .HasForeignKey(ci => ci.SizeId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<CartItem>()
-            .HasOne(ci => ci.Manufacturer)
-            .WithMany()
-            .HasForeignKey(ci => ci.ManufacturerId)
-            .OnDelete(DeleteBehavior.Restrict);
             
         // CustomShoeDesign relationships
         modelBuilder.Entity<CustomShoeDesign>()
