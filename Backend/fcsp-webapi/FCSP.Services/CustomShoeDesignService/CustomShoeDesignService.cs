@@ -560,7 +560,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Id = d.Id,
                 Name = d.CustomShoeDesignTemplate?.Name,
-                PreviewImageUrl = d.DesignPreviews?.Skip(1).FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount,
@@ -595,7 +595,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
-        string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+        string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
         string fileName = $"designData_{formattedDateTime}.json";
         byte[] fileBytes;
 
@@ -646,7 +646,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         foreach (var previewImage in request.CustomShoeDesignPreviewImages)
         {
             DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
-            string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
+            string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
             string fileName = $"previewImage_{formattedDateTime}.jpeg";
             byte[] fileBytes;
 

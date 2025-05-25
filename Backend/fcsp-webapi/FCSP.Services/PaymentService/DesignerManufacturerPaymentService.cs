@@ -23,7 +23,7 @@ namespace FCSP.Services.PaymentService
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
-            var intervalMinutes = configuration.GetValue<int>("PaymentProcessing:PaymentProcessingCheckIntervalMinutes", 60); // Default 1 hour
+            var intervalMinutes = configuration.GetValue<int>("PaymentProcessing:PaymentProcessingCheckIntervalMinutes", 1); // Default 1 minute
             _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
             _daysAfterOrderToPayOut = configuration.GetValue<int>("PaymentProcessing:DaysAfterOrderToPayOut", 30); // Default 30 days
         }
