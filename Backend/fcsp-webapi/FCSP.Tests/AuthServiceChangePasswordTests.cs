@@ -52,7 +52,7 @@ namespace FCSP.Tests
         {
             var user = new User { Id = 1234, Name = "Thuan", Email = "thuan123@gmail.com", PasswordHash = "hashedThuan1234", UserRole = UserRole.Customer };
             var request = new UpdateUserPasswordRequest { Id = 1234, CurrentPassword = "thuan1234", NewPassword = "newpass1234" };
-            _userRepositoryMock.Setup(x => x.GetByIdAsync(request.Id)).ReturnsAsync(user);
+            _userRepositoryMock.Setup(x => x.FindAsync(request.Id)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash)).Returns(true);
             _passwordHashingServiceMock.Setup(x => x.GetHashedPassword(request.NewPassword)).Returns("hashedNewpass1234");
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
@@ -60,7 +60,7 @@ namespace FCSP.Tests
             var result = await _authService.UpdateUserPassword(request);
 
             Assert.Equal(200, result.Code);
-            Assert.Equal("Success", result.Message);
+            Assert.Equal("Password updated successfully", result.Message);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace FCSP.Tests
         {
             var user = new User { Id = 1234, Name = "Thuan", Email = "thuan123@gmail.com", PasswordHash = "hashedThuan1234", UserRole = UserRole.Customer };
             var request = new UpdateUserPasswordRequest { Id = 1234, CurrentPassword = "thuan1234", NewPassword = "newpass1234" };
-            _userRepositoryMock.Setup(x => x.GetByIdAsync(request.Id)).ReturnsAsync(user);
+            _userRepositoryMock.Setup(x => x.FindAsync(request.Id)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash)).Returns(true);
             _passwordHashingServiceMock.Setup(x => x.GetHashedPassword(request.NewPassword)).Returns("hashedNewpass1234");
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
@@ -87,7 +87,7 @@ namespace FCSP.Tests
             var result = await _authService.UpdateUserPassword(request);
 
             Assert.Equal(200, result.Code);
-            Assert.Equal("Success", result.Message);
+            Assert.Equal("Password updated successfully", result.Message);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace FCSP.Tests
             var result = await _authService.UpdateUserPassword(request);
 
             Assert.Equal(400, result.Code);
-            Assert.Equal("Id not found", result.Message);
+            Assert.Equal($"User with ID {request.Id} not found", result.Message);
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace FCSP.Tests
         {
             var user = new User { Id = 1234, Name = "Thuan", Email = "thuan123@gmail.com", PasswordHash = "hashedThuan1234", UserRole = UserRole.Customer };
             var request = new UpdateUserPasswordRequest { Id = 1234, CurrentPassword = "thuan1234", NewPassword = "newpass1234" };
-            _userRepositoryMock.Setup(x => x.GetByIdAsync(request.Id)).ReturnsAsync(user);
+            _userRepositoryMock.Setup(x => x.FindAsync(request.Id)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash)).Returns(true);
             _passwordHashingServiceMock.Setup(x => x.GetHashedPassword(request.NewPassword)).Returns("hashedNewpass1234");
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
@@ -126,7 +126,7 @@ namespace FCSP.Tests
             var result = await _authService.UpdateUserPassword(request);
 
             Assert.Equal(200, result.Code);
-            Assert.Equal("Success", result.Message);
+            Assert.Equal("Password updated successfully", result.Message);
         }
 
         [Fact]
@@ -134,7 +134,7 @@ namespace FCSP.Tests
         {
             var user = new User { Id = 1234, Name = "Thuan", Email = "thuan123@gmail.com", PasswordHash = "hashedThuan1234", UserRole = UserRole.Customer };
             var request = new UpdateUserPasswordRequest { Id = 1234, CurrentPassword = "wrong1234", NewPassword = "newpass1234" };
-            _userRepositoryMock.Setup(x => x.GetByIdAsync(request.Id)).ReturnsAsync(user);
+            _userRepositoryMock.Setup(x => x.FindAsync(request.Id)).ReturnsAsync(user);
             _passwordHashingServiceMock.Setup(x => x.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash)).Returns(false);
 
             var result = await _authService.UpdateUserPassword(request);

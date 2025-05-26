@@ -9,6 +9,7 @@ using FCSP.Repositories.Interfaces;
 using FCSP.Services.Auth.Hash;
 using FCSP.Services.Auth.Token;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 namespace FCSP.Services.Auth;
 
@@ -141,6 +142,23 @@ public class AuthService : IAuthService
                 Data = new UserRegisterResponse { Success = true }
             };
         }
+        catch (InvalidOperationException ex)
+        {
+            return new BaseResponseModel<UserRegisterResponse>
+            {
+                Code = 409, // Conflict for existing email
+                Message = ex.Message,
+                Data = new UserRegisterResponse { Success = false }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UserRegisterResponse>
+            {
+                Code = ex.Message.Contains("not found") ? 404 : 400,
+                Message = ex.Message
+            };
+        }
         catch (Exception ex)
         {
             return new BaseResponseModel<UserRegisterResponse>
@@ -166,6 +184,15 @@ public class AuthService : IAuthService
                 Data = new UpdateUserStatusResponse { Success = true }
             };
         }
+        catch (InvalidOperationException ex)
+        {
+            return new BaseResponseModel<UpdateUserStatusResponse>
+            {
+                Code = ex.Message.Contains("not found") ? 404 : 400,
+                Message = ex.Message,
+                Data = new UpdateUserStatusResponse { Success = false }
+            };
+        }       
         catch (Exception ex)
         {
             return new BaseResponseModel<UpdateUserStatusResponse>
@@ -188,6 +215,15 @@ public class AuthService : IAuthService
                 Code = 200,
                 Message = "Password updated successfully",
                 Data = new UpdateUserPasswordResponse { Success = true }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UpdateUserPasswordResponse>
+            {
+                Code = 400,
+                Message = ex.Message,
+                Data = new UpdateUserPasswordResponse { Success = false }
             };
         }
         catch (Exception ex)
@@ -264,6 +300,15 @@ public class AuthService : IAuthService
                 Data = new UpdateUserAvatarResponse { Success = true }
             };
         }
+        catch (InvalidOperationException iex)
+        {
+            return new BaseResponseModel<UpdateUserAvatarResponse>
+            {
+                Code = iex.Message.Contains("not found")? 404 : 400,
+                Message = iex.Message
+            };
+
+        }
         catch (Exception ex)
         {
             return new BaseResponseModel<UpdateUserAvatarResponse>
@@ -288,6 +333,14 @@ public class AuthService : IAuthService
                 Data = new UpdateUserInformationResponse { Success = true }
             };
         }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UpdateUserInformationResponse>
+            {
+                Code = 400,
+                Message = ex.Message,
+            };
+        }
         catch (Exception ex)
         {
             return new BaseResponseModel<UpdateUserInformationResponse>
@@ -302,22 +355,18 @@ public class AuthService : IAuthService
     {
         try
         {
+            var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
             if (request.Role == UserRole.Designer)
             {
                 var designer = await GetDesignerEntityFromUpdateUserRoleRequest(request);
-                await _designerRepository.AddAsync(designer);
-                var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
-                await _userRepository.UpdateAsync(user);
+                await _designerRepository.AddAsync(designer);                           
             }
-
             if (request.Role == UserRole.Manufacturer)
             {
                 var manufacturer = await GetManufacturerEntityFromUpdateUserRoleRequest(request);
-                await _manufacturerRepository.AddAsync(manufacturer);
-                var user = await GetUserEntityFromUpdateUserRoleRequestAsync(request);
-                await _userRepository.UpdateAsync(user);
+                await _manufacturerRepository.AddAsync(manufacturer);                            
             }
-            
+            await _userRepository.UpdateAsync(user);
             return new BaseResponseModel<UpdateUserRoleResponse>
             {
                 Code = 200,
@@ -326,6 +375,15 @@ public class AuthService : IAuthService
                 {
                     Success = true
                 }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return new BaseResponseModel<UpdateUserRoleResponse>
+            {
+                Code = ex.Message.Contains("not found")? 404:  400,
+                Message = ex.Message,
+     
             };
         }
         catch (Exception ex)
@@ -512,8 +570,35 @@ public class AuthService : IAuthService
     #endregion
 
     #region Private methods
+    private bool IsValidEmail(string email)
+    {
+        try { var addr = new System.Net.Mail.MailAddress(email); return addr.Address == email; }
+        catch { return false; }
+    }
+    private bool IsValidPassword(string password)
+    {
+
+        return password.Any(char.IsLetter) && password.Any(char.IsDigit);
+    }
+    private bool IsValidName(string name)
+    {
+        return name.All(c => char.IsLetter(c) || char.IsWhiteSpace(c));
+    }
+    private bool IsValidPhoneNumber(string phoneNumber)
+    {
+        return phoneNumber.All(char.IsDigit) && phoneNumber.Length >= 10 && phoneNumber.Length <= 12;
+    }
+
     private async Task<User> GetUserEntityFromUserLoginRequestAsync(UserLoginRequest request)
     {
+        if (request.Password.IsNullOrEmpty())
+        {
+            throw new InvalidOperationException("Password can not be empty");
+        }
+        if(request.Password.Length < 8)
+        {
+            throw new InvalidOperationException("Password can not less than 8 character ");
+        }
         var user = await _userRepository.GetByEmailAsync(request.Email);
         if (user == null || !_passwordHashingService.VerifyHashedPassword(request.Password, user.PasswordHash))
         {
@@ -524,12 +609,34 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUserRegisterRequestAsync(UserRegisterRequest request)
     {
+        // Validate name
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw new ArgumentException("Name cannot be empty");
+
+        // Validate email
+        if (string.IsNullOrWhiteSpace(request.Email))
+            throw new ArgumentException("Email can not be empty");
+        if (!IsValidEmail(request.Email))
+            throw new ArgumentException("Invalid email format");
+
+        // Validate password
+        if (string.IsNullOrWhiteSpace(request.Password))
+            throw new ArgumentException("Password cannot be empty");
+        if (request.Password.Length < 8)
+            throw new ArgumentException("Password can not less than 8 character");
+        if (request.Password.Length > 20)
+            throw new ArgumentException("Password can not greater than 20 character");
+        if (!IsValidPassword(request.Password))
+            throw new ArgumentException("Password does not format");
+
+        // Validate confirm password
+        if (request.ConfirmPassword != request.Password)
+            throw new ArgumentException("Password not match");
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
         {
             throw new InvalidOperationException("User with this email already exists");
         }
-
         return new User
         {
             Name = request.Name,
@@ -547,9 +654,8 @@ public class AuthService : IAuthService
         var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
-        }
-
+            throw new ArgumentException($"User with ID {request.Id} not found");
+        }      
         var designer = new Designer
         {
             UserId = user.Id,
@@ -563,14 +669,12 @@ public class AuthService : IAuthService
     }
 
     private async Task<Manufacturer> GetManufacturerEntityFromUpdateUserRoleRequest(UpdateUserRoleRequest request)
-    {
+    {      
         var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
-        }
-        
-
+            throw new ArgumentException($"User with ID {request.Id} not found");
+        }       
         var manufacturer = new Manufacturer
         {
             UserId = user.Id,
@@ -578,7 +682,6 @@ public class AuthService : IAuthService
             Status = ManufacturerStatus.Active,
             CommissionRate = request.CommissionRate.Value
         };
-
         return manufacturer;
     }
 
@@ -597,7 +700,11 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserAvatarRequestAsync(UpdateUserAvatarRequest request)
     {
-        var user = await _userRepository.FindAsync(request.Id);
+        if (request.Id <= 0)
+        {
+            throw new InvalidOperationException("Id can not be 0");
+        }
+        var user = await _userRepository.FindAsync(request.Id);   
         if (user == null)
         {
             throw new InvalidOperationException($"User with ID {request.Id} not found");
@@ -606,6 +713,12 @@ public class AuthService : IAuthService
         if (request.Avatar == null)
         {
             throw new InvalidOperationException("Avatar is required");
+        }
+        // Validate file type (case-insensitive)
+        var contentType = request.Avatar.ContentType?.ToLowerInvariant();
+        if (contentType != "image/jpeg" && contentType != "image/png")
+        {
+            throw new InvalidOperationException("Only JPEG or PNG images are allowed");
         }
 
         DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
@@ -721,15 +834,43 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserPasswordRequestAsync(UpdateUserPasswordRequest request)
     {
+        // Validate Id
+        if (request.Id <= 0)
+            throw new ArgumentException("Id required");
+
+        // Validate current password
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+            throw new ArgumentException("Current password is required");
+        if (!IsValidPassword(request.CurrentPassword))
+            throw new ArgumentException("Current password not format");
+        if (request.CurrentPassword.Length < 8)
+            throw new ArgumentException("Current password cannot be less than 8 character");
+        if (request.CurrentPassword.Length > 20)
+            throw new ArgumentException("Current password cannot be greater than 20 character");
+
+        // Validate new password
+        if (string.IsNullOrWhiteSpace(request.NewPassword))
+            throw new ArgumentException("New password cannot be empty");
+        if (!IsValidPassword(request.NewPassword))
+            throw new ArgumentException("New password does not format");
+        if (request.NewPassword.Length < 8)
+            throw new ArgumentException("New password less than 8 character");
+        if (request.NewPassword.Length > 20)
+            throw new ArgumentException("New password greater than 20 character");
+
         var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
+            throw new ArgumentException($"User with ID {request.Id} not found");          
         }
+        if (!_passwordHashingService.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash))
+            throw new ArgumentException("Current password does not match");
         if (string.IsNullOrEmpty(request.NewPassword) || request.NewPassword.Length < 8 || string.IsNullOrEmpty(request.CurrentPassword) || !_passwordHashingService.VerifyHashedPassword(request.CurrentPassword, user.PasswordHash))
         {
             throw new InvalidOperationException("Invalid password update request");
         }
+      
+        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
 
         user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
         user.UpdatedAt = DateTime.Now;
@@ -738,12 +879,43 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserInformationRequestAsync(UpdateUserInformationRequest request)
     {
+        // Validate Id
+        if (request.Id <= 0)
+            throw new ArgumentException("Id is required");
+
+        // Validate Name
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw new ArgumentException("Name is not in correct format (Name can not be empty)");
+        if (!IsValidName(request.Name))
+            throw new ArgumentException("Name is not in correct format (Name can not be empty)");
+        if (request.Name.Length < 5)
+            throw new ArgumentException("Name can not less than 5 characters");
+        if (request.Name.Length > 25)
+            throw new ArgumentException("Name can not greater than 25 characters");
+
+        // Validate PhoneNumber
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            throw new ArgumentException("PhoneNumber can not be empty");
+        if (!IsValidPhoneNumber(request.PhoneNumber))
+            throw new ArgumentException("Invalid phone format");
+
+        // Validate Gender
+        if (string.IsNullOrWhiteSpace(request.Gender))
+            throw new ArgumentException("Gender can not be empty");
+        if (!new[] { "Male", "Female", "Other" }.Contains(request.Gender))
+            throw new ArgumentException("Invalid gender value");
+
+        // Validate Dob
+        if (string.IsNullOrWhiteSpace(request.Dob))
+            throw new ArgumentException("Date of birth can not be empty");
+        if (!DateTime.TryParse(request.Dob, out _))
+            throw new ArgumentException("Invalid date of birth");
+
         var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
+            throw new ArgumentException($"User with ID {request.Id} not found");
         }
-
         user.Name = request.Name ?? user.Name;
         user.Gender = request.Gender ?? user.Gender;
         user.Dob = request.Dob ?? user.Dob;
@@ -767,10 +939,32 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserRoleRequestAsync(UpdateUserRoleRequest request)
     {
-        var user = await _userRepository.FindAsync(request.Id);
+        if (request.Id <= 0 || request.Id == null)
+        {
+            throw new ArgumentException("User Id can not be 0");
+        }
+        var user = await _userRepository.FindAsync( request.Id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User with ID {request.Id} not found");
+            throw new ArgumentException($"User with ID {request.Id} not found");
+        }
+        // Validate role
+        if (request.Role != UserRole.Manufacturer && request.Role != UserRole.Designer)
+        {
+            throw new ArgumentException("Role is invalid");
+        }
+        // Validate CommissionRate
+        if (!request.CommissionRate.HasValue)
+        {
+            throw new ArgumentException("Commission is reqiure");
+        }
+        if (request.CommissionRate.Value < 5)
+        {
+            throw new ArgumentException("commissionRate can not less than 5");
+        }
+        if (request.CommissionRate.Value > 50)
+        {
+            throw new ArgumentException("commissionRate can not greater than 50");
         }
 
         user.UserRole = request.Role; // C?p nh?t UserRole

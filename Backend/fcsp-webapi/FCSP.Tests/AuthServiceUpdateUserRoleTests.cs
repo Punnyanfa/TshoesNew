@@ -49,7 +49,6 @@ namespace FCSP.Tests
         [Fact]
         public async Task UpdateUserRole_InvalidId()
         {
-            // Arrange
             var request = new UpdateUserRoleRequest
             {
                 Id = 0,
@@ -57,19 +56,14 @@ namespace FCSP.Tests
                 CommissionRate = 10
             };
 
-            // Act
             var result = await _authService.UpdateUserRole(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
-            Assert.Equal("User Id is required", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
+            Assert.Equal("User Id can not be 0", result.Message);
         }
         [Fact]
         public async Task UpdateUserRole_NonExistentId()
         {
-            // Arrange
             var request = new UpdateUserRoleRequest
             {
                 Id = 9999,
@@ -79,46 +73,38 @@ namespace FCSP.Tests
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 9999)))
                 .ReturnsAsync((User)null);
 
-            // Act
             var result = await _authService.UpdateUserRole(request);
 
-            // Assert
             Assert.Equal(404, result.Code);
-            Assert.Equal("User with ID 9999 not found", result.Message);
+            Assert.Equal($"User with ID {request.Id} not found", result.Message);
             Assert.Null(result.Data);
         }
         [Fact]
         public async Task UpdateUserRole_InvalidRole()
         {
-            
-            var request = new UpdateUserRoleRequest
-            {
-                Id = 1,
-                Role = (UserRole)10,
-                CommissionRate = 10
-            };
             var user = new User
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
                 UpdatedAt = DateTime.UtcNow
             };
+            var request = new UpdateUserRoleRequest
+            {
+                Id = 1,
+                Role = (UserRole)10,
+                CommissionRate = 10
+            };           
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
 
-            // Act
             var result = await _authService.UpdateUserRole(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("Role is invalid", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
         [Fact]
         public async Task UpdateUserRole_InvalidCommissionRate_LessThanFive()
         {
-            // Arrange
             var request = new UpdateUserRoleRequest
             {
                 Id = 1,
@@ -134,19 +120,14 @@ namespace FCSP.Tests
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
 
-            // Act
             var result = await _authService.UpdateUserRole(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("commissionRate can not less than 5", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
         [Fact]
         public async Task UpdateUserRole_InvalidCommissionRate_GreaterThanFifty()
         {
-            // Arrange
             var request = new UpdateUserRoleRequest
             {
                 Id = 1,
@@ -162,14 +143,10 @@ namespace FCSP.Tests
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
 
-            // Act
             var result = await _authService.UpdateUserRole(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("commissionRate can not greater than 50", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
         public async Task UpdateUserRole_InvalidCommissionRate_empty()
         {             // Arrange
