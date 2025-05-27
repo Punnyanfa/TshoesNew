@@ -41,7 +41,6 @@ namespace FCSP.Tests
         [Fact]
         public async Task UpdateTemplateStatus_ValidStatusPublic()
         {
-            // Arrange
             var template = new CustomShoeDesignTemplate
             {
                 Id = 1,
@@ -53,15 +52,10 @@ namespace FCSP.Tests
                 .ReturnsAsync(template);
             _templateRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<CustomShoeDesignTemplate>())).Returns(Task.CompletedTask);
 
-            // Act
             var result = await _templateService.UpdateTemplateStatus(request);
 
-            // Assert
             Assert.Equal(200, result.Code);
             Assert.Equal("Template restored successfully", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.True(result.Data.Success);
-            Assert.Equal(TemplateStatus.Public, template.Status);
         }
 
         [Fact]

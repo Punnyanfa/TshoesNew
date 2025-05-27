@@ -2,6 +2,7 @@
 using FCSP.DTOs.ShippingInfo;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Linq;
 
@@ -104,7 +105,7 @@ namespace FCSP.Services.ShippingInfoService
                     await SetOtherAddressesToNonDefault(request.UserId);
                 }
 
-                var shippingInfo = GetShippingInfoFromAddRequest(request);
+                var shippingInfo = await GetShippingInfoFromAddRequest(request);
                 var addedShippingInfo = await _shippingInfoRepository.AddAsync(shippingInfo);
 
                 return new BaseResponseModel<AddShippingInfoResponse>
@@ -120,6 +121,16 @@ namespace FCSP.Services.ShippingInfoService
                     }
                 };
             }
+            catch(InvalidOperationException ex)
+            {
+                return new BaseResponseModel<AddShippingInfoResponse>
+                {
+                    Code = ex.Message.Contains("not found")? 404:400,
+                    Message = ex.Message
+                    
+                };
+            }
+
             catch (Exception ex)
             {
                 return new BaseResponseModel<AddShippingInfoResponse>
@@ -232,6 +243,15 @@ namespace FCSP.Services.ShippingInfoService
                     Data = new SetDefaultShippingInfoResponse { Success = true }
                 };
             }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<SetDefaultShippingInfoResponse>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = new SetDefaultShippingInfoResponse { Success = false }
+                };
+            }
             catch (Exception ex)
             {
                 return new BaseResponseModel<SetDefaultShippingInfoResponse>
@@ -268,12 +288,14 @@ namespace FCSP.Services.ShippingInfoService
 
         #endregion
 
-        #region Private Methods
+   
         public async Task<string> GetUserNameById(long userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             return user?.Name ?? "N/A";
         }
+        #region Private Methods
+        private string longString = string.Join(" ", new string[25].Select((_, i) => $"word{i}"));
         private async Task<IEnumerable<GetShippingInfoByIdResponse>> GetAllShippingInfos()
         {
             var shippingInfos = await _shippingInfoRepository.GetAllAsync();
@@ -304,8 +326,90 @@ namespace FCSP.Services.ShippingInfoService
             }
             return result;
         }
-        private ShippingInfo GetShippingInfoFromAddRequest(AddShippingInfoRequest request)
+        private async Task< ShippingInfo> GetShippingInfoFromAddRequest(AddShippingInfoRequest request)
         {
+            if (request.UserId <= 0)
+            {
+                throw new InvalidOperationException("User ID must be greater than 0");
+            }
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                throw new InvalidOperationException("Phone number is required");
+            }
+            if (request.PhoneNumber.Length > 25 || request.PhoneNumber.Any(char.IsLetter) || request.PhoneNumber.Any(c => !char.IsDigit(c)))
+            {
+                throw new InvalidOperationException("Phone number is not correct");
+            }
+            if (request.PhoneNumber.Length > 25)
+            {
+                throw new InvalidOperationException("Phone number must not exceed 25 characters");
+            }
+            if (string.IsNullOrWhiteSpace(request.Address))
+            {
+                throw new InvalidOperationException("Address is required");
+            }
+            if(request.Address.Length < 5)
+            {
+                throw new InvalidOperationException("Address must be at least 5 characters");
+            }
+            if (request.Address.Length > 25)
+            {
+                throw new InvalidOperationException("Address must be less than 25 characters");
+            }
+            if (string.IsNullOrWhiteSpace(request.Ward))
+            {
+                throw new InvalidOperationException("Ward is required");
+            }
+            if (request.Ward.Length < 5)
+            {
+                throw new InvalidOperationException("Ward must be at least 5 characters");
+            }
+            if (request.Ward.Length > 25)
+            {
+                throw new InvalidOperationException("Ward must be less than 25 characters");
+            }
+            if (string.IsNullOrWhiteSpace(request.District))
+            {
+                throw new InvalidOperationException("District is required");
+            }
+            if (request.District.Length < 5)
+            {
+                throw new InvalidOperationException("District must be at least 5 characters");
+            }
+            if (request.District.Length > 25)
+            {
+                throw new InvalidOperationException("District must be less than 25 characters");
+            }
+            if (string.IsNullOrWhiteSpace(request.City))
+            {
+                throw new InvalidOperationException("City is required");
+            }
+            if (request.City.Length < 5)
+            {
+                throw new InvalidOperationException("City must be at least 5 characters");
+            }
+            if (request.City.Length > 25)
+            {
+                throw new InvalidOperationException("City must be less than 25 characters");
+            }
+            if (string.IsNullOrWhiteSpace(request.Country))
+            {
+                throw new InvalidOperationException("Country is required");
+            }
+            if (request.Country.Length < 5)
+            {
+                throw new InvalidOperationException("Country must be at least 5 characters");
+            }
+            if (request.Country.Length > 25)
+            {
+                throw new InvalidOperationException("Country must be less than 25 characters");
+            }   
+            
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if(user == null)
+            {
+                throw new InvalidOperationException($"User with ID {request.UserId} not found");
+            }
             return new ShippingInfo
             {
                 UserId = request.UserId,
@@ -349,6 +453,19 @@ namespace FCSP.Services.ShippingInfoService
 
         private async Task<ShippingInfo> GetShippingInfoForSetDefault(SetDefaultShippingInfoRequest request)
         {
+            if (request.UserId <= 0)
+            {
+                throw new InvalidOperationException("UserId can not be 0");
+            }
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"{request.UserId} not found");
+            }
+            if (request.Id <= 0)
+            {
+                throw new InvalidOperationException("Shipping info Id is required");
+            }
             var shippingInfo = await _shippingInfoRepository.FindAsync(request.Id);
             if (shippingInfo == null || shippingInfo.UserId != request.UserId || shippingInfo.IsDeleted)
             {

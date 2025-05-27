@@ -7,6 +7,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace FCSP.Services.TemplateService
 {
@@ -315,6 +316,58 @@ namespace FCSP.Services.TemplateService
 
         private async Task<CustomShoeDesignTemplate> GetEntityFromAddRequest(AddTemplateRequest request)
         {
+          
+            if (string.IsNullOrWhiteSpace(request.Name))
+                throw new InvalidOperationException("Name is required");
+            if (request.Name.Length < 5)
+                throw new InvalidOperationException("Name must be greater than 5 characters");
+            if (request.Name.Length > 50)
+                throw new InvalidOperationException("Name must be less than 50 characters" );
+            if (!Regex.IsMatch(request.Name, @"^[a-zA-Z0-9\s]+$"))
+                throw new InvalidOperationException("Invalid name format" );
+
+            // Description validations
+            if (string.IsNullOrWhiteSpace(request.Description))
+                throw new InvalidOperationException("Description is require" );
+            var wordCount = request.Description.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            if (wordCount < 3)
+                throw new InvalidOperationException("Description must be greater than 3 words" );
+            if (wordCount > 25)
+                throw new InvalidOperationException("Description must be less than 25 words" );
+            if (!Regex.IsMatch(request.Description, @"^[a-zA-Z0-9\s.,]+$"))
+                throw new InvalidOperationException("Invalid description format" );
+
+            // Gender validations
+            if (string.IsNullOrWhiteSpace(request.Gender))
+                 throw new InvalidOperationException("Gender is require" );
+            if (request.Gender != "Male" && request.Gender != "Female" && request.Gender != "Other")
+                throw new InvalidOperationException("Gender is invalid" );
+
+            // Color validations
+            if (string.IsNullOrWhiteSpace(request.Color))
+                throw new InvalidOperationException("Color is require" );
+            if (!Regex.IsMatch(request.Color, @"^[a-zA-Z\s,]+$"))
+                throw new InvalidOperationException("Color is invalid" );
+
+            // PreviewImage validations
+            if (request.PreviewImage == null)
+                throw new InvalidOperationException("Preview Image is require" );
+            // File format validation is handled in UploadPreviewImage
+
+            // Model3DFile validations
+            if (request.Model3DFile == null)
+                throw new InvalidOperationException("Model3DFile is require" );
+            // File format validation is handled in Upload3DModel
+
+            // BasePrice validations
+            if (request.BasePrice <= 0)
+                throw new InvalidOperationException("Invalid BasePrice format" );
+            if (request.BasePrice < 0)
+                throw new InvalidOperationException("BasePrice cannot be negative" );
+
+            // IsAvailable validations
+            if (!request.IsAvailable)
+                throw new InvalidOperationException("isAvalaible is require" );
             var previewImageUrl = await UploadPreviewImage(request.PreviewImage);
             var model3DUrl = await Upload3DModel(request.Model3DFile);
 

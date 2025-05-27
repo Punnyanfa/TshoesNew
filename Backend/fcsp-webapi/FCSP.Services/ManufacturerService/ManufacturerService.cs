@@ -370,18 +370,15 @@ namespace FCSP.Services.ManufacturerService
         private async Task<Manufacturer> CreateManufacturerFromRequest(AddManufacturerRequest request)
         {
 
-            var user = await _userRepository.GetByIdAsync(request.UserId);          
-            // Validate UserId
+            var user = await _userRepository.GetByIdAsync(request.UserId);               
             if (request.UserId <= 0)
             {
                 throw new ArgumentException("UserId is required");
-            }
-            // Validate user existence and role           
+            }      
             if (user == null)
             {
                 throw new InvalidOperationException("User not found");
             }          
-            // Check for existing manufacturer
             var existingManufacturer = await _manufacturerRepository.GetManufacturerByUserIdAsync(request.UserId);
             if (existingManufacturer != null)
             {

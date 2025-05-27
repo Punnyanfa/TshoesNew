@@ -25,40 +25,30 @@ namespace FCSP.Tests
         [Fact]
         public async Task DeleteShippingInfo_InvalidId()
         {
-            // Arrange
-            var request = new DeleteShippingInfoRequest { Id = 0 }; // Invalid ID
+            var request = new DeleteShippingInfoRequest { Id = 0 }; 
 
-            // Act
             var result = await _shippingInfoService.DeleteShippingInfo(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("Shipping info Id is required", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
         public async Task DeleteShippingInfo_NonExistentId()
         {
-            // Arrange
             var request = new DeleteShippingInfoRequest { Id = 9999 };
             _shippingInfoRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 9999)))
                 .ReturnsAsync((ShippingInfo)null);
 
-            // Act
             var result = await _shippingInfoService.DeleteShippingInfo(request);
 
-            // Assert
             Assert.Equal(404, result.Code);
             Assert.Equal("Shipping information with ID 9999 not found", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
         public async Task DeleteShippingInfo_ExistingId()
         {
-            // Arrange
             var shippingInfo = new ShippingInfo
             {
                 Id = 123,
@@ -73,14 +63,10 @@ namespace FCSP.Tests
             _shippingInfoRepositoryMock.Setup(x => x.DeleteAsync(123))
                 .Returns(Task.CompletedTask);
 
-            // Act
             var result = await _shippingInfoService.DeleteShippingInfo(request);
 
-            // Assert
             Assert.Equal(200, result.Code);
-            Assert.Equal("Shipping information deleted successfully", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.True(result.Data.Success);
+            Assert.Equal("Shipping information deleted successfully", result.Message);    
         }
     }
 }

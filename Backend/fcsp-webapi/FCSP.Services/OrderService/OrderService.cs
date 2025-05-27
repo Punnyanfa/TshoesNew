@@ -17,6 +17,7 @@ namespace FCSP.Services.OrderService
         private readonly IPaymentService _paymentService;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IVoucherRepository _voucherRepository;
+        private readonly IShippingInfoRepository _shippingInfoRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
         private readonly IUserRepository _userRepository;
         private readonly ISizeRepository _sizeRepository;
@@ -28,6 +29,7 @@ namespace FCSP.Services.OrderService
             IPaymentService paymentService,
             IPaymentRepository paymentRepository,
             IVoucherRepository voucherRepository,
+            IShippingInfoRepository shippingInfoRepository,
             ICustomShoeDesignRepository customShoeDesignRepository,
             IUserRepository userRepository,
             ISizeRepository sizeRepository,
@@ -38,6 +40,7 @@ namespace FCSP.Services.OrderService
             _paymentService = paymentService;
             _paymentRepository = paymentRepository;
             _voucherRepository = voucherRepository;
+            _shippingInfoRepository = shippingInfoRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
             _userRepository = userRepository;
             _sizeRepository = sizeRepository;
@@ -163,6 +166,15 @@ namespace FCSP.Services.OrderService
                     }
                 };
             }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<AddOrderResponse>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
             catch (Exception ex)
             {
                 return new BaseResponseModel<AddOrderResponse>
@@ -188,6 +200,18 @@ namespace FCSP.Services.OrderService
                     Data = new UpdateOrderResponse
                     {
                         Success = true
+                    }
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = false
                     }
                 };
             }
@@ -369,6 +393,52 @@ namespace FCSP.Services.OrderService
 
         private async Task<Order> GetEntityFromAddOrderRequest(AddOrderRequest request)
         {
+            // Validation for required fields
+            if (request.UserId <= 0)
+                throw new InvalidOperationException("userId can not be 0 ");
+            if (request.ShippingInfoId <= 0)
+                throw new InvalidOperationException("shippingInforId is require");
+
+            if (request.OrderDetail == null)
+                throw new InvalidOperationException("orderDetail is require");
+
+            if (request.OrderDetail.CustomShoeDesignId <= 0)
+                throw new InvalidOperationException("customeShoeDesignId is require");
+
+            if (request.OrderDetail.Quantity <= 0)
+                throw new InvalidOperationException("quantity is require");
+
+            if (request.OrderDetail.Quantity > 1)
+                throw new InvalidOperationException("Only 1 custom shoe design for 1 order");
+
+            if (request.OrderDetail.SizeId <= 0)
+                throw new InvalidOperationException("sizeId can not be 0");
+
+            if (request.OrderDetail.ManufacturerId <= 0)
+                throw new InvalidOperationException("manufacturerId is require");
+
+            if (!Enum.IsDefined(typeof(PaymentMethod), request.PaymentMethod))
+                throw new InvalidOperationException("paymentMethod is not valid");
+
+            // Check PaymentMethod.None or 0 is invalid
+            if (request.PaymentMethod == 0)
+                throw new InvalidOperationException("paymentMethodId is require");
+            //Check if exsist
+            var shippingInfor = await _shippingInfoRepository.FindAsync(request.ShippingInfoId);
+            if(shippingInfor == null)
+            {
+                throw new InvalidOperationException($"Shipping Infor with Id {request.ShippingInfoId} not found");
+            }
+            var size = await _sizeRepository.FindAsync(request.OrderDetail.SizeId);
+            if (size == null)
+            {
+                throw new InvalidOperationException($"Size with ID {request.OrderDetail.SizeId} not found");
+            }          
+            var user = await _userRepository.FindAsync(request.UserId);
+            if (user == null)
+                throw new InvalidOperationException($"User with ID {request.UserId} not found");
+                         
+
             var totalAmount = 0;
 
             var customShoeDesign = await _customShoeDesignRepository.GetAll()
@@ -377,10 +447,7 @@ namespace FCSP.Services.OrderService
                     .ThenInclude(ds => ds.Service)
                 .FirstOrDefaultAsync(d => d.Id == request.OrderDetail.CustomShoeDesignId);
 
-            if (customShoeDesign == null)
-            {
-                throw new InvalidOperationException($"Custom shoe design with ID {request.OrderDetail.CustomShoeDesignId} not found");
-            }
+            
 
             var templatePrice = customShoeDesign.CustomShoeDesignTemplate?.Price ?? 0;
             var servicesPrice = customShoeDesign.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0;
@@ -396,10 +463,10 @@ namespace FCSP.Services.OrderService
             var amountPaid = totalAmount;
             if (request.VoucherId.HasValue)
             {
-                var voucher = await _voucherRepository.GetVoucherByOrderIdAsync(request.VoucherId.Value);
+                var voucher = await _voucherRepository.FindAsync(request.VoucherId.Value);
                 if (voucher == null)
                 {
-                    throw new InvalidOperationException("Voucher not found");
+                    throw new InvalidOperationException($"VoucherId {request.VoucherId} not found");
                 }
                 else if (IsVoucherValid(voucher).isValid == false)
                 {
@@ -480,12 +547,23 @@ namespace FCSP.Services.OrderService
 
         private async Task<Order> GetEntityFromUpdateOrderRequest(UpdateOrderRequest request)
         {
+            if(request.Status == null)
+            {
+                throw new InvalidOperationException("Status is required");
+            }
+            if (!Enum.IsDefined(typeof(OrderStatus), request.Status))
+            {
+                throw new InvalidOperationException("Invalid order status");
+            }
+            if (request.Id <= 0)
+            {
+                throw new InvalidOperationException("Id can not be 0");
+            }
             var order = await _orderRepository.FindAsync(request.Id);
             if (order == null)
             {
                 throw new InvalidOperationException($"Order with ID {request.Id} not found");
             }
-
             order.Status = request.Status;
             order.UpdatedAt = DateTime.UtcNow;
 

@@ -72,16 +72,13 @@ namespace FCSP.Tests
         [Fact]
         public async Task AddManufacture_DescriptionIsLessThanFiveWords()
         {
-            // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Short desc", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
             var user = new User { Id = 1, UserRole = UserRole.Manufacturer };
             _userRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
             _manufacturerRepositoryMock.Setup(repo => repo.GetManufacturerByUserIdAsync(1)).ReturnsAsync((Manufacturer)null);
 
-            // Act
             var result = await _manufacturerService.AddManufacturer(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Equal("Description must be greater than 5 words", result.Message);
             Assert.Null(result.Data);
@@ -90,17 +87,14 @@ namespace FCSP.Tests
         [Fact]
         public async Task AddManufacturer_DescriptionIsMoreThanFiftyWords()
         {
-            // Arrange
-            var longDescription = string.Join(" ", new string[51].Select((_, i) => $"word{i}")); // 51 words
+            var longDescription = string.Join(" ", new string[51].Select((_, i) => $"word{i}"));
             var request = new AddManufacturerRequest { UserId = 1, Description = longDescription, CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
             var user = new User { Id = 1, UserRole = UserRole.Manufacturer };
             _userRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
             _manufacturerRepositoryMock.Setup(repo => repo.GetManufacturerByUserIdAsync(1)).ReturnsAsync((Manufacturer)null);
 
-            // Act
             var result = await _manufacturerService.AddManufacturer(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Equal("Description must be less than 50 words", result.Message);
             Assert.Null(result.Data);

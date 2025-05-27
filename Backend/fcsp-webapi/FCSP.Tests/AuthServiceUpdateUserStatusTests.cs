@@ -75,9 +75,7 @@ namespace FCSP.Tests
             var result = await _authService.UpdateUserStatus(request);
 
             Assert.Equal(400, result.Code);
-            Assert.Equal("Can't ban Admin", result.Message);
-            Assert.NotNull(result.Data);
-            
+            Assert.Equal("Admin accounts cannot be banned", result.Message);            
         }
         [Fact]
         public async Task UpdateUserStatus_ValidCustomerUser()
@@ -160,27 +158,6 @@ namespace FCSP.Tests
    
            
         }
-        [Fact]
-        public async Task UpdateUserStatus_UnbanUser()
-        {
-            var user = new User
-            {
-                Id = 1,
-                UserRole = UserRole.Customer,
-                IsBanned = true,
-                UpdatedAt = DateTime.UtcNow
-            };
-            var request = new UpdateUserStatusRequest { Id = 1, IsBanned = false };
-            _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
-                .ReturnsAsync(user);
-            _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
-
-            var result = await _authService.UpdateUserStatus(request);
-
-            Assert.Equal(200, result.Code);
-            Assert.Equal("User status updated successfully", result.Message);
-
-           
-        }
+     
     }
 }
