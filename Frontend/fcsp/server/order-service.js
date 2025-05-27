@@ -68,3 +68,38 @@ export async function getAllOrders() {
     throw error;
   }
 }
+
+
+export async function putPaymentWebhook(id, status) {
+  console.log('id', id);
+  console.log('status', status);
+  try {
+    const response = await instance.put('/Payment/webhook', {
+      id,
+      status
+    });
+    if (response.status === 200) {
+      return response.data;
+    }
+    throw new Error(response.data?.message || 'Failed to update payment status');
+  } catch (error) {
+    console.error('Error updating payment status:', error.response?.data || error);
+    throw error.response?.data || error;
+  }
+}
+
+// Lấy danh sách đơn hàng theo userId
+export async function getOrdersByUserId(userId) {
+  try {
+    const response = await instance.get(`/Order/user/${userId}`);
+    if (response.data.code === 200) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || `Failed to fetch orders for userId ${userId}`);
+  } catch (error) {
+    console.error(`Error getting orders for userId ${userId}:`, error);
+    throw error;
+  }
+}
+
+

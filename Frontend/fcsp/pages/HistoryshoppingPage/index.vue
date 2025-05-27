@@ -1,4 +1,5 @@
 <template>
+  <Header/>
     <div class="container py-5">
       <h1 class="mb-4">Lịch sử đơn hàng</h1>
       
@@ -37,7 +38,7 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>
               <span class="fw-bold">Đơn hàng #{{ order.id }}</span>
-              <span class="ms-3 text-muted">{{ formatDate(order.date) }}</span>
+              <span class="ms-3 text-muted">{{ formatDate(order.createdAt) }}</span>
             </div>
             <div>
               <span :class="getStatusBadgeClass(order.status)">{{ getStatusText(order.status) }}</span>
@@ -46,35 +47,29 @@
           <div class="card-body">
             <div class="row">
               <div class="col-md-8">
-                <div v-for="(item, index) in order.items" :key="index" class="d-flex mb-2">
-                  <div class="flex-shrink-0">
-                    <img :src="item.image" alt="Product image" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
-                  </div>
-                  <div class="ms-3">
-                    <h6 class="mb-0">{{ item.name }}</h6>
-                    <div class="text-muted small">
-                      <span>{{ item.quantity }} x {{ formatCurrency(item.price) }}</span>
-                    </div>
-                  </div>
+                <div v-if="order.orderDetail">
+                  <!-- render chi tiết sản phẩm nếu có -->
+                  <span class="text-muted">Có chi tiết sản phẩm</span>
+                </div>
+                <div v-else>
+                  <span class="text-muted">Không có chi tiết sản phẩm</span>
                 </div>
               </div>
               <div class="col-md-4 border-start">
                 <div class="d-flex justify-content-between mb-2">
-                  <span>Tổng tiền hàng:</span>
-                  <span>{{ formatCurrency(order.subtotal) }}</span>
+                  <span>Tổng thanh toán:</span>
+                  <span>{{ formatCurrency(order.totalPrice) }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                  <span>Phí vận chuyển:</span>
-                  <span>{{ formatCurrency(order.shipping) }}</span>
+                  <span>Phương thức thanh toán:</span>
+                  <span>{{ order.paymentMethod }}</span>
                 </div>
-                <div class="d-flex justify-content-between fw-bold">
-                  <span>Tổng thanh toán:</span>
-                  <span>{{ formatCurrency(order.total) }}</span>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Trạng thái giao hàng:</span>
+                  <span>{{ order.shippingStatus }}</span>
                 </div>
                 <div class="mt-3">
                   <button class="btn btn-outline-primary btn-sm w-100 mb-2">Xem chi tiết</button>
-                  <button v-if="order.status === 'completed'" class="btn btn-outline-secondary btn-sm w-100">Mua lại</button>
-                  <button v-if="order.status === 'processing'" class="btn btn-outline-danger btn-sm w-100">Hủy đơn hàng</button>
                 </div>
               </div>
             </div>
@@ -110,109 +105,33 @@
   </template>
   
   <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
+  import { getOrdersByUserId } from '@/server/order-service';
+import Header from '~/components/Header.vue';
   
-  // Sample order data
-  const orders = ref([
-    {
-      id: '1001',
-      date: '2023-04-15T08:30:00',
-      status: 'completed',
-      items: [
-        { 
-          name: 'Điện thoại iPhone 13', 
-          quantity: 1, 
-          price: 20990000,
-          image: 'https://via.placeholder.com/60'
-        },
-        { 
-          name: 'Ốp lưng iPhone 13', 
-          quantity: 2, 
-          price: 250000,
-          image: 'https://via.placeholder.com/60'
-        }
-      ],
-      subtotal: 21490000,
-      shipping: 30000,
-      total: 21520000
-    },
-    {
-      id: '1002',
-      date: '2023-04-10T14:45:00',
-      status: 'processing',
-      items: [
-        { 
-          name: 'Laptop Dell XPS 13', 
-          quantity: 1, 
-          price: 32990000,
-          image: 'https://via.placeholder.com/60'
-        }
-      ],
-      subtotal: 32990000,
-      shipping: 0,
-      total: 32990000
-    },
-    {
-      id: '1003',
-      date: '2023-03-28T11:20:00',
-      status: 'cancelled',
-      items: [
-        { 
-          name: 'Tai nghe Bluetooth Sony', 
-          quantity: 1, 
-          price: 2490000,
-          image: 'https://via.placeholder.com/60'
-        },
-        { 
-          name: 'Sạc dự phòng 10000mAh', 
-          quantity: 1, 
-          price: 590000,
-          image: 'https://via.placeholder.com/60'
-        }
-      ],
-      subtotal: 3080000,
-      shipping: 30000,
-      total: 3110000
-    },
-    {
-      id: '1004',
-      date: '2023-03-15T09:10:00',
-      status: 'completed',
-      items: [
-        { 
-          name: 'Áo thun nam', 
-          quantity: 2, 
-          price: 250000,
-          image: 'https://via.placeholder.com/60'
-        },
-        { 
-          name: 'Quần jeans', 
-          quantity: 1, 
-          price: 450000,
-          image: 'https://via.placeholder.com/60'
-        }
-      ],
-      subtotal: 950000,
-      shipping: 30000,
-      total: 980000
-    },
-    {
-      id: '1005',
-      date: '2023-02-20T16:35:00',
-      status: 'completed',
-      items: [
-        { 
-          name: 'Nồi cơm điện', 
-          quantity: 1, 
-          price: 1290000,
-          image: 'https://via.placeholder.com/60'
-        }
-      ],
-      subtotal: 1290000,
-      shipping: 50000,
-      total: 1340000
+  const orders = ref([]);
+  const loading = ref(true);
+  const error = ref(null);
+  
+  // Lấy userId từ localStorage
+  const userId = localStorage.getItem('userId');
+  
+  onMounted(async () => {
+    if (!userId) {
+      error.value = 'Không tìm thấy userId.';
+      loading.value = false;
+      return;
     }
-  ]);
+    try {
+      const res = await getOrdersByUserId(userId);
+      console.log('res', res);
+      orders.value = res.orders || [];
+    } catch (err) {
+      error.value = err.message || 'Lỗi khi tải đơn hàng.';
+    } finally {
+      loading.value = false;
+    }
+  });
   
   // Filters
   const filters = ref({
@@ -258,7 +177,7 @@
       }
       
       if (startDate) {
-        result = result.filter(order => new Date(order.date) >= startDate);
+        result = result.filter(order => new Date(order.createdAt) >= startDate);
       }
     }
     
@@ -308,11 +227,14 @@
   const getStatusText = (status) => {
     switch (status) {
       case 'completed':
-        return 'Đã hoàn thành';
-      case 'processing':
+      case 'Processing':
         return 'Đang xử lý';
       case 'cancelled':
+      case 'Cancelled':
         return 'Đã hủy';
+      case 'confirmed':
+      case 'Completed':
+        return 'Đã hoàn thành';
       default:
         return status;
     }
@@ -324,10 +246,13 @@
     
     switch (status) {
       case 'completed':
+      case 'Completed':
         return baseClass + 'bg-success';
       case 'processing':
+      case 'Processing':
         return baseClass + 'bg-primary';
       case 'cancelled':
+      case 'Cancelled':
         return baseClass + 'bg-danger';
       default:
         return baseClass + 'bg-secondary';

@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const instance = axios.create({
   baseURL:
-    process.env.VITE_PUBLIC_BASE_URL || "https://wyp-somee-api.somee.com/api",
+    process.env.VITE_PUBLIC_BASE_URL || "https://fcspwebapi20250527114117.azurewebsites.net/api",
 });
 
 // Thêm interceptor để xử lý headers

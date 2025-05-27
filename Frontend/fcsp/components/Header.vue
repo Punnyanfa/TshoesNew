@@ -81,11 +81,16 @@
             <i class="bi bi-person me-2"></i> Profile
           </router-link>
         </li>
-        <!-- <li>
-          <router-link class="dropdown-item" to="/settingsPage">
-            <i class="bi bi-gear me-2"></i> Settings
+        <li>
+          <router-link class="dropdown-item" to="/shippingPage">
+            <i class="bi bi-truck me-2"></i> Shipping
           </router-link>
-        </li> -->
+        </li>
+        <li>
+          <router-link class="dropdown-item" to="/historyshoppingPage">
+            <i class="bi bi-clock-history me-2"></i> Order History
+          </router-link>
+        </li>
         <li><hr class="dropdown-divider"></li>
         <li>
           <a class="dropdown-item text-danger" href="#" @click.prevent="logout">

@@ -340,7 +340,7 @@
   const toggleAddressModal = () => {
     try {
       if (!addresses.value.length) {
-        alert('Bạn chưa có địa chỉ nào. Vui lòng thêm địa chỉ trong trang cài đặt.');
+        router.push('/shippingPage');
         return;
       }
       const addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
