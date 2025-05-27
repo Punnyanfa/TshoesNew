@@ -18,6 +18,13 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [HttpGet("hashed-password/{password}")]
+    public async Task<IActionResult> GetHashedPassword(string password)
+    {
+        var response = _authService.HashPassword(password);
+        return StatusCode(200, response);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -53,6 +60,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> SendEmailToUser([FromBody] SendEmailRequest request)
     {
         var response = await _authService.SendEmailToUser(request);
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPost("[action]")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SendEmailToAdmin([FromBody] SendEmailRequest request)
+    {
+        var response = await _authService.SendEmailToAdmin(request);
         return StatusCode(response.Code, response);
     }
 
@@ -121,7 +136,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("generate")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> GenerateOtp([FromBody] GenerateOtpRequest request)
     {
         var response = await _authService.GenerateOtpAsync(request);
@@ -129,7 +144,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPut("verify")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
     {
         var response = await _authService.VerifyOtpAsync(request);

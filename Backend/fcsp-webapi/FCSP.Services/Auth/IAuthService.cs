@@ -19,7 +19,8 @@ public interface IAuthService
     Task<BaseResponseModel<UpdateUserRoleResponse>> UpdateUserRole(UpdateUserRoleRequest request);
     Task<BaseResponseModel<UpdateUserAvatarResponse>> UpdateUserAvatar(UpdateUserAvatarRequest request);
     Task<BaseResponseModel<SendEmailResponse>> SendEmailToUser(SendEmailRequest request);
-    
+    Task<BaseResponseModel<SendEmailResponse>> SendEmailToAdmin(SendEmailRequest request);
+
     // OTP-related methods
     Task<BaseResponseModel<GenerateOtpResponse>> GenerateOtpAsync(GenerateOtpRequest request);
     Task<BaseResponseModel<VerifyOtpResponse>> VerifyOtpAsync(VerifyOtpRequest request);

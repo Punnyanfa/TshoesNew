@@ -30,6 +30,7 @@ public class GetUserByIdResponse
     public string Gender { get; set; } = string.Empty;
     public string AvatarImageUrl { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
+    public bool IsVerified { get; set; } = false;
 }
 
 public class UserLoginRequest

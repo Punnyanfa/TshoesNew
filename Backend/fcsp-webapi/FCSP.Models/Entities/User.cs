@@ -19,6 +19,7 @@ public class User : BaseEntity
 
     public string? AvatarImageUrl { get; set; }
     public bool IsBanned { get; set; }
+    public bool IsEmailVerified { get; set; } = false;
 
     public UserRole UserRole { get; set; }
 

@@ -25,7 +25,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     private readonly ISizeRepository _sizeRepository;
     private readonly IConfiguration _configuration;
     private readonly string? _azureConnectionString;
-    private readonly string? _azureContainerName;
+    private readonly string? _azureImageContainerName;
+    private readonly string? _azureJsonContainerName;
 
     public CustomShoeDesignService(
         ICustomShoeDesignRepository customShoeDesignRepository,
@@ -50,7 +51,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         _sizeRepository = sizeRepository;
         _configuration = configuration;
         _azureConnectionString = _configuration["AzureStorage:ConnectionString"];
-        _azureContainerName = _configuration["AzureStorage:ImagesContainer"];
+        _azureImageContainerName = _configuration["AzureStorage:ImagesContainer"];
+        _azureJsonContainerName = _configuration["AzureStorage:JsonContainer"];
     }
 
     #region Public Methods
@@ -407,7 +409,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.Skip(1).FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount
@@ -435,7 +437,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.Skip(1).FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount
@@ -464,7 +466,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.Skip(1).FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount
@@ -564,7 +566,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount,
-                CreatedAt = $"{d.CreatedAt:HH:mm:ss dd/MM/yyyy}"
+                CreatedAt = $"{d.CreatedAt:HH:mm:ss dd/MM/yyyy}",
+                Status = d.Status
             });
         }
         return new GetCustomDesignsByUserIdResponse
@@ -791,7 +794,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
-            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureImageContainerName);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
             var blobClient = containerClient.GetBlobClient(fileName);
@@ -853,7 +856,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
             var blobServiceClient = new BlobServiceClient(_azureConnectionString);
 
-            var containerClient = blobServiceClient.GetBlobContainerClient(_azureContainerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_azureJsonContainerName);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
             var blobClient = containerClient.GetBlobClient(fileName);

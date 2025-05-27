@@ -90,7 +90,8 @@ public class AuthService : IAuthService
                 Dob = user.Dob ?? string.Empty,
                 Gender = user.Gender ?? string.Empty,
                 AvatarImageUrl = user.AvatarImageUrl ?? string.Empty,
-                PhoneNumber = user.PhoneNumber ?? string.Empty
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                IsVerified = user.IsEmailVerified
             }
         };
     }
@@ -133,7 +134,8 @@ public class AuthService : IAuthService
         {
             var user = await GetUserEntityFromUserRegisterRequestAsync(request);
             await _userRepository.AddAsync(user);
-
+            var otpRequest = new GenerateOtpRequest { Email = user.Email, PurposeType = "VerifyEmail", ExpiryTimeInMinutes = 5 };
+            var otp = await GenerateOtpAsync(otpRequest);
             return new BaseResponseModel<UserRegisterResponse>
             {
                 Code = 200,
@@ -403,6 +405,46 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<BaseResponseModel<SendEmailResponse>> SendEmailToAdmin(SendEmailRequest request)
+    {
+        try
+        {
+            var user = await _userRepository.FindAsync(request.UserId);
+            if (user == null)
+            {
+                return new BaseResponseModel<SendEmailResponse>
+                {
+                    Code = 404,
+                    Message = "User not found",
+                    Data = new SendEmailResponse { Success = false }
+                };
+            }
+
+            var emailSent = await _emailService.SendEmailAsync(
+                "trattrieu.an@gmail.com",
+                request.Subject,
+                request.Body,
+                request.IsHtml
+            );
+
+            return new BaseResponseModel<SendEmailResponse>
+            {
+                Code = emailSent ? 200 : 500,
+                Message = emailSent ? "Email sent successfully" : "Failed to send email",
+                Data = new SendEmailResponse { Success = emailSent }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<SendEmailResponse>
+            {
+                Code = 500,
+                Message = ex.Message,
+                Data = new SendEmailResponse { Success = false }
+            };
+        }
+    }
+
     public async Task<BaseResponseModel<GenerateOtpResponse>> GenerateOtpAsync(GenerateOtpRequest request)
     {
         try
@@ -488,9 +530,15 @@ public class AuthService : IAuthService
                     Data = new VerifyOtpResponse { IsValid = false }
                 };
             }
-
+            
             // Verify OTP
             bool isValid = await _userOtpRepository.VerifyOtpAsync(user.Id, request.OtpCode, request.PurposeType);
+
+            if(isValid && request.PurposeType == "VerifyEmail")
+            {
+                user.IsEmailVerified = true;
+                await _userRepository.UpdateAsync(user);
+            }
 
             return new BaseResponseModel<VerifyOtpResponse>
             {

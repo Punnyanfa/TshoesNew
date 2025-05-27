@@ -346,8 +346,8 @@ namespace FCSP.Services.PaymentService
                 payment.Amount,
                 "Payment for order " + payment.OrderId,
                 null,
-                "https://tshoes.vercel.app/paymentCancelledPage",
-                "https://tshoes.vercel.app/paymentSuccessPage"
+                "http://localhost:3000/paymentCancelledPage",
+                "http://localhost:3000/paymentSuccessPage"
             );
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return paymentResponse;

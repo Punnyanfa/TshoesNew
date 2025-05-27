@@ -121,13 +121,15 @@ namespace FCSP.DTOs.Order
     // DTO cho response (có UnitPrice)
     public class OrderDetailResponseDto
     {
-        public long CustomShoeDesignId { get; set; }
+        public string? CustomShoeDesignName { get; set; }
+        public string? CustomShoeDesignDescription { get; set; }
+        public string? FirstPreviewImageUrl { get; set; }
         public int Quantity { get; set; }
         public int UnitPrice { get; set; }
         public int TemplatePrice { get; set; }
         public int ServicePrice { get; set; }
         public int DesignerMarkup { get; set; }
-        public long SizeValue { get; set; }
+        public int SizeValue { get; set; }
     }
 
     public class ProcessPaymentRequest

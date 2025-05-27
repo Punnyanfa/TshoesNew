@@ -39,6 +39,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public int ServicePrice { get; set; }
         public int Total { get; set; }
         public string? CreatedAt { get; set; }
+        public CustomShoeDesignStatus Status { get; set; }
     }
 
     public class GetListCustomShoeDesignsResponse 

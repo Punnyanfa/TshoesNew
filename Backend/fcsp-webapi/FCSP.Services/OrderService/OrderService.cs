@@ -210,7 +210,18 @@ namespace FCSP.Services.OrderService
 
         private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByUserIdAsync(GetOrdersByUserIdRequest request)
         {
-            var orders = await _orderRepository.GetOrdersByUserIdAsync(request.UserId);
+            var orders = await _orderRepository.GetAll()
+                                                .Include(o => o.OrderDetails)
+                                                    .ThenInclude(od => od.Size)
+                                                .Include(o => o.OrderDetails)
+                                                    .ThenInclude(od => od.CustomShoeDesign)
+                                                        .ThenInclude(cd => cd.DesignPreviews)
+                                                .Include(o => o.User)
+                                                .Include(o => o.Voucher)
+                                                .Include(o => o.Payments)
+                                                .Where(o => o.UserId == request.UserId)
+                                                .ToListAsync();
+
             if (orders == null || !orders.Any())
             {
                 throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
@@ -227,9 +238,20 @@ namespace FCSP.Services.OrderService
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
                 TotalPrice = o.TotalPrice,
                 CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
-            }
-            );
+                UpdatedAt = o.UpdatedAt,
+                OrderDetail = new OrderDetailResponseDto
+                {
+                    CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
+                    CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
+                    FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                    Quantity = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Quantity ?? 0,
+                    UnitPrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TotalPrice ?? 0,
+                    TemplatePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TemplatePrice ?? 0,
+                    ServicePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.ServicePrice ?? 0,
+                    DesignerMarkup = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.DesignerMarkup ?? 0,
+                    SizeValue = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Size.SizeValue ?? 0
+                }
+            });
         }
 
         private async Task<GetOrderByIdResponse> GetOrderByIdAsync(GetOrderByIdRequest request)
@@ -257,7 +279,9 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = order.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
-                    CustomShoeDesignId = orderDetail.CustomShoeDesignId,
+                    CustomShoeDesignName = orderDetail.CustomShoeDesign?.Name,
+                    CustomShoeDesignDescription = orderDetail.CustomShoeDesign?.Description,
+                    FirstPreviewImageUrl = orderDetail.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
                     Quantity = orderDetail.Quantity,
                     UnitPrice = orderDetail.TotalPrice,
                     TemplatePrice = orderDetail.TemplatePrice,
@@ -302,7 +326,10 @@ namespace FCSP.Services.OrderService
         {
             var orders = await _orderRepository.GetAll()
                                                .Include(o => o.OrderDetails)
-                                               .ThenInclude(od => od.Size)
+                                                   .ThenInclude(od => od.Size)
+                                               .Include(o => o.OrderDetails)
+                                                   .ThenInclude(od => od.CustomShoeDesign)
+                                                       .ThenInclude(cd => cd.DesignPreviews)
                                                .Include(o => o.User)
                                                .Include(o => o.Voucher)
                                                .Include(o => o.Payments)
@@ -324,7 +351,19 @@ namespace FCSP.Services.OrderService
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
                 TotalPrice = o.TotalPrice,
                 CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
+                UpdatedAt = o.UpdatedAt,
+                OrderDetail = new OrderDetailResponseDto
+                {
+                    CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
+                    CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
+                    FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                    Quantity = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Quantity ?? 0,
+                    UnitPrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TotalPrice ?? 0,
+                    TemplatePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TemplatePrice ?? 0,
+                    ServicePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.ServicePrice ?? 0,
+                    DesignerMarkup = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.DesignerMarkup ?? 0,
+                    SizeValue = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Size.SizeValue ?? 0
+                }
             });
         }
 
