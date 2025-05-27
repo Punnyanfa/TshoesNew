@@ -6,12 +6,8 @@
         <div class="row mb-4">
           <div class="col-12">
             <h1 class="mb-3 text-primary fw-bold d-flex align-items-center">
-<<<<<<< HEAD
               <i class="bi bi-chat-square-text me-2"></i>
               Manage Ratings & Comments
-=======
-              Manage reviews & comments
->>>>>>> dc745b7b0a6bb2f544edd39b200d6912ef520236
             </h1>
           </div>
         </div>
