@@ -70,9 +70,7 @@
                 </div>
               </td>
               <td class="actions">
-                <button class="edit-btn" @click="editProduct(product)" title="Edit">
-                  <i class="fas fa-edit"></i>
-                </button>
+                
                 <button 
                   class="delete-btn" 
                   @click="confirmDelete(product)" 

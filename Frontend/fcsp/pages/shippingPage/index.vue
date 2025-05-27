@@ -1,4 +1,5 @@
 <template>
+  <Header/>
     <div class="shipping-address-container">
       <div class="container py-4">
         <h2 class="mb-4">Địa chỉ</h2>
@@ -202,10 +203,12 @@
         </button>
       </div>
     </div>
+    <Footer/>
   </template>
   
   <script>
   import { postShippingInfo, shippingInfo, deleteShippingInfo } from '@/server/shipping-service'
+import Header from '~/components/Header.vue';
 
   export default {
     name: 'ShippingAddress',
