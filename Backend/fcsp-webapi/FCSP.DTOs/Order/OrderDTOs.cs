@@ -142,25 +142,4 @@ namespace FCSP.DTOs.Order
         public long PaymentId { get; set; }
         public PaymentStatus Status { get; set; }
     }
-
-    public class UpdateOrderStatusRequest
-    {
-        [Required(ErrorMessage = "OrderId is required.")]
-        [Range(1, long.MaxValue, ErrorMessage = "OrderId must be greater than 0.")]
-        public long OrderId { get; set; }
-
-        [Required(ErrorMessage = "Status is required.")]
-        public OrderStatus Status { get; set; }
-
-        [Required(ErrorMessage = "ShippingStatus is required.")]
-        public OrderShippingStatus ShippingStatus { get; set; }
-    }
-
-    public class UpdateOrderStatusResponse
-    {
-        public long OrderId { get; set; }
-        public string Status { get; set; }
-        public string ShippingStatus { get; set; }
-      
-    }
 }
