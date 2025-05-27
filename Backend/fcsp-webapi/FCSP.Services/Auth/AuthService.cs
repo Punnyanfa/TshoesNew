@@ -839,6 +839,10 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUpdateUserStatusRequestAsync(UpdateUserStatusRequest request)
     {
+        if(request.Id <= 0)
+        {
+            throw new InvalidOperationException("Id must be greater than 0");
+        }
         var user = await _userRepository.FindAsync(request.Id);
         if (user == null)
         {
@@ -847,7 +851,7 @@ public class AuthService : IAuthService
 
         if (user.UserRole == UserRole.Admin)
         {
-            throw new InvalidOperationException($"Can't ban Admin");
+            throw new InvalidOperationException("Admin accounts cannot be banned");
         }
 
         if(user.UserRole == UserRole.Manufacturer)

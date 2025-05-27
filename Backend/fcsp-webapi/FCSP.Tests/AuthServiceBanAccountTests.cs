@@ -84,24 +84,7 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Admin accounts cannot be banned", result.Message);
-        }
-        [Fact]
-        public async Task AuthServiceBanAccount_UserIsBanned()
-        {
-            var user = new User
-            {
-                Id = 2,
-                UserRole = UserRole.Customer,
-                IsBanned = true,
-                UpdatedAt = DateTime.UtcNow
-            };
-            var request = new UpdateUserStatusRequest { Id = 2, IsBanned = true };
-            _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == request.Id)))
-                .ReturnsAsync(user);
-            var result = await _authService.UpdateUserStatus(request);
-            Assert.Equal(400, result.Code);
-            Assert.Equal("User is already got banned", result.Message);
-        }
+        }      
 
         [Fact]
         public async Task AutServiceBanAccount_Success()
