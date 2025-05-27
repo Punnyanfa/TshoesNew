@@ -534,7 +534,7 @@ const selectedQuantity = ref(1) // Thêm state cho quantity
 // Mở modal sửa tên sản phẩm
 const openEditNameModal = () => {
   if (!customProductName.value) {
-    customProductName.value = 'Custom Running Shoes'
+    customProductName.value = 'Custom Running Shoes'  
   }
   showEditNameModal.value = true
 }
@@ -1928,6 +1928,26 @@ const dataURLtoFile = (dataurl, filename) => {
   }
   return new File([u8arr], filename, {type:mime})
 }
+
+const showPreviousImage = () => {
+  if (currentImageIndex.value > 0) {
+    currentImageIndex.value--;
+    const img = uploadedImageHistory[currentImageIndex.value];
+    selectedImage.value = img.file;
+    selectedImageName.value = img.name;
+    previewImageUrl.value = img.imageUrl;
+  }
+};
+
+const showNextImage = () => {
+  if (currentImageIndex.value < uploadedImageHistory.length - 1) {
+    currentImageIndex.value++;
+    const img = uploadedImageHistory[currentImageIndex.value];
+    selectedImage.value = img.file;
+    selectedImageName.value = img.name;
+    previewImageUrl.value = img.imageUrl;
+  }
+};
 </script>
 <style scoped>
 .custom-detail-page {
