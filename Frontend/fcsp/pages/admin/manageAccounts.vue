@@ -39,8 +39,8 @@
                       </span>
                       <select class="form-select" v-model="roleFilter">
                         <option value="">All Roles</option>
-                        <option v-for="role in userRoles" :key="role" :value="role">
-                          {{ role }}
+                        <option v-for="role in userRoles" :key="role.value" :value="role.value">
+                          {{ role.label }}
                         </option>
                       </select>
                     </div>
@@ -97,8 +97,8 @@
                         </td>
                         <td>{{ account.name }}</td>
                         <td>
-                          <span :class="['badge', getRoleBadgeClass(account.role)]">
-                            {{ account.role }}
+                          <span :class="['badge', getRoleBadgeClass(userRoles.find(r => r.value === account.role)?.label)]">
+                            {{ userRoles.find(r => r.value === account.role)?.label || account.role }}
                           </span>
                         </td>
                         <td>
@@ -182,8 +182,8 @@
                         </div>
                         <h4 class="mb-1">{{ selectedAccount.name }}</h4>
                         <p class="text-muted mb-2">{{ selectedAccount.username }}</p>
-                        <span :class="['badge', getRoleBadgeClass(selectedAccount.role)]">
-                          {{ selectedAccount.role }}
+                        <span :class="['badge', getRoleBadgeClass(userRoles.find(r => r.value === selectedAccount.role)?.label)]">
+                          {{ userRoles.find(r => r.value === selectedAccount.role)?.label || selectedAccount.role }}
                         </span>
                       </div>
                       <div class="col-md-8">
@@ -348,7 +348,8 @@ export default {
       userRoles: [
         { label: 'Admin', value: 3 },
         { label: 'Designer', value: 2 },
-        { label: 'Manufacturer', value: 1 }
+        { label: 'Manufacturer', value: 1 },
+        { label: 'Customer', value: 0 }
       ],
       availablePermissions: [
         'Manage Accounts',
@@ -370,7 +371,7 @@ export default {
       
       // Apply role filter
       if (this.roleFilter) {
-        result = result.filter(account => account.role === this.roleFilter);
+        result = result.filter(account => Number(account.role) === Number(this.roleFilter));
       }
       
       // Apply status filter
@@ -381,11 +382,16 @@ export default {
       // Apply search filter
       if (this.search) {
         const searchLower = this.search.toLowerCase();
-        result = result.filter(account => 
-          account.id.toString().toLowerCase().includes(searchLower) ||
-          account.name.toLowerCase().includes(searchLower) ||
-          account.email.toLowerCase().includes(searchLower)
-        );
+        result = result.filter(account => {
+          const roleLabel = this.userRoles.find(r => r.value === account.role)?.label?.toLowerCase() || '';
+          return (
+            account.id.toString().toLowerCase().includes(searchLower) ||
+            account.name.toLowerCase().includes(searchLower) ||
+            account.email.toLowerCase().includes(searchLower) ||
+            account.role.toString().toLowerCase().includes(searchLower) ||
+            roleLabel.includes(searchLower)
+          );
+        });
       }
       
       return result;
@@ -607,7 +613,7 @@ export default {
           });
         } else {
           // Gọi API updateRole
-          const roleNumber = typeof this.editedAccount.role === 'number' ? this.editedAccount.role : this.userRoles.find(r => r.label === this.editedAccount.role)?.value;
+          const roleNumber = typeof this.editedAccount.role === 'number' ? this.editedAccount.role : this.userRoles.find(r => r.value === this.editedAccount.role)?.value;
           await updateRole(this.editedAccount.id, roleNumber, this.editedAccount.commissionRate || 0);
           await this.fetchAccounts();
           ElMessage({
@@ -631,7 +637,9 @@ export default {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: typeof user.role === 'string'
+            ? this.userRoles.find(r => r.label.toLowerCase() === user.role.toLowerCase())?.value
+            : user.role,
           status: user.status === 'Active' ? 'active' : 'inactive',
           createdAt: user.createdAt
         }));
