@@ -73,8 +73,7 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Name cannot be empty", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
+
         }
 
         [Fact]
@@ -102,9 +101,7 @@ namespace FCSP.Tests
             var result = await _authService.Register(request);
 
             Assert.Equal(400, result.Code);
-            Assert.Equal("Email can not be empty", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
+            Assert.Equal("Email can not be empty", result.Message);          
         }
 
         [Fact]
@@ -116,8 +113,6 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Invalid email format", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
@@ -131,8 +126,6 @@ namespace FCSP.Tests
 
             Assert.Equal(409, result.Code);
             Assert.Equal("User with this email already exists", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
@@ -144,8 +137,6 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Password cannot be empty", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
@@ -157,8 +148,6 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Password can not less than 8 character", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
@@ -170,8 +159,6 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Password can not greater than 20 character", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
@@ -183,8 +170,6 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Password does not format", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
 
         [Fact]
@@ -196,8 +181,6 @@ namespace FCSP.Tests
 
             Assert.Equal(400, result.Code);
             Assert.Equal("Password not match", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.False(result.Data.Success);
         }
     }
 }

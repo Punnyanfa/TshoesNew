@@ -17,7 +17,7 @@ public class VoucherExpirationService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        var intervalMinutes = configuration.GetValue<int>("PaymentProcessing:VoucherExpirationCheckIntervalMinutes", 60);
+        var intervalMinutes = configuration.GetValue<int>("PaymentProcessing:VoucherExpirationCheckIntervalMinutes", 1);
         _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
     }
 
@@ -50,6 +50,6 @@ public class VoucherExpirationService : BackgroundService
             await Task.Delay(_checkInterval, stoppingToken);
         }
 
-        _logger.LogInformation("VoucherExpirationService stopped.");
+       
     }
 }
