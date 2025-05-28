@@ -472,13 +472,12 @@ namespace FCSP.Services.OrderService
                 }
                 var discountAmount = int.TryParse(voucher.VoucherValue, out int discountValue) ? discountValue : 0;
                 amountPaid = amountPaid - discountAmount;
+                if (amountPaid <= 0)
+                {
+                    throw new InvalidOperationException("Order total must be greater than 0.");
+                }
                 voucher.Status = (int)VoucherStatus.Used;
                 await _voucherRepository.UpdateAsync(voucher);   
-            }
-
-            if (amountPaid <= 0)
-            {
-                throw new InvalidOperationException("Order total must be greater than 0.");
             }
 
             var order = new Order
