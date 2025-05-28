@@ -203,13 +203,19 @@ const register = async () => {
     const response = await registerUser(
       name.value,
       email.value,
-      password.value
+      password.value,
+      confirmPassword.value
     );
 
     if (response) {
-      message.success('Registration successful! Redirecting to login...');
+      message.success('Registration successful! Please verify your email.');
+      localStorage.setItem('registrationData', JSON.stringify({
+        name: name.value,
+        email: email.value,
+        password: password.value
+      }));
       setTimeout(() => {
-        router.push('/loginPage');
+        router.push({ path: '/verifyOTP', query: { email: email.value } });
       }, 1000);
     }
   } catch (error) {

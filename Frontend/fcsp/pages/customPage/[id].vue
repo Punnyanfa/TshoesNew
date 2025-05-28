@@ -1559,7 +1559,6 @@ const onWindowResize = () => {
 };
 
 const handleComponentChange = () => {
-  console.log('Đã chọn component:', components[selectedComponentIndex.value].name)
 }
 
 const handleCustomColorChange = () => {
@@ -1575,16 +1574,16 @@ const applyCustomColor = () => {
   const selectedPart = components[selectedComponentIndex.value].value;
   const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart];
 
-  console.log(`Applying color to component: ${selectedPart}, parts: ${partsToUpdate.join(', ')}`);
+  // console.log(`Applying color to component: ${selectedPart}, parts: ${partsToUpdate.join(', ')}`);
 
   // Handle Lace separately due to its unique mesh structure
   if (partsToUpdate.includes('Lace')) {
-    console.log('Đang áp dụng màu cho dây giày:', customColorValue.value);
+    // console.log('Đang áp dụng màu cho dây giày:', customColorValue.value);
     const laceMeshes = findAllLaceMeshes()
 
     if (laceMeshes.length > 0) {
       laceMeshes.forEach(mesh => {
-        console.log(`Đang áp dụng màu cho mesh ${mesh.name}`);
+        // console.log(`Đang áp dụng màu cho mesh ${mesh.name}`);
         if (!customTextures['Lace']) {
           customTextures['Lace'] = {
             originalMap: mesh.material.map,
@@ -1633,7 +1632,7 @@ const applyCustomColor = () => {
           const isExactMatch = nodeNameLower === partLower;
 
           if (isExactMatch) {
-            console.log(`Đang áp dụng màu cho mesh: ${node.name}`);
+            // console.log(`Đang áp dụng màu cho mesh: ${node.name}`);
 
             // Create a new material for this specific mesh
             const newMaterial = new THREE.MeshStandardMaterial({
@@ -1790,8 +1789,8 @@ const findAllLaceMeshes = () => {
     }
   })
   
-  console.log(`Tìm thấy ${laceMeshes.length} mesh dây giày:`, 
-    laceMeshes.map(mesh => ({ name: mesh.name, uuid: mesh.uuid })))
+  // console.log(`Tìm thấy ${laceMeshes.length} mesh dây giày:`, 
+  //   laceMeshes.map(mesh => ({ name: mesh.name, uuid: mesh.uuid })))
   
   return laceMeshes
 }
@@ -1844,7 +1843,6 @@ const generateAIImage = async () => {
     formData.append('OwnerId', localStorage.getItem('userId'));
 
     const result = await aiService.generateImage(formData);
-    console.log('API Response:', result);
 
     if (result.data && result.data.imageUrl) {
       // Thêm timestamp vào URL để tránh cache

@@ -31,18 +31,14 @@ export async function updateProfile(profile) {
         throw error;
     }
 }
-// Thêm function updateProfile
-export async function updateAvatar({ id, avatar }) {
+// Thêm function updateAvatar
+export async function updateAvatar(formData) {
   try {
     const token = localStorage.getItem('userToken');
     if (!token) {
       throw new Error('Bạn cần đăng nhập để cập nhật thông tin!');
     }
-    // Gửi đúng định dạng API yêu cầu: id và avatar
-    const response = await instance.put('/Auth/information', {
-      id,
-      avatar
-    }, {
+    const response = await instance.put('/Auth/avatar', formData, {
       headers: {
         Authorization: `Bearer ${token}`
       }

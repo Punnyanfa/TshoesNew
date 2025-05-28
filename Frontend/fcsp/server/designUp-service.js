@@ -44,3 +44,12 @@ export async function CustomShoeDesign(data) {
   });
   return response.data;
 }
+export async function updateStatus(id, status) {
+  try {
+    const response = await instance.put(`/CustomShoeDesign/status`, { id, status });
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating status:`, error);
+    throw error;
+  }
+}

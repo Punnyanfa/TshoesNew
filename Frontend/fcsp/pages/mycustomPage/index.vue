@@ -230,7 +230,6 @@ const editDesign = async (item) => {
         console.error('Không thể tải lại file json model 3D:', e);
       }
     }
-    localStorage.setItem('editingDesign', JSON.stringify(editingItem));
     window.location.href = `/customPage/${item.id}?edit=true`;
   } catch (e) {
     alert('Không thể lấy dữ liệu chi tiết thiết kế!');
@@ -332,9 +331,9 @@ const duplicateToCart = (item) => {
       manufacturerId: item.manufacturerId,
       price: item.price,
       surcharge: item.surcharge,
-      selectedSize: item.selectedSize || item.size,
+      selectedSize: '40', // Đặt size mặc định là 40
       selectedQuantity: item.selectedQuantity || 1,
-      image: item.image,
+      previewImageUrl: item.image || item.previewImageUrl,
       designData: {
         colors: item.designData?.colors || {},
         textures: item.designData?.textures || {},
@@ -500,7 +499,7 @@ const cleanupStorage = () => {
       localStorage.setItem('designDrafts', JSON.stringify(designDrafts.slice(-5)));
     }
     
-    console.log('Đã dọn dẹp localStorage để giảm nguy cơ vượt quota');
+   
   } catch (e) {
     console.error('Lỗi khi dọn dẹp localStorage:', e);
   }
@@ -551,7 +550,6 @@ onMounted(async () => {
           customProductName.value = editingDesign.name
           basePrice.value = editingDesign.price
           surcharge.value = editingDesign.surcharge
-          // ... và các trường khác bạn cần khôi phục ...
         }
       } catch (e) {
         console.error('Lỗi khi nạp lại thiết kế đang chỉnh sửa:', e)

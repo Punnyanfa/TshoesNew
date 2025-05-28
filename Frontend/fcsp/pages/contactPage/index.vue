@@ -33,7 +33,7 @@
           <div class="form-wrapper">
             <h2 class="form-title mb-4">Send Us A Message</h2>
             <form @submit.prevent="sendMessage" class="contact-form">
-              <div class="row mb-4">
+              <!-- <div class="row mb-4">
                 <div class="col-md-6">
                   <label class="form-label">First Name</label>
                   <input
@@ -52,7 +52,7 @@
                     required
                   />
                 </div>
-              </div>
+              </div> -->
               <div class="form-group mb-4">
                 <label class="form-label">Your Email</label>
                 <input
@@ -118,6 +118,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { sendEmail } from '../../server/auth/senEmail-service';
 
 const form = ref({
   firstName: '',
@@ -127,9 +128,20 @@ const form = ref({
   message: ''
 });
 
-const sendMessage = () => {
-  alert('Your message has been sent successfully! We will respond within 24 hours.');
-  form.value = { firstName: '', lastName: '', email: '', subject: '', message: '' };
+const sendMessage = async () => {
+  try {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('Bạn cần đăng nhập để gửi liên hệ!');
+      return;
+    }
+    await sendEmail(userId, form.value.subject, form.value.message);
+    alert('Your message has been sent successfully! We will respond within 24 hours.');
+    form.value = { firstName: '', lastName: '', email: '', subject: '', message: '' };
+  } catch (error) {
+    alert('Failed to send message. Please try again later.');
+    console.error(error);
+  }
 };
 </script>
 

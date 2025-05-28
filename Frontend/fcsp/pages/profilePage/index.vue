@@ -48,6 +48,11 @@
               <span class="me-2">{{ profile.birthdate }}</span>
             </div>
           </div>
+          <div class="mb-3 row">
+            <div class="col-sm-9 offset-sm-3">
+              <button type="button" class="button-btn" @click="showChangePassword = true">Change Password</button>
+            </div>
+          </div>
         </div>
         <div class="col-md-4 text-center">
           <div class="d-flex flex-column align-items-center">
@@ -114,12 +119,46 @@
     </div>
     <!-- Thêm backdrop khi showModal -->
     <div v-if="showModal" class="modal-backdrop"></div>
+    <!-- Modal Change Password (Bootstrap) -->
+    <div class="modal fade show" tabindex="-1" :style="showChangePassword ? 'display: block; background: rgba(0,0,0,0.5);' : 'display: none;'" aria-modal="true" role="dialog" v-if="showChangePassword">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title">Change Password</h6>
+            <button type="button" class="btn-close" @click="showChangePassword = false" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="submitChangePassword">
+              <div class="mb-3">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-control" v-model="changePassword.oldPassword" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-control" v-model="changePassword.newPassword" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" v-model="changePassword.confirmPassword" required />
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="showChangePassword = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Change</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Thêm backdrop khi showChangePassword -->
+    <div v-if="showChangePassword" class="modal-backdrop"></div>
   </div>
   <Footer />
 </template>
 
 <script>
 import { getProfile, updateProfile, updateAvatar } from '../../server/profile-service';
+import { changePassword } from '../../server/auth/senEmail-service';
 export default {
   name: 'ProfilePage',
   data() {
@@ -139,6 +178,12 @@ export default {
         phone: '',
         gender: '',
         birthdate: ''
+      },
+      showChangePassword: false,
+      changePassword: {
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       }
     }
   },
@@ -211,40 +256,63 @@ export default {
     onFileChange(event) {
       const file = event.target.files[0]
       if (!file) return
-      
       // Check file size (1MB = 1048576 bytes)
       if (file.size > 1048576) {
         alert('File size is too large. Please choose a file smaller than 1MB.')
         return
       }
-      
       // Check file type
       if (!['image/jpeg', 'image/png'].includes(file.type)) {
         alert('Only JPEG or PNG files are accepted.')
         return
       }
-      
-      // Create a preview and upload avatar
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        const base64Avatar = e.target.result
-        this.profile.avatar = base64Avatar
-        // Gọi API cập nhật avatar
-        const id = localStorage.getItem('userId')
-        if (!id) {
-          alert('Bạn cần đăng nhập để cập nhật avatar!')
-          this.$router.push('/loginPage')
-          return
-        }
-        try {
-          await updateAvatar({ id: Number(id), avatar: base64Avatar })
+      const id = localStorage.getItem('userId')
+      if (!id) {
+        alert('Bạn cần đăng nhập để cập nhật avatar!')
+        this.$router.push('/loginPage')
+        return
+      }
+      // Tạo FormData đúng chuẩn multipart/form-data
+      const formData = new FormData()
+      formData.append('Id', id)
+      formData.append('Avatar', file)
+      // Gọi API cập nhật avatar
+      updateAvatar(formData)
+        .then(() => {
           alert('Avatar updated successfully!')
-        } catch (err) {
+          // Có thể reload lại profile ở đây nếu muốn
+        })
+        .catch((err) => {
           alert('Failed to update avatar!')
           console.error(err)
-        }
+        })
+    },
+    async submitChangePassword() {
+      if (this.changePassword.newPassword !== this.changePassword.confirmPassword) {
+        alert('New password and confirm password do not match!');
+        return;
       }
-      reader.readAsDataURL(file)
+      if (this.changePassword.newPassword.length < 8) {
+        alert('Password must be at least 8 characters!');
+        return;
+      }
+      const id = localStorage.getItem('userId');
+      if (!id) {
+        alert('Bạn cần đăng nhập để đổi mật khẩu!');
+        this.$router.push('/loginPage');
+        return;
+      }
+      try {
+        await changePassword(Number(id), this.changePassword.oldPassword, this.changePassword.newPassword);
+        alert('Password changed successfully!');
+        this.showChangePassword = false;
+        this.changePassword.oldPassword = '';
+        this.changePassword.newPassword = '';
+        this.changePassword.confirmPassword = '';
+      } catch (e) {
+        alert('Failed to change password! ' + (e.response?.data?.message || ''));
+        console.error(e);
+      }
     }
   }
 }
@@ -509,94 +577,71 @@ input[type="file"] {
   z-index: 2000;
 }
 .modal-dialog {
-  max-width: 430px;
+  max-width: 350px;
   margin: 2rem auto;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(30,41,59,0.18), 0 1.5px 6px rgba(52, 152, 219, 0.08);
-  background: transparent;
 }
 .modal-content {
-  border-radius: 18px;
-  border: none;
-  box-shadow: 0 8px 32px rgba(30,41,59,0.18), 0 1.5px 6px rgba(52, 152, 219, 0.08);
-  background: #fff;
-  animation: modalPop 0.25s cubic-bezier(.4,2,.6,1) both;
-}
-@keyframes modalPop {
-  0% { transform: scale(0.95) translateY(30px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(30,41,59,0.13), 0 1.5px 6px rgba(52, 152, 219, 0.06);
+  padding: 0.5rem 0.5rem 0 0.5rem;
 }
 .modal-header {
   border-bottom: none;
   background: linear-gradient(90deg, #AAAAAA 0%, #2c3e50 100%);
   color: #fff;
-  border-radius: 18px 18px 0 0;
-  padding: 1.25rem 1.5rem 1rem 1.5rem;
+  border-radius: 14px 14px 0 0;
+  padding: 1rem 1.25rem 0.75rem 1.25rem;
 }
 .modal-title {
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: 0.5px;
-}
-.btn-close {
-  filter: invert(1);
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-.btn-close:hover {
-  opacity: 1;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.2px;
 }
 .modal-body {
-  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  padding: 1rem 1.25rem 0.5rem 1.25rem;
 }
 .modal-footer {
   border-top: none;
-  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  padding: 0.75rem 1.25rem 1.25rem 1.25rem;
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 0.5rem;
   background: transparent;
 }
-.modal-content input.form-control,
-.modal-content select.form-select {
-  border-radius: 12px;
-  border: 1.5px solid #e3e8ee;
-  font-size: 1rem;
-  padding: 0.7rem 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+.form-control {
+  border-radius: 8px;
+  font-size: 0.97rem;
+  padding: 0.5rem 0.9rem;
 }
-.modal-content input.form-control:focus,
-.modal-content select.form-select:focus {
-  border-color: #AAAAAA;
-  box-shadow: 0 0 0 2px rgba(170, 170, 170, 0.15);
+.btn-primary, .btn-secondary {
+  border-radius: 30px;
+  font-size: 0.97rem;
+  padding: 0.45rem 1.5rem;
 }
-.modal-footer .btn-primary {
+.btn-primary {
   background: linear-gradient(90deg, #AAAAAA 0%, #2c3e50 100%);
   border: none;
-  border-radius: 50px;
   font-weight: 600;
-  padding: 0.6rem 2.2rem;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(170, 170, 170, 0.10);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
-.modal-footer .btn-primary:hover {
+.btn-primary:hover {
   background: linear-gradient(90deg, #2c3e50 0%, #AAAAAA 100%);
-  box-shadow: 0 4px 16px rgba(170, 170, 170, 0.18);
-  transform: translateY(-2px);
 }
-.modal-footer .btn-secondary {
-  border-radius: 50px;
-  font-weight: 500;
-  padding: 0.6rem 1.5rem;
-  background: #e3e8ee;
-  color: #2c3e50;
-  border: none;
-  transition: background 0.2s, color 0.2s;
-}
-.modal-footer .btn-secondary:hover {
-  background: #d1d8e0;
-  color: #AAAAAA;
+@media (max-width: 480px) {
+  .modal-dialog {
+    max-width: 98vw;
+    margin: 1rem auto;
+  }
+  .modal-content, .modal-header, .modal-body, .modal-footer {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  .modal-title {
+    font-size: 1rem;
+  }
+  .btn-primary, .btn-secondary {
+    font-size: 0.93rem;
+    padding: 0.4rem 1.1rem;
+  }
 }
 /* Backdrop chuẩn Bootstrap */
 .modal-backdrop {

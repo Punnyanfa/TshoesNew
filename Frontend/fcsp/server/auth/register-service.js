@@ -8,9 +8,9 @@ const saveTokenAndUserInfo = (token, email, role, name) => {
   localStorage.setItem('userName', name);
 };
 
-export const registerUser = async (name, email, password) => {
+export const registerUser = async (name, email, password, confirmPassword) => {
   try {
-    const response = await instance.post(Register.ORIGIN, { name, email, password });
+    const response = await instance.post(Register.ORIGIN, { name, email, password, confirmPassword });
     console.log("registerUser response", response);
     
     if (response.status === 200) {
@@ -36,3 +36,24 @@ export const registerUser = async (name, email, password) => {
     }
   }
 };
+
+export const sendEmail = async (email, purposeType, expiryTimeInMinutes) => {
+  try {
+    const response = await instance.post("/Auth/generate", { email, purposeType, expiryTimeInMinutes });
+    return response.data;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error;
+  }
+}
+
+export const verifyOTP = async (email, otpCode, purposeType) => {
+  console.log("verifyOTP", email, otpCode, purposeType);
+  try {
+    const response = await instance.put("/Auth/verify", { email, otpCode, purposeType });
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    throw error;
+  }
+}

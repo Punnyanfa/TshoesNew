@@ -99,6 +99,8 @@ import {
   EyeInvisibleOutlined,
   LoadingOutlined
 } from '@ant-design/icons-vue';
+import { forgotPassword } from '@/server/auth/senEmail-service';
+import { message } from 'ant-design-vue';
 
 // State management
 const email = ref('');
@@ -195,8 +197,20 @@ const login = async () => {
 };
 
 // New handler for forgot password
-const handleForgotPassword = () => {
-  // Xử lý logic quên mật khẩu
+const handleForgotPassword = async () => {
+  if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    message.error('Please enter a valid email before resetting password!');
+    return;
+  }
+  try {
+    console.log("forgotPassword", email.value, 'ForgotPassword', 5);
+    await forgotPassword(email.value, 'ForgotPassword', 5);
+    message.success('OTP has been sent to your email!');
+    // Chuyển sang verifyOTP, truyền email và purposeType
+    router.push({ path: '/verifyOTPreset', query: { email: email.value, purposeType: 'ResetPassword' } });
+  } catch (e) {
+    message.error('Failed to send OTP. Please try again!');
+  }
 };
 </script>
 
