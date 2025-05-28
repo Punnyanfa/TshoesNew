@@ -32,6 +32,10 @@
         <GiftOutlined />
         <span>Voucher Management</span>
       </router-link>
+      <router-link to="/admin/manageSize" class="menu-item">
+        <GiftOutlined />
+        <span>Size Management</span>
+      </router-link>
       <div class="menu-item" @click="handleLogout">
         <LogoutOutlined />
         <span>Logout</span>
