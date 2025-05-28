@@ -126,8 +126,8 @@
       >
       <div class="newsletter-content">
         <div class="newsletter-text">
-          <div class="newsletter-label">Bản tin</div>
-          <h4 class="newsletter-title">Nhận cập nhật hàng tuần</h4>
+          <div class="newsletter-label">Newsletter</div>
+          <h4 class="newsletter-title">Get Weekly Updates</h4>
           <form class="newsletter-form">
             <input 
               type="email" 
@@ -135,7 +135,7 @@
               placeholder="example@gmail.com" 
               required
             />
-            <button class="newsletter-button" type="submit">Đăng ký</button>
+            <button class="newsletter-button" type="submit">Subscribe</button>
           </form>
           <div class="newsletter-website">www.DownloadNewThemes.com</div>
         </div>
@@ -147,23 +147,23 @@
       <div class="services-container">
         <div class="service-item">
           <i class="bi bi-truck"></i>
-          <div class="service-title">Giao hàng nhanh & an toàn</div>
-          <div class="service-description">Tốc độ giao hàng tuyệt vời</div>
+          <div class="service-title">Fast & Safe Delivery</div>
+          <div class="service-description">Excellent delivery speed</div>
         </div>
         <div class="service-item">
           <i class="bi bi-arrow-counterclockwise"></i>
-          <div class="service-title">Đảm bảo hoàn tiền</div>
-          <div class="service-description">Hoàn tiền trong 10 ngày</div>
+          <div class="service-title">Money Back Guarantee</div>
+          <div class="service-description">Refund within 10 days</div>
         </div>
         <div class="service-item">
           <i class="bi bi-clock-history"></i>
-          <div class="service-title">Chính sách đổi trả 24h</div>
-          <div class="service-description">Không hỏi lý do</div>
+          <div class="service-title">24h Return Policy</div>
+          <div class="service-description">No questions asked</div>
         </div>
         <div class="service-item">
           <i class="bi bi-headset"></i>
-          <div class="service-title">Hỗ trợ chất lượng</div>
-          <div class="service-description">Hỗ trợ 24/7</div>
+          <div class="service-title">Quality Support</div>
+          <div class="service-description">24/7 Support</div>
         </div>
       </div>
     </div>

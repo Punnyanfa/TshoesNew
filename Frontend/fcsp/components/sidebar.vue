@@ -7,7 +7,7 @@
         <input
           type="text"
           class="form-control"
-          placeholder="Tìm kiếm sản phẩm..."
+          placeholder="Search products..."
           v-model="searchTerm"
           @input="applyFilters"
         />
@@ -79,14 +79,14 @@ export default {
     });
 
     const filterOptions = {
-      categories: { label: "Danh mục", items: ["Nam", "Nữ", "Trẻ em", "Thể thao"] },
+      categories: { label: "Categories", items: ["Men", "Women", "Kids", "Sports"] },
       brand: {
-        label: "Thương hiệu",
+        label: "Brands",
         items: ["Studio", "Hastech", "Quickiin", "Graphic Corner", "DevItems"],
       },
-      color: { label: "Màu sắc", items: ["Xanh", "Đen", "Đỏ", "Xanh dương", "Hồng"] },
-      size: { label: "Kích cỡ", items: ["S", "M", "L", "XL"] },
-      rating: { label: "Đánh giá", items: [1, 2, 3, 4, 5] },
+      color: { label: "Colors", items: ["Green", "Black", "Red", "Blue", "Pink"] },
+      size: { label: "Sizes", items: ["S", "M", "L", "XL"] },
+      rating: { label: "Rating", items: [1, 2, 3, 4, 5] },
     };
 
     const applyFilters = () => {
@@ -101,7 +101,7 @@ export default {
     };
 
     const formatPrice = (value) => {
-      return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
     };
 
     return { searchTerm, priceRange, selectedFilters, filterOptions, applyFilters, resetFilters, formatPrice };

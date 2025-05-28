@@ -156,9 +156,9 @@
                 <div>
                   Showing <span class="fw-medium">{{ filteredAccounts.length }}</span> of <span class="fw-medium">{{ accounts.length }}</span> accounts
                 </div>
-                <button class="btn btn-primary" @click="showAddAccountModal">
+                <!-- <button class="btn btn-primary" @click="showAddAccountModal">
                   <i class="bi bi-plus-circle me-1"></i> Add New Account
-                </button>
+                </button> -->
               </div>
             </div>
     
@@ -343,7 +343,6 @@ export default {
       loading: false,
       selectedAccount: null,
       editedAccount: {},
-      isNewAccount: false,
       showEditModal: false,
       userRoles: [
         { label: 'Admin', value: 3 },
@@ -508,120 +507,20 @@ export default {
       });
     },
     editAccount(account) {
-      this.isNewAccount = false;
       this.editedAccount = JSON.parse(JSON.stringify(account));
       this.showEditModal = true;
     },
-    showAddAccountModal() {
-      this.isNewAccount = true;
-      this.editedAccount = {
-        id: 'ACC' + (this.accounts.length + 1).toString().padStart(3, '0'),
-        username: '',
-        email: '',
-        name: '',
-        phone: '',
-        role: 'Khách hàng',
-        status: 'active',
-        createdAt: new Date().toISOString().split('T')[0],
-        lastLogin: null,
-        avatar: null,
-        permissions: [],
-        password: ''
-      };
-      
-      ElMessageBox.confirm(
-        `
-        <div class="p-3">
-          <h4 class="mb-3">Add New Account</h4>
-          <form class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Username</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Email</label>
-              <input 
-                type="email" 
-                class="form-control" 
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Password</label>
-              <input 
-                type="password" 
-                class="form-control" 
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Role</label>
-              <select class="form-select" required>
-                ${this.userRoles.map(role => `
-                  <option value="${role}">
-                    ${role}
-                  </option>
-                `).join('')}
-              </select>
-            </div>
-          </form>
-        </div>
-        `,
-        'Add New Account',
-        {
-          confirmButtonText: 'Create',
-          cancelButtonText: 'Cancel',
-          customClass: 'add-account-dialog',
-          showClose: true,
-          closeOnClickModal: false,
-          closeOnPressEscape: false,
-          dangerouslyUseHTMLString: true
-        }
-      )
-      .then(async () => {
-        try {
-          // Add new account
-          this.accounts.push(this.editedAccount);
-          
-          ElMessage({
-            type: 'success',
-            message: 'Account created successfully'
-          });
-        } catch (error) {
-          ElMessage({
-            type: 'error',
-            message: error.message || 'Failed to create account'
-          });
-        }
-      })
-      .catch(() => {
-        // User cancelled the operation
-      });
-    },
     async saveAccount() {
       try {
-        if (this.isNewAccount) {
-          // Add new account (giữ nguyên logic cũ nếu cần)
-          this.accounts.push(this.editedAccount);
-          ElMessage({
-            type: 'success',
-            message: 'Account created successfully'
-          });
-        } else {
-          // Gọi API updateRole
-          const roleNumber = typeof this.editedAccount.role === 'number' ? this.editedAccount.role : this.userRoles.find(r => r.value === this.editedAccount.role)?.value;
-          await updateRole(this.editedAccount.id, roleNumber, this.editedAccount.commissionRate || 0);
-          await this.fetchAccounts();
-          ElMessage({
-            type: 'success',
-            message: 'Account updated successfully'
-          });
-          this.showEditModal = false;
-        }
+        // Gọi API updateRole
+        const roleNumber = typeof this.editedAccount.role === 'number' ? this.editedAccount.role : this.userRoles.find(r => r.value === this.editedAccount.role)?.value;
+        await updateRole(this.editedAccount.id, roleNumber, this.editedAccount.commissionRate || 0);
+        await this.fetchAccounts();
+        ElMessage({
+          type: 'success',
+          message: 'Account updated successfully'
+        });
+        this.showEditModal = false;
       } catch (error) {
         ElMessage({
           type: 'error',

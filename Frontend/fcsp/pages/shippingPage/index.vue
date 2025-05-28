@@ -2,7 +2,7 @@
   <Header/>
     <div class="shipping-address-container">
       <div class="container py-4">
-        <h2 class="mb-4">Địa chỉ</h2>
+        <h2 class="mb-4">Shipping Address</h2>
         
         <!-- Loading Indicator -->
         <div v-if="loading" class="text-center my-4">
@@ -21,7 +21,7 @@
           <div class="address-card" v-for="address in sortedAddresses" :key="address.id">
             <div class="address-content">
               <div class="address-header">
-                <h3 class="receiver-name">{{ address.receiverName || 'Không có tên' }}</h3>
+                <h3 class="receiver-name">{{ address.receiverName || 'No Name' }}</h3>
                 <div class="phone-number">{{ address.phoneNumber }}</div>
               </div>
               <div class="address-details">
@@ -30,7 +30,7 @@
               </div>
               <div class="address-actions">
                 <div class="default-badge" v-if="address.isDefault">
-                  Mặc định
+                  Default
                 </div>
                 <div class="action-buttons">
                   <button 
@@ -38,7 +38,7 @@
                     @click="openEditModal(address)"
                     :disabled="loading || isDeleting"
                   >
-                    Cập nhật
+                    Update
                   </button>
                   <button 
                     v-if="!address.isDefault"
@@ -47,7 +47,7 @@
                     :disabled="loading || isDeleting"
                   >
                     <span v-if="isDeleting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                    Xóa
+                    Delete
                   </button>
                   <button 
                     v-if="!address.isDefault"
@@ -55,7 +55,7 @@
                     @click="setAsDefault(address.id)"
                     :disabled="loading || isDeleting"
                   >
-                    Thiết lập mặc định
+                    Set as Default
                   </button>
                 </div>
               </div>
@@ -64,7 +64,7 @@
         </div>
         
         <div v-if="!loading && addresses.length === 0" class="alert alert-info">
-          Bạn chưa có địa chỉ nào. Hãy thêm địa chỉ đầu tiên bên dưới.
+          You don't have any addresses yet. Add your first address below.
         </div>
 
         <!-- Edit Address Modal -->
@@ -72,14 +72,14 @@
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">{{ isEditing ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ mới' }}</h5>
+                <h5 class="modal-title">{{ isEditing ? 'Update Address' : 'Add New Address' }}</h5>
                 <button type="button" class="btn-close" @click="closeModal"></button>
               </div>
               <div class="modal-body">
                 <form @submit.prevent="saveAddress">
                   <div class="row">
                     <div class="col-md-6 mb-3">
-                      <label for="phoneNumber" class="form-label">Số điện thoại*</label>
+                      <label for="phoneNumber" class="form-label">Phone Number*</label>
                       <input 
                         type="tel" 
                         class="form-control" 
@@ -90,7 +90,7 @@
                       >
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label for="country" class="form-label">Quốc gia</label>
+                      <label for="country" class="form-label">Country</label>
                       <input 
                         type="text" 
                         class="form-control" 
@@ -104,7 +104,7 @@
                   
                   <div class="row">
                     <div class="col-12 mb-3">
-                      <label for="address" class="form-label">Địa chỉ*</label>
+                      <label for="address" class="form-label">Address*</label>
                       <input 
                         type="text" 
                         class="form-control" 
@@ -118,7 +118,7 @@
                   
                   <div class="row">
                     <div class="col-md-4 mb-3">
-                      <label for="ward" class="form-label">Phường/Xã*</label>
+                      <label for="ward" class="form-label">Ward*</label>
                       <input 
                         type="text" 
                         class="form-control" 
@@ -129,7 +129,7 @@
                       >
                     </div>
                     <div class="col-md-4 mb-3">
-                      <label for="district" class="form-label">Quận/Huyện*</label>
+                      <label for="district" class="form-label">District*</label>
                       <input 
                         type="text" 
                         class="form-control" 
@@ -140,7 +140,7 @@
                       >
                     </div>
                     <div class="col-md-4 mb-3">
-                      <label for="city" class="form-label">Tỉnh/Thành phố*</label>
+                      <label for="city" class="form-label">City*</label>
                       <input 
                         type="text" 
                         class="form-control" 
@@ -163,7 +163,7 @@
                           :disabled="loading"
                         >
                         <label class="form-check-label" for="isDefault">
-                          Đặt làm địa chỉ mặc định
+                          Set as default address
                         </label>
                       </div>
                     </div>
@@ -176,14 +176,14 @@
                       @click="closeModal"
                       :disabled="loading"
                     >
-                      Hủy
+                      Cancel
                     </button>
                     <button 
                       type="submit" 
                       class="btn btn-primary"
                       :disabled="loading"
                     >
-                      {{ isEditing ? 'Cập nhật' : 'Thêm mới' }}
+                      {{ isEditing ? 'Update' : 'Add New' }}
                       <span v-if="loading" class="spinner-border spinner-border-sm ms-1" role="status" aria-hidden="true"></span>
                     </button>
                   </div>
@@ -199,7 +199,7 @@
           @click="openAddModal"
           :disabled="loading"
         >
-          Thêm địa chỉ mới
+          Add New Address
         </button>
       </div>
     </div>
@@ -346,7 +346,7 @@ import Header from '~/components/Header.vue';
             addressData.id = this.editingId;
           }
 
-          // Nếu đây là địa chỉ đầu tiên, tự động đặt làm mặc định
+          // If this is the first address, automatically set as default
           if (this.addresses.length === 0) {
             addressData.isDefault = true;
           }
@@ -360,50 +360,42 @@ import Header from '~/components/Header.vue';
             this.isEditing = false;
             this.editingId = null;
             this.error = null;
-            alert(this.isEditing ? 'Cập nhật địa chỉ thành công' : 'Thêm địa chỉ mới thành công');
+            alert(this.isEditing ? 'Address updated successfully' : 'New address added successfully');
           }
         } catch (error) {
           console.error('Error saving address:', error);
-          this.error = error.message || 'Không thể lưu địa chỉ. Vui lòng thử lại.';
+          this.error = error.message || 'Could not save address. Please try again.';
         } finally {
           this.loading = false;
         }
       },
       async deleteAddress(id) {
         try {
-          // Kiểm tra xem địa chỉ có tồn tại không
           const address = this.addresses.find(addr => addr.id === id);
           if (!address) {
-            this.error = 'Địa chỉ không tồn tại';
+            this.error = 'Address does not exist';
             return;
           }
 
-          // Nếu là địa chỉ mặc định, không cho phép xóa
           if (address.isDefault) {
-            this.error = 'Không thể xóa địa chỉ mặc định. Vui lòng đặt địa chỉ khác làm mặc định trước.';
+            this.error = 'Cannot delete default address. Please set another address as default first.';
             return;
           }
 
-          // Hiển thị dialog xác nhận
-          if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này không?')) {
+          if (!confirm('Are you sure you want to delete this address?')) {
             return;
           }
 
           this.isDeleting = true;
           this.error = null;
 
-          // Gọi API xóa địa chỉ
           await deleteShippingInfo(id);
-
-          // Xóa địa chỉ khỏi danh sách local
           this.addresses = this.addresses.filter(addr => addr.id !== id);
-
-          // Hiển thị thông báo thành công
-          alert('Xóa địa chỉ thành công');
+          alert('Address deleted successfully');
 
         } catch (error) {
           console.error('Error deleting address:', error);
-          this.error = error.message || 'Không thể xóa địa chỉ. Vui lòng thử lại.';
+          this.error = error.message || 'Could not delete address. Please try again.';
         } finally {
           this.isDeleting = false;
         }
@@ -419,13 +411,12 @@ import Header from '~/components/Header.vue';
               userId: this.getUserId()
             };
             await postShippingInfo(updatedAddress);
-            // Sau khi đặt địa chỉ mặc định, cập nhật lại danh sách
             await this.fetchAddresses();
-            alert('Đã đặt làm địa chỉ mặc định');
+            alert('Set as default address successfully');
           }
         } catch (error) {
           console.error('Error setting default address:', error);
-          this.error = 'Không thể đặt địa chỉ mặc định. Vui lòng thử lại.';
+          this.error = 'Could not set default address. Please try again.';
         } finally {
           this.loading = false;
         }
