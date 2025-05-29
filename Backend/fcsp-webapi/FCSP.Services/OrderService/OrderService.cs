@@ -22,6 +22,7 @@ namespace FCSP.Services.OrderService
         private readonly IUserRepository _userRepository;
         private readonly ISizeRepository _sizeRepository;
         private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
+        
 
         public OrderService(
             IOrderRepository orderRepository,
@@ -418,7 +419,8 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException("manufacturerId is require");
 
             if (!Enum.IsDefined(typeof(PaymentMethod), request.PaymentMethod))
-                throw new InvalidOperationException("paymentMethod is not valid");         
+                throw new InvalidOperationException("paymentMethod is not valid");
+                
             //Check if exsist
             var shippingInfor = await _shippingInfoRepository.FindAsync(request.ShippingInfoId);
             if(shippingInfor == null)
@@ -470,11 +472,12 @@ namespace FCSP.Services.OrderService
                 }
                 var discountAmount = int.TryParse(voucher.VoucherValue, out int discountValue) ? discountValue : 0;
                 amountPaid = amountPaid - discountAmount;
-            }
-
-            if (amountPaid <= 0)
-            {
-                throw new InvalidOperationException("Order total must be greater than 0.");
+                if (amountPaid <= 0)
+                {
+                    throw new InvalidOperationException("Order total must be greater than 0.");
+                }
+                voucher.Status = (int)VoucherStatus.Used;
+                await _voucherRepository.UpdateAsync(voucher);   
             }
 
             var order = new Order
