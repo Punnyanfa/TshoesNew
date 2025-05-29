@@ -163,9 +163,10 @@ export default {
         }
 
         const response = await postVoucher(this.voucher);
-        if (response.code === 200) {
-          // Add new voucher to the list
-          await this.loadVouchers(); // Reload the list to get fresh data
+        console.log('Save voucher response:', response); // Debug log
+
+        if ( response.code === 201) {
+          await this.loadVouchers();
           this.resetForm();
           alert('Voucher created successfully!');
         } else {

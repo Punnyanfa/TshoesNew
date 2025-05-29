@@ -557,6 +557,11 @@ export default {
         
         // Show success message
         this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
+        
+        // Close the modal
+        if (this.modalRefs.updateStatusModal) {
+          this.modalRefs.updateStatusModal.hide();
+        }
       } catch (error) {
         // Show error message
         this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái', 'danger');

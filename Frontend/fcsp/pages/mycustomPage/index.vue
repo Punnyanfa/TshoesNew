@@ -50,7 +50,7 @@
               <div class="cart-item-actions">
                 <button class="btn btn-primary edit-btn" @click="editDesign(item)">Edit</button>
                 <button class="btn btn-success add-to-cart-btn" @click="duplicateToCart(item)">Add to Cart</button>
-                <button class="btn btn-info add-to-product-btn" @click="addToProduct(item)">Add as Product</button>
+                <button class="btn btn-info add-to-product-btn" @click="addToProduct(item)" v-if="userRole === 'Designer'">Add as Product</button>
                 <button class="btn btn-danger delete-btn" @click="removeFromCart(item.id)">Delete</button>
               </div>
             </div>
@@ -133,6 +133,7 @@
           </div>
         </div>
       </div>
+
     </div>
     <Footer />
   </div>
@@ -144,6 +145,8 @@ import Header from '~/components/Header.vue';
 import Footer from '~/components/Footer.vue';
 import { getMyCustom, deleteCustom, getMyCustomById } from '~/server/myCustom-service.js';
 import { updateStatus } from '@/server/designUp-service'
+
+const userRole = ref(localStorage.getItem('role') || '');
 
 // Hàm giới hạn kích thước dữ liệu của giỏ hàng
 const limitCartSize = (cartData) => {
@@ -162,7 +165,7 @@ const limitCartSize = (cartData) => {
     if (item.previewImages && item.previewImages.length > 1) {
       item.previewImages = [item.previewImages[0]];
     }
-    
+
     // Loại bỏ các thuộc tính không cần thiết nếu có
     if (item.designData) {
       // Chỉ giữ lại các thuộc tính cần thiết
@@ -586,73 +589,11 @@ onMounted(async () => {
       }
     }
   }
+
+  // // Cập nhật lại userRole khi mounted (nếu cần)
+  // userRole.value = localStorage.getItem('role') || '';
 });
 
-const manufacturers = ref([
-  {
-    id: 'Shop Custom 1',
-    name: 'Shop Custom 1',
-    basePrice: 2500000,
-    surcharges: {
-      colorChange: 30000,
-      imageApplication: 50000,
-      componentRates: {
-        Base: 1.0,
-        Heel: 1.2,
-        Lace: 0.8,
-        OutSode: 1.5,
-        MidSole: 1.3,
-        Tip: 0.9,
-        Accent: 1.1,
-        Logo: 2.0,
-        Details: 0.7
-      }
-    },
-    modelPath: '/Adidasrunningshoes.glb'
-  },
-  {
-    id: 'Shop Custom 2',
-    name: 'Shop Custom 2',
-    basePrice: 2800000,
-    surcharges: {
-      colorChange: 35000,
-      imageApplication: 60000,
-      componentRates: {
-        Base: 1.2,
-        Heel: 1.5,
-        Lace: 0.9,
-        OutSode: 1.8,
-        MidSole: 1.5,
-        Tip: 1.0,
-        Accent: 1.3,
-        Logo: 2.5,
-        Details: 0.8
-      }
-    },
-    modelPath: '/Adidasrunningshoes.glb'
-  },
-  {
-    id: 'Shop Custom 3',
-    name: 'Shop Custom 3',
-    basePrice: 1800000,
-    surcharges: {
-      colorChange: 25000,
-      imageApplication: 40000,
-      componentRates: {
-        Base: 0.9,
-        Heel: 1.0,
-        Lace: 0.7,
-        OutSode: 1.2,
-        MidSole: 1.0,
-        Tip: 0.8,
-        Accent: 0.9,
-        Logo: 1.8,
-        Details: 0.6
-      }
-    },
-    modelPath: '/Adidasrunningshoes.glb'
-  }
-])
 </script>
 
 <style scoped>
