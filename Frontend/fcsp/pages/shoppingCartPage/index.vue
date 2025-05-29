@@ -260,11 +260,11 @@ const proceedToCheckout = () => {
   }).map(item => {
     console.log('Processing selected item:', {
       originalId: item.id,
-      customShoeDesignId: item.customShoeDesignId,
+      customShoeDesignId: item.customShoeDesignId || item.id,
       name: item.name
     });
     return {
-      id: item.customShoeDesignId,
+      id: item.customShoeDesignId|| item.id,
       name: item.name,
       price: parseFloat(item.price),
       quantity: parseInt(item.selectedQuantity) || 1,
