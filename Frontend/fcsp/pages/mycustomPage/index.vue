@@ -376,7 +376,14 @@ const duplicateToCart = (item) => {
 const addToProduct = async (item) => {
   if (confirm('Bạn có muốn đăng bán không?')) {
     try {
-      // const response = await updateStatus(item.id, 4);
+      // Kiểm tra token
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        alert('Vui lòng đăng nhập để thực hiện chức năng này!');
+        return;
+      }
+
+      const response = await updateStatus(item.id, 4);
       if (response && response.code === 200) {
         alert('Đã chuyển sang Pending thành công!');
         // Refresh data after successful update
@@ -385,27 +392,29 @@ const addToProduct = async (item) => {
           const apiData = await getMyCustom(userId);
           console.log('API Data:', apiData);
           if (apiData && apiData.data && Array.isArray(apiData.data.designs)) {
-            cart.value = apiData.data.designs.map(item => {
-              console.log('Item ID:', item.id);
-              return {
-                id: item.id,
-                name: item.name,
-                image: item.previewImageUrl || null,
-                price: item.total || 0,
-                surcharge: item.servicePrice || 0,
-                size: item.size || '',
-                designData: item.customText ? { customText: item.customText } : undefined,
-                previewImages: item.previewImageUrl ? [item.previewImageUrl] : [],
-                showPreviews: false
-              };
-            });
+            cart.value = apiData.data.designs.map(item => ({
+              id: item.id,
+              name: item.name,
+              image: item.previewImageUrl || null,
+              price: item.total || 0,
+              surcharge: item.servicePrice || 0,
+              size: item.size || '',
+              designData: item.customText ? { customText: item.customText } : undefined,
+              previewImages: item.previewImageUrl ? [item.previewImageUrl] : [],
+              showPreviews: false
+            }));
           }
         }
       } else {
-        alert('Có lỗi xảy ra!');
+        alert(response?.message || 'Có lỗi xảy ra khi cập nhật trạng thái!');
       }
     } catch (error) {
-      alert('Có lỗi xảy ra!');
+      console.error('Lỗi khi cập nhật trạng thái:', error);
+      if (error.response?.status === 401) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+      } else {
+        alert(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái!');
+      }
     }
   }
 };

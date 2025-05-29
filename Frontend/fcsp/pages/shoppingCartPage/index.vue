@@ -246,19 +246,35 @@ const selectedTotal = computed(() => {
 
 // Function to handle proceeding to checkout
 const proceedToCheckout = () => {
+  console.log('Cart Items before filtering:', cartItems.value);
+  
   // Lọc ra các sản phẩm đã được chọn
   const selectedProducts = cartItems.value.filter(item => {
     const itemId = item.id + '-' + item.selectedSize;
+    console.log('Checking item:', {
+      itemId,
+      customShoeDesignId: item.customShoeDesignId,
+      isSelected: selectedItems.value.has(itemId)
+    });
     return selectedItems.value.has(itemId);
-  }).map(item => ({
-    id: item.id,
-    name: item.name,
-    price: parseFloat(item.price),
-    quantity: parseInt(item.selectedQuantity) || 1,
-    selectedSize: item.selectedSize,
-    image: item.previewImageUrl,
-    total: parseFloat(item.price) * (parseInt(item.selectedQuantity) || 1)
-  }));
+  }).map(item => {
+    console.log('Processing selected item:', {
+      originalId: item.id,
+      customShoeDesignId: item.customShoeDesignId,
+      name: item.name
+    });
+    return {
+      id: item.customShoeDesignId,
+      name: item.name,
+      price: parseFloat(item.price),
+      quantity: parseInt(item.selectedQuantity) || 1,
+      selectedSize: item.selectedSize,
+      image: item.previewImageUrl,
+      total: parseFloat(item.price) * (parseInt(item.selectedQuantity) || 1)
+    };
+  });
+  
+  console.log('Selected Products after mapping:', selectedProducts);
   
   // Tính toán tổng tiền của các sản phẩm đã chọn
   const orderData = {
@@ -267,6 +283,8 @@ const proceedToCheckout = () => {
     shippingCost: shippingCost.value,
     totalPayment: selectedTotal.value
   };
+
+  console.log('Final Order Data:', orderData);
 
   // Lưu thông tin đơn hàng vào sessionStorage
   sessionStorage.setItem('orderData', JSON.stringify(orderData));
