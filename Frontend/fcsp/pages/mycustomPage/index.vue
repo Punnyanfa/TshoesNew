@@ -25,7 +25,7 @@
               <div class="cart-item-details">
                 <h4>{{ item.name }}</h4>
                 <p class="price">Base Price: {{ formatPrice(item.price) }}</p>
-                <p class="price">Size: {{ item.size }}</p>
+                <!-- <p class="price">Size: {{ item.size }}</p> -->
                 <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Surcharge: {{ formatPrice(item.surcharge) }}</p>
                 <p v-if="item.surcharge && item.surcharge > 0" class="price total">Total: {{ formatPrice(item.price + item.surcharge) }}</p>
 
@@ -143,6 +143,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import Header from '~/components/Header.vue';
 import Footer from '~/components/Footer.vue';
 import { getMyCustom, deleteCustom, getMyCustomById } from '~/server/myCustom-service.js';
+import { updateStatus } from '@/server/designUp-service'
 
 // Hàm giới hạn kích thước dữ liệu của giỏ hàng
 const limitCartSize = (cartData) => {
@@ -218,6 +219,7 @@ const editDesign = async (item) => {
   try {
     // Gọi API lấy chi tiết custom để lấy link file json
     const detail = await getMyCustomById(item.id);
+
     let editingItem = { ...item };
     if (detail && detail.data && detail.data.designData) {
       try {
@@ -301,7 +303,7 @@ async function removeFromCart(id) {
   if (!confirm('Bạn có chắc chắn muốn xóa thiết kế này?')) return;
   try {
     const result = await deleteCustom(id);
-    if (result.code === 200) {
+    if (result.code === 200) { 
       // Xóa khỏi cart local
       cart.value = cart.value.filter(item => item.id !== id);
       alert('Xóa thành công!');
@@ -327,6 +329,7 @@ const duplicateToCart = (item) => {
     // Tạo bản sao của item với ID mới
     const newCartItem = {
       id: Date.now(),
+      customShoeDesignId: item.id,
       name: item.name,
       manufacturerId: item.manufacturerId,
       price: item.price,
@@ -370,22 +373,41 @@ const duplicateToCart = (item) => {
 }
 
 // Thêm thiết kế vào danh sách sản phẩm
-const addToProduct = (item) => {
-  // Chuẩn bị sản phẩm để hiển thị trong modal
-  selectedProduct.value = {
-    name: item.name,
-    price: item.price,
-    surcharge: item.surcharge,
-    commission: item.commission || 0,
-    image: item.image,
-    description: `Thiết kế tùy chỉnh từ ${item.name}`,
-    designData: JSON.parse(JSON.stringify(item.designData || {})),
-    previewImages: item.previewImages ? [...item.previewImages] : [],
-    isCustomDesign: true
-  };
-  
-  // Hiển thị modal
-  showProductModal.value = true;
+const addToProduct = async (item) => {
+  if (confirm('Bạn có muốn đăng bán không?')) {
+    try {
+      // const response = await updateStatus(item.id, 4);
+      if (response && response.code === 200) {
+        alert('Đã chuyển sang Pending thành công!');
+        // Refresh data after successful update
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+          const apiData = await getMyCustom(userId);
+          console.log('API Data:', apiData);
+          if (apiData && apiData.data && Array.isArray(apiData.data.designs)) {
+            cart.value = apiData.data.designs.map(item => {
+              console.log('Item ID:', item.id);
+              return {
+                id: item.id,
+                name: item.name,
+                image: item.previewImageUrl || null,
+                price: item.total || 0,
+                surcharge: item.servicePrice || 0,
+                size: item.size || '',
+                designData: item.customText ? { customText: item.customText } : undefined,
+                previewImages: item.previewImageUrl ? [item.previewImageUrl] : [],
+                showPreviews: false
+              };
+            });
+          }
+        }
+      } else {
+        alert('Có lỗi xảy ra!');
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra!');
+    }
+  }
 };
 
 // Lưu thiết kế vào danh sách sản phẩm sau khi cập nhật thông tin
@@ -513,7 +535,6 @@ onMounted(async () => {
     const userId = localStorage.getItem('userId');
     if (userId) {
       const apiData = await getMyCustom(userId);
-      console.log("uyu",apiData);
       cart.value = (apiData && apiData.data && Array.isArray(apiData.data.designs))
         ? apiData.data.designs.map(item => ({
             id: item.id,

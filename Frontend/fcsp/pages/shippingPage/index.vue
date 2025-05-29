@@ -352,6 +352,7 @@ import Header from '~/components/Header.vue';
           }
 
           const response = await postShippingInfo(addressData);
+          console.log("Response from API:", response);
           
           if (response) {
             await this.fetchAddresses();

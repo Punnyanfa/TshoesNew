@@ -59,7 +59,7 @@
                       </div>
                       <span class="rating-value">({{ product.rating }} / {{ product.ratingCount }} reviews)</span>
                     </div>
-                    <h5 class="text-sneaker-blue mb-3">${{ formatPrice(product.price) }}</h5>
+                    <h5 class="text-sneaker-blue mb-3">${{ formatPrice(product.total) }}</h5>
                     <button
                       class="btn btn-sneaker w-100 py-3 fw-bold text-uppercase"
                       @click.stop="goToDetailPage(product.id)"

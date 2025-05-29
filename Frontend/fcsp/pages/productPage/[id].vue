@@ -37,7 +37,9 @@
           <div class="card border-0">
             <div class="card-body">
               <h1 class="card-title fw-bold">{{ product.name }}</h1>
-              <p class="card-text text-muted">{{ product.description }}</p>
+              <p class="card-text text-muted">
+                {{ [undefined, null, '', 'undefined'].includes(product?.description) ? 'stylish comfort that keeps you moving with confidence' : product?.description }}
+              </p>
               <h3 class="mb-4 fw-bold text-primary">
                 {{ product.price !== undefined ? '$' + formatPrice(product.price) : 'N/A' }}
               </h3>
@@ -113,8 +115,10 @@ const fetchProduct = async () => {
   try {
     const productId = route.params.id;
     const response = await getProductById(productId);
+    console.log("Raw API Response:", response);
     product.value = response;
-    console.log('Template data:', product.value);
+    console.log("Product value after assignment:", product.value);
+    console.log("Description value:", product.value?.description);
   } catch (error) {
     console.error('Error fetching product:', error);
   } finally {
@@ -139,7 +143,7 @@ const addToCart = () => {
     const productToAdd = {
       id: product.value.id,
       name: product.value.name,
-      description: product.value.description,
+      description: product.value.description||'stylish comfort that keeps you moving with confidence',
       price: product.value.price,
       selectedSize: selectedSize.value,
       selectedQuantity: selectedQuantity.value,

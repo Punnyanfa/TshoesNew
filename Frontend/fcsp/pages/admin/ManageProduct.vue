@@ -55,22 +55,19 @@
               <td>{{ product.rating }}/5</td>
               <td>{{ product.ratingCount }}</td>
               <td>
-                <div class="status-toggle">
-                  <label class="switch">
-                    <input 
-                      type="checkbox" 
-                      :checked="product.status === 1"
-                      @change="toggleStatus(product)"
-                    >
-                    <span class="slider round"></span>
-                  </label>
-                  <span :class="['status-text', product.status === 1 ? 'active' : 'inactive']">
-                    {{ getStatusText(product.status) }}
-                  </span>
-                </div>
+                <span :class="['status-text', getStatusClass(product.status)]">
+                  {{ getStatusText(product.status) }}
+                </span>
               </td>
               <td class="actions">
-                
+                <button 
+                  class="btn btn-sm btn-outline-success me-1" 
+                  data-bs-toggle="tooltip" 
+                  title="Edit Status"
+                  @click="openStatusModal(product)"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
                 <button 
                   class="delete-btn" 
                   @click="confirmDelete(product)" 
@@ -171,6 +168,33 @@
           </form>
         </div>
       </div>
+
+      <!-- Modal Update Status (Bootstrap style) -->
+      <div class="modal fade" id="statusModal" tabindex="-1" ref="statusModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title">Update Product Status</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="status-select" class="form-label">Select new status:</label>
+                <select id="status-select" class="form-select" v-model="selectedStatus">
+                  <option :value="1">Public</option>
+                  <!-- <option :value="2">Private</option> -->
+                  <option :value="3">Archived</option>
+                  <option :value="4">Pending</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-success" @click="confirmUpdateStatus">Update</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     
     <client-only>
@@ -202,7 +226,8 @@
 
 <script>
 import AdminSidebar from '@/components/AdminSidebar.vue'
-import { getAllProducts, updateProductStatus, deleteProduct } from '@/server/product-service'
+import { getAllProducts, deleteProduct } from '@/server/product-service'
+import { updateStatus } from '@/server/designUp-service'
 
 export default {
   name: 'ManageProduct',
@@ -221,6 +246,7 @@ export default {
       showAddModal: false,
       showEditModal: false,
       showDeleteModal: false,
+      showStatusModal: false,
       productForm: {
         name: '',
         previewImageUrl: '',
@@ -231,7 +257,9 @@ export default {
         status: 1,
         gender: null
       },
-      selectedProduct: null
+      selectedProduct: null,
+      selectedStatus: null,
+      statusModal: null
     }
   },
   computed: {
@@ -282,13 +310,14 @@ export default {
     async fetchProducts() {
       try {
         const response = await getAllProducts()
+        console.log(response)
         if (response && response.code === 200 && response.data && response.data.designs) {
           this.products = response.data.designs.map(design => ({
             id: design.id,
             name: design.name,
             image: design.previewImageUrl,
-            price: design.price || 0,
-            status: 1, 
+            price: design.total || 0,
+            status: design.status,
             description: design.description || '',
             rating: design.rating || 0,
             ratingCount: design.ratingCount || 0
@@ -305,7 +334,21 @@ export default {
       }).format(price)
     },
     getStatusText(status) {
-      return status === 1 ? 'Active' : 'Inactive'
+      switch (status) {
+        case 1: return 'Public';
+        
+        case 3: return 'Archived';
+        case 4: return 'Pending';
+        default: return 'Unknown';
+      }
+    },
+    getStatusClass(status) {
+      switch (status) {
+        case 1: return 'public';
+        case 3: return 'archived';
+        case 4: return 'pending';
+        default: return '';
+      }
     },
     handleImageUpload(event) {
       const file = event.target.files[0]
@@ -331,7 +374,7 @@ export default {
       try {
         if (this.selectedProduct) {
           // Update the product status
-          const response = await updateProductStatus(this.selectedProduct.id, this.productForm.status);
+          const response = await updateStatus(this.selectedProduct.id, this.productForm.status);
           
           if (response && response.code === 200) {
             // Show success message or notification
@@ -405,29 +448,43 @@ export default {
         this.currentPage++
       }
     },
-    async toggleStatus(product) {
+    openStatusModal(product) {
+      if (!this.statusModal && window.bootstrap) {
+        this.statusModal = new window.bootstrap.Modal(this.$refs.statusModal);
+      }
+      this.selectedProduct = product;
+      this.selectedStatus = product.status;
+      this.statusModal.show();
+    },
+    closeStatusModal() {
+      if (this.statusModal) this.statusModal.hide();
+      this.selectedProduct = null;
+      this.selectedStatus = null;
+    },
+    async confirmUpdateStatus() {
+      if (!this.selectedProduct) return;
       try {
-        const newStatus = product.status === 1 ? 2 : 1;
-        const response = await updateProductStatus(product.id, newStatus);
-        
+        const response = await updateStatus(this.selectedProduct.id, this.selectedStatus);
         if (response && response.code === 200) {
-          // Update the local product status
-          product.status = newStatus;
-          // Show success message
-          alert('Product status updated successfully!');
+          this.selectedProduct.status = this.selectedStatus;
+          alert('Status updated successfully!');
+          this.closeStatusModal();
         } else {
-          throw new Error('Failed to update product status');
+          throw new Error('Failed to update status');
         }
       } catch (error) {
-        console.error('Error updating product status:', error);
-        alert('An error occurred while updating product status!');
-        // Revert the checkbox state
-        product.status = product.status === 1 ? 2 : 1;
+        alert('Error updating status!');
       }
     }
   },
   mounted() {
-    this.fetchProducts()
+    this.fetchProducts();
+    // Ensure Bootstrap JS is available
+    if (typeof window !== 'undefined' && !window.bootstrap) {
+      import('bootstrap/dist/js/bootstrap.bundle.min.js').then((mod) => {
+        window.bootstrap = mod;
+      });
+    }
   }
 }
 </script>
@@ -535,72 +592,33 @@ th {
   gap: 10px;
 }
 
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #4CAF50;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #4CAF50;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-.slider.round {
-  border-radius: 24px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
 .status-text {
   font-size: 14px;
   font-weight: 500;
 }
 
-.status-text.active {
+.status-text.public {
   color: #4CAF50;
 }
 
-.status-text.inactive {
+.status-text.private {
   color: #f44336;
+}
+
+.status-text.archived {
+  color: #2196F3;
+}
+
+.status-text.pending {
+  color: #FF9800;
+}
+
+.status-update-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
 }
 
 .actions {
@@ -747,147 +765,6 @@ input:checked + .slider:before {
 .btn-cancel,
 .btn-delete {
   padding: 0.5rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-cancel {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-cancel:hover {
-  background-color: #5a6268;
-}
-
-.btn-delete {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-delete:hover {
-  background-color: #c82333;
-}
-
-/* Action buttons */
-.actions {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-}
-
-.edit-btn,
-.delete-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.edit-btn {
-  background-color: #2196F3;
-  color: white;
-}
-
-.edit-btn:hover {
-  background-color: #1976D2;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.delete-btn:hover {
-  background-color: #d32f2f;
-}
-
-.edit-btn i,
-.delete-btn i {
-  font-size: 16px;
-}
-
-.modal-overlay {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-}
-
-.modal-container {
-  width: 400px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-  transition: all 0.3s ease;
-}
-
-.modal-header {
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-}
-
-.modal-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 1.25rem;
-}
-
-.modal-close {
-  border: none;
-  background: none;
-  font-size: 24px;
-  font-weight: bold;
-  color: #666;
-  cursor: pointer;
-}
-
-.modal-close:hover {
-  color: #333;
-}
-
-.modal-body {
-  padding: 20px;
-  text-align: center;
-}
-
-.modal-footer {
-  padding: 15px 20px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  border-top: 1px solid #eee;
-}
-
-.btn-cancel,
-.btn-delete {
-  padding: 8px 20px;
   border: none;
   border-radius: 4px;
   font-weight: 500;
