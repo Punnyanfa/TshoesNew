@@ -146,7 +146,8 @@ import Footer from '~/components/Footer.vue';
 import { getMyCustom, deleteCustom, getMyCustomById } from '~/server/myCustom-service.js';
 import { updateStatus } from '@/server/designUp-service'
 
-const userRole = ref(localStorage.getItem('role') || '');
+// Khai báo userRole với giá trị mặc định
+const userRole = ref('');
 
 // Hàm giới hạn kích thước dữ liệu của giỏ hàng
 const limitCartSize = (cartData) => {
@@ -593,8 +594,8 @@ onMounted(async () => {
     }
   }
 
-  // // Cập nhật lại userRole khi mounted (nếu cần)
-  // userRole.value = localStorage.getItem('role') || '';
+  // Lấy userRole từ localStorage sau khi component được mount
+  userRole.value = localStorage.getItem('role') || '';
 });
 
 </script>
