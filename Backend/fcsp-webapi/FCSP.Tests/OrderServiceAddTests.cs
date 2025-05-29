@@ -138,24 +138,6 @@ namespace FCSP.Tests
         }
 
         [Fact]
-        public async Task OrderService_NullPaymentMethod()
-        {
-            var request = new AddOrderRequest
-            {
-                UserId = 1,
-                ShippingInfoId = 1,
-                VoucherId = null,
-                OrderDetail = new OrderDetailRequestDto { CustomShoeDesignId = 1, Quantity = 1, SizeId = 1, ManufacturerId = 1 },
-                PaymentMethod = 0
-            };
-
-            var exception = await _orderService.AddOrder(request);
-
-            Assert.Equal(400, exception.Code);
-            Assert.Equal("paymentMethodId is require", exception.Message);
-        }
-
-        [Fact]
         public async Task OrderService_InvalidPaymentMethod()
         {
             var request = new AddOrderRequest

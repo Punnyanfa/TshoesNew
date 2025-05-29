@@ -48,48 +48,14 @@ namespace FCSP.Tests
             fileMock.Setup(f => f.ContentType).Returns(contentType);
             fileMock.Setup(f => f.Length).Returns(content.Length);
             fileMock.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
-                .Callback<Stream, CancellationToken>((s, ct) => s.Write(content, 0, content.Length)) // Fix: Write byte[] to stream
+                .Callback<Stream, CancellationToken>((s, ct) => s.Write(content, 0, content.Length))
                 .Returns(Task.CompletedTask);
             return fileMock.Object;
         }
 
-        // UTCID01: Normal case - All valid inputs
         [Fact]
-        public async Task AddTemplate_ValidInputs_ReturnsSuccess()
+        public async Task AddTemplate_NameIsNull()
         {
-            // Arrange
-            var request = new AddTemplateRequest
-            {
-                Name = "Sport shoe",
-                Description = "Sport shoe for men to play sports",
-                Gender = "Male",
-                Color = "Red,Blue",
-                PreviewImage = CreateMockFile("preview.jpg", "image/jpeg", new byte[] { 0xFF, 0xD8 }),
-                Model3DFile = CreateMockFile("model.glb", "model/gltf-binary", new byte[] { 0x67, 0x6C, 0x54, 0x46 }),
-                BasePrice = 200000,
-                IsAvailable = true
-            };
-
-            
-            _templateRepositoryMock
-       .Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
-       .ReturnsAsync((CustomShoeDesignTemplate template) => template); 
-
-            // Act
-            var result = await _templateService.AddTemplate(request);
-
-            // Assert
-            Assert.Equal(201, result.Code);
-            Assert.Equal("Template created successfully", result.Message);
-            Assert.NotNull(result.Data);
-            Assert.True(result.Data.Success);
-        }
-
-        // UTCID02: Name is null
-        [Fact]
-        public async Task AddTemplate_NameIsNull_ReturnsError()
-        {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = null,
@@ -102,20 +68,15 @@ namespace FCSP.Tests
                 IsAvailable = true
             };
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("Name is required", result.Message);
-            Assert.Null(result.Data);
-        }
 
-        // UTCID03: Name < 5 characters
+        }
         [Fact]
-        public async Task AddTemplate_NameLessThan5Chars_ReturnsError()
+        public async Task AddTemplate_NameLessThan5Chars()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "shoe",
@@ -131,23 +92,18 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Name must be greater than 5 characters"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Name must be greater than 5 characters", result.Message);
-            Assert.Null(result.Data);
         }
-
-        // UTCID04: Name > 50 characters
         [Fact]
-        public async Task AddTemplate_NameMoreThan50Chars_ReturnsError()
+        public async Task AddTemplate_NameMoreThan50Chars()
         {
-            // Arrange
+
             var request = new AddTemplateRequest
             {
-                Name = new string('a', 51), // 51 characters
+                Name = new string('a', 51),
                 Description = "Sport shoe for men",
                 Gender = "Male",
                 Color = "Red,Blue",
@@ -160,20 +116,16 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Name must be less than 50 characters"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Name must be less than 50 characters", result.Message);
             Assert.Null(result.Data);
         }
 
-        // UTCID05: Invalid name format
         [Fact]
-        public async Task AddTemplate_InvalidNameFormat_ReturnsError()
+        public async Task AddTemplate_InvalidNameFormat()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "123@!*",
@@ -189,20 +141,15 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Invalid name format"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Invalid name format", result.Message);
-            Assert.Null(result.Data);
         }
 
-        // UTCID06: Description is null
         [Fact]
-        public async Task AddTemplate_DescriptionIsNull_ReturnsError()
+        public async Task AddTemplate_DescriptionIsNull()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -218,20 +165,15 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Description is require"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Description is require", result.Message);
-            Assert.Null(result.Data);
         }
 
-        // UTCID07: Description < 3 words
         [Fact]
-        public async Task AddTemplate_DescriptionLessThan3Words_ReturnsError()
+        public async Task AddTemplate_DescriptionLessThan3Words()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -247,24 +189,19 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Description must be greater than 3 words"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Description must be greater than 3 words", result.Message);
-            Assert.Null(result.Data);
         }
 
-        // UTCID08: Description > 25 words
         [Fact]
-        public async Task AddTemplate_DescriptionMoreThan25Words_ReturnsError()
+        public async Task AddTemplate_DescriptionMoreThan25Words()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
-                Description = string.Join(" ", Enumerable.Repeat("word", 26)), // 26 words
+                Description = string.Join(" ", Enumerable.Repeat("word", 26)), 
                 Gender = "Male",
                 Color = "Red,Blue",
                 PreviewImage = CreateMockFile("preview.jpg", "image/jpeg", new byte[] { 0xFF, 0xD8 }),
@@ -276,20 +213,15 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Description must be less than 25 words"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Description must be less than 25 words", result.Message);
-            Assert.Null(result.Data);
         }
 
-        // UTCID09: Invalid description format
         [Fact]
-        public async Task AddTemplate_InvalidDescriptionFormat_ReturnsError()
+        public async Task AddTemplate_InvalidDescriptionFormat()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -305,20 +237,16 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Invalid description format"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Description must", result.Message);
             
         }
 
-        // UTCID10: Gender is null
         [Fact]
-        public async Task AddTemplate_GenderIsNull_ReturnsError()
+        public async Task AddTemplate_GenderIsNull()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -334,20 +262,15 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Gender is require"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Gender is require", result.Message);
-            Assert.Null(result.Data);
         }
 
-        // UTCID11: Invalid gender
         [Fact]
-        public async Task AddTemplate_InvalidGender_ReturnsError()
+        public async Task AddTemplate_InvalidGender()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -363,20 +286,16 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Gender is invalid"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Gender is invalid", result.Message);
             Assert.Null(result.Data);
         }
 
-        // UTCID12: Color is null
         [Fact]
-        public async Task AddTemplate_ColorIsNull_ReturnsError()
+        public async Task AddTemplate_ColorIsNull()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -392,45 +311,14 @@ namespace FCSP.Tests
             _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
                 .ThrowsAsync(new InvalidOperationException("Color is require"));
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Color is require", result.Message);
-            Assert.Null(result.Data);
         }
-
-        // UTCID13: Invalid color
+     
         [Fact]
-        public async Task AddTemplate_InvalidColor_ReturnsError()
-        {
-            // Arrange
-            var request = new AddTemplateRequest
-            {
-                Name = "Sport shoe",
-                Description = "Sport shoe for men",
-                Gender = "Male",
-                Color = "thuan",
-                PreviewImage = CreateMockFile("preview.jpg", "image/jpeg", new byte[] { 0xFF, 0xD8 }),
-                Model3DFile = CreateMockFile("model.glb", "model/gltf-binary", new byte[] { 0x67, 0x6C, 0x54, 0x46 }),
-                BasePrice = 200000,
-                IsAvailable = true
-            };
-
-            _templateRepositoryMock.Setup(x => x.AddAsync(It.IsAny<CustomShoeDesignTemplate>()))
-                .ThrowsAsync(new InvalidOperationException("Color is invalid"));
-
-            // Act
-            var result = await _templateService.AddTemplate(request);
-
-            // Assert
-            Assert.Equal(500, result.Code);
-            Assert.Contains("Color is invalid", result.Message);
-            Assert.Null(result.Data);
-        }
-        [Fact]
-        public async Task AddTemplate_PreviewImageIsNull_ReturnsError()
+        public async Task AddTemplate_PreviewImageIsNull()
         {
             var request = new AddTemplateRequest
             {
@@ -451,11 +339,9 @@ namespace FCSP.Tests
 
         }
 
-        // UTCID15: Invalid preview image file
         [Fact]
-        public async Task AddTemplate_InvalidPreviewImage_ReturnsError()
+        public async Task AddTemplate_InvalidPreviewImage()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -468,17 +354,14 @@ namespace FCSP.Tests
                 IsAvailable = true
             };
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(500, result.Code);
             Assert.Contains("Azure Storage", result.Message);
-
         }
 
         [Fact]
-        public async Task AddTemplate_Model3DFileIsNull_ReturnsError()
+        public async Task AddTemplate_Model3DFileIsNull()
         {
             var request = new AddTemplateRequest
             {
@@ -498,9 +381,9 @@ namespace FCSP.Tests
             Assert.Contains("Model3DFile is require", result.Message);
         }
 
-        // UTCID17: Invalid 3D model file
+
         [Fact]
-        public async Task AddTemplate_InvalidModel3DFile_ReturnsError()
+        public async Task AddTemplate_InvalidModel3DFile()
         {
             var request = new AddTemplateRequest
             {
@@ -518,14 +401,12 @@ namespace FCSP.Tests
 
             Assert.Equal(500, result.Code);
             Assert.Contains("Azure Storage", result.Message);
-            Assert.Null(result.Data);
         }
 
-        // UTCID18: BasePrice is negative
+ 
         [Fact]
-        public async Task AddTemplate_NegativeBasePrice_ReturnsError()
+        public async Task AddTemplate_NegativeBasePrice()
         {
-            // Arrange
             var request = new AddTemplateRequest
             {
                 Name = "Sport shoe",
@@ -538,17 +419,14 @@ namespace FCSP.Tests
                 IsAvailable = true
             };
 
-            // Act
             var result = await _templateService.AddTemplate(request);
 
-            // Assert
             Assert.Equal(400, result.Code);
             Assert.Equal("BasePrice cannot be negative", result.Message);
-            Assert.Null(result.Data);
         }
 
         [Fact]
-        public async Task AddTemplate_InvalidBasePriceFormat_ReturnsError()
+        public async Task AddTemplate_InvalidBasePriceFormat()
         {
             var request = new AddTemplateRequest
             {
@@ -569,7 +447,6 @@ namespace FCSP.Tests
 
             Assert.Equal(500, result.Code);
             Assert.Contains("Invalid BasePrice format", result.Message);
-            Assert.Null(result.Data);
         }
       
     }

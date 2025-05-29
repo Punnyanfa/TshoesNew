@@ -4,6 +4,7 @@ using FCSP.DTOs.Voucher;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,9 +15,10 @@ namespace FCSP.Services.VoucherService
     public class VoucherService : IVoucherService
     {
         private readonly IVoucherRepository _voucherRepository;
+        private readonly IConfiguration _configuration;
         private const int MAX_EXPIRY_DAYS = 30;
 
-        public VoucherService(IVoucherRepository voucherRepository)
+        public VoucherService(IVoucherRepository voucherRepository, IConfiguration configuration)
         {
             _voucherRepository = voucherRepository;
         }
@@ -200,13 +202,22 @@ namespace FCSP.Services.VoucherService
         {
             try
             {
-                var voucher = CreateVoucherFromRequest(request);
+                var voucher = await CreateVoucherFromRequest(request);
                 var addedVoucher = await _voucherRepository.AddAsync(voucher);
                 return new BaseResponseModel<AddVoucherResponse>
                 {
-                    Code = 201,
+                    Code = 200,
                     Message = "Voucher created successfully",
                     Data = new AddVoucherResponse { VoucherId = addedVoucher.Id }
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<AddVoucherResponse>
+                {
+                    Code = ex.Message.Contains("not found")? 404 : 400,
+                    Message = ex.Message,
+                    Data = null
                 };
             }
             catch (ArgumentException ex)
@@ -276,7 +287,7 @@ namespace FCSP.Services.VoucherService
         {
             try
             {
-                var voucher = await GetVoucherEntityById(new GetVoucherByIdRequest { Id = request.Id });
+                var voucher = await GetDeleteVoucherRequestAsync(new DeleteVoucherRequest { Id = request.Id });
                 await _voucherRepository.DeleteAsync(voucher.Id);
                 return new BaseResponseModel<DeleteVoucherResponse>
                 {
@@ -378,6 +389,19 @@ namespace FCSP.Services.VoucherService
             }).ToList();
         }
 
+        private async Task<DeleteVoucherRequest> GetDeleteVoucherRequestAsync(DeleteVoucherRequest request)
+        {
+            if (request.Id <= 0)
+            {
+                throw new ArgumentException("Id must be greater than 0");
+            }
+            var voucher = await _voucherRepository.FindAsync(request.Id);
+            if (voucher == null)
+            {
+                throw new InvalidOperationException("Voucher not found");
+            }
+            return request;
+        }
         private async Task<Voucher> GetVoucherEntityById(GetVoucherByIdRequest request)
         {
             if (request.Id <= 0)
@@ -427,8 +451,45 @@ namespace FCSP.Services.VoucherService
             }).ToList();
         }
 
-        private Voucher CreateVoucherFromRequest(AddVoucherRequest request)
+        private async Task<Voucher> CreateVoucherFromRequest(AddVoucherRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Code))
+            {
+                throw new InvalidOperationException("Code cannot be null or empty");
+            }
+            if (request.Code.Length < 5)
+            {
+                throw new InvalidOperationException("Code must be at least 5 characters");
+            }
+            if (request.Code.Length > 20)
+            {
+                throw new InvalidOperationException("Code must be greater than 20 characters");
+            }
+            if (System.Text.RegularExpressions.Regex.IsMatch(request.Code, "[^a-zA-Z0-9]"))
+            {
+                throw new InvalidOperationException("Code should not include special character");
+            }
+            if (request.DiscountAmount <= 0 || request.DiscountAmount == null)
+            {
+                throw new InvalidOperationException("Discount amount must be greater than 0");
+            }
+            if (request.DiscountAmount < 0)
+            {
+                throw new InvalidOperationException("Discount amount must be greater than 0");
+            }
+            if(request.DiscountAmount > 30)
+            {
+                throw new InvalidOperationException("Discount amount must be less than or equal to 30");
+            }
+            if (request.ExpiryDate < DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("expiryDate can not be the past ");
+            }
+            var existingVoucher = await _voucherRepository.FindAsync(request.Code);
+            if (existingVoucher != null)
+            {
+                throw new InvalidOperationException($"Voucher with code {request.Code} already exists");
+            }
             ValidateExpirationDate(request.ExpiryDate);
             return new Voucher
             {

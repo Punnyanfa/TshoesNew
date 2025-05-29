@@ -418,11 +418,7 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException("manufacturerId is require");
 
             if (!Enum.IsDefined(typeof(PaymentMethod), request.PaymentMethod))
-                throw new InvalidOperationException("paymentMethod is not valid");
-
-            // Check PaymentMethod.None or 0 is invalid
-            if (request.PaymentMethod == 0)
-                throw new InvalidOperationException("paymentMethodId is require");
+                throw new InvalidOperationException("paymentMethod is not valid");         
             //Check if exsist
             var shippingInfor = await _shippingInfoRepository.FindAsync(request.ShippingInfoId);
             if(shippingInfor == null)

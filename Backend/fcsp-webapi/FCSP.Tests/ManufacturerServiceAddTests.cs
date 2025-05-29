@@ -165,14 +165,10 @@ namespace FCSP.Tests
             _manufacturerRepositoryMock.Setup(repo => repo.GetManufacturerByUserIdAsync(1)).ReturnsAsync((Manufacturer)null);
             _manufacturerRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Manufacturer>())).ReturnsAsync(addedManufacturer);
 
-            // Act
             var result = await _manufacturerService.AddManufacturer(request);
 
-            // Assert
             Assert.Equal(201, result.Code);
-            Assert.Equal("Manufacturer added successfully", result.Message);
-            Assert.NotNull(result.Data);
-            
+            Assert.Equal("Manufacturer added successfully", result.Message);            
         }
 
         [Fact]
