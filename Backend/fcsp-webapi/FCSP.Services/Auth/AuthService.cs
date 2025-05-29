@@ -657,17 +657,12 @@ public class AuthService : IAuthService
 
     private async Task<User> GetUserEntityFromUserRegisterRequestAsync(UserRegisterRequest request)
     {
-        // Validate name
         if (string.IsNullOrWhiteSpace(request.Name))
             throw new ArgumentException("Name cannot be empty");
-
-        // Validate email
         if (string.IsNullOrWhiteSpace(request.Email))
             throw new ArgumentException("Email can not be empty");
         if (!IsValidEmail(request.Email))
             throw new ArgumentException("Invalid email format");
-
-        // Validate password
         if (string.IsNullOrWhiteSpace(request.Password))
             throw new ArgumentException("Password cannot be empty");
         if (request.Password.Length < 8)
@@ -676,8 +671,6 @@ public class AuthService : IAuthService
             throw new ArgumentException("Password can not greater than 20 character");
         if (!IsValidPassword(request.Password))
             throw new ArgumentException("Password does not format");
-
-        // Validate confirm password
         if (request.ConfirmPassword != request.Password)
             throw new ArgumentException("Password not match");
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
@@ -937,9 +930,9 @@ public class AuthService : IAuthService
 
         // Validate Name
         if (string.IsNullOrWhiteSpace(request.Name))
-            throw new ArgumentException("Name is not in correct format (Name can not be empty)");
+            throw new ArgumentException("Name can not be empty");
         if (!IsValidName(request.Name))
-            throw new ArgumentException("Name is not in correct format (Name can not be empty)");
+            throw new ArgumentException("Name is not in correct format");
         if (request.Name.Length < 5)
             throw new ArgumentException("Name can not less than 5 characters");
         if (request.Name.Length > 25)

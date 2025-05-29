@@ -384,7 +384,6 @@ namespace FCSP.Services.ManufacturerService
             {
                 throw new InvalidOperationException("User already has a Manufacturer");
             }
-            // Validate Description
             if (string.IsNullOrWhiteSpace(request.Description))
             {
                 throw new ArgumentException("Description can not be empty");
@@ -397,8 +396,7 @@ namespace FCSP.Services.ManufacturerService
             if (words.Length > 50)
             {
                 throw new ArgumentException("Description must be less than 50 words");
-            }
-            // Validate CommissionRate
+            }  
             if (request.CommissionRate <= 0)
             {
                 throw new ArgumentException("CommissionRate can not be empty");
@@ -411,7 +409,6 @@ namespace FCSP.Services.ManufacturerService
             {
                 throw new ArgumentException("commissionRate must be less than 50");
             }
-            // Validate Status
             if (!Enum.IsDefined(typeof(ManufacturerStatus), request.Status))
             {
                 throw new ArgumentException("status is invalid");

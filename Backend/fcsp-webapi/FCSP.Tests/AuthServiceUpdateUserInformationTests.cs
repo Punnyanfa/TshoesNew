@@ -101,12 +101,12 @@ namespace FCSP.Tests
         [Fact]
         public async Task UpdateUserInformation_EmptyName()
         {
-            var request = new UpdateUserInformationRequest { Id = 1234, Name = "", PhoneNumber = "1234567890", Gender = "Male", Dob = "2000-01-01" };
+            var request = new UpdateUserInformationRequest { Id = 1234, Name = " ", PhoneNumber = "1234567890", Gender = "Male", Dob = "2000-01-01" };
 
             var result = await _authService.UpdateUserInformation(request);
 
             Assert.Equal(400, result.Code);
-            Assert.Equal("Name is not in correct format (Name can not be empty)", result.Message);
+            Assert.Equal("Name can not be empty", result.Message);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace FCSP.Tests
             var result = await _authService.UpdateUserInformation(request);
 
             Assert.Equal(400, result.Code);
-            Assert.Equal("Name is not in correct format (Name can not be empty)", result.Message);
+            Assert.Equal("Name is not in correct format", result.Message);
         }
 
         [Fact]

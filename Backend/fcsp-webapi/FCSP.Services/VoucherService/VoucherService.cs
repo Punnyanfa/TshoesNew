@@ -244,7 +244,14 @@ namespace FCSP.Services.VoucherService
         {
             try
             {
-                var voucher = await GetVoucherEntityById(new GetVoucherByIdRequest { Id = request.Id });
+                if (request.Id <= 0)
+                {
+                    throw new ArgumentException("Id can not be zero");
+                }
+                var voucher = await _voucherRepository.FindAsync(request.Id);
+                if (voucher == null) {
+                    throw new InvalidOperationException("Voucher not found");
+                }
                 UpdateVoucherFromRequest(voucher, request);
                 await _voucherRepository.UpdateAsync(voucher);
                 return new BaseResponseModel<UpdateVoucherResponse>
@@ -465,7 +472,7 @@ namespace FCSP.Services.VoucherService
             {
                 throw new InvalidOperationException("Code must be greater than 20 characters");
             }
-            if (System.Text.RegularExpressions.Regex.IsMatch(request.Code, "[^a-zA-Z0-9]"))
+            if (request.Code.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch)))           
             {
                 throw new InvalidOperationException("Code should not include special character");
             }
@@ -505,6 +512,39 @@ namespace FCSP.Services.VoucherService
 
         private void UpdateVoucherFromRequest(Voucher voucher, UpdateVoucherRequest request)
         {
+                
+            if (string.IsNullOrWhiteSpace(request.Code))
+            {
+                throw new ArgumentException("Code cannot be null or empty");
+            }
+            if (request.Code.Length < 5)
+            {
+                throw new ArgumentException("Code must be at least 5 characters");
+            }
+            if (request.Code.Length > 20)
+            {
+                throw new ArgumentException("Code must be less than or equal to 20 characters");
+            }
+            if (request.Code.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch)))
+            {
+                throw new ArgumentException("Code should not include special character");
+            }
+            if (request.DiscountAmount <= 0 || request.DiscountAmount == null)
+            {
+                throw new ArgumentException("Discount amount must be greater than 0");
+            }           
+            if (request.DiscountAmount > 30)
+            {
+                throw new ArgumentException("Discount amount must be less than or equal to 30");
+            }
+            if(request.ExpiryDate == null)
+            {
+                throw new ArgumentException("Expiry date cannot be null");
+            }
+            if (request.ExpiryDate < DateTime.UtcNow)
+            {
+                throw new ArgumentException("Expiry date cannot be in the past");
+            }
             ValidateExpirationDate(request.ExpiryDate, voucher.CreatedAt);
             voucher.VoucherName = request.Code;
             voucher.VoucherValue = request.DiscountAmount.ToString();

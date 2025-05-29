@@ -3,10 +3,8 @@ using FCSP.DTOs;
 using FCSP.DTOs.Service;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
+
 
 namespace FCSP.Services.ServiceService
 {
@@ -21,9 +19,9 @@ namespace FCSP.Services.ServiceService
             IManufacturerRepository manufacturerRepository,
             IUserRepository userRepository)
         {
-            _serviceRepository = serviceRepository ?? throw new ArgumentNullException(nameof(serviceRepository));
-            _manufacturerRepository = manufacturerRepository ?? throw new ArgumentNullException(nameof(manufacturerRepository));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _serviceRepository = serviceRepository;
+            _manufacturerRepository = manufacturerRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<BaseResponseModel<List<ServiceResponseDto>>> GetAllServices()
@@ -186,10 +184,14 @@ namespace FCSP.Services.ServiceService
                         Data = new AddServiceResponse { Success = false }
                     };
                 }
-
-                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.AddServices.First().ManufacturerId);
+                if(request.AddServices.First().ManufacturerId <= 0)
+                {
+                    throw new InvalidOperationException("ManufacturerId can not be 0");
+                }
+                var manufacturer = await _manufacturerRepository.GetManufacturerWithDetailsAsync(request.AddServices.FirstOrDefault().ManufacturerId);
                 if (manufacturer == null)
                 {
+                    
                     return new BaseResponseModel<AddServiceResponse>
                     {
                         Code = 404,
@@ -230,6 +232,15 @@ namespace FCSP.Services.ServiceService
                     Code = 201,
                     Message = "Success",
                     Data = new AddServiceResponse { Success = true }
+                };
+            }
+            catch(InvalidOperationException ex)
+            {
+                return new BaseResponseModel<AddServiceResponse>
+                {
+                    Code = ex.Message.Contains("not found")? 404: 400,
+                    Message = ex.Message,
+                    Data = new AddServiceResponse { Success = false }
                 };
             }
             catch (Exception ex)
@@ -354,6 +365,30 @@ namespace FCSP.Services.ServiceService
         #region Private Methods
         private IEnumerable<Service> GetServicesFromAddServiceRequest(AddServiceRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.AddServices.First().Component))
+            {
+                throw new InvalidOperationException("Component cannot be null or empty");
+            }
+            if (request.AddServices.First().Component.Length > 20)
+            {
+                throw new InvalidOperationException("Component must be less than 20 characters");
+            }
+            if (request.AddServices.First().Component.Length < 4)
+            {
+                throw new InvalidOperationException("Component must be at least 4 characters");
+            }         
+            if (string.IsNullOrWhiteSpace(request.AddServices.First().Type))
+            {
+                throw new InvalidOperationException("Type cannot be null or empty");
+            }
+            if(request.AddServices.First().Type.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch)))
+            {
+                throw new InvalidOperationException("Type can only contain letters, digits, and spaces");
+            }
+            if(request.AddServices.First().Price <= 0)
+            {
+                throw new InvalidOperationException("Price cannot be negative");
+            }
             if (request.AddServices == null || !request.AddServices.Any())
             {
                 return new List<Service>();
