@@ -27,7 +27,7 @@
                 <p class="price">Base Price: {{ formatPrice(item.price) }}</p>
                 <!-- <p class="price">Size: {{ item.size }}</p> -->
                 <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Surcharge: {{ formatPrice(item.surcharge) }}</p>
-                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Total: {{ formatPrice(item.price + item.surcharge) }}</p>
+                <p v-if="item.surcharge && item.surcharge > 0" class="price total">Total: {{ formatPrice(item.total) }}</p>
 
                 <!-- Display design info if exists -->
                 <div v-if="item.designData" class="design-info">
@@ -399,8 +399,9 @@ const addToProduct = async (item) => {
               id: item.id,
               name: item.name,
               image: item.previewImageUrl || null,
-              price: item.total || 0,
+              price: item.templatePrice || 0,
               surcharge: item.servicePrice || 0,
+              total: item.total || 0,
               size: item.size || '',
               designData: item.customText ? { customText: item.customText } : undefined,
               previewImages: item.previewImageUrl ? [item.previewImageUrl] : [],
@@ -547,13 +548,15 @@ onMounted(async () => {
     const userId = localStorage.getItem('userId');
     if (userId) {
       const apiData = await getMyCustom(userId);
+      console.log('API Data:', apiData);
       cart.value = (apiData && apiData.data && Array.isArray(apiData.data.designs))
         ? apiData.data.designs.map(item => ({
             id: item.id,
             name: item.name,
             image: item.previewImageUrl || null,
-            price: item.total || 0,
+            price: item.templatePrice || 0,
             surcharge: item.servicePrice || 0,
+            total: item.total || 0,
             size: item.size || '',
             designData: item.customText ? { customText: item.customText } : undefined,
             previewImages: item.previewImageUrl ? [item.previewImageUrl] : [],
