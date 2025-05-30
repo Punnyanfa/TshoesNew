@@ -22,7 +22,6 @@ namespace FCSP.Services.OrderService
         private readonly IUserRepository _userRepository;
         private readonly ISizeRepository _sizeRepository;
         private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
-        
 
         public OrderService(
             IOrderRepository orderRepository,
@@ -75,7 +74,7 @@ namespace FCSP.Services.OrderService
             }
         }
 
-        public async Task<BaseResponseModel<GetOrderByManufacturerIdResponse>> GetOrdersByManufacturerId(GetOrderByManufacturerIdRequest request)
+        public async Task<BaseResponseModel<GetOrderByManufacturerIdResponse>> GetOrdersByManufacturerId(GetOrdersByManufacturerIdRequest request)
         {
             try
             {
@@ -312,19 +311,23 @@ namespace FCSP.Services.OrderService
                     TemplatePrice = orderDetail.TemplatePrice,
                     ServicePrice = orderDetail.ServicePrice,
                     DesignerMarkup = orderDetail.DesignerMarkup,
-                    SizeValue = orderDetail.Size.SizeValue
+                    SizeValue = orderDetail.Size.SizeValue,
+                    PreviewImageUrls = orderDetail.CustomShoeDesign?.DesignPreviews?.Select(dp => dp.PreviewImageUrl).ToList()
                 }
             };
         }
 
-        private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByManufacturerIdAsync(GetOrderByManufacturerIdRequest request)
+        private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByManufacturerIdAsync(GetOrdersByManufacturerIdRequest request)
         {
             var orders = await _orderRepository.GetAll()
                                                 .Include(o => o.OrderDetails)
-                                                .ThenInclude(od => od.Size)
-                                                .Include(o => o.User)
-                                                .Include(o => o.Voucher)
-                                                .Include(o => o.Payments)
+                                                   .ThenInclude(od => od.Size)
+                                               .Include(o => o.OrderDetails)
+                                                   .ThenInclude(od => od.CustomShoeDesign)
+                                                       .ThenInclude(cd => cd.DesignPreviews)
+                                               .Include(o => o.User)
+                                               .Include(o => o.Voucher)
+                                               .Include(o => o.Payments)
                                                 .Where(o => o.OrderDetails.Any(o => o.ManufacturerId == request.ManufacturerId))
                                                 .ToListAsync();
             if (orders == null || !orders.Any())
@@ -343,7 +346,19 @@ namespace FCSP.Services.OrderService
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
                 TotalPrice = o.TotalPrice,
                 CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
+                UpdatedAt = o.UpdatedAt,
+                OrderDetail = new OrderDetailResponseDto
+                {
+                    CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
+                    CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
+                    FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                    Quantity = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Quantity ?? 0,
+                    UnitPrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TotalPrice ?? 0,
+                    TemplatePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TemplatePrice ?? 0,
+                    ServicePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.ServicePrice ?? 0,
+                    DesignerMarkup = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.DesignerMarkup ?? 0,
+                    SizeValue = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Size.SizeValue ?? 0
+                }
             });
         }
 
@@ -486,7 +501,7 @@ namespace FCSP.Services.OrderService
                 ShippingInfoId = request.ShippingInfoId,
                 VoucherId = request.VoucherId ?? null,
                 TotalPrice = totalAmount,
-                AmountPaid = amountPaid,
+                AmountPaid = amountPaid + 30000,
                 Status = OrderStatus.Pending,
                 ShippingStatus = OrderShippingStatus.Preparing,
                 CreatedAt = DateTime.UtcNow,
@@ -530,7 +545,7 @@ namespace FCSP.Services.OrderService
             var payment = new AddPaymentRequest
             {
                 OrderId = order.Id,
-                Amount = order.TotalPrice,
+                Amount = order.AmountPaid,
                 PaymentMethod = paymentMethod,
             };
             

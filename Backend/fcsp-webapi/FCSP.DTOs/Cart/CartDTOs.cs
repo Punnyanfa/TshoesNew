@@ -31,6 +31,7 @@ namespace FCSP.DTOs.Cart
     {
         public long Id { get; set; }
         public long CustomShoeDesignId { get; set; }
+        public long ManufacturerId { get; set; }
         public string CustomShoeDesignName { get; set; }
         public long SizeId { get; set; }
         public string SizeValue { get; set; }

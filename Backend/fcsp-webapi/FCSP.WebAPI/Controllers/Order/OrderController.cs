@@ -40,6 +40,14 @@ namespace FCSP.Controllers
             return StatusCode(response.Code, response);
         }
 
+        [HttpGet("manufacturer/{manufacturerId}")]
+        public async Task<IActionResult> GetOrdersByManufacturerId(long manufacturerId)
+        {
+            var request = new GetOrdersByManufacturerIdRequest { ManufacturerId = manufacturerId };
+            var response = await _orderService.GetOrdersByManufacturerId(request);
+            return StatusCode(response.Code, response);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddOrder([FromBody] AddOrderRequest request)
         {

@@ -37,7 +37,7 @@ namespace FCSP.DTOs.Order
         public OrderDetailResponseDto OrderDetail { get; set; } = null!;
     }
 
-    public class GetOrderByManufacturerIdRequest
+    public class GetOrdersByManufacturerIdRequest
     {
         [Required(ErrorMessage = "ManufacturerId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "ManufacturerId must be greater than 0.")]
@@ -130,6 +130,7 @@ namespace FCSP.DTOs.Order
         public int ServicePrice { get; set; }
         public int DesignerMarkup { get; set; }
         public int SizeValue { get; set; }
+        public IEnumerable<string> PreviewImageUrls { get; set; }
     }
 
     public class ProcessPaymentRequest
