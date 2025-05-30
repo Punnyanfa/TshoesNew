@@ -39,7 +39,7 @@ export async function getManufacturerById(id) {
 }
 export async function getManufacturerAll() {
   try {
-    const response = await instance.get(`/Manufacturer`);
+    const response = await instance.get(`/Manufacturer/active`);
     console.log("uyu",response.data);
     return response.data;
   } catch (error) {
