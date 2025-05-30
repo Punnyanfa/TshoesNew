@@ -12,15 +12,15 @@
       <div v-else class="row">
         <div class="col-md-6">
           <!-- Product images/textures -->
-          <div v-if="product.texturesUrls && product.texturesUrls.length > 0" class="mb-4">
+          <div v-if="product.previewImages && product.previewImages.length > 0" class="product-image-section mb-4">
             <div class="card shadow-sm">
-              <img :src="product.texturesUrls[selectedTextureIndex]" 
+              <img :src="product.previewImages[selectedTextureIndex]" 
                    :alt="product.name" 
                    class="card-img-top img-fluid texture-image">
             </div>
             <!-- Texture thumbnails -->
-            <div class="d-flex flex-wrap mt-3 gap-2">
-              <div v-for="(url, index) in product.texturesUrls" :key="index" 
+            <div class="texture-thumbnail-list d-flex flex-wrap mt-3 gap-2">
+              <div v-for="(url, index) in product.previewImages" :key="index" 
                    class="texture-thumbnail" 
                    :class="{'active-thumbnail': selectedTextureIndex === index}"
                    @click="selectedTextureIndex = index">
@@ -70,7 +70,7 @@
               <!-- Textures section (moved to sidebar in mobile view) -->
               <div class="d-md-none mb-4">
                 <h5>Textures:</h5>
-                <div v-if="product.texturesUrls && product.texturesUrls.length > 0" class="small text-muted">
+                <div v-if="product.previewImages && product.previewImages.length > 0" class="small text-muted">
                   Click on an image above to view different textures.
                 </div>
                 <div v-else>
@@ -134,8 +134,8 @@ const addToCart = () => {
   if (product.value && selectedSize.value && selectedQuantity.value > 0) {
     // Determine the image URL to store
     let imageUrl = '/placeholder.png'; // Default placeholder
-    if (product.value.texturesUrls && product.value.texturesUrls.length > 0) {
-      imageUrl = product.value.texturesUrls[selectedTextureIndex.value];
+    if (product.value.previewImages && product.value.previewImages.length > 0) {
+      imageUrl = product.value.previewImages[selectedTextureIndex.value];
     } else if (product.value.previewImageUrl) { 
       imageUrl = product.value.previewImageUrl;
     }
@@ -243,37 +243,80 @@ const formatPrice = (price) => {
   transform: translateY(-3px);
 }
 
-.texture-image {
+/* Product images/textures section */
+.product-image-section {
+  margin-bottom: 1.5rem; /* Add some space below the image section */
+}
+
+.card.shadow-sm {
+  padding: 15px;
+  position: relative;
+  width: 100%;
+  padding-top: 70%; /* Maintain aspect ratio based on image height */
+  overflow: hidden;
   border-radius: 15px;
-  object-fit: cover;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Revert to original shadow */
+}
+
+.card.shadow-sm .card-body {
+  /* This element seems redundant with absolute positioned image, can potentially simplify HTML */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.texture-image {
+  border-radius: 12px; /* Slightly smaller border radius than container */
+  object-fit: cover; /* Changed from contain to cover */
   transition: transform 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  position: absolute; /* Position image relative to padded container */
+  top: 15px;
+  bottom: 15px;
+  left: 15px;
+  right: 15px;
+  width: auto; /* Let object-fit and positioning handle size */
+  height: auto; /* Let object-fit and positioning handle size */
 }
 
 .texture-image:hover {
   transform: scale(1.02);
 }
 
+/* Thumbnail section */
+.texture-thumbnail-list {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    gap: 8px; /* Consistent gap as before */
+}
+
 .texture-thumbnail {
-  width: 60px;
-  height: 60px;
+  width: 60px; /* Match size from earlier */
+  height: 60px; /* Match size from earlier */
   cursor: pointer;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 8px; /* Rounded corners for thumbnails */
   transition: all 0.3s ease;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  border: 1px solid #e0e0e0; /* Subtle border */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .texture-thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Thumbnails can use cover */
 }
 
 .active-thumbnail {
-  border: 2px solid #AAAAAA;
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
+  border-color: #AAAAAA; /* Highlight active thumbnail with border color */
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3); /* Enhanced shadow for active */
 }
 
 .size-label {
@@ -286,6 +329,8 @@ const formatPrice = (price) => {
   text-align: center;
   min-width: 45px;
   background: #f9f9f9;
+  margin-right: 5px; /* Added spacing between size labels */
+  margin-bottom: 5px; /* Added spacing for wrapped items */
 }
 
 .size-label:hover {
@@ -308,6 +353,7 @@ const formatPrice = (price) => {
   background: #f9f9f9;
   font-size: 1rem;
   transition: all 0.3s ease;
+  width: 100px; /* Set specific width for quantity input */
 }
 
 .form-control:focus {
@@ -327,6 +373,8 @@ const formatPrice = (price) => {
   font-size: 1.1rem;
   transition: all 0.3s ease;
   box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
+  width: 100%; /* Make button full width */
+  margin-top: 20px; /* Added space above button */
 }
 
 .btn-sneaker:hover {
@@ -381,5 +429,27 @@ const formatPrice = (price) => {
     width: 40px;
     height: 40px;
   }
+}
+
+.d-flex.flex-wrap.mt-3.gap-2 {
+    gap: 8px !important; /* Adjust gap for thumbnails */
+}
+
+.d-flex.flex-wrap.gap-2 {
+    gap: 5px !important; /* Adjust gap for size labels */
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important; /* Standardize margin below sections */
+}
+
+/* Ensure column padding is consistent */
+.row > .col-md-6 {
+    padding: 0 15px;
+}
+
+.product-detail .row > .col-md-6:first-child > div:first-child,
+.product-detail .row > .col-md-6:last-child > div:first-child {
+  margin-top: 0 !important;
 }
 </style>
