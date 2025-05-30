@@ -286,7 +286,7 @@ export default {
       if (typeof window !== 'undefined') {
         manufacturerId = localStorage.getItem('ManufacturerId') || 1;
       } else {
-        manufacturerId = 1; // Fallback for SSR
+        manufacturerId = 1; 
       }
       const addServices = [];
 

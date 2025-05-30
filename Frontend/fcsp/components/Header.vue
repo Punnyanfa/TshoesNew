@@ -14,8 +14,8 @@
         <span class="brand-text">SneakerVibe</span>
       </router-link>
 
-           <!-- Navigation -->
-           <nav class="navbar-nav" :class="{ 'nav-open': isNavOpen }">
+      <!-- Navigation -->
+      <nav class="navbar-nav" :class="{ 'nav-open': isNavOpen }">
         <template v-for="item in navItems" :key="item.path || item.label">
           <router-link 
             v-if="item.path && item.path !== '/customPage'" 
@@ -61,53 +61,53 @@
         </template>
       </nav>
 
-<!-- User Actions -->
-<div class="user-actions">
+      <!-- User Actions -->
+      <div class="user-actions">
         <!-- Cart Button -->
         <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
           <ShoppingCartOutlined />
           <span class="sneaker-badge">{{ cartCount }}</span>
         </router-link>
 
-  <!-- User Section -->
-  <section v-if="isAuthenticated">
-    <div class="user-dropdown">
-      <div class="nav-link" style="cursor: pointer;">
-        <i class="bi bi-person-circle me-1"></i> {{ userName }}
+        <!-- User Section -->
+        <section v-if="isAuthenticated">
+          <div class="user-dropdown">
+            <div class="nav-link" style="cursor: pointer;">
+              <i class="bi bi-person-circle me-1"></i> {{ userName }}
+            </div>
+            <ul class="dropdown-content" aria-labelledby="userDropdown">
+              <li>
+                <router-link class="dropdown-item" to="/profilePage">
+                  <i class="bi bi-person me-2"></i> Profile
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/shippingPage">
+                  <i class="bi bi-truck me-2"></i> Shipping
+                </router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/historyshoppingPage">
+                  <i class="bi bi-clock-history me-2"></i> Order History
+                </router-link>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="#" @click.prevent="logout">
+                  <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+        
+        <!-- Login Link (Non-Authenticated) -->
+        <section v-else>
+          <router-link to="/loginPage" class="login-btn">
+            <UserOutlined /> Login
+          </router-link>
+        </section>
       </div>
-      <ul class="dropdown-content" aria-labelledby="userDropdown">
-        <li>
-          <router-link class="dropdown-item" to="/profilePage">
-            <i class="bi bi-person me-2"></i> Profile
-          </router-link>
-        </li>
-        <li>
-          <router-link class="dropdown-item" to="/shippingPage">
-            <i class="bi bi-truck me-2"></i> Shipping
-          </router-link>
-        </li>
-        <li>
-          <router-link class="dropdown-item" to="/historyshoppingPage">
-            <i class="bi bi-clock-history me-2"></i> Order History
-          </router-link>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-          <a class="dropdown-item text-danger" href="#" @click.prevent="logout">
-            <i class="bi bi-box-arrow-right me-2"></i> Logout
-          </a>
-        </li>
-      </ul>
-    </div>
-  </section>
-  
-  <!-- Login Link (Non-Authenticated) -->
-  <section v-else>
-    <router-link to="/loginPage" class="login-btn">
-      <UserOutlined /> Login
-    </router-link>
-  </section>
-</div>
 
       <!-- Mobile Toggle Button -->
       <button class="navbar-toggler" @click="toggleNav">
@@ -160,14 +160,14 @@ const navItems = [
 
 // Watch for authentication state changes
 watch(() => {
-  const token = localStorage.getItem('username');
+  const token = sessionStorage.getItem('username');
   isAuthenticated.value = !!token;
   if (isAuthenticated.value) {
-    userName.value = localStorage.getItem('username') || 'User';
+    userName.value = sessionStorage.getItem('username') || 'User';
   }
 }, { immediate: true });
 
-// Xử lý sự kiện scroll
+// Handle scroll event
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
 };
@@ -191,12 +191,16 @@ onMounted(() => {
   nextTick(() => {
     initDropdowns();
   });
-  const token = localStorage.getItem('username');
-  userName.value = localStorage.getItem('username') || 'User';
+  const token = sessionStorage.getItem('username');
+  userName.value = sessionStorage.getItem('username') || 'User';
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  // Clear sessionStorage when the tab is closed
+  if (typeof window !== 'undefined') {
+    sessionStorage.clear();
+  }
 });
 
 const toggleNav = () => {
@@ -215,14 +219,16 @@ const onSearch = (value) => {
 };
 
 const logout = () => {
-  // Xóa thông tin user khỏi localStorage
-  localStorage.removeItem('userToken');
-  localStorage.removeItem('userEmail');
-  localStorage.removeItem('role');
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userRole');
-  localStorage.removeItem('username');
+  // Clear sessionStorage for the current tab
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('userToken');
+    sessionStorage.removeItem('userEmail');
+    sessionStorage.removeItem('role');
+    sessionStorage.removeItem('userId');
+    sessionStorage.removeItem('userName');
+    sessionStorage.removeItem('userRole');
+    sessionStorage.removeItem('username');
+  }
 
   // Reset authentication state
   isAuthenticated.value = false;
@@ -396,7 +402,7 @@ const resetLogo = (e) => {
   transition: all 0.3s ease;
 }
 
-/* Thêm padding cho dropdown để tạo khoảng cách an toàn */
+/* Add padding for dropdown to create safe spacing */
 .dropdown-menu::before,
 .dropdown-content::before {
   content: '';
@@ -499,13 +505,13 @@ const resetLogo = (e) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Thêm style cho dropdown divider */
+/* Add style for dropdown divider */
 .dropdown-divider {
   margin: 8px 0;
   border-top: 1px solid rgba(85, 85, 85, 0.1);
 }
 
-/* Điều chỉnh style cho user dropdown */
+/* Adjust style for user dropdown */
 .user-dropdown {
   position: relative;
   display: inline-block;
@@ -521,7 +527,7 @@ const resetLogo = (e) => {
   box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2);
 }
 
-/* Xóa gạch ngang cho user dropdown */
+/* Remove underline for user dropdown */
 .user-dropdown .nav-link::after {
   display: none;
 }
@@ -565,7 +571,7 @@ const resetLogo = (e) => {
   visibility: visible;
 }
 
-/* Điều chỉnh style cho dropdown items */
+/* Adjust style for dropdown items */
 .user-dropdown .dropdown-item {
   padding: 10px 16px;
   color: #555555;

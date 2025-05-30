@@ -398,6 +398,32 @@ const getOrdersByManufacturerId = async (manufacturerId) => {
   }
 };
 
+const updateOrderStatusApi = async (orderId, statusCode) => {
+  try {
+    const response = await fetch(`https://fcspwebapi20250527114117.azurewebsites.net/api/Order/${orderId}`, {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+      },
+      body: JSON.stringify({
+        id: orderId,
+        status: statusCode
+      })
+    });
+    const result = await response.json();
+    if (result.code === 200 && result.data.success) {
+      return true;
+    } else {
+      throw new Error(result.message || 'Failed to update order status');
+    }
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+};
+
 export default {
   name: 'ManufacturerOrders',
   components: {
@@ -635,6 +661,24 @@ export default {
     },
     async confirmStatusUpdate() {
       try {
+        const statusToCodeMap = {
+          'Đang chờ xử lý': 0,
+          'Đã xác nhận': 1,
+          'Đang xử lý': 2,
+          'Đang giao hàng': 3,
+          'Đã giao hàng': 4,
+          'Đã hủy': 5
+        };
+
+        const statusCode = statusToCodeMap[this.newStatus];
+        if (statusCode === undefined) {
+          throw new Error('Invalid status');
+        }
+
+        // Call the API to update the order status
+        await updateOrderStatusApi(this.selectedOrder.id, statusCode);
+
+        // Update the local order status
         const reverseStatusMap = {
           'Đang chờ xử lý': 'Pending',
           'Đã xác nhận': 'Confirmed',
@@ -645,10 +689,15 @@ export default {
           'Đã hoàn thành': 'Completed'
         };
         this.selectedOrder.statusName = reverseStatusMap[this.newStatus] || this.newStatus;
-        
+
+        // Close the modal
+        if (this.modalRefs.updateStatusModal) {
+          this.modalRefs.updateStatusModal.hide();
+        }
+
         this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
       } catch (error) {
-        this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái', 'danger');
+        this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái: ' + error.message, 'danger');
       }
     },
     showMessage(message, type = 'success') {
