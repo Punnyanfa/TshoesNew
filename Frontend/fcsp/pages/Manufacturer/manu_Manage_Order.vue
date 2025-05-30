@@ -352,13 +352,54 @@
 </template>
 
 <script>
-import { getAllOrders, getOrderById } from '@/server/order-service';
 import { getAllShippingInfo } from '@/server/shipping-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 import { onMounted, ref } from 'vue';
 
+const getManufacturerByUserId = async (userId) => {
+  try {
+    const response = await fetch(`https://fcspwebapi20250527114117.azurewebsites.net/api/Manufacturer/user/${userId}`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+      }
+    });
+    const result = await response.json();
+    if (result.code === 200 && Array.isArray(result.data) && result.data.length > 0) {
+      return result.data[0].id; // Return the first manufacturer's ID
+    } else {
+      throw new Error('No manufacturer found for this user');
+    }
+  } catch (error) {
+    console.error('Error fetching manufacturer ID:', error);
+    throw error;
+  }
+};
+
+const getOrdersByManufacturerId = async (manufacturerId) => {
+  try {
+    const response = await fetch(`https://fcspwebapi20250527114117.azurewebsites.net/api/Order/manufacturer/${manufacturerId}`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+      }
+    });
+    const result = await response.json();
+    if (result.code === 200 && result.data && Array.isArray(result.data.orders)) {
+      return result.data.orders;
+    } else {
+      throw new Error('No orders found for this manufacturer');
+    }
+  } catch (error) {
+    console.error('Error fetching orders by manufacturer ID:', error);
+    throw error;
+  }
+};
+
 export default {
-  name: 'AdminOrders',
+  name: 'ManufacturerOrders',
   components: {
     AdminSidebar
   },
@@ -375,16 +416,16 @@ export default {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('userToken');
       const role = localStorage.getItem('role');
-      console.log('AdminOrders - Token:', token, 'Role:', role);
+      console.log('ManufacturerOrders - Token:', token, 'Role:', role);
       if (!token) {
         console.warn('No user token found. Redirecting to login page.');
         alert('Please log in to access this page.');
         window.location.href = '/loginPage';
         return;
       }
-      if (!role || role.toLowerCase() !== 'Admin') {
-        console.warn('User role is not Admin. Role found:', role);
-        alert('Access denied: You need a Admin role to view this page.');
+      if (!role || role.toLowerCase() !== 'manufacturer') {
+        console.warn('User role is not Manufacturer. Role found:', role);
+        alert('Access denied: You need a Manufacturer role to view this page.');
         window.location.href = '/loginPage';
       }
     }
@@ -534,36 +575,44 @@ export default {
     async fetchOrders() {
       this.loading = true;
       try {
-        const response = await getAllOrders();
-        console.log('API Response:', response);
-
-        if (response && Array.isArray(response)) {
-          this.orders = response.map(order => ({
-            id: order.id,
-            userName: order.userName,
-            shippingInfoId: order.shippingInfoId,
-            voucherCode: order.voucherCode,
-            totalPrice: order.totalPrice,
-            statusName: order.status,
-            shippingStatusName: order.shippingStatus,
-            paymentMethodName: order.paymentMethod,
-            createdAt: order.createdAt,
-            updatedAt: order.updatedAt,
-            orderDetails: Array.isArray(order.orderDetail) ? order.orderDetail.map(detail => ({
-              customShoeDesignName: detail.customShoeDesignName,
-              customShoeDesignDescription: detail.customShoeDesignDescription,
-              firstPreviewImageUrl: detail.firstPreviewImageUrl,
-              quantity: detail.quantity,
-              unitPrice: detail.unitPrice,
-              sizeValue: detail.sizeValue
-            })) : [order.orderDetail] // Handle single orderDetail object
-          }));
-          console.log('Transformed orders:', this.orders);
-
-          await this.fetchShippingInfos();
-        } else {
-          throw new Error('Invalid response format from server');
+        // Step 1: Get the user ID from localStorage
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+          throw new Error('User ID not found in localStorage');
         }
+
+        // Step 2: Fetch the manufacturer ID using the user ID
+        const manufacturerId = await getManufacturerByUserId(userId);
+        console.log('Manufacturer ID:', manufacturerId);
+
+        // Step 3: Fetch orders for the manufacturer
+        const ordersResponse = await getOrdersByManufacturerId(manufacturerId);
+        console.log('Orders API Response:', ordersResponse);
+
+        // Step 4: Map the orders to the required format
+        this.orders = ordersResponse.map(order => ({
+          id: order.id,
+          userName: order.userName,
+          shippingInfoId: order.shippingInfoId,
+          voucherCode: order.voucherCode,
+          totalPrice: order.totalPrice,
+          statusName: order.status,
+          shippingStatusName: order.shippingStatus,
+          paymentMethodName: order.paymentMethod,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          orderDetails: Array.isArray(order.orderDetail) ? order.orderDetail.map(detail => ({
+            customShoeDesignName: detail.customShoeDesignName,
+            customShoeDesignDescription: detail.customShoeDesignDescription,
+            firstPreviewImageUrl: detail.firstPreviewImageUrl,
+            quantity: detail.quantity,
+            unitPrice: detail.unitPrice,
+            sizeValue: detail.sizeValue
+          })) : [order.orderDetail] // Handle single orderDetail object
+        }));
+        console.log('Transformed orders:', this.orders);
+
+        await this.fetchShippingInfos();
       } catch (error) {
         console.error('Error fetching orders:', error);
         this.showMessage('Có lỗi xảy ra khi tải danh sách đơn hàng: ' + error.message, 'danger');

@@ -54,11 +54,19 @@ export default {
   name: 'ManageService',
   components: { HeaderManu },
   setup() {
-    // Check authentication on the client side
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('userToken');
-      const role = localStorage.getItem('userRole');
-      if (!token || role !== 'Manufacturer') {
+      const role = localStorage.getItem('role');
+      console.log('ManageService - Token:', token, 'Role:', role); // Debugging log
+      if (!token) {
+        console.warn('No user token found. Redirecting to login page.');
+        alert('Please log in to access this page.');
+        window.location.href = '/loginPage';
+        return;
+      }
+      if (!role || role.toLowerCase() !== 'manufacturer') {
+        console.warn('User role is not Manufacturer. Role found:', role);
+        alert('Access denied: You need a Manufacturer role to view this page.');
         window.location.href = '/loginPage';
       }
     }
@@ -238,10 +246,12 @@ export default {
       });
 
       try {
-        if (currentServices.length > 0) {
+        if (currentServices.length > 0 && updateServices.length > 0) {
+          // Use updateManufacturer for updating existing services
           await updateManufacturer(updateServices);
           alert('Cập nhật phụ phí mặc định thành công!');
-        } else {
+        } else if (currentServices.length === 0) {
+          // Add new services if none exist
           const addServices = [];
           this.defaultCustomFees.forEach(fee => {
             if (fee.colorFee > 0) {
@@ -263,8 +273,11 @@ export default {
           });
           await addManufacture({ addServices });
           alert('Lưu phụ phí mặc định thành công!');
+        } else {
+          alert('Không có thay đổi nào để lưu!');
         }
       } catch (error) {
+        console.error('Error saving default fees:', error);
         alert('Có lỗi khi lưu/cập nhật phụ phí mặc định!');
       }
     },
@@ -297,6 +310,7 @@ export default {
         await addManufacture({ addServices });
         alert('Thêm dịch vụ thành công!');
       } catch (error) {
+        console.error('Error submitting service:', error);
         alert('Có lỗi khi thêm dịch vụ!');
       }
     },
@@ -332,6 +346,7 @@ export default {
           imageFee: imageMap[fee.part.toLowerCase()] ?? 0
         }));
       } catch (error) {
+        console.error('Error syncing default fees:', error);
         alert('Có lỗi khi đồng bộ phụ phí!');
       }
     }

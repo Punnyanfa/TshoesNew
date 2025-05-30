@@ -133,7 +133,7 @@ const navItems = computed(() => {
   ];
   if (isAuthenticated.value && userRole.value === 'Manufacturer') {
     items.push(
-      { path: '/Manufacturer/manageOrder', label: 'Quản lý đơn hàng', icon: 'shopping' },
+      { path: '/Manufacturer/manu_Manage_Order', label: 'Quản lý đơn hàng', icon: 'shopping' },
       { path: '/Manufacturer/manageService', label: 'Quản lý dịch vụ', icon: 'setting' }
     );
   }
@@ -177,7 +177,7 @@ onMounted(() => {
   });
   const token = localStorage.getItem('userToken');
   userName.value = localStorage.getItem('username') || 'User';
-  userRole.value = localStorage.getItem('userRole') || '';
+  userRole.value = localStorage.getItem('role') || '';
 });
 
 onUnmounted(() => {
