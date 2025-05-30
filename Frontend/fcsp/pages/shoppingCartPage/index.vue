@@ -246,6 +246,14 @@ const selectedTotal = computed(() => {
 
 // Function to handle proceeding to checkout
 const proceedToCheckout = () => {
+  // Check if user is authenticated
+  const token = localStorage.getItem('userToken');
+  if (!token) {
+    // If not authenticated, redirect to login page
+    router.push('/loginPage');
+    return;
+  }
+
   console.log('Cart Items before filtering:', cartItems.value);
   
   // Lọc ra các sản phẩm đã được chọn
