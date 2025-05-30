@@ -1,9 +1,8 @@
-<!-- Header Component - Flexbox Optimized Sneaker Theme -->
 <template>
   <header class="sneaker-header" :class="{ 'scrolled': isScrolled }">
     <div class="header-container">
       <!-- Logo Section -->
-      <router-link to="/Manufacturer" class="logo-wrapper">
+      <a href="/Manufacturer" class="logo-wrapper">
         <img 
           src="https://th.bing.com/th/id/OIP.EL5hPJ7k0B7W_D7EbZoexgHaEd?w=338&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7" 
           alt="Sneaker Logo" 
@@ -12,19 +11,19 @@
           @mouseleave="resetLogo" 
         />
         <span class="brand-text">SneakerVibe</span>
-      </router-link>
+      </a>
 
-           <!-- Navigation -->
-           <nav class="navbar-nav" :class="{ 'nav-open': isNavOpen }">
+      <!-- Navigation -->
+      <nav class="navbar-nav" :class="{ 'nav-open': isNavOpen }">
         <template v-for="item in navItems" :key="item.path || item.label">
-          <router-link 
+          <a 
             v-if="item.path && item.path !== '/customPage'" 
-            :to="item.path" 
+            :href="item.path" 
             class="nav-link"
             @click="toggleNav"
           >
             <a-icon :type="item.icon" /> {{ item.label }}
-          </router-link>
+          </a>
           
           <div v-else-if="item.path === '/customPage'" class="custom-dropdown">
             <div class="nav-link" style="cursor: pointer;">
@@ -32,12 +31,12 @@
               <DownOutlined style="margin-left: 5px; font-size: 12px;" />
             </div>
             <div class="dropdown-content">
-              <router-link to="/customPage" class="dropdown-item" @click="toggleNav">
-                <ShoppingOutlined style="margin-right: 8px;" /> Customize Product
-              </router-link>
-              <router-link to="/mycustomPage" class="dropdown-item" @click="toggleNav">
-                <UserOutlined style="margin-right: 8px;" /> My Customize
-              </router-link>
+              <a href="/customPage" class="dropdown-item" @click="toggleNav">
+                <ShoppingOutlined style="margin-right: 8px;" /> Thiết kế sản phẩm 
+              </a>
+              <a href="/mycustomPage" class="dropdown-item" @click="toggleNav">
+                <UserOutlined style="margin-right: 8px;" /> Thiết kế của tôi
+              </a>
             </div>
           </div>
 
@@ -47,58 +46,51 @@
               <DownOutlined style="margin-left: 5px; font-size: 12px;" />
             </div>
             <div class="dropdown-content">
-              <router-link 
+              <a 
                 v-for="subItem in item.subItems" 
                 :key="subItem.path"
-                :to="subItem.path" 
+                :href="subItem.path" 
                 class="dropdown-item" 
                 @click="toggleNav"
               >
                 <a-icon :type="subItem.icon" style="margin-right: 8px;" /> {{ subItem.label }}
-              </router-link>
+              </a>
             </div>
           </div>
         </template>
       </nav>
 
-<!-- User Actions -->
-<div class="user-actions">
-        <!-- Cart Button -->
-        <!-- <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
-          <ShoppingCartOutlined />
-          <span class="sneaker-badge">{{ cartCount }}</span>
-        </router-link> -->
-
-  <!-- User Section -->
-  <section v-if="isAuthenticated">
-    <div class="user-dropdown">
-      <div class="nav-link" style="cursor: pointer;">
-        <i class="bi bi-person-circle me-1"></i> {{ userName }}
-      </div>
-      <ul class="dropdown-content" aria-labelledby="userDropdown">
-        <li>
-          <router-link class="dropdown-item" to="/profileManuPage">
-            <i class="bi bi-person me-2"></i> Profile
-          </router-link>
-        </li>
-      
-        <li><hr class="dropdown-divider"></li>
-        <li>
-          <a class="dropdown-item text-danger" href="#" @click.prevent="logout">
-            <i class="bi bi-box-arrow-right me-2"></i> Logout
+      <!-- User Actions -->
+      <div class="user-actions">
+        <!-- User Section -->
+        <section v-if="isAuthenticated">
+          <div class="user-dropdown">
+            <div class="nav-link" style="cursor: pointer;">
+              <i class="bi bi-person-circle me-1"></i> {{ userName }}
+            </div>
+            <ul class="dropdown-content" aria-labelledby="userDropdown">
+              <li>
+                <a class="dropdown-item" href="/profileManuPage">
+                  <i class="bi bi-person me-2"></i> Hồ sơ
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="#" @click.prevent="emitLogout">
+                  <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+        
+        <!-- Login Link (Non-Authenticated) -->
+        <section v-else>
+          <a href="/loginPage" class="login-btn">
+            <UserOutlined /> Đăng nhập 
           </a>
-        </li>
-      </ul>
-    </div>
-  </section>
-  
-  <!-- Login Link (Non-Authenticated) -->
-  <section v-else>
-    <router-link to="/loginPage" class="login-btn">
-      <UserOutlined /> Login
-    </router-link>
-  </section>
-</div>
+        </section>
+      </div>
 
       <!-- Mobile Toggle Button -->
       <button class="navbar-toggler" @click="toggleNav">
@@ -121,36 +113,45 @@ import {
   BellOutlined,
   ShoppingOutlined
 } from '@ant-design/icons-vue';
-import { useRouter } from 'vue-router';
 import { useCart } from '~/composables/useCart';
 
-const router = useRouter();
 const { cartCount } = useCart();
 const isAuthenticated = ref(false);
 const userName = ref('SneakerFan');
+const userRole = ref('');
 const isNavOpen = ref(false);
 const isSearchOpen = ref(false);
 const searchQuery = ref('');
 const isDarkTheme = ref(true);
 const isScrolled = ref(false);
 
-const navItems = [
-  { path: '/Manufacturer', label: 'Home', icon: 'home' },
-  { path: '/Manufacturer/manageOrder', label: 'Manage Product', icon: '' },
-  { path: '/Manufacturer/manageService', label: 'Manage Service', icon: '' },
-  
-];
+const emit = defineEmits(['logout']); // Define the logout event
+
+const navItems = computed(() => {
+  const items = [
+    { path: '/Manufacturer', label: 'Trang chủ', icon: 'home' },
+  ];
+  if (isAuthenticated.value && userRole.value === 'Manufacturer') {
+    items.push(
+      { path: '/Manufacturer/manageOrder', label: 'Quản lý đơn hàng', icon: 'shopping' },
+      { path: '/Manufacturer/manageService', label: 'Quản lý dịch vụ', icon: 'setting' }
+    );
+  }
+  return items;
+});
 
 // Watch for authentication state changes
 watch(() => {
-  const token = localStorage.getItem('username');
+  const token = localStorage.getItem('userToken');
+  const role = localStorage.getItem('userRole');
   isAuthenticated.value = !!token;
+  userRole.value = role || '';
   if (isAuthenticated.value) {
     userName.value = localStorage.getItem('username') || 'User';
   }
 }, { immediate: true });
 
-// Xử lý sự kiện scroll
+// Handle scroll event
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
 };
@@ -174,8 +175,9 @@ onMounted(() => {
   nextTick(() => {
     initDropdowns();
   });
-  const token = localStorage.getItem('username');
+  const token = localStorage.getItem('userToken');
   userName.value = localStorage.getItem('username') || 'User';
+  userRole.value = localStorage.getItem('userRole') || '';
 });
 
 onUnmounted(() => {
@@ -197,22 +199,9 @@ const onSearch = (value) => {
   isSearchOpen.value = false;
 };
 
-const logout = () => {
-  // Xóa thông tin user khỏi localStorage
-  localStorage.removeItem('userToken');
-  localStorage.removeItem('userEmail');
-  localStorage.removeItem('role');
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userRole');
-  localStorage.removeItem('username');
-
-  // Reset authentication state
-  isAuthenticated.value = false;
-  userName.value = '';
-
-  // Redirect to home page
-  router.push('/homePage');
+const emitLogout = () => {
+  // Emit logout event for parent components to handle
+  emit('logout');
 };
 
 const animateLogo = (e) => {
@@ -354,7 +343,6 @@ const resetLogo = (e) => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Dropdown styling */
 .dropdown,
 .custom-dropdown {
   position: relative;
@@ -379,7 +367,6 @@ const resetLogo = (e) => {
   transition: all 0.3s ease;
 }
 
-/* Thêm padding cho dropdown để tạo khoảng cách an toàn */
 .dropdown-menu::before,
 .dropdown-content::before {
   content: '';
@@ -413,7 +400,6 @@ const resetLogo = (e) => {
   visibility: visible;
 }
 
-/* Mobile styles */
 @media (max-width: 991px) {
   .header-container {
     flex-direction: row;
@@ -482,13 +468,11 @@ const resetLogo = (e) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Thêm style cho dropdown divider */
 .dropdown-divider {
   margin: 8px 0;
   border-top: 1px solid rgba(85, 85, 85, 0.1);
 }
 
-/* Điều chỉnh style cho user dropdown */
 .user-dropdown {
   position: relative;
   display: inline-block;
@@ -504,7 +488,6 @@ const resetLogo = (e) => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Xóa gạch ngang cho user dropdown */
 .user-dropdown .nav-link::after {
   display: none;
 }
@@ -548,7 +531,6 @@ const resetLogo = (e) => {
   visibility: visible;
 }
 
-/* Điều chỉnh style cho dropdown items */
 .user-dropdown .dropdown-item {
   padding: 10px 16px;
   color: #555555;

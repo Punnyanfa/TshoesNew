@@ -53,6 +53,17 @@ import { addManufacture, getManufacturerById, updateManufacturer } from '@/serve
 export default {
   name: 'ManageService',
   components: { HeaderManu },
+  setup() {
+    // Check authentication on the client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('userToken');
+      const role = localStorage.getItem('userRole');
+      if (!token || role !== 'Manufacturer') {
+        window.location.href = '/loginPage';
+      }
+    }
+    return {};
+  },
   data() {
     return {
       defaultCustomFees: [
@@ -110,14 +121,14 @@ export default {
           { part: 'Details', colorFee: 0, imageFee: 0 }
         ]
       }
-    }
+    };
   },
   methods: {
     getStatusText(status) {
       switch (status) {
-        case 0: return 'Inactive';
-        case 1: return 'Active';
-        default: return 'Unknown';
+        case 0: return 'Không hoạt động';
+        case 1: return 'Hoạt động';
+        default: return 'Không xác định';
       }
     },
     formatCurrency(value) {
@@ -172,22 +183,39 @@ export default {
       this.hideServiceModal();
     },
     deleteService(serviceId) {
-      if (confirm('Are you sure you want to delete this service?')) {
+      if (confirm('Bạn có chắc chắn muốn xóa dịch vụ này ?')) {
         this.services = this.services.filter(s => s.id !== serviceId);
       }
     },
     logout() {
-      this.$router.push('/login');
+      // Clear all localStorage items
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        localStorage.removeItem('ManufacturerId');
+      }
+
+      // Redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/loginPage';
+      }
     },
     async saveDefaultCustomFees() {
-      let manufacturerId = localStorage.getItem('ManufacturerId');
-      if (!manufacturerId) manufacturerId = 1;
+      let manufacturerId = null;
+      if (typeof window !== 'undefined') {
+        manufacturerId = localStorage.getItem('ManufacturerId') || 1;
+      } else {
+        manufacturerId = 1; // Fallback for SSR
+      }
 
-      // Lấy dữ liệu dịch vụ hiện tại
       const res = await getManufacturerById(manufacturerId);
       const currentServices = (res && res.data && Array.isArray(res.data.services)) ? res.data.services : [];
 
-      // Tạo map để lấy id theo component + type
       const idMap = {};
       currentServices.forEach(s => {
         idMap[`${s.component}_${s.type}`] = s.id;
@@ -211,11 +239,9 @@ export default {
 
       try {
         if (currentServices.length > 0) {
-          // Đã có dịch vụ, gọi update
           await updateManufacturer(updateServices);
           alert('Cập nhật phụ phí mặc định thành công!');
         } else {
-          // Chưa có dịch vụ, gọi add
           const addServices = [];
           this.defaultCustomFees.forEach(fee => {
             if (fee.colorFee > 0) {
@@ -243,8 +269,12 @@ export default {
       }
     },
     async submitServiceToBE() {
-      let manufacturerId = localStorage.getItem('ManufacturerId');
-      if (!manufacturerId) ;
+      let manufacturerId = null;
+      if (typeof window !== 'undefined') {
+        manufacturerId = localStorage.getItem('ManufacturerId') || 1;
+      } else {
+        manufacturerId = 1; // Fallback for SSR
+      }
       const addServices = [];
 
       this.currentService.customFees.forEach(fee => {
@@ -271,11 +301,18 @@ export default {
       }
     },
     async syncDefaultCustomFees() {
-      let manufacturerId = localStorage.getItem('ManufacturerId');
-      if (!manufacturerId) {
-        alert('Không tìm thấy manufacturerId!');
+      let manufacturerId = null;
+      if (typeof window !== 'undefined') {
+        manufacturerId = localStorage.getItem('ManufacturerId');
+        if (!manufacturerId) {
+          alert('Không tìm thấy manufacturerId!');
+          return;
+        }
+      } else {
+        // Skip during SSR or use a default/fallback value
         return;
       }
+
       try {
         const res = await getManufacturerById(manufacturerId);
         console.log(res);
@@ -283,7 +320,6 @@ export default {
           alert('Không có dữ liệu dịch vụ từ API!');
           return;
         }
-        // Map dữ liệu API về đúng defaultCustomFees
         const colorMap = {};
         const imageMap = {};
         res.data.services.forEach(s => {
@@ -301,9 +337,12 @@ export default {
     }
   },
   mounted() {
-    this.syncDefaultCustomFees();
+    // Only call syncDefaultCustomFees on the client side
+    if (typeof window !== 'undefined') {
+      this.syncDefaultCustomFees();
+    }
   }
-}
+};
 </script>
 
 <style>
@@ -388,4 +427,4 @@ export default {
 .btn-close-white {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
-</style> 
+</style>

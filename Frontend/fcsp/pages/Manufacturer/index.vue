@@ -7,32 +7,32 @@
           <!-- Profile Section -->
           <div class="card mb-4">
             <div class="card-header" style="background-color: #AAAAAA; color: white;">
-              <h4>Manufacturer Profile</h4>
+              <h4>Hồ sơ nhà sản xuất</h4>
             </div>
             <div class="card-body">
               <form @submit.prevent="saveProfile">
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <div class="form-group mb-3">
-                      <label for="manufacturerName">Company Name</label>
+                      <label for="manufacturerName">Tên công ty</label>
                       <input 
                         type="text" 
                         class="form-control" 
                         id="manufacturerName" 
                         v-model="profile.name"
-                        placeholder="Enter company name"
+                        placeholder="Nhập tên công ty"
                         required
                       >
                     </div>
                     
                     <div class="form-group mb-3">
-                      <label for="contactPerson">Contact Person</label>
+                      <label for="contactPerson">Tên người liên lạc</label>
                       <input 
                         type="text" 
                         class="form-control" 
                         id="contactPerson" 
                         v-model="profile.contactPerson"
-                        placeholder="Enter contact person name"
+                        placeholder="Nhập tên người liên lạc"
                         required
                       >
                     </div>
@@ -44,7 +44,7 @@
                         class="form-control" 
                         id="email" 
                         v-model="profile.email"
-                        placeholder="Enter email address"
+                        placeholder="Nhập địa chỉ email"
                         required
                       >
                     </div>
@@ -52,24 +52,24 @@
                   
                   <div class="col-md-6">
                     <div class="form-group mb-3">
-                      <label for="phone">Phone</label>
+                      <label for="phone">Số điện thoại</label>
                       <input 
                         type="tel" 
                         class="form-control" 
                         id="phone" 
                         v-model="profile.phone"
-                        placeholder="Enter phone number"
+                        placeholder="Nhập số điện thoại"
                         required
                       >
                     </div>
                     
                     <div class="form-group mb-3">
-                      <label for="address">Address</label>
+                      <label for="address">Địa chỉ</label>
                       <textarea 
                         class="form-control" 
                         id="address" 
                         v-model="profile.address"
-                        placeholder="Enter address"
+                        placeholder="Nhập địa chỉ"
                         rows="2"
                         required
                       ></textarea>
@@ -78,7 +78,7 @@
                 </div>
                 
                 <div class="d-flex justify-content-end">
-                  <button type="submit" class="btn" style="background-color: #AAAAAA; color: white; border: none;">Save Profile</button>
+                  <button type="submit" class="btn" style="background-color: #AAAAAA; color: white; border: none;">Lưu hồ sơ</button>
                 </div>
               </form>
             </div>
@@ -95,6 +95,17 @@ import HeaderManu from '@/components/HeaderManu.vue';
 export default {
   name: 'ManufacturerHome',
   components: { HeaderManu },
+  setup() {
+    // Check authentication on the client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('userToken');
+      const role = localStorage.getItem('userRole');
+      if (!token || role !== 'Manufacturer') {
+        window.location.href = '/loginPage';
+      }
+    }
+    return {};
+  },
   data() {
     return {
       profile: {
@@ -104,18 +115,32 @@ export default {
         phone: '',
         address: ''
       }
-    }
+    };
   },
   methods: {
     saveProfile() {
-      // Implement save profile logic here
       console.log('Saving profile:', this.profile);
     },
     logout() {
-      this.$router.push('/login');
+      // Clear all localStorage items
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        localStorage.removeItem('ManufacturerId');
+      }
+
+      // Redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/loginPage';
+      }
     }
   }
-}
+};
 </script>
 
 <style>
