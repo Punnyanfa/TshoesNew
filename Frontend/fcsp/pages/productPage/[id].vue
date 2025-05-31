@@ -41,7 +41,7 @@
                 {{ [undefined, null, '', 'undefined'].includes(product?.description) ? 'stylish comfort that keeps you moving with confidence' : product?.description }}
               </p>
               <h3 class="mb-4 fw-bold text-primary">
-                {{ product.price !== undefined ? '$' + formatPrice(product.price) : 'N/A' }}
+                {{ product.price !== undefined ?  formatPrice(product.price) + ' đ' : 'N/A' }}
               </h3>
               
               <!-- Size selection -->

@@ -32,10 +32,10 @@
             </div>
             <div class="dropdown-content">
               <a href="/customPage" class="dropdown-item" @click="toggleNav">
-                <ShoppingOutlined style="margin-right: 8px;" /> Thiết kế sản phẩm 
+                <ShoppingOutlined style="margin-right: 8px;" /> Product Design
               </a>
               <a href="/mycustomPage" class="dropdown-item" @click="toggleNav">
-                <UserOutlined style="margin-right: 8px;" /> Thiết kế của tôi
+                <UserOutlined style="margin-right: 8px;" /> My Designs
               </a>
             </div>
           </div>
@@ -71,13 +71,13 @@
             <ul class="dropdown-content" aria-labelledby="userDropdown">
               <li>
                 <a class="dropdown-item" href="/profileManuPage">
-                  <i class="bi bi-person me-2"></i> Hồ sơ
+                  <i class="bi bi-person me-2"></i> Profile
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>
               <li>
                 <a class="dropdown-item text-danger" href="#" @click.prevent="emitLogout">
-                  <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                  <i class="bi bi-box-arrow-right me-2"></i> Logout
                 </a>
               </li>
             </ul>
@@ -87,7 +87,7 @@
         <!-- Login Link (Non-Authenticated) -->
         <section v-else>
           <a href="/loginPage" class="login-btn">
-            <UserOutlined /> Đăng nhập 
+            <UserOutlined /> Login
           </a>
         </section>
       </div>
@@ -129,12 +129,12 @@ const emit = defineEmits(['logout']); // Define the logout event
 
 const navItems = computed(() => {
   const items = [
-    { path: '/Manufacturer', label: 'Trang chủ', icon: 'home' },
+    { path: '/Manufacturer', label: 'Home', icon: 'home' },
   ];
   if (isAuthenticated.value && userRole.value === 'Manufacturer') {
     items.push(
-      { path: '/Manufacturer/manu_Manage_Order', label: 'Quản lý đơn hàng', icon: 'shopping' },
-      { path: '/Manufacturer/manageService', label: 'Quản lý dịch vụ', icon: 'setting' }
+      { path: '/Manufacturer/manu_Manage_Order', label: 'Order Management', icon: 'shopping' },
+      { path: '/Manufacturer/manageService', label: 'Service Management', icon: 'setting' }
     );
   }
   return items;

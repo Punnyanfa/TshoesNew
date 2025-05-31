@@ -7,16 +7,16 @@
           <!-- Default Custom Fees Section -->
           <div class="card mb-4">
             <div class="card-header bg-warning text-dark">
-              <h4 class="mb-0">Bảng phụ phí mặc định</h4>
+              <h4 class="mb-0">Default Custom Fees Table</h4>
             </div>
             <div class="card-body">
               <div class="table-responsive">
                 <table class="table table-bordered text-center align-middle">
                   <thead class="table-primary">
                     <tr>
-                      <th>Thành phần</th>
-                      <th>Phụ phí màu sắc (₫)</th>
-                      <th>Phụ phí hình ảnh (₫)</th>
+                      <th>Component</th>
+                      <th>Color Fee (₫)</th>
+                      <th>Image Fee (₫)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -33,10 +33,10 @@
                 </table>
               </div>
               <div class="d-flex justify-content-end">
-                <button class="btn btn-warning" @click="saveDefaultCustomFees">Lưu phụ phí mặc định</button>
+                <button class="btn btn-warning" @click="saveDefaultCustomFees">Save Default Fees</button>
               </div>
               <div class="alert alert-info mt-3" style="font-size: 0.95em">
-                <b>Lưu ý:</b> Phụ phí này sẽ được lấy làm mặc định khi thêm dịch vụ mới.
+                <b>Note:</b> These fees will be used as default when adding new services.
               </div>
             </div>
           </div>      
@@ -134,9 +134,9 @@ export default {
   methods: {
     getStatusText(status) {
       switch (status) {
-        case 0: return 'Không hoạt động';
-        case 1: return 'Hoạt động';
-        default: return 'Không xác định';
+        case 0: return 'Inactive';
+        case 1: return 'Active';
+        default: return 'Unknown';
       }
     },
     formatCurrency(value) {
@@ -191,7 +191,7 @@ export default {
       this.hideServiceModal();
     },
     deleteService(serviceId) {
-      if (confirm('Bạn có chắc chắn muốn xóa dịch vụ này ?')) {
+      if (confirm('Are you sure you want to delete this service?')) {
         this.services = this.services.filter(s => s.id !== serviceId);
       }
     },
@@ -249,7 +249,7 @@ export default {
         if (currentServices.length > 0 && updateServices.length > 0) {
           // Use updateManufacturer for updating existing services
           await updateManufacturer(updateServices);
-          alert('Cập nhật phụ phí mặc định thành công!');
+          alert('Default fees updated successfully!');
         } else if (currentServices.length === 0) {
           // Add new services if none exist
           const addServices = [];
@@ -272,13 +272,13 @@ export default {
             }
           });
           await addManufacture({ addServices });
-          alert('Lưu phụ phí mặc định thành công!');
+          alert('Default fees saved successfully!');
         } else {
-          alert('Không có thay đổi nào để lưu!');
+          alert('No changes to save!');
         }
       } catch (error) {
         console.error('Error saving default fees:', error);
-        alert('Có lỗi khi lưu/cập nhật phụ phí mặc định!');
+        alert('Error saving/updating default fees!');
       }
     },
     async submitServiceToBE() {
@@ -306,12 +306,12 @@ export default {
       });
 
       try {
-        console.log('Dữ liệu gửi đi:', addServices);
+        console.log('Sending data:', addServices);
         await addManufacture({ addServices });
-        alert('Thêm dịch vụ thành công!');
+        alert('Service added successfully!');
       } catch (error) {
         console.error('Error submitting service:', error);
-        alert('Có lỗi khi thêm dịch vụ!');
+        alert('Error adding service!');
       }
     },
     async syncDefaultCustomFees() {
@@ -319,7 +319,7 @@ export default {
       if (typeof window !== 'undefined') {
         manufacturerId = localStorage.getItem('ManufacturerId');
         if (!manufacturerId) {
-          alert('Không tìm thấy manufacturerId!');
+          alert('Manufacturer ID not found!');
           return;
         }
       } else {
@@ -331,7 +331,7 @@ export default {
         const res = await getManufacturerById(manufacturerId);
         console.log(res);
         if (!res || !res.data || !Array.isArray(res.data.services)) {
-          alert('Không có dữ liệu dịch vụ từ API!');
+          alert('No service data from API!');
           return;
         }
         const colorMap = {};
@@ -347,7 +347,7 @@ export default {
         }));
       } catch (error) {
         console.error('Error syncing default fees:', error);
-        alert('Có lỗi khi đồng bộ phụ phí!');
+        alert('Error syncing fees!');
       }
     }
   },

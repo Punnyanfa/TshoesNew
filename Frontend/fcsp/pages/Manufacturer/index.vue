@@ -7,32 +7,32 @@
           <!-- Profile Section -->
           <div class="card mb-4">
             <div class="card-header" style="background-color: #AAAAAA; color: white;">
-              <h4>Hồ sơ nhà sản xuất</h4>
+              <h4>Manufacturer Profile</h4>
             </div>
             <div class="card-body">
               <form @submit.prevent="saveProfile">
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <div class="form-group mb-3">
-                      <label for="manufacturerName">Tên công ty</label>
+                      <label for="manufacturerName">Company Name</label>
                       <input 
                         type="text" 
                         class="form-control" 
                         id="manufacturerName" 
                         v-model="profile.name"
-                        placeholder="Nhập tên công ty"
+                        placeholder="Enter company name"
                         required
                       >
                     </div>
                     
                     <div class="form-group mb-3">
-                      <label for="contactPerson">Tên người liên lạc</label>
+                      <label for="contactPerson">Contact Person</label>
                       <input 
                         type="text" 
                         class="form-control" 
                         id="contactPerson" 
                         v-model="profile.contactPerson"
-                        placeholder="Nhập tên người liên lạc"
+                        placeholder="Enter contact person name"
                         required
                       >
                     </div>
@@ -44,7 +44,7 @@
                         class="form-control" 
                         id="email" 
                         v-model="profile.email"
-                        placeholder="Nhập địa chỉ email"
+                        placeholder="Enter email address"
                         required
                       >
                     </div>
@@ -52,24 +52,24 @@
                   
                   <div class="col-md-6">
                     <div class="form-group mb-3">
-                      <label for="phone">Số điện thoại</label>
+                      <label for="phone">Phone Number</label>
                       <input 
                         type="tel" 
                         class="form-control" 
                         id="phone" 
                         v-model="profile.phone"
-                        placeholder="Nhập số điện thoại"
+                        placeholder="Enter phone number"
                         required
                       >
                     </div>
                     
                     <div class="form-group mb-3">
-                      <label for="address">Địa chỉ</label>
+                      <label for="address">Address</label>
                       <textarea 
                         class="form-control" 
                         id="address" 
                         v-model="profile.address"
-                        placeholder="Nhập địa chỉ"
+                        placeholder="Enter address"
                         rows="2"
                         required
                       ></textarea>
@@ -78,7 +78,7 @@
                 </div>
                 
                 <div class="d-flex justify-content-end">
-                  <button type="submit" class="btn" style="background-color: #AAAAAA; color: white; border: none;">Lưu hồ sơ</button>
+                  <button type="submit" class="btn" style="background-color: #AAAAAA; color: white; border: none;">Save Profile</button>
                 </div>
               </form>
             </div>

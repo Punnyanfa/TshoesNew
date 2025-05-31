@@ -6,7 +6,7 @@
         <div class="container-fluid py-4">
           <div class="row">
             <div class="col-12">
-              <h1 class="mb-4 text-primary fw-bold">Quản lý đơn hàng</h1>
+              <h1 class="mb-4 text-primary fw-bold">Order Management</h1>
               
               <!-- Search and Filter Section -->
               <div class="card mb-4 search-card">
@@ -21,7 +21,7 @@
                           type="text" 
                           class="form-control" 
                           v-model="search" 
-                          placeholder="Tìm đơn hàng"
+                          placeholder="Search orders"
                         >
                         <button 
                           v-if="search" 
@@ -39,7 +39,7 @@
                           <i class="bi bi-funnel"></i>
                         </span>
                         <select class="form-select" v-model="statusFilter">
-                          <option value="">Tất cả trạng thái</option>
+                          <option value="">All Statuses</option>
                           <option v-for="status in orderStatuses" :key="status" :value="status">
                             {{ status }}
                           </option>
@@ -55,7 +55,7 @@
                           type="text" 
                           class="form-control" 
                           v-model="dateRangeText" 
-                          placeholder="Ngày"
+                          placeholder="Date"
                           readonly
                           @click="toggleDatePicker"
                         >
@@ -67,7 +67,7 @@
                             <input type="date" class="form-control" v-model="dateRange[1]">
                           </div>
                           <div class="d-flex justify-content-end">
-                            <button class="btn btn-sm btn-primary" @click="applyDateFilter">Nhập</button>
+                            <button class="btn btn-sm btn-primary" @click="applyDateFilter">Apply</button>
                           </div>
                         </div>
                       </div>
@@ -83,12 +83,12 @@
                     <table class="table table-hover align-middle mb-0">
                       <thead class="table-light">
                         <tr>
-                          <th>ID Đơn Hàng</th>
-                          <th>Tên Khách Hàng</th>
-                          <th>Tổng tiền</th>
-                          <th>Trạng thái</th>
-                          <th>Ngày đặt đơn</th>
-                          <th class="text-end">Hành động</th>
+                          <th>Order ID</th>
+                          <th>Customer Name</th>
+                          <th>Total Amount</th>
+                          <th>Status</th>
+                          <th>Order Date</th>
+                          <th class="text-end">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -106,7 +106,7 @@
                             <button 
                               class="btn btn-sm btn-outline-primary me-1" 
                               data-bs-toggle="tooltip" 
-                              title="Xem chi tiết"
+                              title="View Details"
                               @click="viewOrderDetails(order)"
                             >
                               <i class="bi bi-eye"></i>
@@ -114,7 +114,7 @@
                             <button 
                               class="btn btn-sm btn-outline-success" 
                               data-bs-toggle="tooltip" 
-                              title="Cập nhật trạng thái"
+                              title="Update Status"
                               @click="updateOrderStatus(order)"
                             >
                               <i class="bi bi-pencil"></i>
@@ -130,7 +130,7 @@
                         </tr>
                         <tr v-if="!loading && filteredOrders.length === 0">
                           <td colspan="6" class="text-center py-4">
-                            Không tìm thấy đơn hàng nào 
+                            No orders found
                           </td>
                         </tr>
                       </tbody>
@@ -144,7 +144,7 @@
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                   <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                      <h5 class="modal-title">Chi tiết đơn hàng #{{ selectedOrder?.id }}</h5>
+                      <h5 class="modal-title">Order Details #{{ selectedOrder?.id }}</h5>
                       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" v-if="selectedOrder">
@@ -153,11 +153,11 @@
                           <div class="card h-100 border-0 bg-light">
                             <div class="card-body">
                               <h5 class="card-title text-primary mb-3">
-                                <i class="bi bi-person me-2"></i>Thông tin của khách hàng
+                                <i class="bi bi-person me-2"></i>Customer Information
                               </h5>
                               <ul class="list-group list-group-flush bg-transparent">
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Tên: </strong> {{ selectedOrder.userName }}
+                                  <strong>Name: </strong> {{ selectedOrder.userName }}
                                 </li>
                               </ul>
                             </div>
@@ -167,27 +167,27 @@
                           <div class="card h-100 border-0 bg-light">
                             <div class="card-body">
                               <h5 class="card-title text-primary mb-3">
-                                <i class="bi bi-truck me-2"></i>Thông tin giao hàng
+                                <i class="bi bi-truck me-2"></i>Shipping Information
                               </h5>
                               <ul class="list-group list-group-flush bg-transparent" v-if="getShippingInfo(selectedOrder.shippingInfoId)">
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Điện thoại: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).phoneNumber }}
+                                  <strong>Phone: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).phoneNumber }}
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Địa chỉ: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).address }}
+                                  <strong>Address: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).address }}
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Thành phố: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).city }}
+                                  <strong>City: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).city }}
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Quận / Huyện: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).district }}
+                                  <strong>District: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).district }}
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Phường / Xã :</strong> {{ getShippingInfo(selectedOrder.shippingInfoId).ward }}
+                                  <strong>Ward: </strong> {{ getShippingInfo(selectedOrder.shippingInfoId).ward }}
                                 </li>
                               </ul>
                               <div v-else class="text-muted">
-                                Không tìm thấy thông tin giao hàng nào 
+                                No shipping information found
                               </div>
                             </div>
                           </div>
@@ -196,24 +196,24 @@
                           <div class="card h-100 border-0 bg-light">
                             <div class="card-body">
                               <h5 class="card-title text-primary mb-3">
-                                <i class="bi bi-box-seam me-2"></i>Thông tin của đơn hàng
+                                <i class="bi bi-box-seam me-2"></i>Order Information
                               </h5>
                               <ul class="list-group list-group-flush bg-transparent">
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Ngày đặt đơn: </strong> {{ formatDate(selectedOrder.createdAt) }}
+                                  <strong>Order Date: </strong> {{ formatDate(selectedOrder.createdAt) }}
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Trạng thái: </strong> 
+                                  <strong>Status: </strong> 
                                   <span :class="['badge', getStatusBadgeClass(selectedOrder.statusName)]">
                                     {{ getStatusText(selectedOrder.statusName) }}
                                   </span>
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Tổng tiền: </strong> 
+                                  <strong>Total Amount: </strong> 
                                   <span class="total-amount">{{ formatCurrency(selectedOrder.totalPrice) }}</span>
                                 </li>
                                 <li class="list-group-item bg-transparent px-0">
-                                  <strong>Phương pháp thanh toán: </strong> {{ getPaymentMethodText(selectedOrder.paymentMethodName) }}
+                                  <strong>Payment Method: </strong> {{ getPaymentMethodText(selectedOrder.paymentMethodName) }}
                                 </li>
                               </ul>
                             </div>
@@ -221,18 +221,18 @@
                         </div>
                         <div class="col-12">
                           <h5 class="text-primary mb-3">
-                            <i class="bi bi-cart3 me-2"></i>Sản phẩm
+                            <i class="bi bi-cart3 me-2"></i>Products
                           </h5>
                           <div class="table-responsive">
                             <table class="table table-striped">
                               <thead class="table-light">
                                 <tr>
-                                  <th>Hình ảnh</th>
-                                  <th>Sản phẩm</th>
-                                  <th>Giá</th>
-                                  <th>Số lượng</th>
+                                  <th>Image</th>
+                                  <th>Product</th>
+                                  <th>Price</th>
+                                  <th>Quantity</th>
                                   <th>Size</th>
-                                  <th>Tổng tiền</th>
+                                  <th>Total</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -245,7 +245,7 @@
                                       style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
                                       @error="() => (product.firstPreviewImageUrl = null)"
                                     />
-                                    <span v-else class="text-muted">Không có hình ảnh</span>
+                                    <span v-else class="text-muted">No image</span>
                                   </td>
                                   <td>{{ product.customShoeDesignName }}</td>
                                   <td>{{ formatCurrency(product.unitPrice) }}</td>
@@ -256,7 +256,7 @@
                               </tbody>
                               <tfoot class="table-light">
                                 <tr>
-                                  <td colspan="5" class="text-end fw-bold">Tổng tiền:</td>
+                                  <td colspan="5" class="text-end fw-bold">Total Amount:</td>
                                   <td class="total-amount fw-bold">{{ formatCurrency(selectedOrder.totalPrice) }}</td>
                                 </tr>
                               </tfoot>
@@ -266,7 +266,7 @@
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                   </div>
                 </div>
@@ -277,12 +277,12 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header bg-success text-white">
-                      <h5 class="modal-title">Cập nhật trạng thái đơn hàng</h5>
+                      <h5 class="modal-title">Update Order Status</h5>
                       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
-                        <label for="newStatus" class="form-label">Trạng thái mới</label>
+                        <label for="newStatus" class="form-label">New Status</label>
                         <select class="form-select" id="newStatus" v-model="newStatus">
                           <option v-for="status in orderStatuses" :key="status" :value="status">
                             {{ status }}
@@ -291,8 +291,8 @@
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                      <button type="button" class="btn btn-success" @click="confirmStatusUpdate">Cập nhật</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="button" class="btn btn-success" @click="confirmStatusUpdate">Update</button>
                     </div>
                   </div>
                 </div>
@@ -303,32 +303,32 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                      <h5 class="modal-title">Chi tiết sản phẩm</h5>
+                      <h5 class="modal-title">Product Details</h5>
                       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" v-if="selectedOrderItem">
                       <div class="card border-0 bg-light mb-3">
                         <div class="card-body">
-                          <h6 class="text-primary mb-3">Thông tin sản phẩm</h6>
+                          <h6 class="text-primary mb-3">Product Information</h6>
                           <ul class="list-group list-group-flush bg-transparent">
                             <li class="list-group-item bg-transparent d-flex justify-content-between">
-                              <strong>Tên sản phẩm:</strong>
+                              <strong>Product Name:</strong>
                               <span>{{ selectedOrderItem.customShoeDesignName }}</span>
                             </li>
                             <li class="list-group-item bg-transparent d-flex justify-content-between">
-                              <strong>Kích cỡ:</strong>
+                              <strong>Size:</strong>
                               <span>{{ selectedOrderItem.sizeValue }}</span>
                             </li>
                             <li class="list-group-item bg-transparent d-flex justify-content-between">
-                              <strong>Đơn giá:</strong>
+                              <strong>Unit Price:</strong>
                               <span>{{ formatCurrency(selectedOrderItem.unitPrice) }}</span>
                             </li>
                             <li class="list-group-item bg-transparent d-flex justify-content-between">
-                              <strong>Số lượng:</strong>
+                              <strong>Quantity:</strong>
                               <span>{{ selectedOrderItem.quantity }}</span>
                             </li>
                             <li class="list-group-item bg-transparent d-flex justify-content-between">
-                              <strong>Tổng tiền:</strong>
+                              <strong>Total Amount:</strong>
                               <span class="text-primary fw-bold">
                                 {{ formatCurrency(selectedOrderItem.unitPrice * selectedOrderItem.quantity) }}
                               </span>
@@ -338,7 +338,7 @@
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                   </div>
                 </div>
@@ -418,12 +418,12 @@ export default {
       selectedOrderItem: null,
       newStatus: '',
       orderStatuses: [
-        'Đang chờ xử lý',
-        'Đã xác nhận',
-        'Đang xử lý',
-        'Đang giao hàng',
-        'Đã giao hàng',
-        'Đã hủy'
+        'Pending',
+        'Confirmed',
+        'Processing',
+        'Shipping',
+        'Delivered',
+        'Cancelled'
       ],
       orders: [],
       shippingInfos: []
@@ -476,15 +476,15 @@ export default {
     },
     getStatusText(status) {
       const statusMap = {
-        'Pending': 'Đang chờ xử lý',
-        'Confirmed': 'Đã xác nhận',
-        'Processing': 'Đang xử lý',
-        'Shipping': 'Đang giao hàng',
-        'Delivered': 'Đã giao hàng',
-        'Cancelled': 'Đã hủy',
-        'Completed': 'Đã hoàn thành'
+        'Pending': 'Pending',
+        'Confirmed': 'Confirmed',
+        'Processing': 'Processing',
+        'Shipping': 'Shipping',
+        'Delivered': 'Delivered',
+        'Cancelled': 'Cancelled',
+        'Completed': 'Completed'
       };
-      return statusMap[status] || status || 'Không xác định';
+      return statusMap[status] || status || 'Unknown';
     },
     getStatusBadgeClass(status) {
       const classes = {
@@ -499,7 +499,7 @@ export default {
       return classes[status] || 'bg-secondary';
     },
     getPaymentMethodText(method) {
-      return method || 'Không xác định';
+      return method || 'Unknown';
     },
     toggleDatePicker() {
       this.datePickerVisible = !this.datePickerVisible;
@@ -587,13 +587,13 @@ export default {
     async confirmStatusUpdate() {
       try {
         const reverseStatusMap = {
-          'Đang chờ xử lý': 'Pending',
-          'Đã xác nhận': 'Confirmed',
-          'Đang xử lý': 'Processing',
-          'Đang giao hàng': 'Shipping',
-          'Đã giao hàng': 'Delivered',
-          'Đã hủy': 'Cancelled',
-          'Đã hoàn thành': 'Completed'
+          'Pending': 'Pending',
+          'Confirmed': 'Confirmed',
+          'Processing': 'Processing',
+          'Shipping': 'Shipping',
+          'Delivered': 'Delivered',
+          'Cancelled': 'Cancelled',
+          'Completed': 'Completed'
         };
         this.selectedOrder.statusName = reverseStatusMap[this.newStatus] || this.newStatus;
         

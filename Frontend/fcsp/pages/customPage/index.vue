@@ -148,6 +148,12 @@ const changePage = (page) => {
 };
 
 const goToDetailPage = (id) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Please login to view product details');
+    router.push('/loginPage');
+    return;
+  }
   router.push({ path: `/customPage/${id}` });
 };
 

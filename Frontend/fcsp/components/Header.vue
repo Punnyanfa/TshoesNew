@@ -160,10 +160,10 @@ const navItems = [
 
 // Watch for authentication state changes
 watch(() => {
-  const token = sessionStorage.getItem('username');
+  const token = localStorage.getItem('username');
   isAuthenticated.value = !!token;
   if (isAuthenticated.value) {
-    userName.value = sessionStorage.getItem('username') || 'User';
+    userName.value = localStorage.getItem('username') || 'User';
   }
 }, { immediate: true });
 
@@ -191,16 +191,19 @@ onMounted(() => {
   nextTick(() => {
     initDropdowns();
   });
-  const token = sessionStorage.getItem('username');
-  userName.value = sessionStorage.getItem('username') || 'User';
+  const token = localStorage.getItem('username');
+  userName.value = localStorage.getItem('username') || 'User';
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
   // Clear sessionStorage when the tab is closed
-  if (typeof window !== 'undefined') {
-    sessionStorage.clear();
-  }
+  // Note: Clearing localStorage on unmount might not be desired, check your application logic.
+  // If you only want to clear for the current tab/session, stick to sessionStorage or use a different approach.
+  // For now, I will comment this out as localStorage persists.
+  // if (typeof window !== 'undefined') {
+  //   localStorage.clear();
+  // }
 });
 
 const toggleNav = () => {
@@ -221,13 +224,13 @@ const onSearch = (value) => {
 const logout = () => {
   // Clear sessionStorage for the current tab
   if (typeof window !== 'undefined') {
-    sessionStorage.removeItem('userToken');
-    sessionStorage.removeItem('userEmail');
-    sessionStorage.removeItem('role');
-    sessionStorage.removeItem('userId');
-    sessionStorage.removeItem('userName');
-    sessionStorage.removeItem('userRole');
-    sessionStorage.removeItem('username');
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('role');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('username');
   }
 
   // Reset authentication state
