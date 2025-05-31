@@ -86,6 +86,7 @@
                         <th>Customer</th>
                         <th>Total</th>
                         <th>Status</th>
+                        <th>Shipping Status</th>
                         <th>Order Date</th>
                         <th class="text-end">Actions</th>
                       </tr>
@@ -100,6 +101,7 @@
                             {{ getStatusText(order.statusName) }}
                           </span>
                         </td>
+                        <td>{{ order.shippingStatusName }}</td>
                         <td class="date-text">{{ formatDate(order.createdAt) }}</td>
                         <td class="text-end">
                           <button 
@@ -476,7 +478,7 @@ export default {
     async fetchShippingInfos() {
       try {
         const response = await getAllShippingInfo();
-        console.log('ssssssssssShipping API Response:', response);
+     
         
         // Check if response has the expected structure
         if (response && Array.isArray(response.shippingInfos)) {
@@ -488,7 +490,7 @@ export default {
           this.shippingInfos = [];
         }
         
-        console.log('Processed shipping infos:', this.shippingInfos);
+        
       } catch (error) {
         console.error('Error fetching shipping info:', error);
         this.showMessage('Có lỗi xảy ra khi tải thông tin giao hàng', 'danger');
@@ -523,7 +525,7 @@ export default {
               sizeValue: detail.sizeValue
             })) : []
           }));
-          console.log('Transformed orders:', this.orders);
+         
           
           // Fetch shipping information after orders are loaded
           await this.fetchShippingInfos();
@@ -569,7 +571,7 @@ export default {
     },
     showMessage(message, type = 'success') {
       // Implement your own message display logic here
-      console.log(`${type}: ${message}`);
+
     },
     viewOrderItemDetails(item) {
       this.selectedOrderItem = item;

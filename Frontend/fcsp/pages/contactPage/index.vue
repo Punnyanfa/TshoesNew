@@ -121,8 +121,7 @@ import { ref } from 'vue';
 import { sendEmail } from '../../server/auth/senEmail-service';
 
 const form = ref({
-  firstName: '',
-  lastName: '',
+
   email: '',
   subject: '',
   message: ''

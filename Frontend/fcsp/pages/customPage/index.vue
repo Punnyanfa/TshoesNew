@@ -52,7 +52,7 @@
                   {{ product.name }}
                 </h5>
                 <p class="text-muted flex-grow-1">{{ product.description }}</p>
-                <h5 class="text-sneaker-blue mb-3">{{ formatPrice(product.price) }}</h5>
+                <h5 class="text-sneaker-blue mb-3">{{ formatPrice(product.price) }} </h5>
                 <NuxtLink :to="`/customPage/${product.id}`" class="btn btn-sneaker w-100 px-5 py-3 fw-bold text-uppercase animate__animated animate__zoomIn" @click.stop>
                   Customize Now
                 </NuxtLink>
@@ -171,17 +171,16 @@ const changePage = (page) => {
 };
 
 const goToDetailPage = (id) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('userToken');
   if (!token) {
+    // If not authenticated, redirect to login page
     alert('Please login to view product details');
     router.push('/loginPage');
-    return;
-  }
-  router.push({ path: `/customPage/${id}` });
+    return;}
 };
 
 const formatPrice = (price) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "vnd" }).format(price);
 </script>
 
 <style scoped>

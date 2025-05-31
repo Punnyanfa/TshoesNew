@@ -117,7 +117,7 @@ const validateRouteAccess = (role, path) => {
   if (role === "Admin") {
     return path.startsWith('/admin');
   } else if (role === "Manufacturer") {
-    return path.startsWith('/Manufacturer');
+    return path.startsWith('/manufacturer');
   }
   return true; // Allow access to other routes for other roles
 };
@@ -149,7 +149,7 @@ const login = async () => {
     if (role === "Admin") {
       redirectRoute = '/admin';
     } else if (role === "Manufacturer") {
-      redirectRoute = '/Manufacturer';
+      redirectRoute = '/manufacturer';
     }
     
     if (result === "Login successful" || result === "Admin login") {

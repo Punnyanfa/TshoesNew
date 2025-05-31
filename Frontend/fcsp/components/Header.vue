@@ -197,13 +197,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
-  // Clear sessionStorage when the tab is closed
-  // Note: Clearing localStorage on unmount might not be desired, check your application logic.
-  // If you only want to clear for the current tab/session, stick to sessionStorage or use a different approach.
-  // For now, I will comment this out as localStorage persists.
-  // if (typeof window !== 'undefined') {
-  //   localStorage.clear();
-  // }
+
 });
 
 const toggleNav = () => {

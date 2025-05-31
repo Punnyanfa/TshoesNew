@@ -23,6 +23,9 @@
               </div>
 
               <div class="cart-item-details">
+                <div class="status-badge" :class="getStatusClass(item.status)">
+                  {{ getStatusText(item.status) }}
+                </div>
                 <h4>{{ item.name }}</h4>
                 <p class="price">Base Price: {{ formatPrice(item.price) }}</p>
                 <!-- <p class="price">Size: {{ item.size }}</p> -->
@@ -538,6 +541,37 @@ const cleanupStorage = () => {
    
   } catch (e) {
     console.error('Lỗi khi dọn dẹp localStorage:', e);
+  }
+};
+
+// Thêm các hàm xử lý status
+const getStatusText = (status) => {
+  switch (status) {
+    case 1:
+      return 'Draft';
+    case 2:
+      return 'Pending';
+    case 3:
+      return 'Approved';
+    case 4:
+      return 'Rejected';
+    default:
+      return 'Prive';
+  }
+};
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 1:
+      return 'status-draft';
+    case 2:
+      return 'status-pending';
+    case 3:
+      return 'status-approved';
+    case 4:
+      return 'status-rejected';
+    default:
+      return 'status-unknown';
   }
 };
 
@@ -1134,5 +1168,42 @@ h1:hover {
     width: 100%;
     text-align: center;
   }
+}
+
+/* Status Badge Styles */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-draft {
+  background-color: #6c757d;
+  color: white;
+}
+
+.status-pending {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.status-approved {
+  background-color: #28a745;
+  color: white;
+}
+
+.status-rejected {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-unknown {
+  background-color: #6c757d;
+  color: white;
 }
 </style>

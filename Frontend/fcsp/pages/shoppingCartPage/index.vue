@@ -47,7 +47,7 @@
                 </td>
                  <td>
                   <h5 class="mb-1">{{ item.name }}</h5>
-                  <p class="text-muted small mb-0">{{ item.description?.substring(0, 50) }}...</p>
+                  <p class="text-muted small mb-0">...</p>
                 </td>
                 <td>
                   <span class="badge bg-secondary">{{ item.selectedSize }}</span>
@@ -63,7 +63,7 @@
                   </div>
                 </td>
                  <td>
-                  <span class="fw-bold">${{ (item.price * item.selectedQuantity).toFixed(2) }}</span>
+                  <span class="fw-bold">{{ (item.price * item.selectedQuantity).toFixed(2) }} đ</span>
                 </td>
                 <td>
                   <button class="btn btn-sm btn-outline-danger" @click="removeItem(item)">
@@ -79,17 +79,17 @@
           <h4 class="mb-3">Summary ({{ selectedItems.size }} item{{ selectedItems.size !== 1 ? 's' : '' }} selected)</h4>
           <div class="d-flex justify-content-between mb-2">
             <span>Subtotal:</span>
-            <span class="fw-bold">${{ selectedSubtotal.toFixed(2) }}</span>
+            <span class="fw-bold">{{ selectedSubtotal.toFixed(2) }} đ</span>
           </div>
            <div class="d-flex justify-content-between mb-3">
             <span>Shipping:</span>
             <!-- Add logic for shipping cost based on selected items if needed -->
-            <span class="fw-bold">${{ shippingCost.toFixed(2) }}</span> 
+            <span class="fw-bold">{{ shippingCost.toFixed(2) }} đ</span> 
           </div>
           <hr>
           <div class="d-flex justify-content-between fw-bold fs-5">
             <span>Total:</span>
-            <span>${{ selectedTotal.toFixed(2) }}</span>
+            <span>{{ selectedTotal.toFixed(2) }} đ</span>
           </div>
           <div class="d-grid mt-4">
             <button class="btn btn-primary btn-lg" 
@@ -250,6 +250,7 @@ const proceedToCheckout = () => {
   const token = localStorage.getItem('userToken');
   if (!token) {
     // If not authenticated, redirect to login page
+    alert('Please login to view product details');
     router.push('/loginPage');
     return;
   }

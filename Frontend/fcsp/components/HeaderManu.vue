@@ -2,7 +2,7 @@
   <header class="sneaker-header" :class="{ 'scrolled': isScrolled }">
     <div class="header-container">
       <!-- Logo Section -->
-      <a href="/Manufacturer" class="logo-wrapper">
+      <a href="/manufacturer" class="logo-wrapper">
         <img 
           src="https://th.bing.com/th/id/OIP.EL5hPJ7k0B7W_D7EbZoexgHaEd?w=338&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7" 
           alt="Sneaker Logo" 
@@ -129,12 +129,12 @@ const emit = defineEmits(['logout']); // Define the logout event
 
 const navItems = computed(() => {
   const items = [
-    { path: '/Manufacturer', label: 'Home', icon: 'home' },
+    { path: '/manufacturer', label: 'Home', icon: 'home' },
   ];
   if (isAuthenticated.value && userRole.value === 'Manufacturer') {
     items.push(
-      { path: '/Manufacturer/manu_Manage_Order', label: 'Order Management', icon: 'shopping' },
-      { path: '/Manufacturer/manageService', label: 'Service Management', icon: 'setting' }
+      { path: '/manufacturer/manu_Manage_Order', label: 'Order Management', icon: 'shopping' },
+      { path: '/manufacturer/manageService', label: 'Service Management', icon: 'setting' }
     );
   }
   return items;
@@ -143,7 +143,7 @@ const navItems = computed(() => {
 // Watch for authentication state changes
 watch(() => {
   const token = localStorage.getItem('userToken');
-  const role = localStorage.getItem('userRole');
+  const role = localStorage.getItem('role');
   isAuthenticated.value = !!token;
   userRole.value = role || '';
   if (isAuthenticated.value) {

@@ -1,8 +1,9 @@
 import { instance } from "../api-instance-provider";
 
 export async function sendEmail(userId, subject, body) {
+  console.log("usser", userId)
   try {
-    const response = await instance.post("/Auth/SendEmailToUser", {
+    const response = await instance.post("/Auth/SendEmailToAdmin", {
       userId,
       subject,
       body,

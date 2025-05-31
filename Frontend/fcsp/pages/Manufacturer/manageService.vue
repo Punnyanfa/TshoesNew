@@ -54,22 +54,6 @@ export default {
   name: 'ManageService',
   components: { HeaderManu },
   setup() {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('userToken');
-      const role = localStorage.getItem('role');
-      console.log('ManageService - Token:', token, 'Role:', role); // Debugging log
-      if (!token) {
-        console.warn('No user token found. Redirecting to login page.');
-        alert('Please log in to access this page.');
-        window.location.href = '/loginPage';
-        return;
-      }
-      if (!role || role.toLowerCase() !== 'manufacturer') {
-        console.warn('User role is not Manufacturer. Role found:', role);
-        alert('Access denied: You need a Manufacturer role to view this page.');
-        window.location.href = '/loginPage';
-      }
-    }
     return {};
   },
   data() {
