@@ -300,9 +300,9 @@ const getStarClass = (rating, position) => {
 
 const formatPrice = (price) => {
   if (typeof price === 'number') {
-    return price.toFixed(2);
+    return price.toLocaleString('vi-VN');
   }
-  return '0.00';
+  return '0';
 };
 
 onMounted(async () => {
@@ -361,7 +361,7 @@ onMounted(async () => {
   object-fit: cover;
   cursor: pointer;
   transition: transform 0.3s ease;
-  border-radius: 15px 15px 0 0;
+  /* border-radius: 15px 15px 0 0; */
 }
 
 .sneaker-img:hover {
@@ -555,13 +555,11 @@ onMounted(async () => {
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
 }
 
 .newsletter-button:hover {
   background: #555555;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
 }
 
 .newsletter-website {

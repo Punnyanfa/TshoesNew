@@ -26,14 +26,17 @@
                   
                   <div class="form-group mb-3">
                     <label for="discountAmount">Discount Amount</label>
-                    <input 
-                      type="number" 
-                      class="form-control" 
-                      id="discountAmount" 
-                      v-model="voucher.discountAmount"
-                      placeholder="Enter discount amount"
-                      required
-                    >
+                    <div class="input-group">
+                      <input 
+                        type="number" 
+                        class="form-control" 
+                        id="discountAmount" 
+                        v-model="voucher.discountAmount"
+                        placeholder="Enter discount amount"
+                        required
+                      >
+                      <span class="input-group-text">VND</span>
+                    </div>
                   </div>
                 </div>
                 

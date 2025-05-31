@@ -13,18 +13,21 @@
         <div class="col-md-6">
           <!-- Product images/textures -->
           <div v-if="product.previewImages && product.previewImages.length > 0" class="product-image-section mb-4">
-            <div class="card shadow-sm">
-              <img :src="product.previewImages[selectedTextureIndex]" 
-                   :alt="product.name" 
-                   class="card-img-top img-fluid texture-image">
-            </div>
-            <!-- Texture thumbnails -->
-            <div class="texture-thumbnail-list d-flex flex-wrap mt-3 gap-2">
-              <div v-for="(url, index) in product.previewImages" :key="index" 
-                   class="texture-thumbnail" 
-                   :class="{'active-thumbnail': selectedTextureIndex === index}"
-                   @click="selectedTextureIndex = index">
-                <img :src="url" :alt="'Texture ' + (index + 1)" class="img-thumbnail">
+            <div class="d-flex gap-3">
+              <!-- Texture thumbnails -->
+              <div class="texture-thumbnail-list d-flex flex-column gap-2">
+                <div v-for="(url, index) in product.previewImages" :key="index" 
+                     class="texture-thumbnail" 
+                     :class="{'active-thumbnail': selectedTextureIndex === index}"
+                     @click="selectedTextureIndex = index">
+                  <img :src="url" :alt="'Texture ' + (index + 1)" class="img-thumbnail">
+                </div>
+              </div>
+              <!-- Main product image -->
+              <div class="card shadow-sm flex-grow-1">
+                <img :src="product.previewImages[selectedTextureIndex]" 
+                     :alt="product.name" 
+                     class="card-img-top img-fluid texture-image">
               </div>
             </div>
           </div>
@@ -107,7 +110,7 @@ const { updateCartCount } = useCart();
 const product = ref(null);
 const loading = ref(true);
 const selectedSize = ref('');
-const selectedTextureIndex = ref(0);
+const selectedTextureIndex = ref(3);
 const selectedQuantity = ref(1);
 
 // Fetch product details from API
@@ -191,7 +194,7 @@ const addToCart = () => {
 
 const formatPrice = (price) => {
   if (typeof price !== 'number') return 'N/A';
-  return price.toFixed(2);
+  return price.toLocaleString('vi-VN');
 };
 </script>
 
@@ -239,10 +242,6 @@ const formatPrice = (price) => {
   transition: transform 0.3s ease;
 }
 
-.card-title:hover {
-  transform: translateY(-3px);
-}
-
 /* Product images/textures section */
 .product-image-section {
   margin-bottom: 1.5rem; /* Add some space below the image section */
@@ -252,10 +251,11 @@ const formatPrice = (price) => {
   padding: 15px;
   position: relative;
   width: 100%;
-  padding-top: 70%; /* Maintain aspect ratio based on image height */
+  height: 545px;
+  padding-top: 70%; /* Duy trì tỷ lệ khung hình ban đầu hoặc điều chỉnh nếu cần */
   overflow: hidden;
   border-radius: 15px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Revert to original shadow */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .card.shadow-sm .card-body {
@@ -272,51 +272,49 @@ const formatPrice = (price) => {
 }
 
 .texture-image {
-  border-radius: 12px; /* Slightly smaller border radius than container */
-  object-fit: cover; /* Changed from contain to cover */
-  transition: transform 0.3s ease;
-  position: absolute; /* Position image relative to padded container */
+  border-radius: 12px;
+  object-fit: cover;
+  position: absolute;
   top: 15px;
-  bottom: 15px;
   left: 15px;
-  right: 15px;
-  width: auto; /* Let object-fit and positioning handle size */
-  height: auto; /* Let object-fit and positioning handle size */
-}
-
-.texture-image:hover {
-  transform: scale(1.02);
+  bottom: auto;
+  right: auto;
+  width: calc(100% - 30px);
+  height: calc(100% - 30px);
+  transform: none;
+  max-width: none;
+  max-height: none;
 }
 
 /* Thumbnail section */
 .texture-thumbnail-list {
     display: flex;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-    gap: 8px; /* Consistent gap as before */
+    flex-direction: column;
+    gap: 8px;
+    width: 80px;
 }
 
 .texture-thumbnail {
-  width: 60px; /* Match size from earlier */
-  height: 60px; /* Match size from earlier */
+  width: 80px;
+  height: 80px;
   cursor: pointer;
   overflow: hidden;
-  border-radius: 8px; /* Rounded corners for thumbnails */
+  border-radius: 8px;
   transition: all 0.3s ease;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  border: 1px solid #e0e0e0; /* Subtle border */
-  flex-shrink: 0; /* Prevent shrinking */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 .texture-thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Thumbnails can use cover */
+  object-fit: cover;
 }
 
 .active-thumbnail {
-  border-color: #AAAAAA; /* Highlight active thumbnail with border color */
-  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3); /* Enhanced shadow for active */
+  border-color: #AAAAAA;
+  box-shadow: 0 5px 15px rgba(170, 170, 170, 0.3);
 }
 
 .size-label {
@@ -415,8 +413,12 @@ const formatPrice = (price) => {
   }
 
   .texture-thumbnail {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .texture-thumbnail-list {
+    width: 60px;
   }
 }
 
@@ -426,8 +428,12 @@ const formatPrice = (price) => {
   }
 
   .texture-thumbnail {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .texture-thumbnail-list {
+    width: 50px;
   }
 }
 

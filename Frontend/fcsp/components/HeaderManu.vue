@@ -10,7 +10,7 @@
           @mouseover="animateLogo"
           @mouseleave="resetLogo" 
         />
-        <span class="brand-text">SneakerVibe</span>
+        <span class="brand-text">WPY</span>
       </a>
 
       <!-- Navigation -->

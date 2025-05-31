@@ -304,7 +304,7 @@
   const confirmAddress = () => {
     try {
       if (!selectedAddress.value) {
-        alert('Vui lòng chọn một địa chỉ giao hàng');
+        alert('Please select a shipping address');
         return;
       }
 
@@ -315,7 +315,7 @@
       }
     } catch (err) {
       console.error('Error confirming address:', err);
-      alert('Không thể cập nhật địa chỉ giao hàng. Vui lòng thử lại.');
+      alert('Unable to update shipping address. Please try again.');
     }
   };
   
@@ -347,26 +347,26 @@
       addressModal.show();
     } catch (err) {
       console.error('Error showing address modal:', err);
-      alert('Không thể mở cửa sổ chọn địa chỉ. Vui lòng thử lại.');
+      alert('Unable to open address selection window. Please try again.');
     }
   };
   
   const placeOrder = async () => {
     try {
       if (!shippingAddress.value) {
-        alert('Vui lòng chọn địa chỉ giao hàng');
+        alert('Please select a shipping address');
         return;
       }
 
       if (!order.value || !order.value.items || order.value.items.length === 0) {
-        alert('Không có sản phẩm nào trong đơn hàng');
+        alert('No products in order');
         return;
       }
 
       // Get userId from localStorage
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        alert('Vui lòng đăng nhập để đặt hàng');
+        alert('Please login to place an order');
         return;
       }
 
@@ -418,7 +418,7 @@
       
       // If no payment URL but order was successful
       if (response && response.code === 200) {
-        alert('Đặt hàng thành công!');
+        alert('Order placed successfully!');
         router.push('/');
         return;
       }
@@ -474,7 +474,7 @@
         discountAmount.value = voucher.discountAmount;
         // Recalculate the total
         calculateTotal();
-        alert('Áp dụng mã giảm giá thành công!');
+        alert('Coupon applied successfully!');
       } else {
         // Check specific reasons why voucher is invalid
         const existingVoucher = availableVouchers.value.find(v => 

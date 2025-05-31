@@ -180,7 +180,8 @@ const goToDetailPage = (id) => {
 };
 
 const formatPrice = (price) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "vnd" }).format(price);
+  // new Intl.NumberFormat("en-US", { style: "currency", currency: "vnd" }).format(price);
+  new Intl.NumberFormat("vi-VN").format(price) + " đ";
 </script>
 
 <style scoped>
@@ -213,10 +214,6 @@ const formatPrice = (price) =>
   object-fit: cover;
   cursor: pointer;
   transition: transform 0.3s ease;
-}
-
-.sneaker-img:hover {
-  transform: scale(1.05);
 }
 
 .custom-badge {

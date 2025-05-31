@@ -63,7 +63,7 @@
                   </div>
                 </td>
                  <td>
-                  <span class="fw-bold">{{ (item.price * item.selectedQuantity).toFixed(2) }} đ</span>
+                  <span class="fw-bold">{{ (item.price * item.selectedQuantity).toLocaleString('vi-VN') }} đ</span>
                 </td>
                 <td>
                   <button class="btn btn-sm btn-outline-danger" @click="removeItem(item)">
@@ -79,17 +79,17 @@
           <h4 class="mb-3">Summary ({{ selectedItems.size }} item{{ selectedItems.size !== 1 ? 's' : '' }} selected)</h4>
           <div class="d-flex justify-content-between mb-2">
             <span>Subtotal:</span>
-            <span class="fw-bold">{{ selectedSubtotal.toFixed(2) }} đ</span>
+            <span class="fw-bold">{{ selectedSubtotal.toLocaleString('vi-VN') }} đ</span>
           </div>
            <div class="d-flex justify-content-between mb-3">
             <span>Shipping:</span>
             <!-- Add logic for shipping cost based on selected items if needed -->
-            <span class="fw-bold">{{ shippingCost.toFixed(2) }} đ</span> 
+            <span class="fw-bold">{{ shippingCost.toLocaleString('vi-VN') }} đ</span> 
           </div>
           <hr>
           <div class="d-flex justify-content-between fw-bold fs-5">
             <span>Total:</span>
-            <span>{{ selectedTotal.toFixed(2) }} đ</span>
+            <span>{{ selectedTotal.toLocaleString('vi-VN') }} đ</span>
           </div>
           <div class="d-grid mt-4">
             <button class="btn btn-primary btn-lg" 
@@ -114,7 +114,8 @@ const router = useRouter();
 const { updateCartCount } = useCart();
 const cartItems = ref([]);
 const loading = ref(true);
-const shippingCost = ref(10.00);
+// const shippingCost = ref(10.00);
+const shippingCost = ref(0);
 
 // Use a Set to store unique IDs of selected items (e.g., 'id-size')
 const selectedItems = ref(new Set());
@@ -348,7 +349,6 @@ h1:hover {
   color: #34495e;
   text-transform: uppercase;
   font-size: 0.9rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   border-bottom: 2px solid #AAAAAA;
 }
 

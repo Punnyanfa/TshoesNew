@@ -11,7 +11,7 @@
           @mouseover="animateLogo"
           @mouseleave="resetLogo" 
         />
-        <span class="brand-text">SneakerVibe</span>
+        <span class="brand-text">WPY</span>
       </router-link>
 
       <!-- Navigation -->
@@ -234,14 +234,6 @@ const logout = () => {
   // Redirect to home page
   router.push('/homePage');
 };
-
-const animateLogo = (e) => {
-  e.target.style.transform = 'rotate(360deg) scale(1.1)';
-};
-
-const resetLogo = (e) => {
-  e.target.style.transform = 'rotate(0deg) scale(1)';
-};
 </script>
 
 <style scoped>
@@ -277,10 +269,6 @@ const resetLogo = (e) => {
   align-items: center;
   text-decoration: none;
   transition: transform 0.3s ease;
-}
-
-.logo-wrapper:hover {
-  transform: scale(1.05);
 }
 
 .logo-img {

@@ -9,11 +9,11 @@
         </button>
       </div>
       <p class="product-price">{{ formatPrice(basePrice) }}</p>
-      <p class="product-surcharge" v-if="surcharge > 0">Phụ phí: {{ formatPrice(surcharge) }}</p>
+      <p class="product-surcharge" v-if="surcharge > 0">Surcharge: {{ formatPrice(surcharge) }}</p>
       
       <!-- Dropdown chọn nhà sản xuất -->
       <div class="manufacturer-selector">
-        <label for="manufacturer">Shop Custom:</label>
+        <label for="manufacturer">Custom Shop:</label>
         <select id="manufacturer" v-model="selectedManufacturer" @change="handleManufacturerChange">
           <option v-for="mfr in manufacturerList" :key="mfr.id" :value="mfr.id">
             {{ mfr.userName }}
@@ -24,26 +24,26 @@
     
     <!-- Các nút chức năng ở góc phải trên -->
     <div class="action-buttons" style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button class="action-button" @click="showSurchargeInfo = true">Thông tin phụ phí</button>
-      <button class="action-button" @click="openCaptureModal">Tải ảnh</button>
-      <button class="action-button primary-button" @click="handleDone">Hoàn thành</button>
+      <button class="action-button" @click="showSurchargeInfo = true">Surcharge information</button>
+      <button class="action-button" @click="openCaptureModal">Download</button>
+      <button class="action-button primary-button" @click="handleDone">Complete</button>
     </div>
     
     <!-- Modal hiển thị thông tin phụ phí -->
     <div v-if="showSurchargeInfo" class="surcharge-modal">
       <div class="surcharge-modal-content">
         <div class="surcharge-modal-header">
-          <h3>Thông tin phụ phí Manufacturer #{{ selectedManufacturer }}</h3>
+          <h3>Surcharge Information for Manufacturer #{{ selectedManufacturer }}</h3>
           <button class="close-button" @click="showSurchargeInfo = false">×</button>
         </div>
         <div class="surcharge-modal-body">
-          <h4>Bảng phụ phí tùy chỉnh</h4>
+          <h4>Custom Surcharge Table</h4>
           <div class="component-surcharge-details">
             <div class="surcharge-detail-table">
               <div class="surcharge-detail-header">
-                <div class="detail-col">Thành phần</div>
-                <div class="detail-col">Phụ phí màu sắc</div>
-                <div class="detail-col">Phụ phí hình ảnh</div>
+                <div class="detail-col">Component</div>
+                <div class="detail-col">Color</div>
+                <div class="detail-col">Image</div>
               </div>
               <div v-for="comp in components" :key="comp.value" class="surcharge-detail-row">
                 <div class="detail-col">{{ comp.name }}</div>
@@ -66,7 +66,7 @@
           </div>
           
           <div class="surcharge-note mt-4">
-            <p><i>Lưu ý: Phụ phí sẽ được tính theo từng thành phần tùy chỉnh. Mỗi lần bạn thay đổi màu sắc hoặc áp dụng hình ảnh cho một thành phần, phụ phí tương ứng sẽ được cộng vào giá sản phẩm.</i></p>
+            <p><i>Note: Surcharges are calculated per custom component. Each time you change the color or apply an image to a component, the corresponding surcharge will be added to the product price.</i></p>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@
     <div v-if="showCaptureModal" class="capture-modal">
       <div class="capture-modal-content">
         <div class="capture-modal-header">
-          <h3>Chụp ảnh mô hình 3D</h3>
+          <h3>Capture 3D Model Images</h3>
           <button class="close-button" @click="showCaptureModal = false">×</button>
         </div>
         <div class="capture-modal-body">
@@ -99,7 +99,7 @@
           
           <div class="capture-actions">
             <div class="download-controls">
-              <button class="action-button" @click="downloadSelectedAngle">Tải ảnh đã chọn</button>
+              <button class="action-button" @click="downloadSelectedAngle">Download Selected Image</button>
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@
     <div v-if="showCompleteModal" class="capture-modal">
       <div class="capture-modal-content">
         <div class="capture-modal-header">
-          <h3>Hoàn thành thiết kế</h3>
+          <h3>Complete Design</h3>
           <button class="close-button" @click="showCompleteModal = false">×</button>
         </div>
         <div class="capture-modal-body">
@@ -132,12 +132,12 @@
           </div>
           
           <div class="product-summary">
-            <h4>Chi tiết sản phẩm</h4>
+            <h4>Product Details</h4>
             <div class="summary-info">
-              <p><strong>Tên sản phẩm:</strong> {{ customProductName }}</p>
-              <p><strong>Giá gốc:</strong> {{ formatPrice(basePrice) }}</p>
-              <p v-if="surcharge > 0"><strong>Phụ phí tùy chỉnh:</strong> {{ formatPrice(surcharge) }}</p>
-              <p><strong>Tổng tiền:</strong> {{ formatPrice(basePrice + surcharge) }}</p>
+              <p><strong>Product Name:</strong> {{ customProductName }}</p>
+              <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
+              <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
+              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge) }}</p>
               <p><strong>Size:</strong>
               <select v-model="selectedSize" class="size-select">
                 <option v-for="size in sizes" :key="size" :value="size">
@@ -146,7 +146,7 @@
               </select>
             </p>
             <div class="quantity-section">
-              <p><strong>Số lượng:</strong></p>
+              <p><strong>Quantity:</strong></p>
               <div class="quantity-input">
                 <input 
                   type="number" 
@@ -160,8 +160,8 @@
           </div>
           
           <div class="complete-actions">
-            <button class="action-button" @click="saveAsDraft">Lưu nháp</button>
-            <button class="action-button primary-button" @click="addToCart">Thêm vào giỏ hàng</button>
+            <button class="action-button" @click="saveAsDraft">Save as Draft</button>
+            <button class="action-button primary-button" @click="addToCart">Add to Cart</button>
           </div>
         </div>
       </div>
@@ -171,17 +171,17 @@
     <div v-if="showEditNameModal" class="edit-name-modal">
       <div class="edit-name-modal-content">
         <div class="edit-name-modal-header">
-          <h3>Sửa tên sản phẩm</h3>
+          <h3>Edit Product Name</h3>
           <button class="close-button" @click="showEditNameModal = false">×</button>
         </div>
         <div class="edit-name-modal-body">
           <div class="form-group">
-            <label for="productName">Tên sản phẩm:</label>
-            <input type="text" id="productName" v-model="customProductName" class="form-control" placeholder="Nhập tên sản phẩm mới" />
+            <label for="productName">Product Name:</label>
+            <input type="text" id="productName" v-model="customProductName" class="form-control" placeholder="Enter new product name" />
           </div>
           <div class="edit-name-modal-actions">
-            <button class="btn btn-secondary" @click="showEditNameModal = false">Hủy</button>
-            <button class="btn btn-primary" @click="updateProductName">Lưu</button>
+            <button class="btn btn-secondary" @click="showEditNameModal = false">Cancel</button>
+            <button class="btn btn-primary" @click="updateProductName">Save</button>
           </div>
         </div>
       </div>
@@ -484,14 +484,14 @@
   <div v-if="showConfirmModal" class="capture-modal">
     <div class="capture-modal-content">
       <div class="capture-modal-header">
-        <h3>Xác nhận chuyển tab</h3>
+        <h3>Confirm Tab Switch</h3>
         <button class="close-button" @click="showConfirmModal = false">×</button>
       </div>
       <div class="capture-modal-body">
-        <p>AI đã tạo xong hình ảnh. Bạn có muốn chuyển sang tab hình ảnh để áp dụng không?</p>
+        <p>AI has finished generating the image. Would you like to switch to the image tab to apply it?</p>
         <div class="complete-actions">
-          <button class="action-button" @click="showConfirmModal = false">Hủy</button>
-          <button class="action-button primary-button" @click="handleConfirmSwitchTab">Chuyển tab</button>
+          <button class="action-button" @click="showConfirmModal = false">Cancel</button>
+          <button class="action-button primary-button" @click="handleConfirmSwitchTab">Switch Tab</button>
         </div>
       </div>
     </div>
@@ -675,23 +675,23 @@ const loadModelForManufacturer = (manufacturerId) => {
   // Ưu tiên model3DUrl nếu có
   const modelPath = model3DUrl.value || currentManufacturer.value?.modelPath || '';
   if (!modelPath || typeof modelPath !== 'string' || !modelPath.lastIndexOf) {
-    alert('Không tìm thấy đường dẫn file 3D hợp lệ!');
+    alert('No valid 3D file path found!');
     return;
   }
   loader.load(
     modelPath,
     (gltf) => onModelLoaded(gltf),
     (xhr) => null,
-    (error) => alert('Lỗi khi tải mô hình 3D')
+    (error) => alert('Error loading 3D model')
   )
 }
 
 const captureAngles = reactive([
-  { name: 'Mặt sau', preview: null, position: { x: -6, y: 2, z: -6 } },
-  { name: 'Bên trái', preview: null, position: { x: -4, y: 0, z: 6 } },
-  { name: 'Bên phải', preview: null, position: { x: 4, y: 0, z: -6 } },
-  { name: 'Góc nhìn trên', preview: null, position: { x: 4, y: 8, z: 4 } },
-  { name: 'Góc nhìn dưới', preview: null, position: { x: -4, y: -12, z: 4 } }
+  { name: 'Back View', preview: null, position: { x: -6, y: 2, z: -6 } },
+  { name: 'Left Side', preview: null, position: { x: -4, y: 0, z: 6 } },
+  { name: 'Right Side', preview: null, position: { x: 4, y: 0, z: -6 } },
+  { name: 'Top View', preview: null, position: { x: 4, y: 8, z: 4 } },
+  { name: 'Bottom View', preview: null, position: { x: -4, y: -12, z: 4 } }
 ])
 
 // Camera position storage
@@ -922,7 +922,7 @@ const removeImagePreview = () => {
 
 const applyImageToMesh = () => {
   if (!selectedImage.value) {
-    alert('Vui lòng chọn ảnh trước khi áp dụng')
+    alert('Please select an image before applying')
     return
   }
 
@@ -1002,14 +1002,14 @@ const applyImageToMesh = () => {
     },
     undefined,
     (error) => {
-      alert('Đã xảy ra lỗi khi tải ảnh, vui lòng thử lại')
+      alert('An error occurred while loading the image, please try again')
     }
   )
 }
 
 const applyTextToMesh = () => {
   if (!customText.value.trim()) {
-    alert('Vui lòng nhập văn bản trước khi áp dụng')
+    alert('Please enter text before applying')
     return
   }
 
@@ -1230,20 +1230,20 @@ const addToCart = async () => {
     
     const totalPrice = basePrice.value + surcharge.value
     const formattedTotalPrice = formatPrice(totalPrice)
-    const formattedSurcharge = surcharge.value > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(surcharge.value)}` : ''
+    const formattedSurcharge = surcharge.value > 0 ? `\nCustom Surcharge: ${formatPrice(surcharge.value)}` : ''
     
     if (isEditing && editId) {
       const itemIndex = cart.findIndex(item => item.id === parseInt(editId))
       if (itemIndex !== -1) {
         cart[itemIndex] = productData
-        alert(`Đã cập nhật thiết kế của sản phẩm trong giỏ hàng!\nGiá gốc: ${formatPrice(basePrice.value)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}\nSize: ${selectedSize.value}`)
+        alert(`Design has been updated in cart!`)
       } else {
         cart.push(productData)
-        alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: ${formatPrice(basePrice.value)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}\nSize: ${selectedSize.value}`)
+        alert(`Design product has been successfully added to cart!`)
       }
     } else {
       cart.push(productData)
-      alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: ${formatPrice(basePrice.value)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}\nSize: ${selectedSize.value}`)
+      alert(`Design product has been successfully added to cart!`)
     }
     
     // Lưu giỏ hàng vào sessionStorage
@@ -1255,12 +1255,12 @@ const addToCart = async () => {
       // Chuyển hướng đến trang giỏ hàng sau khi cập nhật thành công
       window.location.href = '/shoppingCartPage'
     } catch (error) {
-      console.error('Lỗi khi cập nhật số lượng giỏ hàng:', error)
-      alert('Đã thêm vào giỏ hàng nhưng có lỗi khi cập nhật số lượng. Vui lòng làm mới trang.')
+      console.error('Error updating cart quantity:', error)
+      alert('Added to cart but there was an error updating quantity. Please refresh the page.')
     }
   } catch (error) {
-    console.error('Lỗi khi thêm vào giỏ hàng:', error)
-    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.')
+    console.error('Error adding to cart:', error)
+    alert('There was an error adding to cart. Please try again.')
   }
 }
 
@@ -1354,13 +1354,13 @@ const saveAsDraft = () => {
 
   CustomShoeDesign(productData)
     .then(response => {
-      console.log('Lưu nháp thành công:', response)
-      alert('Đã lưu nháp thành công!')
+      console.log('Draft saved successfully:', response)
+      alert('Draft saved successfully!')
       window.location.href = '/mycustomPage';
     })
     .catch(error => {
-      console.error('Lỗi khi lưu nháp:', error)
-      alert('Có lỗi xảy ra khi lưu nháp. Vui lòng thử lại.')
+      console.error('Error saving draft:', error)
+      alert('An error occurred while saving the draft. Please try again.')
     })
 }
 
@@ -1416,14 +1416,14 @@ const loadModel = () => {
   // Ưu tiên dùng model3DUrl từ API, nếu không có thì fallback sang modelPath mặc định
   const modelPath = model3DUrl.value || currentManufacturer.value?.modelPath || '';
   if (!modelPath || typeof modelPath !== 'string' || !modelPath.lastIndexOf) {
-    alert('Không tìm thấy đường dẫn file 3D hợp lệ!');
+    alert('No valid 3D file path found!');
     return;
   }
   loader.load(
     modelPath,
     (gltf) => onModelLoaded(gltf),
     (xhr) => null,
-    (error) => alert('Lỗi khi tải mô hình 3D')
+    (error) => alert('Error loading 3D model')
   )
 }
 
@@ -1830,7 +1830,7 @@ const moveToImageSection = () => {
 
 const generateAIImage = async () => {
   if (!aiPrompt.value.trim()) {
-    aiError.value = 'Vui lòng nhập prompt';
+    aiError.value = 'Please enter a prompt';
     return;
   }
 
@@ -1871,11 +1871,11 @@ const generateAIImage = async () => {
       // Chuyển tab
       activeTab.value = 'image';
     } else {
-      throw new Error('Không nhận được URL ảnh từ server');
+      throw new Error('No image URL received from server');
     }
   } catch (error) {
     console.error('Error generating image:', error);
-    aiError.value = 'Có lỗi khi tạo ảnh. Vui lòng thử lại.';
+    aiError.value = 'Error generating image. Please try again.';
   } finally {
     isGenerating.value = false;
   }

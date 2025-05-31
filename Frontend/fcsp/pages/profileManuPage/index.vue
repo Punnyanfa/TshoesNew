@@ -145,7 +145,7 @@
     async mounted() {
       const id = localStorage.getItem('userId');
       if (!id) {
-        alert('Bạn cần đăng nhập để truy cập trang này!');
+        alert('You need to login to access this page!');
         this.$router.push('/loginPage');
         return; 
       }
@@ -176,7 +176,7 @@
       async submitUpdate() {
         const id = localStorage.getItem('userId');
         if (!id) {
-          alert('Bạn cần đăng nhập để cập nhật thông tin!');
+          alert('You need to login to update your information!');
           this.$router.push('/loginPage');
           return;
         }
@@ -232,7 +232,7 @@
           // Gọi API cập nhật avatar
           const id = localStorage.getItem('userId')
           if (!id) {
-            alert('Bạn cần đăng nhập để cập nhật avatar!')
+            alert('You need to login to update your avatar!')
             this.$router.push('/loginPage')
             return
           }

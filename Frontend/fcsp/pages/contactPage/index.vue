@@ -131,7 +131,7 @@ const sendMessage = async () => {
   try {
     const userId = localStorage.getItem('userId');
     if (!userId) {
-      alert('Bạn cần đăng nhập để gửi liên hệ!');
+      alert('You need to login to send a message!');
       return;
     }
     await sendEmail(userId, form.value.subject, form.value.message);

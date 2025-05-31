@@ -156,17 +156,17 @@ export default {
       await this.fetchTemplates()
     },
     async handleDelete(template) {
-      if (confirm('Bạn có chắc chắn muốn xóa template này?')) {
+      if (confirm('Are you sure you want to delete this template?')) {
         try {
           const response = await deleteTemplate(template.id)
           if (response && response.code === 200) {
             await this.fetchTemplates()
-            alert('Xóa thành công!')
+            alert('Successfully deleted!')
           } else {
-            alert(response.message || 'Xóa thất bại!')
+            alert(response.message || 'Delete failed!')
           }
         } catch (error) {
-          alert('Xóa thất bại!')
+          alert('Delete failed!')
         }
       }
     }

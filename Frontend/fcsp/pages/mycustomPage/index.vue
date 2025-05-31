@@ -241,7 +241,7 @@ const editDesign = async (item) => {
     }
     window.location.href = `/customPage/${item.id}?edit=true`;
   } catch (e) {
-    alert('Không thể lấy dữ liệu chi tiết thiết kế!');
+    alert('Unable to get detailed design data!');
     console.error(e);
   }
 };
@@ -307,18 +307,17 @@ const refreshDataFromStorage = () => {
 
 // 🗑 Xóa sản phẩm khỏi giỏ hàng
 async function removeFromCart(id) {
-  if (!confirm('Bạn có chắc chắn muốn xóa thiết kế này?')) return;
+  if (!confirm('Are you sure you want to delete this design?')) return;
   try {
     const result = await deleteCustom(id);
     if (result.code === 200) { 
-      // Xóa khỏi cart local
       cart.value = cart.value.filter(item => item.id !== id);
-      alert('Xóa thành công!');
+      alert('Successfully deleted!');
     } else {
-      alert(result.message || 'Xóa thất bại!');
+      alert(result.message || 'Delete failed!');
     }
   } catch (e) {
-    alert('Có lỗi khi xóa!');
+    alert('Error occurred while deleting!');
     console.error(e);
   }
 }
@@ -326,14 +325,12 @@ async function removeFromCart(id) {
 // Thêm thiết kế vào giỏ hàng
 const duplicateToCart = (item) => {
   try {
-    // Lấy giỏ hàng từ sessionStorage
     let cart = []
     const savedCart = sessionStorage.getItem('cart')
     if (savedCart) {
       cart = JSON.parse(savedCart)
     }
     
-    // Tạo bản sao của item với ID mới
     const newCartItem = {
       id: Date.now(),
       customShoeDesignId: item.id,
@@ -341,7 +338,7 @@ const duplicateToCart = (item) => {
       manufacturerId: item.manufacturerId,
       price: item.price,
       surcharge: item.surcharge,
-      selectedSize: '40', // Đặt size mặc định là 40
+      selectedSize: '40',
       selectedQuantity: item.selectedQuantity || 1,
       previewImageUrl: item.image || item.previewImageUrl,
       designData: {
@@ -356,44 +353,37 @@ const duplicateToCart = (item) => {
       previewImages: item.previewImages || []
     }
     
-    // Thêm vào giỏ hàng
     cart.push(newCartItem)
-    
-    // Lưu giỏ hàng vào sessionStorage
     sessionStorage.setItem('cart', JSON.stringify(cart))
     
-    // Thông báo đã thêm vào giỏ hàng
     const totalPrice = newCartItem.price + newCartItem.surcharge
     const formattedTotalPrice = formatPrice(totalPrice)
-    const formattedSurcharge = newCartItem.surcharge > 0 ? `\nPhụ phí tùy chỉnh: ${formatPrice(newCartItem.surcharge)}` : ''
+    const formattedSurcharge = newCartItem.surcharge > 0 ? `\nCustomization fee: ${formatPrice(newCartItem.surcharge)}` : ''
     
-    alert(`Sản phẩm thiết kế đã được thêm vào giỏ hàng thành công!\nGiá gốc: ${formatPrice(newCartItem.price)}${formattedSurcharge}\nTổng tiền: ${formattedTotalPrice}\nSize: ${newCartItem.selectedSize}`)
+    alert(`Design product has been successfully added to cart!`)
     
-    // Chuyển hướng đến trang giỏ hàng
     setTimeout(() => {
       window.location.href = '/shoppingCartPage'
     }, 500)
   } catch (e) {
-    console.error('Lỗi khi thêm vào giỏ hàng:', e)
-    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.')
+    console.error('Error adding to cart:', e)
+    alert('An error occurred while adding to cart. Please try again.')
   }
 }
 
 // Thêm thiết kế vào danh sách sản phẩm
 const addToProduct = async (item) => {
-  if (confirm('Bạn có muốn đăng bán không?')) {
+  if (confirm('Do you want to list this design for sale?')) {
     try {
-      // Kiểm tra token
       const token = localStorage.getItem('userToken');
       if (!token) {
-        alert('Vui lòng đăng nhập để thực hiện chức năng này!');
+        alert('Please login to use this feature!');
         return;
       }
 
       const response = await updateStatus(item.id, 4);
       if (response && response.code === 200) {
-        alert('Đã chuyển sang Pending thành công!');
-        // Refresh data after successful update
+        alert('Successfully moved to Pending!');
         const userId = localStorage.getItem('userId');
         if (userId) {
           const apiData = await getMyCustom(userId);
@@ -414,14 +404,14 @@ const addToProduct = async (item) => {
           }
         }
       } else {
-        alert(response?.message || 'Có lỗi xảy ra khi cập nhật trạng thái!');
+        alert(response?.message || 'Error occurred while updating status!');
       }
     } catch (error) {
-      console.error('Lỗi khi cập nhật trạng thái:', error);
+      console.error('Error updating status:', error);
       if (error.response?.status === 401) {
-        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+        alert('Your session has expired. Please login again!');
       } else {
-        alert(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái!');
+        alert(error.response?.data?.message || 'Error occurred while updating status!');
       }
     }
   }
@@ -430,10 +420,8 @@ const addToProduct = async (item) => {
 // Lưu thiết kế vào danh sách sản phẩm sau khi cập nhật thông tin
 const saveToProduct = () => {
   try {
-    // Lưu vào localStorage để có thể sử dụng trong trang sản phẩm
     const products = JSON.parse(localStorage.getItem('products') || '[]');
     
-    // Tối ưu hóa sản phẩm trước khi lưu
     const optimizedProduct = {
       name: selectedProduct.value.name,
       price: selectedProduct.value.price,
@@ -445,40 +433,28 @@ const saveToProduct = () => {
         customText: selectedProduct.value.designData?.customText || '',
         timestamp: selectedProduct.value.designData?.timestamp || new Date().toISOString()
       },
-      // Chỉ lưu tối đa 1 hình ảnh xem trước
       previewImages: selectedProduct.value.previewImages && selectedProduct.value.previewImages.length > 0 
         ? [selectedProduct.value.previewImages[0]] 
         : [],
       isCustomDesign: true,
-      id: Date.now() // Thêm ID duy nhất
+      id: Date.now()
     };
     
-    // Thêm sản phẩm đã tối ưu vào danh sách
     products.push(optimizedProduct);
-    
-    // Giới hạn kích thước trước khi lưu để tránh vượt quá quota
-    const limitedProducts = products.slice(-10); // Giới hạn 10 sản phẩm mới nhất
-    
-    // Xóa dữ liệu cũ trước khi lưu để tránh vượt quá quota
+    const limitedProducts = products.slice(-10);
     localStorage.removeItem('products');
-    
-    // Lưu dữ liệu mới
     localStorage.setItem('products', JSON.stringify(limitedProducts));
     
-    // Đóng modal và hiển thị thông báo
     showProductModal.value = false;
-    alert('Đã thêm thiết kế vào danh sách sản phẩm!');
+    alert('Design has been added to product list!');
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      alert('Lỗi: Bộ nhớ cục bộ đã đầy. Vui lòng xóa bớt các sản phẩm không cần thiết trước khi thêm mới.');
-      console.error('Lỗi lưu trữ: Đã vượt quá quota localStorage', error);
+      alert('Error: Local storage is full. Please remove unnecessary products before adding new ones.');
+      console.error('Storage error: Exceeded localStorage quota', error);
       
-      // Cố gắng xóa dữ liệu cũ và lưu lại với ít sản phẩm hơn
       try {
-        // Xóa dữ liệu cũ
         localStorage.removeItem('products');
         
-        // Tạo mảng chỉ có sản phẩm mới
         const singleProduct = [{
           name: selectedProduct.value.name,
           price: selectedProduct.value.price,
@@ -487,40 +463,32 @@ const saveToProduct = () => {
           id: Date.now()
         }];
         
-        // Lưu chỉ sản phẩm mới
         localStorage.setItem('products', JSON.stringify(singleProduct));
         showProductModal.value = false;
-        alert('Đã lưu sản phẩm với thông tin tối thiểu do bộ nhớ hạn chế.');
+        alert('Product saved with minimal information due to storage limitations.');
       } catch (e) {
-        console.error('Không thể lưu ngay cả với dữ liệu tối thiểu', e);
-        alert('Không thể lưu sản phẩm do bộ nhớ đã đầy. Vui lòng xóa dữ liệu trình duyệt và thử lại.');
+        console.error('Could not save even with minimal data', e);
+        alert('Could not save product due to full storage. Please clear browser data and try again.');
       }
     } else {
-      console.error('Lỗi lưu trữ sản phẩm:', error);
-      alert('Có lỗi khi lưu sản phẩm. Vui lòng thử lại.');
+      console.error('Error saving product:', error);
+      alert('An error occurred while saving the product. Please try again.');
     }
   }
 };
 
 // Chức năng xóa tất cả thiết kế
 const clearAllDesigns = () => {
-  // Xác nhận trước khi xóa
-  if (!confirm('Bạn có chắc chắn muốn xóa tất cả thiết kế không?')) {
+  if (!confirm('Are you sure you want to delete all designs?')) {
     return;
   }
   
-  // Xóa khỏi mảng cart hiện tại
   cart.value = [];
-  
-  // Xóa khỏi localStorage
   localStorage.removeItem('cart');
   localStorage.removeItem('designDrafts');
-  
-  // Làm mới dữ liệu từ localStorage (đảm bảo mọi thứ đã được xóa)
   refreshDataFromStorage();
   
-  // Thông báo xóa thành công
-  alert('Đã xóa tất cả thiết kế!');
+  alert('All designs have been deleted!');
 };
 
 // Xóa dữ liệu cũ trong localStorage khi không cần thiết

@@ -109,8 +109,7 @@
                 <input type="date" class="form-control" id="modalDob" v-model="editProfile.birthdate" required />
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="showModal = false">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary mx-auto">Save</button>
               </div>
             </form>
           </div>
@@ -142,8 +141,7 @@
                 <input type="password" class="form-control" v-model="changePassword.confirmPassword" required />
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="showChangePassword = false">Cancel</button>
-                <button type="submit" class="btn btn-primary">Change</button>
+                <button type="submit" class="btn btn-primary mx-auto">Change</button>
               </div>
             </form>
           </div>
@@ -190,7 +188,7 @@ export default {
   async mounted() {
     const id = localStorage.getItem('userId');
     if (!id) {
-      alert('Bạn cần đăng nhập để truy cập trang này!');
+      alert('You need to login to access this page!');
       this.$router.push('/loginPage');
       return; 
     }
@@ -221,7 +219,7 @@ export default {
     async submitUpdate() {
       const id = localStorage.getItem('userId');
       if (!id) {
-        alert('Bạn cần đăng nhập để cập nhật thông tin!');
+        alert('You need to login to update your information!');
         this.$router.push('/loginPage');
         return;
       }
@@ -268,7 +266,7 @@ export default {
       }
       const id = localStorage.getItem('userId')
       if (!id) {
-        alert('Bạn cần đăng nhập để cập nhật avatar!')
+        alert('You need to login to update your avatar!')
         this.$router.push('/loginPage')
         return
       }
@@ -298,7 +296,7 @@ export default {
       }
       const id = localStorage.getItem('userId');
       if (!id) {
-        alert('Bạn cần đăng nhập để đổi mật khẩu!');
+        alert('You need to login to change your password!');
         this.$router.push('/loginPage');
         return;
       }
