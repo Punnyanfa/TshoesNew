@@ -97,7 +97,7 @@
 
       <div class="text-center mt-5">
         <NuxtLink to="/productPage" class="btn btn-sneaker px-5 py-3 fw-bold text-uppercase">
-          Xem Tất Cả Sản Phẩm
+          View All Products
         </NuxtLink>
       </div>
     </section>
