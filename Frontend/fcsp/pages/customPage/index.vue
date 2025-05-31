@@ -4,9 +4,19 @@
 
     <!-- Main Content Section -->
     <main class="container my-5">
-      <!-- Filters and Sort -->
-      <div class="controls">
-        <div class="filters">Filters</div>
+   <!-- Filters and Sort -->
+   <div class="controls">
+        <div class="controls-left">
+          <div class="search-box">
+            <i class="bi bi-search search-icon"></i>
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="Search products..." 
+              class="search-input"
+            />
+          </div>
+        </div>
         <div class="sort">
           Sort by:
           <select v-model="sortOption" class="sort-select">
@@ -17,8 +27,8 @@
             <option value="name-desc">Name: Z to A</option>
           </select>
         </div>
-      </div>
-
+   </div>
+           
       <!-- Product Grid -->
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-sneaker-blue" role="status">
@@ -88,6 +98,7 @@ const loading = ref(true);
 const currentPage = ref(1);
 const itemsPerPage = 12;
 const sortOption = ref("featured");
+const searchQuery = ref("");
 const error = ref(null);
 
 // Fetch templates from API
@@ -117,9 +128,21 @@ onMounted(() => {
   fetchTemplates();
 });
 
-// Computed property for sorted products
-const sortedProducts = computed(() => {
-  return [...products.value].sort((a, b) => {
+// Computed property for filtered and sorted products
+const filteredAndSortedProducts = computed(() => {
+  let filtered = [...products.value];
+  
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(product => 
+      product.name.toLowerCase().includes(query) ||
+      product.description.toLowerCase().includes(query)
+    );
+  }
+  
+  // Apply sorting
+  return filtered.sort((a, b) => {
     if (sortOption.value === "price-low") return a.price - b.price;
     if (sortOption.value === "price-high") return b.price - a.price;
     if (sortOption.value === "name-asc") return a.name.localeCompare(b.name);
@@ -132,12 +155,12 @@ const sortedProducts = computed(() => {
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return sortedProducts.value.slice(start, end);
+  return filteredAndSortedProducts.value.slice(start, end);
 });
 
 // Total pages
 const totalPages = computed(() => {
-  return Math.ceil(sortedProducts.value.length / itemsPerPage);
+  return Math.ceil(filteredAndSortedProducts.value.length / itemsPerPage);
 });
 
 // Change page
@@ -271,6 +294,51 @@ const formatPrice = (price) =>
 .controls:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-box {
+  position: relative;
+  min-width: 250px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #AAAAAA;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 4px rgba(170, 170, 170, 0.1);
+}
+
+/* Dark mode styles for search */
+.dark-mode .search-input {
+  background: #2d2d2d;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.dark-mode .search-icon {
+  color: #AAAAAA;
 }
 
 .filters {

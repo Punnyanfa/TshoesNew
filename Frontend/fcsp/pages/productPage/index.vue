@@ -4,16 +4,36 @@
 
     <!-- Main Content Section -->
     <section class="container my-5">
-      <div class="row g-5">
-        <!-- Sidebar -->
-        <div class="col-md-3">
-          <Sidebar @filter-change="handleFilterChange" />
+      <!-- Filters and Sort -->
+      <div class="controls">
+        <div class="controls-left">
+          <div class="search-box">
+            <i class="bi bi-search search-icon"></i>
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="Search products..." 
+              class="search-input"
+            />
+          </div>
         </div>
-
+        <div class="sort">
+          Sort by:
+          <select v-model="sortOption" class="sort-select">
+            <option value="featured">Featured</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name-asc">Name: A to Z</option>
+            <option value="name-desc">Name: Z to A</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="row">
         <!-- Product Grid -->
-        <div class="col-md-9">
+        <div class="col-12">
           <div v-if="loading" class="row g-4">
-            <div v-for="n in 12" :key="n" class="col-md-4">
+            <div v-for="n in 12" :key="n" class="col-md-3">
               <div class="card sneaker-card h-100 shadow-lg rounded overflow-hidden">
                 <div class="skeleton-img"></div>
                 <div class="card-body d-flex flex-column">
@@ -27,7 +47,7 @@
           </div>
           <div v-else>
             <div class="row g-4">
-              <div v-for="product in paginatedProducts" :key="product.id" class="col-md-4">
+              <div v-for="product in paginatedProducts" :key="product.id" class="col-md-3">
                 <div 
                   class="card sneaker-card h-100 shadow-lg rounded overflow-hidden clickable-card"
                   @click="goToDetailPage(product.id)"
@@ -173,9 +193,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import Sidebar from "~/components/sidebar.vue";
 import { getAllProducts } from "~/server/product-service";
 
 const router = useRouter();
@@ -184,6 +203,46 @@ const filteredProducts = ref([]);
 const loading = ref(true);
 const currentPage = ref(1);
 const itemsPerPage = 12;
+const searchQuery = ref('');
+const sortOption = ref('featured');
+
+// Watch for search and sort changes
+watch([searchQuery, sortOption], () => {
+  filterAndSortProducts();
+});
+
+// Filter and sort products
+const filterAndSortProducts = () => {
+  let filtered = [...products.value];
+  
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(product => 
+      product.name.toLowerCase().includes(query)
+    );
+  }
+  
+  // Apply sorting
+  switch (sortOption.value) {
+    case 'price-low':
+      filtered.sort((a, b) => a.total - b.total);
+      break;
+    case 'price-high':
+      filtered.sort((a, b) => b.total - a.total);
+      break;
+    case 'name-asc':
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'name-desc':
+      filtered.sort((a, b) => b.name.localeCompare(a.name));
+      break;
+    // 'featured' is default order
+  }
+  
+  filteredProducts.value = filtered;
+  currentPage.value = 1;
+};
 
 // Fetch products from API
 const fetchProducts = async () => {
@@ -244,22 +303,6 @@ const formatPrice = (price) => {
     return price.toFixed(2);
   }
   return '0.00';
-};
-
-const handleFilterChange = (filters) => {
-  filteredProducts.value = products.value.filter((product) => {
-    const isActive = product.status === 1;
-    const matchesSearch = !filters.searchTerm || product.name.toLowerCase().includes(filters.searchTerm.toLowerCase());
-    const matchesPrice = product.price <= filters.priceRange.max;
-    const matchesCategory = filters.categories.length === 0 || filters.categories.includes(product.category);
-    const matchesBrand = filters.brand.length === 0 || filters.brand.includes(product.brand);
-    const matchesColor = filters.color.length === 0 || filters.color.includes(product.color);
-    const matchesSize = filters.size.length === 0 || filters.size.includes(product.size);
-    const matchesRating = filters.rating.length === 0 || filters.rating.includes(product.rating);
-
-    return isActive && matchesSearch && matchesPrice && matchesCategory && matchesBrand && matchesColor && matchesSize && matchesRating;
-  });
-  currentPage.value = 1;
 };
 
 onMounted(async () => {
@@ -584,6 +627,91 @@ onMounted(async () => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Controls (Filters and Sort) */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.controls:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-box {
+  position: relative;
+  min-width: 250px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #AAAAAA;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 4px rgba(170, 170, 170, 0.1);
+}
+
+.filters {
+  font-weight: 600;
+  color: #AAAAAA;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filters:hover {
+  transform: translateX(5px);
+}
+
+.sort {
+  font-size: 0.9rem;
+  color: #6B7280;
+}
+
+.sort-select {
+  padding: 0.5rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 4px rgba(170, 170, 170, 0.1);
+  transform: translateY(-2px);
 }
 
 /* Responsive Styles */
