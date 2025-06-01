@@ -82,9 +82,6 @@ namespace FCSP.DTOs.Order
 
         [Required(ErrorMessage = "Status is required.")]
         public OrderStatus Status { get; set; }
-
-        [Required(ErrorMessage = "ShippingStatus is required.")]
-        public OrderShippingStatus ShippingStatus { get; set; }
     }
 
     public class UpdateOrderResponse
