@@ -23,8 +23,6 @@ namespace FCSP.DTOs.Rating
         public long UserId { get; set; }
         public long CustomShoeDesignId { get; set; } // Đổi từ TargetId
 
-        public string Type { get; set; }
-
         [Range(1, 5, ErrorMessage = "Rating value must be between 1 and 5")]
         public int Value { get; set; }
 

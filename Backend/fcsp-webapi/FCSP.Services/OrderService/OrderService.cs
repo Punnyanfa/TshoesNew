@@ -265,6 +265,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -303,6 +304,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = order.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = orderDetail.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = orderDetail.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = orderDetail.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = orderDetail.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -349,6 +351,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -394,6 +397,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,

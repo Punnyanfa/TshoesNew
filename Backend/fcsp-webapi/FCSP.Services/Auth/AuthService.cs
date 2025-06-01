@@ -477,10 +477,10 @@ public class AuthService : IAuthService
                     Data = new SendEmailResponse { Success = false }
                 };
             }
-
+            var subject = $"From: {user.Email}. Subject: " + request.Subject;
             var emailSent = await _emailService.SendEmailAsync(
                 "trattrieu.an@gmail.com",
-                request.Subject,
+                subject,
                 request.Body,
                 request.IsHtml
             );
