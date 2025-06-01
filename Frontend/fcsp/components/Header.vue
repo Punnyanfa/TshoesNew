@@ -216,7 +216,7 @@ const onSearch = (value) => {
 };
 
 const logout = () => {
-  // Clear sessionStorage for the current tab
+  // Clear localStorage for the current tab
   if (typeof window !== 'undefined') {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userEmail');

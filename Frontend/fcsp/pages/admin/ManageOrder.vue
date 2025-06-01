@@ -276,7 +276,7 @@
                     <div class="mb-3">
                       <label for="newStatus" class="form-label">New Status</label>
                       <select class="form-select" id="newStatus" v-model="newStatus">
-                        <option v-for="status in orderStatuses" :key="status" :value="status">
+                        <option v-for="status in findValidStatuses(newStatus)" :key="status" :value="status">
                           {{ status }}
                         </option>
                       </select>
@@ -343,7 +343,7 @@
 </template>
 
 <script>
-import { getAllOrders, getOrderById } from '@/server/order-service';
+import { getAllOrders, getOrderById, updateOrderStatus } from '@/server/order-service';
 import { getAllShippingInfo } from '@/server/shipping-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 import { onMounted, ref } from 'vue';
@@ -400,7 +400,7 @@ export default {
         'Cancelled'
       ],
       orders: [],
-      shippingInfos: []
+      shippingInfos: [],
     }
   },
   computed: {
@@ -474,6 +474,10 @@ export default {
     },
     applyDateFilter() {
       this.datePickerVisible = false;
+    },
+    findValidStatuses(status) {
+      const index = this.orderStatuses.findIndex(item => item === status);
+      return this.orderStatuses.slice(index);
     },
     async fetchShippingInfos() {
       try {
@@ -554,19 +558,34 @@ export default {
     },
     async confirmStatusUpdate() {
       try {
-        // TODO: Implement API call to update order status
+        const statusToCodeMap = {
+          'Pending': 0,
+          'Confirmed': 1,
+          'Processing': 2,
+          'Shipping': 3,
+          'Delivered': 4,
+          'Cancelled': 5
+        };
+
+        const statusCode = statusToCodeMap[this.newStatus];
+        if (statusCode === undefined) {
+          throw new Error('Invalid status');
+        }
+
+        // Call the API to update the order status
+        await updateOrderStatus(this.selectedOrder.id, statusCode);
+
+        // Update the local order status
         this.selectedOrder.statusName = this.newStatus;
-        
-        // Show success message
-        this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
-        
+
         // Close the modal
         if (this.modalRefs.updateStatusModal) {
           this.modalRefs.updateStatusModal.hide();
         }
+
+        this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
       } catch (error) {
-        // Show error message
-        this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái', 'danger');
+        this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái: ' + error.message, 'danger');
       }
     },
     showMessage(message, type = 'success') {

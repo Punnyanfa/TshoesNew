@@ -102,4 +102,20 @@ export async function getOrdersByUserId(userId) {
   }
 }
 
+export async function updateOrderStatus(orderId, statusCode) {
+  try {
+    const response = await instance.put(`/Order/${orderId}`, {
+      id: orderId,
+      status: statusCode
+    });
+    if (response.data.code === 200) {
+      return response.data;
+    }
+    throw new Error(response.data.message || 'Failed to update order status');
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+}
+
 

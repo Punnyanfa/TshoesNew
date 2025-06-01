@@ -1221,9 +1221,9 @@ const addToCart = async () => {
   }
   
   try {
-    // Lấy giỏ hàng từ sessionStorage
+    // Lấy giỏ hàng từ localStorage
     let cart = []
-    const savedCart = sessionStorage.getItem('cart')
+    const savedCart = localStorage.getItem(`cart_${userId}`)
     if (savedCart) {
       cart = JSON.parse(savedCart)
     }
@@ -1246,8 +1246,9 @@ const addToCart = async () => {
       alert(`Design product has been successfully added to cart!`)
     }
     
-    // Lưu giỏ hàng vào sessionStorage
-    sessionStorage.setItem('cart', JSON.stringify(cart))
+    // Lưu giỏ hàng vào localStorage
+    const userId = localStorage.getItem("userId");
+    localStorage.setItem(`cart_${userId}`, JSON.stringify(cart))
     
     try {
       // Cập nhật số lượng sản phẩm trong giỏ hàng
