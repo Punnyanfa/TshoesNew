@@ -56,14 +56,14 @@ namespace FCSP.Controllers
             return StatusCode(response.Code, response);
         }
 
-        [HttpPut("/status")]
+        [HttpPut("status")]
         public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest request)
         {
             var response = await _orderService.UpdateOrderStatus(request);
             return StatusCode(response.Code, response);
         }
 
-        [HttpPut("/shipping-status")]
+        [HttpPut("shipping-status")]
         public async Task<IActionResult> UpdateOrderShippingStatus([FromBody] UpdateOrderShippingStatusRequest request)
         {
             var response = await _orderService.UpdateOrderShippingStatus(request);
