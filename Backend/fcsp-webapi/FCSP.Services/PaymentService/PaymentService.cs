@@ -357,6 +357,7 @@ namespace FCSP.Services.PaymentService
         {
             var paymentWithIncludes = await _paymentRepository.GetAll().Include(x => x.Order).ThenInclude(x => x.User).FirstOrDefaultAsync(p => p.Id == payment.Id);
             var user = await _userRepository.FindAsync(paymentWithIncludes.Order.UserId);
+            var order = await _orderRepository.FindAsync(payment.OrderId);
             if (user == null)
             {
                 throw new Exception("User not found");
@@ -365,6 +366,8 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Insufficient balance");
             }
+            order.Status = OrderStatus.Confirmed;
+            await _orderRepository.UpdateAsync(order);
             user.Balance -= payment.Amount;
             await _userRepository.UpdateAsync(user);
             payment.PaymentStatus = PaymentStatus.Received;

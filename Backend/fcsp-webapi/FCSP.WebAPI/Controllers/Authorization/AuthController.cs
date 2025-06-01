@@ -40,6 +40,14 @@ public class AuthController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    [HttpGet("balance/{id}")]
+    public async Task<IActionResult> GetUserBalanceById([FromRoute] long id)
+    {
+        var request = new GetUserBalanceByIdRequest { Id = id };
+        var response = await _authService.GetUserBalanceById(request);
+        return StatusCode(response.Code, response);
+    }
+
     [HttpPost("[action]")]
     public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
     {

@@ -56,14 +56,17 @@ namespace FCSP.Controllers
             return StatusCode(response.Code, response);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(long id, [FromBody] UpdateOrderRequest request)
+        [HttpPut("/status/{id}")]
+        public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (id != request.Id)
-                return BadRequest(new BaseResponseModel<object> { Code = 400, Message = "ID mismatch between route and request body" });
+            var response = await _orderService.UpdateOrderStatus(request);
+            return StatusCode(response.Code, response);
+        }
 
-            var response = await _orderService.UpdateOrder(request);
+        [HttpPut("/shipping-status/{id}")]
+        public async Task<IActionResult> UpdateOrderShippingStatus([FromBody] UpdateOrderShippingStatusRequest request)
+        {
+            var response = await _orderService.UpdateOrderShippingStatus(request);
             return StatusCode(response.Code, response);
         }
     }

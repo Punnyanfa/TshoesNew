@@ -186,11 +186,11 @@ namespace FCSP.Services.OrderService
             }
         }
 
-        public async Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrder(UpdateOrderRequest request)
+        public async Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrderStatus(UpdateOrderStatusRequest request)
         {
             try
             {
-                var order = await GetEntityFromUpdateOrderRequest(request);
+                var order = await GetEntityFromUpdateOrderStatusRequest(request);
                 await _orderRepository.UpdateAsync(order);
 
                 return new BaseResponseModel<UpdateOrderResponse>
@@ -228,6 +228,49 @@ namespace FCSP.Services.OrderService
                 };
             }
         }
+
+        public async Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrderShippingStatus(UpdateOrderShippingStatusRequest request)
+        {
+            try
+            {
+                var order = await GetEntityFromUpdateOrderShippingStatusRequest(request);
+                await _orderRepository.UpdateAsync(order);
+
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = 200,
+                    Message = "Order shipping status updated successfully",
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = 500,
+                    Message = $"Error updating order shipping status: {ex.Message}",
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -244,6 +287,7 @@ namespace FCSP.Services.OrderService
                                                 .Include(o => o.Voucher)
                                                 .Include(o => o.Payments)
                                                 .Where(o => o.UserId == request.UserId)
+                                                .Where(o => o.IsDeleted == false)
                                                 .ToListAsync();
 
             if (orders == null || !orders.Any())
@@ -324,13 +368,14 @@ namespace FCSP.Services.OrderService
             var orders = await _orderRepository.GetAll()
                                                 .Include(o => o.OrderDetails)
                                                    .ThenInclude(od => od.Size)
-                                               .Include(o => o.OrderDetails)
+                                                .Include(o => o.OrderDetails)
                                                    .ThenInclude(od => od.CustomShoeDesign)
                                                        .ThenInclude(cd => cd.DesignPreviews)
-                                               .Include(o => o.User)
-                                               .Include(o => o.Voucher)
-                                               .Include(o => o.Payments)
+                                                .Include(o => o.User)
+                                                .Include(o => o.Voucher)
+                                                .Include(o => o.Payments)
                                                 .Where(o => o.OrderDetails.Any(o => o.ManufacturerId == request.ManufacturerId))
+                                                .Where(o => o.IsDeleted == false)
                                                 .ToListAsync();
             if (orders == null || !orders.Any())
             {
@@ -376,6 +421,7 @@ namespace FCSP.Services.OrderService
                                                .Include(o => o.User)
                                                .Include(o => o.Voucher)
                                                .Include(o => o.Payments)
+                                               .Where(o => o.IsDeleted == false)
                                                .ToListAsync();
 
             if (orders == null || !orders.Any())
@@ -563,16 +609,12 @@ namespace FCSP.Services.OrderService
             return paymentResponse.Data.Response;
         }
 
-        private async Task<Order> GetEntityFromUpdateOrderRequest(UpdateOrderRequest request)
+        private async Task<Order> GetEntityFromUpdateOrderStatusRequest(UpdateOrderStatusRequest request)
         {
-            if(request.Status == null)
-            {
-                throw new InvalidOperationException("Status is required");
-            }
             if (!Enum.IsDefined(typeof(OrderStatus), request.Status))
-            {
-                throw new InvalidOperationException("Invalid order status");
-            }
+                {
+                    throw new InvalidOperationException("Invalid order status");
+                }
             if (request.Id <= 0)
             {
                 throw new InvalidOperationException("Id can not be 0");
@@ -583,8 +625,25 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException($"Order with ID {request.Id} not found");
             }
             order.Status = request.Status;
-            order.UpdatedAt = DateTime.UtcNow;
+            return order;
+        }
 
+        private async Task<Order> GetEntityFromUpdateOrderShippingStatusRequest(UpdateOrderShippingStatusRequest request)
+        {
+            if (!Enum.IsDefined(typeof(OrderShippingStatus), request.ShippingStatus))
+            {
+                throw new InvalidOperationException("Invalid order shipping status");
+            }
+            if (request.Id <= 0)
+            {
+                throw new InvalidOperationException("Id can not be 0");
+            }
+            var order = await _orderRepository.FindAsync(request.Id);
+            if (order == null)
+            {
+                throw new InvalidOperationException($"Order with ID {request.Id} not found");
+            }
+            order.ShippingStatus = request.ShippingStatus;
             return order;
         }
 

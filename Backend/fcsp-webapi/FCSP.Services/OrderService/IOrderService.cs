@@ -10,6 +10,7 @@ namespace FCSP.Services.OrderService
         Task<BaseResponseModel<GetOrderByIdResponse>> GetOrderById(GetOrderByIdRequest request);
         Task<BaseResponseModel<IEnumerable<GetOrderByIdResponse>>> GetAllOrders();
         Task<BaseResponseModel<AddOrderResponse>> AddOrder(AddOrderRequest request);
-        Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrder(UpdateOrderRequest request);
+        Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrderStatus(UpdateOrderStatusRequest request);
+        Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrderShippingStatus(UpdateOrderShippingStatusRequest request);
     }
 }
