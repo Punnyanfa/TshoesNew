@@ -111,6 +111,7 @@
       <div class="capture-modal-content">
         <div class="capture-modal-header">
           <h3>Complete Design</h3>
+          <p>Are you sure you want to {{ isEditing ? 'update' : 'save' }} your design?</p>
           <button class="close-button" @click="showCompleteModal = false">×</button>
         </div>
         <div class="capture-modal-body">
@@ -507,194 +508,53 @@ import { useRoute, useRouter } from 'vue-router'
 import aiService from '@/server/ai-service'
 import { getTemplateById } from '~/server/custom-service'
 import { CustomShoeDesign } from '~/server/designUp-service'
-import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js';
-import { getMyCustomById } from '~/server/myCustom-service';
+import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js'
+import { getMyCustomById } from '~/server/myCustom-service'
+import axios from 'axios' // Added Axios import for API calls
 
-// Container reference và state
+// Container reference and state
 const container = ref(null)
 const surcharge = ref(0)
 const isCanvasExpanded = ref(false)
 const router = useRouter()
+const route = useRoute()
 
 // Modal states
 const showCaptureModal = ref(false)
 const showCompleteModal = ref(false)
 const showSurchargeInfo = ref(false)
 const showEditNameModal = ref(false)
+const showConfirmModal = ref(false)
 const selectedAngleIndex = ref(0)
 const customProductName = ref('')
+const generatedImageUrl = ref('')
 
-// Size selection
-const selectedSize = ref('38') // Giá trị mặc định
+// Size and quantity selection
+const selectedSize = ref('38')
 const sizes = ref(['38', '39', '40', '41', '42', '43', '44', '45'])
-const selectedQuantity = ref(1) // Thêm state cho quantity
+const selectedQuantity = ref(1)
 
-// Mở modal sửa tên sản phẩm
-const openEditNameModal = () => {
-  if (!customProductName.value) {
-    customProductName.value = 'Custom Running Shoes'  
-  }
-  showEditNameModal.value = true
-}
+// Manufacturer and pricing
+const apiSurcharges = ref([])
+const basePrice = ref(0)
+const manufacturerList = ref([])
+const selectedManufacturer = ref(null)
 
-// Cập nhật tên sản phẩm
-const updateProductName = () => {
-  if (customProductName.value.trim() === '') {
-    customProductName.value = 'Custom Running Shoes'
-  }
-  showEditNameModal.value = false
-}
+// Template and design data
+const templateId = route.params.id
+const templateData = ref(null)
+const model3DUrl = ref('')
+const description = ref('')
+const color = ref('')
+const gender = ref('')
+const isAvailable = ref(false)
+const createdAt = ref('')
+const updatedAt = ref('')
+const previewImageUrl = ref('')
 
-// Theo dõi modal để khóa/mở scroll
-watch(showEditNameModal, (newValue) => {
-  if (newValue) {
-    // Khóa scroll khi modal hiển thị
-    document.body.style.overflow = 'hidden'
-  } else {
-    // Khôi phục scroll khi modal đóng
-    document.body.style.overflow = ''
-  }
-})
-
-// Danh sách nhà sản xuất với các mức phụ phí khác nhau
-const apiSurcharges = ref([]); // Dữ liệu phụ phí từ API
-const basePrice = ref(0);      // Giá gốc từ API
-const manufacturerList = ref([]); // Danh sách manufacturer từ API nếu cần
-const selectedManufacturer = ref(null); // id của manufacturer được chọn
-
-// Thêm biến computed để lấy manufacturer hiện tại
-const currentManufacturer = computed(() => {
-  return manufacturerList.value.find(m => m.id === selectedManufacturer.value) || manufacturerList.value[0];
-});
-
-// Hàm lấy dữ liệu phụ phí và giá gốc từ API
-const fetchSurchargeData = async (manufacturerId) => {
-  try {
-    const res = await getManufacturerById(manufacturerId);
-    if (res && res.data) {
-      apiSurcharges.value = res.data.services || [];
-      // Không lấy basePrice từ đây nữa vì nó không có trong API
-      // basePrice.value = res.data.basePrice || 0;
-    }
-  } catch (error) {
-    apiSurcharges.value = [];
-    // Không reset basePrice về 0 nữa
-    // basePrice.value = 0;
-  }
-};
-
-// Khi mounted hoặc đổi manufacturer, gọi API
-onMounted(async () => {
-  const urlParams = new URLSearchParams(window.location.search)
-  const isEditing = urlParams.get('edit') === 'true'
-  const editId = route.params.id
-
-  let response;
-  if (isEditing) {
-    // Gọi API lấy custom design theo id
-    response = await getMyCustomById(editId);
-    if (response && response.data) response = response.data;
-  } else {
-    response = await getTemplateById(editId);
-  }
-  if (response) {
-    templateData.value = response;
-    customProductName.value = response.name || '';
-    previewImageUrl.value = response.previewImageUrl || '';
-    basePrice.value = response.basePrice || response.price || 0;
-    model3DUrl.value = response.model3DUrl || response.templateUrl || '';
-    description.value = response.description || 'stylish comfort that keeps you moving with confidence';
-    color.value = response.color || '';
-    gender.value = response.gender || '';
-    isAvailable.value = response.isAvailable || false;
-    createdAt.value = response.createdAt || '';
-    updatedAt.value = response.updatedAt || '';
-  }
-  initThree();
-
-  const res = await getManufacturerAll();
-  console.log(res);
-  if (res && res.data && Array.isArray(res.data)) {
-    manufacturerList.value = res.data;
-    if (res.data.length > 0) {
-      selectedManufacturer.value = res.data[0].id;
-      await fetchSurchargeData(selectedManufacturer.value);
-      calculateSurcharge();
-    }
-  }
-});
-
-const handleManufacturerChange = async () => {
-  await fetchSurchargeData(selectedManufacturer.value);
-  calculateSurcharge();
-  loadModelForManufacturer(selectedManufacturer.value);
-};
-
-// Hàm tính phụ phí dựa trên data API
-const calculateSurcharge = () => {
-  let totalSurcharge = 0;
-  for (const comp of components) {
-    const partName = comp.value;
-    const partsToCheck = partGroups[partName] || [partName];
-    let hasColor = false;
-    let hasImage = false;
-    partsToCheck.forEach((subPart) => {
-      if (materials[subPart]) {
-        const hexColor = '#' + materials[subPart].color.getHexString();
-        if (hexColor.toLowerCase() !== '#ffffff') hasColor = true;
-        if (customTextures[subPart]) {
-          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
-          if (textureType === 'image') hasImage = true;
-        }
-      }
-    });
-    if (hasColor) {
-      const colorFee = apiSurcharges.value.find(
-        s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
-      );
-      if (colorFee) totalSurcharge += colorFee.currentAmount;
-    }
-    if (hasImage) {
-      const imageFee = apiSurcharges.value.find(
-        s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
-      );
-      if (imageFee) totalSurcharge += imageFee.currentAmount;
-    }
-  }
-  surcharge.value = Math.round(totalSurcharge);
-};
-
-const loadModelForManufacturer = (manufacturerId) => {
-  const manufacturer = manufacturers.find(m => m.id === manufacturerId) || manufacturers[0]
-  const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
-  const loader = new GLTFLoader()
-  loader.setDRACOLoader(dracoLoader)
-
-  // Ưu tiên model3DUrl nếu có
-  const modelPath = model3DUrl.value || currentManufacturer.value?.modelPath || '';
-  if (!modelPath || typeof modelPath !== 'string' || !modelPath.lastIndexOf) {
-    alert('No valid 3D file path found!');
-    return;
-  }
-  loader.load(
-    modelPath,
-    (gltf) => onModelLoaded(gltf),
-    (xhr) => null,
-    (error) => alert('Error loading 3D model')
-  )
-}
-
-const captureAngles = reactive([
-  { name: 'Back View', preview: null, position: { x: -6, y: 2, z: -6 } },
-  { name: 'Left Side', preview: null, position: { x: -4, y: 0, z: 6 } },
-  { name: 'Right Side', preview: null, position: { x: 4, y: 0, z: -6 } },
-  { name: 'Top View', preview: null, position: { x: 4, y: 8, z: 4 } },
-  { name: 'Bottom View', preview: null, position: { x: -4, y: -12, z: 4 } }
-])
-
-// Camera position storage
-let originalCameraPosition = null
+// Edit mode state
+const isEditing = ref(false)
+const editingDesign = ref(null)
 
 // Three.js objects
 let scene, camera, renderer, controls, model
@@ -719,8 +579,6 @@ const textureParams = reactive({
 const imageInput = ref(null)
 const selectedImage = ref(null)
 const selectedImageName = ref('')
-const previewImageUrl = ref('')
-// Lịch sử ảnh đã upload
 const uploadedImageHistory = reactive([])
 const currentImageIndex = ref(-1)
 
@@ -733,7 +591,8 @@ const partColors = reactive({
   Line_inside: '#ffffff', Line_outside: '#ffffff',
   Logo_inside: '#ffffff', Logo_outside: '#ffffff',
   MidSode: '#ffffff', MidSode001: '#ffffff',
-  OutSode: '#ffffff', Tip: '#ffffff',
+  OutSode: '#ffffff',
+  Tip: '#ffffff',
   Plane012: '#ffffff', Plane012_1: '#ffffff',
   Plane005: '#ffffff', Tongue: '#ffffff'
 })
@@ -751,24 +610,24 @@ const partTextures = reactive({
   Plane005: null, Tongue: null
 })
 
-// Components list price color, price texture, hãng adidas
+// Components list
 const components = reactive([
   { name: 'Base', value: 'Base' },
   { name: 'Heel', value: 'Heel' },
   { name: 'Lace', value: 'Lace' },
   { name: 'Outsole', value: 'outsole' },
-  { name: 'Midsole', value: 'MidSole'},
+  { name: 'Midsole', value: 'MidSole' },
   { name: 'Tip', value: 'Tip' },
   { name: 'Accent', value: 'Accent' },
   { name: 'Logo', value: 'Logo' },
   { name: 'Details', value: 'Details' }
 ])
 
-// Part groups 
+// Part groups
 const partGroups = reactive({
   Accent: ['Accent_inside', 'Accent_outside', 'Line_inside', 'Line_outside'],
   Logo: ['Logo_inside', 'Logo_outside'],
-  MidSole: ['MidSode', 'MidSode001', 'Plane012', 'Plane012_1'], 
+  MidSole: ['MidSode', 'MidSode001', 'Plane012', 'Plane012_1'],
   Details: ['Cylinder', 'Cylinder001', 'Plane005', 'Cover']
 })
 
@@ -778,7 +637,43 @@ const selectedColor = ref('#000000')
 const customColorValue = ref('#ffffff')
 const customColorApplied = ref(false)
 
+// Camera position storage
+let originalCameraPosition = null
+
+// Capture angles
+const captureAngles = reactive([
+  { name: 'Back View', preview: null, position: { x: -6, y: 2, z: -6 } },
+  { name: 'Left Side', preview: null, position: { x: -4, y: 0, z: 6 } },
+  { name: 'Right Side', preview: null, position: { x: 4, y: 0, z: -6 } },
+  { name: 'Top View', preview: null, position: { x: 4, y: 8, z: 4 } },
+  { name: 'Bottom View', preview: null, position: { x: -4, y: -12, z: 4 } }
+])
+
+// Computed properties
+const currentManufacturer = computed(() => {
+  return manufacturerList.value.find(m => m.id === selectedManufacturer.value) || manufacturerList.value[0]
+})
+
+const selectedComponent = computed(() => {
+  const selected = components.find((comp, index) => index === selectedComponentIndex.value)
+  return selected ? selected.name : null
+})
+
 // Modal handlers
+const openEditNameModal = () => {
+  if (!customProductName.value) {
+    customProductName.value = 'Custom Running Shoes'
+  }
+  showEditNameModal.value = true
+}
+
+const updateProductName = () => {
+  if (customProductName.value.trim() === '') {
+    customProductName.value = 'Custom Running Shoes'
+  }
+  showEditNameModal.value = false
+}
+
 const openCaptureModal = () => {
   originalCameraPosition = {
     position: camera ? camera.position.clone() : null,
@@ -855,6 +750,7 @@ const downloadSelectedAngle = () => {
   document.body.removeChild(link)
 }
 
+// Updated handleDone function
 const handleDone = () => {
   originalCameraPosition = {
     position: camera ? camera.position.clone() : null,
@@ -867,6 +763,17 @@ const handleDone = () => {
   })
 }
 
+// New confirmComplete function
+const confirmComplete = () => {
+  showCompleteModal.value = false
+  if (isEditing.value) {
+    completeDesign()
+  } else {
+    saveAsDraft()
+  }
+}
+
+// Image handling
 const onImageSelected = (event) => {
   const file = event.target.files[0]
   if (file) {
@@ -877,7 +784,6 @@ const onImageSelected = (event) => {
     reader.onload = (e) => {
       previewImageUrl.value = e.target.result
       
-      // Lưu ảnh vào lịch sử
       uploadedImageHistory.push({
         file: file,
         name: selectedImageName.value,
@@ -889,34 +795,591 @@ const onImageSelected = (event) => {
   }
 }
 
-// Hàm xóa ảnh preview
 const removeImagePreview = () => {
   if (selectedImage.value) {
-    // Xóa ảnh hiện tại ra khỏi lịch sử nếu cần
     if (uploadedImageHistory.length > 0 && currentImageIndex.value >= 0) {
-      uploadedImageHistory.splice(currentImageIndex.value, 1);
+      uploadedImageHistory.splice(currentImageIndex.value, 1)
       
-      // Hiển thị ảnh mới nhất trong lịch sử nếu còn
       if (uploadedImageHistory.length > 0) {
-        currentImageIndex.value = uploadedImageHistory.length - 1;
-        const latestImage = uploadedImageHistory[currentImageIndex.value];
-        selectedImage.value = latestImage.file;
-        selectedImageName.value = latestImage.name;
-        previewImageUrl.value = latestImage.imageUrl;
-        return; // Không xóa hết vì vẫn còn ảnh trong lịch sử
+        currentImageIndex.value = uploadedImageHistory.length - 1
+        const latestImage = uploadedImageHistory[currentImageIndex.value]
+        selectedImage.value = latestImage.file
+        selectedImageName.value = latestImage.name
+        previewImageUrl.value = latestImage.imageUrl
+        return
       } else {
-        currentImageIndex.value = -1;
+        currentImageIndex.value = -1
       }
     }
   }
   
-  // Nếu không còn ảnh trong lịch sử hoặc đã xóa hết
-  selectedImage.value = null;
-  selectedImageName.value = '';
-  previewImageUrl.value = '';
+  selectedImage.value = null
+  selectedImageName.value = ''
+  previewImageUrl.value = ''
   if (imageInput.value) {
-    imageInput.value.value = '';
+    imageInput.value.value = ''
   }
+}
+
+const showPreviousImage = () => {
+  if (currentImageIndex.value > 0) {
+    currentImageIndex.value--
+    const img = uploadedImageHistory[currentImageIndex.value]
+    selectedImage.value = img.file
+    selectedImageName.value = img.name
+    previewImageUrl.value = img.imageUrl
+  }
+}
+
+const showNextImage = () => {
+  if (currentImageIndex.value < uploadedImageHistory.length - 1) {
+    currentImageIndex.value++
+    const img = uploadedImageHistory[currentImageIndex.value]
+    selectedImage.value = img.file
+    selectedImageName.value = img.name
+    previewImageUrl.value = img.imageUrl
+  }
+}
+
+// AI image generation
+const aiPrompt = ref('')
+const generatedAIImage = ref(null)
+const aiError = ref(null)
+const isGenerating = ref(false)
+
+const generateAIImage = async () => {
+  if (!aiPrompt.value.trim()) {
+    aiError.value = 'Please enter a prompt'
+    return
+  }
+
+  isGenerating.value = true
+  aiError.value = null
+
+  try {
+    const formData = new FormData()
+    formData.append('Prompt', aiPrompt.value)
+    formData.append('OwnerId', localStorage.getItem('userId'))
+
+    const result = await aiService.generateImage(formData)
+
+    if (result.data && result.data.imageUrl) {
+      const timestamp = new Date().getTime()
+      const separator = result.data.imageUrl.includes('?') ? '&' : '?'
+      const imageUrl = `${result.data.imageUrl}${separator}t=${timestamp}`
+      generatedAIImage.value = imageUrl
+      
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+      const file = new File([blob], 'ai-generated.png', { type: blob.type })
+
+      uploadedImageHistory.push({
+        file: file,
+        name: 'AI Generated Image',
+        imageUrl: imageUrl
+      })
+      currentImageIndex.value = uploadedImageHistory.length - 1
+      
+      selectedImage.value = file
+      selectedImageName.value = 'AI Generated Image'
+      previewImageUrl.value = imageUrl
+      
+      activeTab.value = 'image'
+    } else {
+      throw new Error('No image URL received from server')
+    }
+  } catch (error) {
+    console.error('Error generating image:', error)
+    aiError.value = 'Error generating image. Please try again.'
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+const removeAIImage = () => {
+  generatedAIImage.value = null
+}
+
+const moveToImageSection = () => {
+  if (!generatedAIImage.value) return
+  
+  try {
+    uploadedImageHistory.push({
+      file: dataURLtoFile(generatedAIImage.value, 'ai-generated.png'),
+      name: 'AI Generated Image',
+      imageUrl: generatedAIImage.value
+    })
+    
+    currentImageIndex.value = uploadedImageHistory.length - 1
+    
+    selectedImage.value = uploadedImageHistory[currentImageIndex.value].file
+    selectedImageName.value = 'AI Generated Image'
+    previewImageUrl.value = generatedAIImage.value
+    
+    activeTab.value = 'image'
+    
+    generatedAIImage.value = null
+  } catch (error) {
+    console.error('Lỗi khi chuyển ảnh:', error)
+  }
+}
+
+const handleConfirmSwitchTab = () => {
+  showConfirmModal.value = false
+  activeTab.value = 'image'
+  
+  if (generatedImageUrl.value) {
+    const file = dataURLtoFile(generatedImageUrl.value, 'ai-generated.png')
+    uploadedImageHistory.push({
+      file: file,
+      name: 'AI Generated Image',
+      imageUrl: generatedImageUrl.value
+    })
+    currentImageIndex.value = uploadedImageHistory.length - 1
+    
+    selectedImage.value = file
+    selectedImageName.value = 'AI Generated Image'
+    previewImageUrl.value = generatedImageUrl.value
+  }
+}
+
+const dataURLtoFile = (dataurl, filename) => {
+  const arr = dataurl.split(',')
+  const mime = arr[0].match(/:(.*?);/)[1]
+  const bstr = atob(arr[1])
+  let n = bstr.length
+  const u8arr = new Uint8Array(n)
+  while(n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  return new File([u8arr], filename, {type:mime})
+}
+
+// Three.js initialization
+const initThree = () => {
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0xf0f0f0)
+
+  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
+  camera.position.set(0, 1, 8)
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  container.value.appendChild(renderer.domElement)
+
+  // Lighting setup
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
+  scene.add(ambientLight)
+
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
+  mainLight.position.set(5, 10, 7)
+  mainLight.castShadow = true
+  mainLight.shadow.mapSize.width = 1024
+  mainLight.shadow.mapSize.height = 1024
+  scene.add(mainLight)
+
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
+  fillLight.position.set(-5, 0, -5)
+  scene.add(fillLight)
+
+  controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.05
+  controls.rotateSpeed = 0.7
+  controls.minDistance = 3
+  controls.maxDistance = 20
+  controls.target.set(0, 0, 0)
+
+  animate()
+  window.addEventListener('resize', onWindowResize)
+}
+
+const loadModel = () => {
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+  const loader = new GLTFLoader()
+  loader.setDRACOLoader(dracoLoader)
+
+  const modelPath = isEditing.value && editingDesign.value?.templateUrl
+    ? editingDesign.value.templateUrl
+    : model3DUrl.value || currentManufacturer.value?.modelPath || ''
+  
+  if (!modelPath || typeof modelPath !== 'string' || !modelPath.lastIndexOf) {
+    alert('No valid 3D file path found!')
+    return
+  }
+  
+  loader.load(
+    modelPath,
+    (gltf) => onModelLoaded(gltf),
+    (xhr) => null,
+    (error) => alert('Error loading 3D model')
+  )
+}
+
+const onModelLoaded = (gltf) => {
+  if (model) {
+    scene.remove(model)
+  }
+
+  model = gltf.scene
+  model.scale.set(40, 40, 40)
+  model.position.set(0, -2, 0)
+  model.rotation.y = Math.PI / 4
+
+  const foundMeshes = []
+  const meshMaterialMap = {}
+  const possibleLaceMeshes = []
+  const originalMaterials = {}
+
+  model.traverse((node) => {
+    if (node.isMesh) {
+      foundMeshes.push(node.name)
+      node.castShadow = true
+      node.receiveShadow = true
+
+      if (!node.material) {
+        node.material = new THREE.MeshStandardMaterial({ color: 0x808080 })
+      }
+
+      materials[node.name] = node.material.clone()
+      meshMaterialMap[node.name] = node.material
+      originalMaterials[node.name] = node.material.clone()
+
+      if (
+        node.name.toLowerCase().includes('lace') ||
+        node.name.toLowerCase().includes('shoelace') ||
+        node.name.toLowerCase().includes('string') ||
+        node.name.toLowerCase().includes('cord')
+      ) {
+        possibleLaceMeshes.push({
+          name: node.name,
+          uuid: node.uuid,
+          material: node.material ? node.material.type : 'không có material',
+          materialColor: node.material && node.material.color ? node.material.color.getHexString() : 'không có màu',
+        })
+      }
+
+      if (node.material.type === 'MeshStandardMaterial') {
+        node.material.metalness = node.material.metalness !== undefined ? node.material.metalness : 0.3
+        node.material.roughness = node.material.roughness !== undefined ? node.material.roughness : 0.4
+        node.material.needsUpdate = true
+      }
+
+      if (!node.material.map && !node.material.color) {
+        node.material.color = new THREE.Color(0xffffff)
+        node.material.needsUpdate = true
+      }
+    }
+  })
+
+  if (isEditing.value && editingDesign.value?.designData) {
+    const designData = editingDesign.value.designData
+
+    if (designData.colors) {
+      Object.keys(designData.colors).forEach((partName) => {
+        if (partName in partColors) {
+          partColors[partName] = designData.colors[partName]
+        }
+        model.traverse((node) => {
+          if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
+            node.material.color.set(designData.colors[partName])
+            node.material.needsUpdate = true
+            materials[node.name] = node.material
+          }
+        })
+      })
+    }
+
+    if (designData.textures && designData.imagesData) {
+      const textureLoader = new THREE.TextureLoader()
+      Object.keys(designData.textures).forEach((partName) => {
+        if (designData.textures[partName].type === 'image' && designData.imagesData[partName]) {
+          textureLoader.load(
+            designData.imagesData[partName],
+            (texture) => {
+              texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+              texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+              texture.flipY = false
+              texture.encoding = THREE.sRGBEncoding
+              texture.repeat.set(
+                designData.textureParams.repeatX * designData.textureParams.scale,
+                designData.textureParams.repeatY * designData.textureParams.scale
+              )
+              texture.offset.set(designData.textureParams.offsetX, designData.textureParams.offsetY)
+              texture.rotation = designData.textureParams.rotation
+              texture.needsUpdate = true
+
+              model.traverse((node) => {
+                if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
+                  node.material.map = texture
+                  node.material.color.set(new THREE.Color(
+                    designData.textureParams.brightness,
+                    designData.textureParams.brightness,
+                    designData.textureParams.brightness
+                  ))
+                  node.material.transparent = true
+                  node.material.metalness = 0.3
+                  node.material.roughness = 0.4
+                  node.material.needsUpdate = true
+                  materials[node.name] = node.material
+                }
+              })
+
+              partTextures[partName] = texture
+              customTextures[partName] = {
+                originalMap: null,
+                originalColor: new THREE.Color('#ffffff'),
+                texture,
+                imageData: designData.imagesData[partName]
+              }
+
+              uploadedImageHistory.push({
+                file: null,
+                name: `Image-${partName}`,
+                imageUrl: designData.imagesData[partName]
+              })
+              currentImageIndex.value = uploadedImageHistory.length - 1
+              selectedImage.value = null
+              selectedImageName.value = `Image-${partName}`
+              previewImageUrl.value = designData.imagesData[partName]
+            },
+            undefined,
+            (error) => console.error(`Error loading texture for ${partName}:`, error)
+          )
+        } else if (designData.textures[partName].type === 'text') {
+          const canvas = document.createElement('canvas')
+          canvas.width = 1024
+          canvas.height = 1024
+          const context = canvas.getContext('2d')
+
+          context.fillStyle = '#ffffff'
+          context.fillRect(0, 0, canvas.width, canvas.height)
+
+          context.save()
+          context.translate(canvas.width / 2, canvas.height / 2)
+          context.rotate(Math.PI)
+          context.scale(-1, 1)
+          context.translate(-canvas.width / 2, -canvas.height / 2)
+
+          const text = designData.textures[partName].textContent || ''
+          const textLength = text.length
+          const fontSize = Math.min(150, 600 / Math.max(1, textLength / 3))
+          context.font = `bold ${fontSize}px Arial, sans-serif`
+          context.strokeStyle = 'black'
+          context.lineWidth = fontSize / 8
+          context.textAlign = 'center'
+          context.textBaseline = 'middle'
+          context.strokeText(text, canvas.width / 2, canvas.height / 2)
+          context.fillStyle = '#ffffff'
+          context.shadowColor = 'rgba(0, 0, 0, 0.7)'
+          context.shadowBlur = 3
+          pxPx = 1
+          ctx.shadowOffsetY = 1
+          context.fillText(text, canvas.width / 2, canvas.height / 2)
+          context.shadowColor = 'transparent'
+          context.fillText(text, canvas.width / 2, canvas.height / 2)
+
+          context.restore()
+
+          const texture = new THREE.CanvasTexture(canvas)
+          texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+          texture.repeat.set(1, 1)
+          texture.needsUpdate = true
+
+          model.traverse((node) => {
+            if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
+              node.material.map = texture
+              node.material.transparent = true
+              node.material.metalness = 0.3
+              node.material.roughness = 0.4
+              node.material.needsUpdate = true
+              materials[node.name] = node.material
+            }
+          })
+
+          partTextures[partName] = texture
+          customTextures[partName] = {
+            originalMap: null,
+            originalColor: new THREE.Color('#ffffff'),
+            texture
+          }
+        }
+      })
+    }
+
+    if (designData.textureParams) {
+      Object.assign(textureParams, designData.textureParams)
+    }
+
+    if (designData.customText) {
+      customText.value = designData.customText
+    }
+  }
+
+  Object.keys(partColors).forEach((partName) => {
+    const matchingMesh = foundMeshes.find((meshName) => meshName.toLowerCase() === partName.toLowerCase())
+    if (!matchingMesh) return
+
+    const originalMaterial = originalMaterials[matchingMesh] || new THREE.MeshStandardMaterial({ color: 0xffffff })
+
+    const texture = partTextures[partName]
+    if (texture) {
+      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
+      texture.offset.set(textureParams.offsetX, textureParams.offsetY)
+      texture.rotation = textureParams.rotation
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+      texture.needsUpdate = true
+    }
+
+    if (materials[matchingMesh]) {
+      materials[matchingMesh].color = new THREE.Color(partColors[partName])
+      materials[matchingMesh].map = texture || undefined
+      materials[matchingMesh].transparent = !!texture
+      materials[matchingMesh].metalness = 0.3
+      materials[matchingMesh].roughness = 0.4
+      materials[matchingMesh].needsUpdate = true
+    } else {
+      materials[matchingMesh] = originalMaterial.clone()
+      materials[matchingMesh].color = new THREE.Color(partColors[partName])
+      materials[matchingMesh].map = texture || undefined
+      materials[matchingMesh].transparent = !!texture
+      materials[matchingMesh].metalness = 0.3
+      materials[matchingMesh].roughness = 0.4
+      materials[matchingMesh].needsUpdate = true
+    }
+
+    model.traverse((node) => {
+      if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
+        node.material = materials[node.name]
+        node.material.needsUpdate = true
+      }
+    })
+  })
+
+  checkPartGroups(foundMeshes)
+  scene.add(model)
+  renderer.render(scene, camera)
+}
+
+const checkPartGroups = (foundMeshes) => {
+  const missingMeshes = []
+  for (const groupName in partGroups) {
+    partGroups[groupName].forEach(partName => {
+      if (!foundMeshes.some(mesh => mesh.toLowerCase().includes(partName.toLowerCase()))) {
+        missingMeshes.push(partName)
+      }
+    })
+  }
+}
+
+const animate = () => {
+  requestAnimationFrame(animate)
+  controls.update()
+  renderer.render(scene, camera)
+}
+
+const onWindowResize = () => {
+  if (camera && renderer && container.value) {
+    camera.aspect = container.value.clientWidth / container.value.clientHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+    renderer.render(scene, camera)
+  }
+}
+
+const handleComponentChange = () => {
+}
+
+const handleCustomColorChange = () => {
+  selectedColor.value = customColorValue.value
+}
+
+const applyCustomColor = () => {
+  if (!model) {
+    console.error('Model is not loaded. Cannot apply color.')
+    return
+  }
+
+  const selectedPart = components[selectedComponentIndex.value].value
+  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart]
+
+  if (partsToUpdate.includes('Lace')) {
+    const laceMeshes = findAllLaceMeshes()
+    if (laceMeshes.length > 0) {
+      laceMeshes.forEach(mesh => {
+        if (!customTextures['Lace']) {
+          customTextures['Lace'] = {
+            originalMap: mesh.material.map,
+            originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff')
+          }
+        }
+
+        const newMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(customColorValue.value),
+          side: THREE.DoubleSide,
+          metalness: 0.3,
+          roughness: 0.4
+        })
+
+        mesh.material = newMaterial
+        mesh.material.needsUpdate = true
+        materials['Lace'] = newMaterial
+
+        partColors['Lace'] = customColorValue.value
+        if (partTextures['Lace']) {
+          partTextures['Lace'] = null
+        }
+      })
+    }
+  }
+
+  partsToUpdate.forEach((part) => {
+    if (part !== 'Lace') {
+      let partUpdated = false
+      model.traverse((node) => {
+        if (node.isMesh && node.name.toLowerCase() === part.toLowerCase()) {
+          const newMaterial = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(customColorValue.value),
+            metalness: 0.3,
+            roughness: 0.4
+          })
+
+          if (node.material.map) {
+            newMaterial.map = node.material.map
+            newMaterial.transparent = node.material.transparent
+          }
+
+          node.material = newMaterial
+          node.material.needsUpdate = true
+          materials[node.name] = newMaterial
+          partUpdated = true
+        }
+      })
+
+      if (partUpdated) {
+        partColors[part] = customColorValue.value
+        if (partTextures[part] && customTextures[part]) {
+          model.traverse((node) => {
+            if (node.isMesh && node.name.toLowerCase() === part.toLowerCase()) {
+              node.material.map = undefined
+              node.material.transparent = false
+              node.material.needsUpdate = true
+            }
+          })
+          partTextures[part] = null
+          delete customTextures[part]
+        }
+      }
+    }
+  })
+
+  renderer.render(scene, camera)
+  calculateSurcharge()
 }
 
 const applyImageToMesh = () => {
@@ -944,7 +1407,6 @@ const applyImageToMesh = () => {
 
       if (partsToUpdate.includes('Lace')) {
         const laceMeshes = findAllLaceMeshes()
-        
         if (laceMeshes.length > 0) {
           laceMeshes.forEach(mesh => {
             const newMaterial = new THREE.MeshStandardMaterial({
@@ -955,7 +1417,7 @@ const applyImageToMesh = () => {
               metalness: 0.3,
               roughness: 0.4
             })
-            
+
             if (!customTextures['Lace']) {
               customTextures['Lace'] = {
                 originalMap: mesh.material.map,
@@ -964,7 +1426,7 @@ const applyImageToMesh = () => {
                 imageData: imageUrl
               }
             }
-            
+
             mesh.material = newMaterial
             mesh.material.needsUpdate = true
             materials['Lace'] = newMaterial
@@ -1040,8 +1502,8 @@ const applyTextToMesh = () => {
   context.fillStyle = '#ffffff'
   context.shadowColor = 'rgba(0, 0, 0, 0.7)'
   context.shadowBlur = 3
-  context.shadowOffsetX = 1
-  context.shadowOffsetY = 1
+  pxPx = 1
+  ctx.shadowOffsetY = 1
   context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
   context.shadowColor = 'transparent'
   context.fillText(customText.value, canvas.width / 2, canvas.height / 2)
@@ -1056,7 +1518,6 @@ const applyTextToMesh = () => {
 
   if (partsToUpdate.includes('Lace')) {
     const laceMeshes = findAllLaceMeshes()
-    
     if (laceMeshes.length > 0) {
       laceMeshes.forEach(mesh => {
         const newMaterial = new THREE.MeshStandardMaterial({
@@ -1066,7 +1527,7 @@ const applyTextToMesh = () => {
           metalness: 0.3,
           roughness: 0.4
         })
-        
+
         if (!customTextures['Lace']) {
           customTextures['Lace'] = {
             originalMap: mesh.material.map,
@@ -1076,7 +1537,7 @@ const applyTextToMesh = () => {
         } else {
           customTextures['Lace'].texture = texture
         }
-        
+
         mesh.material = newMaterial
         mesh.material.needsUpdate = true
         materials['Lace'] = newMaterial
@@ -1114,7 +1575,6 @@ const removeTextFromMesh = () => {
 
   if (partsToUpdate.includes('Lace')) {
     const laceMeshes = findAllLaceMeshes()
-    
     if (laceMeshes.length > 0) {
       laceMeshes.forEach(mesh => {
         if (customTextures['Lace']) {
@@ -1124,11 +1584,11 @@ const removeTextFromMesh = () => {
             metalness: 0.3,
             roughness: 0.4
           })
-          
+
           if (customTextures['Lace'].originalColor) {
             newMaterial.color.copy(customTextures['Lace'].originalColor)
           }
-          
+
           mesh.material = newMaterial
           mesh.material.needsUpdate = true
         }
@@ -1137,7 +1597,7 @@ const removeTextFromMesh = () => {
       delete customTextures['Lace']
     }
   }
-  
+
   partsToUpdate.forEach((part) => {
     if (part !== 'Lace' && materials[part] && customTextures[part]) {
       materials[part].map = customTextures[part].originalMap
@@ -1166,25 +1626,25 @@ const removeTextFromMesh = () => {
   calculateSurcharge()
 }
 
+// Updated saveAsDraft function
 const saveAsDraft = () => {
   showCompleteModal.value = false
   calculateSurcharge()
   
-  // Chuẩn bị ServiceIds và textureIds là mảng số
-  let serviceIds = [];
-  let textureIds = [1]; // Thay bằng logic thực tế nếu có
+  let serviceIds = []
+  let textureIds = [1]
 
   const productData = {
-    id: Date.now(),
+    id: isEditing.value ? editingDesign.value.id : Date.now(),
     name: customProductName.value || 'Custom Running Shoes (Nháp)',
     templateId: route.params.id,
-    manufacturerId: 1,
+    manufacturerId: selectedManufacturer.value || 1,
     price: basePrice.value,
     surcharge: surcharge.value,
     size: selectedSize.value,
     image: captureAngles[1].preview,
-    textureIds: textureIds, // Đúng chuẩn mảng số
-    ServiceIds: serviceIds, // Sẽ được push ở dưới
+    textureIds: textureIds,
+    ServiceIds: serviceIds,
     designData: {
       colors: {},
       textures: {},
@@ -1192,11 +1652,12 @@ const saveAsDraft = () => {
       customText: customText.value,
       textureParams: { ...textureParams },
       timestamp: new Date().toISOString(),
-      manufacturerId: 1
+      manufacturerId: selectedManufacturer.value || 1,
+      previewImages: captureAngles.map(angle => angle.preview) 
     },
-    previewImages: [] // Sẽ xử lý ở dưới
+    previewImages: []
   }
-  
+
   for (const comp of components) {
     const partName = comp.value
     const partsToSave = partGroups[partName] || [partName]
@@ -1204,7 +1665,6 @@ const saveAsDraft = () => {
       if (materials[subPart]) {
         const hexColor = '#' + materials[subPart].color.getHexString()
         productData.designData.colors[subPart] = hexColor
-        // Nếu part đã đổi màu (khác #ffffff)
         if (hexColor.toLowerCase() !== '#ffffff') {
           const colorService = apiSurcharges.value.find(
             s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
@@ -1221,7 +1681,6 @@ const saveAsDraft = () => {
           }
           if (textureType === 'image' && customTextures[subPart].imageData) {
             productData.designData.imagesData[subPart] = customTextures[subPart].imageData
-            // Nếu part đã áp dụng hình ảnh
             const imageService = apiSurcharges.value.find(
               s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
             )
@@ -1233,32 +1692,29 @@ const saveAsDraft = () => {
       }
     })
   }
-  // Loại bỏ trùng lặp trong ServiceIds
-  productData.ServiceIds = Array.from(new Set(productData.ServiceIds)).map(Number);
 
-  // Đảm bảo textureIds là mảng số (nếu có logic thực tế thì thay thế)
-  productData.textureIds = productData.textureIds.map(Number);
+  productData.ServiceIds = Array.from(new Set(productData.ServiceIds)).map(Number)
+  productData.textureIds = textureIds.map(Number)
 
-  // Convert previewImages (nếu là base64) sang File
   productData.previewImages = captureAngles.map((angle, idx) => {
     if (angle.preview && angle.preview.startsWith('data:image')) {
-      // Convert base64 to File
-      const arr = angle.preview.split(',');
-      const mime = arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while(n--) u8arr[n] = bstr.charCodeAt(n);
-      return new File([u8arr], `preview_${idx}.png`, {type: mime});
+      const arr = angle.preview.split(',')
+      const mime = arr[0].match(/:(.*?);/)[1]
+      const bstr = atob(arr[1])
+      let n = bstr.length
+      const u8arr = new Uint8Array(n)
+      while(n--) u8arr[n] = bstr.charCodeAt(n)
+      return new File([u8arr], `preview_${idx}.png`, {type: mime})
     }
-    return angle.preview;
-  });
+    return angle.preview
+  })
 
   CustomShoeDesign(productData)
     .then(response => {
       console.log('Draft saved successfully:', response)
+      localStorage.removeItem('editingDesign') 
       alert('Draft saved successfully!')
-      window.location.href = '/mycustomPage';
+      window.location.href = '/mycustomPage'
     })
     .catch(error => {
       console.error('Error saving draft:', error)
@@ -1266,340 +1722,100 @@ const saveAsDraft = () => {
     })
 }
 
-// Updated Three.js initialization
-const initThree = () => {
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xf0f0f0)
+// New completeDesign function
+const completeDesign = async () => {
+  try {
+    await captureAllAngles()
 
-  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
-  camera.position.set(0, 1, 8)
+    let serviceIds = []
+    let textureIds = [1]
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-  container.value.appendChild(renderer.domElement)
-
-  // Lighting setup
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
-  scene.add(ambientLight)
-
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
-  mainLight.position.set(5, 10, 7)
-  mainLight.castShadow = true
-  mainLight.shadow.mapSize.width = 1024
-  mainLight.shadow.mapSize.height = 1024
-  scene.add(mainLight)
-
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
-  fillLight.position.set(-5, 0, -5)
-  scene.add(fillLight)
-
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-  controls.dampingFactor = 0.05
-  controls.rotateSpeed = 0.7
-  controls.minDistance = 3
-  controls.maxDistance = 20
-  controls.target.set(0, 0, 0)
-
-  loadModel()
-  animate()
-  window.addEventListener('resize', onWindowResize)
-}
-
-const loadModel = () => {
-  const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
-  const loader = new GLTFLoader()
-  loader.setDRACOLoader(dracoLoader)
-
-  // Ưu tiên dùng model3DUrl từ API, nếu không có thì fallback sang modelPath mặc định
-  const modelPath = model3DUrl.value || currentManufacturer.value?.modelPath || '';
-  if (!modelPath || typeof modelPath !== 'string' || !modelPath.lastIndexOf) {
-    alert('No valid 3D file path found!');
-    return;
-  }
-  loader.load(
-    modelPath,
-    (gltf) => onModelLoaded(gltf),
-    (xhr) => null,
-    (error) => alert('Error loading 3D model')
-  )
-}
-
-const onModelLoaded = (gltf) => {
-  if (model) {
-    scene.remove(model)
-  }
-
-  model = gltf.scene
-  model.scale.set(40, 40, 40)
-  model.position.set(0, -2, 0)
-  model.rotation.y = Math.PI / 4
-
-  const foundMeshes = []
-  const meshMaterialMap = {}
-  const possibleLaceMeshes = []
-  const originalMaterials = {}
-
-  model.traverse((node) => {
-    if (node.isMesh) {
-      foundMeshes.push(node.name)
-
-      node.castShadow = true
-      node.receiveShadow = true
-
-      if (!node.material) {
-        node.material = new THREE.MeshStandardMaterial({ color: 0x808080 })
-      }
-
-      // Lưu trữ material gốc cho mesh cụ thể
-      materials[node.name] = node.material.clone()
-      meshMaterialMap[node.name] = node.material
-      originalMaterials[node.name] = node.material.clone()
-
-      if (
-        node.name.toLowerCase().includes('lace') ||
-        node.name.toLowerCase().includes('shoelace') ||
-        node.name.toLowerCase().includes('string') ||
-        node.name.toLowerCase().includes('cord')
-      ) {
-        possibleLaceMeshes.push({
-          name: node.name,
-          uuid: node.uuid,
-          material: node.material ? node.material.type : 'không có material',
-          materialColor: node.material && node.material.color ? node.material.color.getHexString() : 'không có màu',
-        })
-      }
-
-      if (node.material.type === 'MeshStandardMaterial') {
-        node.material.metalness = node.material.metalness !== undefined ? node.material.metalness : 0.3
-        node.material.roughness = node.material.roughness !== undefined ? node.material.roughness : 0.4
-        node.material.needsUpdate = true
-      }
-
-      if (!node.material.map && !node.material.color) {
-        node.material.color = new THREE.Color(0xffffff)
-        node.material.needsUpdate = true
-      }
-    }
-  })
-
-  // Áp dụng tùy chỉnh cho material của mỗi mesh
-  Object.keys(partColors).forEach((partName) => {
-    const matchingMesh = foundMeshes.find((meshName) => meshName.toLowerCase() === partName.toLowerCase())
-    if (!matchingMesh) return
-
-    const originalMaterial = originalMaterials[matchingMesh] || new THREE.MeshStandardMaterial({ color: 0xffffff })
-
-    const texture = partTextures[partName]
-    if (texture) {
-      texture.repeat.set(textureParams.repeatX * textureParams.scale, textureParams.repeatY * textureParams.scale)
-      texture.offset.set(textureParams.offsetX, textureParams.offsetY)
-      texture.rotation = textureParams.rotation
-      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-      texture.needsUpdate = true
+    const designData = {
+      colors: {},
+      textures: {},
+      imagesData: {},
+      customText: customText.value,
+      textureParams: { ...textureParams },
+      timestamp: new Date().toISOString(),
+      manufacturerId: selectedManufacturer.value || 1,
+      previewImages: captureAngles.map(angle => angle.preview)
     }
 
-    // Cập nhật material cho mesh cụ thể
-    if (materials[matchingMesh]) {
-      materials[matchingMesh].color = new THREE.Color(partColors[partName])
-      materials[matchingMesh].map = texture || undefined
-      materials[matchingMesh].transparent = !!texture
-      materials[matchingMesh].metalness = 0.3
-      materials[matchingMesh].roughness = 0.4
-      materials[matchingMesh].needsUpdate = true
-    } else {
-      materials[matchingMesh] = originalMaterial.clone()
-      materials[matchingMesh].color = new THREE.Color(partColors[partName])
-      materials[matchingMesh].map = texture || undefined
-      materials[matchingMesh].transparent = !!texture
-      materials[matchingMesh].metalness = 0.3
-      materials[matchingMesh].roughness = 0.4
-      materials[matchingMesh].needsUpdate = true
-    }
-
-    // Áp dụng material cho mesh trùng khớp chính xác
-    model.traverse((node) => {
-      if (node.isMesh && node.name.toLowerCase() === partName.toLowerCase()) {
-        node.material = materials[node.name]
-        node.material.needsUpdate = true
-      }
-    })
-  })
-
-  checkPartGroups(foundMeshes)
-  scene.add(model)
-}
-
-const checkPartGroups = (foundMeshes) => {
-  const missingMeshes = []
-  for (const groupName in partGroups) {
-    partGroups[groupName].forEach(partName => {
-      if (!foundMeshes.some(mesh => mesh.toLowerCase().includes(partName.toLowerCase()))) {
-        missingMeshes.push(partName)
-      }
-    })
-  }
-}
-
-const animate = () => {
-  requestAnimationFrame(animate)
-  controls.update()
-  renderer.render(scene, camera)
-}
-
-const onWindowResize = () => {
-  if (camera && renderer && container.value) {
-    camera.aspect = container.value.clientWidth / container.value.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight);
-    renderer.render(scene, camera);
-  }
-};
-
-const handleComponentChange = () => {
-}
-
-const handleCustomColorChange = () => {
-  selectedColor.value = customColorValue.value;
-};
-
-const applyCustomColor = () => {
-  if (!model) {
-    console.error('Model is not loaded. Cannot apply color.');
-    return;
-  }
-
-  const selectedPart = components[selectedComponentIndex.value].value;
-  const partsToUpdate = selectedPart in partGroups ? partGroups[selectedPart] : [selectedPart];
-
-  // console.log(`Applying color to component: ${selectedPart}, parts: ${partsToUpdate.join(', ')}`);
-
-  // Handle Lace separately due to its unique mesh structure
-  if (partsToUpdate.includes('Lace')) {
-    // console.log('Đang áp dụng màu cho dây giày:', customColorValue.value);
-    const laceMeshes = findAllLaceMeshes()
-
-    if (laceMeshes.length > 0) {
-      laceMeshes.forEach(mesh => {
-        // console.log(`Đang áp dụng màu cho mesh ${mesh.name}`);
-        if (!customTextures['Lace']) {
-          customTextures['Lace'] = {
-            originalMap: mesh.material.map,
-            originalColor: mesh.material.color ? mesh.material.color.clone() : new THREE.Color('#ffffff')
-          };
-        }
-
-        const newMaterial = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(customColorValue.value),
-          side: THREE.DoubleSide,
-          metalness: 0.3,
-          roughness: 0.4
-        });
-
-        mesh.material = newMaterial;
-        mesh.material.needsUpdate = true;
-        materials['Lace'] = newMaterial;
-
-        if ('Lace' in partColors) {
-          partColors['Lace'] = customColorValue.value;
-        } else {
-          console.warn(`'Lace' not found in partColors. Adding it.`);
-          partColors['Lace'] = customColorValue.value;
-        }
-
-        if (partTextures['Lace']) {
-          partTextures['Lace'] = null;
-        }
-      });
-    } else {
-      console.warn('Không tìm thấy mesh dây giày nào');
-    }
-  }
-
-  // Apply color to other parts
-  partsToUpdate.forEach((part) => {
-    if (part !== 'Lace') {
-      let partUpdated = false;
-
-      // Traverse the model and apply a unique material to each matching mesh
-      model.traverse((node) => {
-        if (node.isMesh) {
-          // Exact match only: the mesh name must exactly match the part name
-          const nodeNameLower = node.name.toLowerCase();
-          const partLower = part.toLowerCase();
-          const isExactMatch = nodeNameLower === partLower;
-
-          if (isExactMatch) {
-            // console.log(`Đang áp dụng màu cho mesh: ${node.name}`);
-
-            // Create a new material for this specific mesh
-            const newMaterial = new THREE.MeshStandardMaterial({
-              color: new THREE.Color(customColorValue.value),
-              metalness: 0.3,
-              roughness: 0.4
-            });
-
-            // Preserve existing properties if they exist
-            if (node.material.map) {
-              newMaterial.map = node.material.map;
-              newMaterial.transparent = node.material.transparent;
+    for (const comp of components) {
+      const partName = comp.value
+      const partsToSave = partGroups[partName] || [partName]
+      partsToSave.forEach((subPart) => {
+        if (materials[subPart]) {
+          const hexColor = '#' + materials[subPart].color.getHexString()
+          designData.colors[subPart] = hexColor
+          if (hexColor.toLowerCase() !== '#ffffff') {
+            const colorService = apiSurcharges.value.find(
+              s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
+            )
+            if (colorService) {
+              serviceIds.push(colorService.id)
             }
-
-            // Assign the new material to the mesh
-            node.material = newMaterial;
-            node.material.needsUpdate = true;
-
-            // Store the new material in materials with a unique key for this mesh
-            materials[node.name] = newMaterial;
-
-            partUpdated = true;
+          }
+          if (customTextures[subPart]) {
+            const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+            designData.textures[subPart] = {
+              type: textureType,
+              textContent: customText.value
+            }
+            if (textureType === 'image' && customTextures[subPart].imageData) {
+              designData.imagesData[subPart] = customTextures[subPart].imageData
+              const imageService = apiSurcharges.value.find(
+                s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
+              )
+              if (imageService) {
+                serviceIds.push(imageService.id)
+              }
+            }
           }
         }
-      });
-
-      if (partUpdated) {
-        // Update partColors if the part exists
-        if (part in partColors) {
-          partColors[part] = customColorValue.value;
-        } else {
-          console.warn(`Part '${part}' not found in partColors. Adding it.`);
-          partColors[part] = customColorValue.value;
-        }
-
-        // Remove textures if they exist
-        if (partTextures[part] && customTextures[part]) {
-          // Update the material for each matching mesh
-          model.traverse((node) => {
-            if (node.isMesh && node.name.toLowerCase() === part.toLowerCase()) {
-              node.material.map = undefined;
-              node.material.transparent = false;
-              node.material.needsUpdate = true;
-            }
-          });
-          partTextures[part] = null;
-          delete customTextures[part];
-        }
-      } else {
-        console.warn(`Không tìm thấy mesh nào cho phần: ${part}`);
-      }
+      })
     }
-  });
 
-  renderer.render(scene, camera);
-  calculateSurcharge();
-};
+    serviceIds = Array.from(new Set(serviceIds)).map(Number)
+    textureIds = textureIds.map(Number)
+
+    const requestBody = {
+      id: editingDesign.value.id,
+      customShoeDesignTemplateId: parseInt(route.params.id),
+      name: customProductName.value || 'Custom Running Shoes',
+      description: description.value || 'stylish comfort that keeps you moving with confidence',
+      designData: JSON.stringify(designData),
+      designerMarkup: 0,
+      textureIds: textureIds,
+      serviceIds: serviceIds
+    }
+
+    const response = await axios.put(`/api/CustomShoeDesign/${editingDesign.value.id}`, requestBody, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (response.status === 200 || response.status === 204) {
+      localStorage.removeItem('editingDesign')
+      alert('Design updated successfully!')
+      router.push('/mycustomPage')
+    } else {
+      throw new Error('Unexpected response status')
+    }
+  } catch (error) {
+    console.error('Error updating design:', error)
+    alert('An error occurred while updating the design. Please try again.')
+  }
+}
 
 const toggleCanvasSize = () => {
-  isCanvasExpanded.value = !isCanvasExpanded.value;
+  isCanvasExpanded.value = !isCanvasExpanded.value
   setTimeout(() => {
     if (renderer && container.value) {
-      onWindowResize();
+      onWindowResize()
     }
-  }, 300);
+  }, 300)
 }
 
 const updateTextureParameters = () => {
@@ -1619,8 +1835,8 @@ const updateTextureParameters = () => {
       }
       
       materials[part].needsUpdate = true
-      materials[part].metalness = 0.3 // Match Code 1
-      materials[part].roughness = 0.4 // Match Code 1
+      materials[part].metalness = 0.3
+      materials[part].roughness = 0.4
 
       model.traverse((node) => {
         if (node.isMesh && node.name.toLowerCase().includes(part.toLowerCase())) {
@@ -1634,20 +1850,166 @@ const updateTextureParameters = () => {
   renderer.render(scene, camera)
 }
 
+const findAllLaceMeshes = () => {
+  if (!model) return []
+  
+  const laceMeshes = []
+  model.traverse((node) => {
+    if (node.isMesh && 
+       (node.name === 'Lace' || 
+        node.name.toLowerCase().includes('lace') || 
+        node.name.toLowerCase().includes('shoelace') || 
+        node.name.toLowerCase().includes('string') ||
+        node.name.toLowerCase().includes('cord'))) {
+      laceMeshes.push(node)
+    }
+  })
+  
+  return laceMeshes
+}
+
+const fetchSurchargeData = async (manufacturerId) => {
+  try {
+    const res = await getManufacturerById(manufacturerId)
+    if (res && res.data) {
+      apiSurcharges.value = res.data.services || []
+    }
+  } catch (error) {
+    apiSurcharges.value = []
+  }
+}
+
+const calculateSurcharge = () => {
+  let totalSurcharge = 0
+  for (const comp of components) {
+    const partName = comp.value
+    const partsToCheck = partGroups[partName] || [partName]
+    let hasColor = false
+    let hasImage = false
+    partsToCheck.forEach((subPart) => {
+      if (materials[subPart]) {
+        const hexColor = '#' + materials[subPart].color.getHexString()
+        if (hexColor.toLowerCase() !== '#ffffff') hasColor = true
+        if (customTextures[subPart]) {
+          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+          if (textureType === 'image') hasImage = true
+        }
+      }
+    })
+    if (hasColor) {
+      const colorFee = apiSurcharges.value.find(
+        s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
+      )
+      if (colorFee) totalSurcharge += colorFee.currentAmount
+    }
+    if (hasImage) {
+      const imageFee = apiSurcharges.value.find(
+        s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
+      )
+      if (imageFee) totalSurcharge += imageFee.currentAmount
+    }
+  }
+  surcharge.value = Math.round(totalSurcharge)
+}
+
+const handleManufacturerChange = async () => {
+  await fetchSurchargeData(selectedManufacturer.value)
+  calculateSurcharge()
+  loadModel()
+}
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price || 0)
+}
+
+watch(showEditNameModal, (newValue) => {
+  if (newValue) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
+
 watch(textureParams, updateTextureParameters, { deep: true })
 
-const route = useRoute();
-const templateId = route.params.id;
-const templateData = ref(null);
+onMounted(async () => {
+  // Configure axios base URL (replace with your actual API base URL)
+  axios.defaults.baseURL = 'https://fcspwebapi20250527114117.azurewebsites.net'
 
-// Thêm các biến reactive ở đầu script setup nếu chưa có
-const model3DUrl = ref('');
-const description = ref('');
-const color = ref('');
-const gender = ref('');
-const isAvailable = ref(false);
-const createdAt = ref('');
-const updatedAt = ref('');
+  const urlParams = new URLSearchParams(window.location.search)
+  isEditing.value = urlParams.get('edit') === 'true'
+  const editId = route.params.id
+
+  if (isEditing.value) {
+    const storedDesign = localStorage.getItem('editingDesign')
+    if (storedDesign) {
+      try {
+        editingDesign.value = JSON.parse(storedDesign)
+        
+        customProductName.value = editingDesign.value.name || 'Custom Running Shoes'
+        basePrice.value = editingDesign.value.price || 0
+        model3DUrl.value = editingDesign.value.templateUrl || ''
+        selectedSize.value = editingDesign.value.sizes.value?.[0] || '38'
+        sizes.value = editingDesign.value.sizes.value || ['38', '39', '40', '41', '42', '43', '44', '45']
+        selectedManufacturer.value = editingDesign.value.manufacturerId || null
+        previewImageUrl.value = editingDesign.value.previewImages?.[0] || ''
+        
+        if (editingDesign.value.previewImages?.length) {
+          captureAngles.forEach((angle, index) => {
+            if (editingDesign.value.previewImages[index]) {
+              angle.preview = editingDesign.value.previewImages[index]
+            }
+          })
+        }
+      } catch (e) {
+        console.error('Error parsing editingDesign:', e)
+        alert('Unable to load design data for editing.')
+      }
+    } else {
+      alert('No design data found for editing.')
+    }
+  }
+
+  let response
+  if (isEditing.value) {
+    response = await getMyCustomById(editId)
+    if (response && response.data) response = response.data
+  } else {
+    response = await getTemplateById(editId)
+  }
+  
+  if (response) {
+    templateData.value = response
+    if (!isEditing.value) {
+      customProductName.value = response.name || ''
+      previewImageUrl.value = response.previewImageUrl || ''
+      basePrice.value = response.basePrice || response.price || 0
+      model3DUrl.value = response.model3DUrl || response.templateUrl || ''
+      description.value = response.description || 'stylish comfort that keeps you moving with confidence'
+      color.value = response.color || ''
+      gender.value = response.gender || ''
+      isAvailable.value = response.isAvailable || false
+      createdAt.value = response.createdAt || ''
+      updatedAt.value = response.updatedAt || ''
+    }
+  }
+
+  const res = await getManufacturerAll()
+  if (res && res.data && Array.isArray(res.data)) {
+    manufacturerList.value = res.data
+    if (!selectedManufacturer.value && res.data.length > 0) {
+      selectedManufacturer.value = res.data[0].id
+    }
+    await fetchSurchargeData(selectedManufacturer.value)
+    calculateSurcharge()
+  }
+
+  initThree()
+  loadModel()
+})
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
@@ -1668,187 +2030,9 @@ onBeforeUnmount(() => {
   if (scene) scene.clear()
   if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
 })
-
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price || 0);
-};
-
-const findAllLaceMeshes = () => {
-  if (!model) return []
-  
-  const laceMeshes = []
-  model.traverse((node) => {
-    if (node.isMesh && 
-       (node.name === 'Lace' || 
-        node.name.toLowerCase().includes('lace') || 
-        node.name.toLowerCase().includes('shoelace') || 
-        node.name.toLowerCase().includes('string') ||
-        node.name.toLowerCase().includes('cord'))) {
-      laceMeshes.push(node)
-    }
-  })
-  
-  // console.log(`Tìm thấy ${laceMeshes.length} mesh dây giày:`, 
-  //   laceMeshes.map(mesh => ({ name: mesh.name, uuid: mesh.uuid })))
-  
-  return laceMeshes
-}
-
-const goToAIPage = () => {
-  router.push('/ai')
-}
-
-const aiPrompt = ref('')
-const generatedAIImage = ref(null)
-const aiError = ref(null)
-const isGenerating = ref(false)
-
-const moveToImageSection = () => {
-  if (!generatedAIImage.value) return;
-  
-  try {
-    // Thêm ảnh AI vào uploadedImageHistory
-    uploadedImageHistory.push(generatedAIImage.value);
-    
-    // Cập nhật currentImageIndex để hiển thị ảnh mới nhất
-    currentImageIndex.value = uploadedImageHistory.length - 1;
-    
-    // Cập nhật selectedImage và previewImageUrl
-    selectedImage.value = generatedAIImage.value;
-    previewImageUrl.value = generatedAIImage.value;
-    
-    // Chuyển sang tab Hình ảnh
-    activeTab.value = 'image';
-    
-    // Xóa ảnh AI sau khi đã chuyển
-    generatedAIImage.value = null;
-  } catch (error) {
-    console.error('Lỗi khi chuyển ảnh:', error);
-  }
-};
-
-const generateAIImage = async () => {
-  if (!aiPrompt.value.trim()) {
-    aiError.value = 'Please enter a prompt';
-    return;
-  }
-
-  isGenerating.value = true;
-  aiError.value = null;
-
-  try {
-    const formData = new FormData();
-    formData.append('Prompt', aiPrompt.value);
-    formData.append('OwnerId', localStorage.getItem('userId'));
-
-    const result = await aiService.generateImage(formData);
-
-    if (result.data && result.data.imageUrl) {
-      // Thêm timestamp vào URL để tránh cache
-      const timestamp = new Date().getTime();
-      const separator = result.data.imageUrl.includes('?') ? '&' : '?';
-      const imageUrl = `${result.data.imageUrl}${separator}t=${timestamp}`;
-      generatedAIImage.value = imageUrl;
-      
-      // Fetch ảnh từ URL, chuyển sang File
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const file = new File([blob], 'ai-generated.png', { type: blob.type });
-
-      uploadedImageHistory.push({
-        file: file,
-        name: 'AI Generated Image',
-        imageUrl: imageUrl
-      });
-      currentImageIndex.value = uploadedImageHistory.length - 1;
-      
-      // Cập nhật preview
-      selectedImage.value = file;
-      selectedImageName.value = 'AI Generated Image';
-      previewImageUrl.value = imageUrl;
-      
-      // Chuyển tab
-      activeTab.value = 'image';
-    } else {
-      throw new Error('No image URL received from server');
-    }
-  } catch (error) {
-    console.error('Error generating image:', error);
-    aiError.value = 'Error generating image. Please try again.';
-  } finally {
-    isGenerating.value = false;
-  }
-};
-
-const removeAIImage = () => {
-  generatedAIImage.value = null;
-};
-
-// Thêm computed property để theo dõi component được chọn
-const selectedComponent = computed(() => {
-  const selected = components.find(comp => comp.isSelected);
-  return selected ? selected.name : null;
-});
-
-const showConfirmModal = ref(false)
-const generatedImageUrl = ref('')
-
-const handleConfirmSwitchTab = () => {
-  showConfirmModal.value = false
-  activeTab.value = 'image'
-  
-  // Thêm hình ảnh vào lịch sử
-  if (generatedImageUrl.value) {
-    const file = dataURLtoFile(generatedImageUrl.value, 'ai-generated.png')
-    uploadedImageHistory.push({
-      file: file,
-      name: 'AI Generated Image',
-      imageUrl: generatedImageUrl.value
-    })
-    currentImageIndex.value = uploadedImageHistory.length - 1;
-    
-    // Cập nhật preview
-    selectedImage.value = file
-    selectedImageName.value = 'AI Generated Image' 
-    previewImageUrl.value = generatedImageUrl.value
-  }
-}
-
-const dataURLtoFile = (dataurl, filename) => {
-  const arr = dataurl.split(',')
-  const mime = arr[0].match(/:(.*?);/)[1]
-  const bstr = atob(arr[1])
-  let n = bstr.length
-  const u8arr = new Uint8Array(n)
-  while(n--){
-    u8arr[n] = bstr.charCodeAt(n)
-  }
-  return new File([u8arr], filename, {type:mime})
-}
-
-const showPreviousImage = () => {
-  if (currentImageIndex.value > 0) {
-    currentImageIndex.value--;
-    const img = uploadedImageHistory[currentImageIndex.value];
-    selectedImage.value = img.file;
-    selectedImageName.value = img.name;
-    previewImageUrl.value = img.imageUrl;
-  }
-};
-
-const showNextImage = () => {
-  if (currentImageIndex.value < uploadedImageHistory.length - 1) {
-    currentImageIndex.value++;
-    const img = uploadedImageHistory[currentImageIndex.value];
-    selectedImage.value = img.file;
-    selectedImageName.value = img.name;
-    previewImageUrl.value = img.imageUrl;
-  }
-};
 </script>
+
+
 <style scoped>
 .custom-detail-page {
   height: 100vh;
