@@ -23,7 +23,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(o => o.User)
                 .Include(o => o.Voucher)
                 .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Size)
+                    .ThenInclude(od => od.Size)
                 .Include(o => o.Payments)
                 .ToListAsync();
         }
@@ -35,7 +35,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(o => o.User)
                 .Include(o => o.Voucher)
                 .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Size)
+                    .ThenInclude(od => od.Size)
                 .Include(o => o.Payments)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
         }

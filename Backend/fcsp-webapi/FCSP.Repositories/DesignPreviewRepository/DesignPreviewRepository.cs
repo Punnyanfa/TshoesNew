@@ -19,5 +19,18 @@ namespace FCSP.Repositories.Implementations
                 .OrderByDescending(dp => dp.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task AddRangeAsync(IEnumerable<DesignPreview> previews)
+        {
+            await Entities.AddRangeAsync(previews);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveRangeAsync(IEnumerable<long> previewIds)
+        {
+            var designPreviewsToDelete = await _context.DesignPreviews.Where(dp => previewIds.Contains(dp.Id)).ToListAsync();
+            _context.DesignPreviews.RemoveRange(designPreviewsToDelete);
+            await _context.SaveChangesAsync();
+        }
     }
 }
