@@ -17,11 +17,24 @@ export const useCart = () => {
 
   // Watch for changes in localStorage
   if (process.client) {
+    // Theo dõi thay đổi của cart trong localStorage
     window.addEventListener('storage', (e) => {
-      if (e.key === 'cart') {
+      const userId = localStorage.getItem("userId");
+      if (e.key === `cart_${userId}`) {
         initializeCartCount();
       }
     });
+
+    // Theo dõi thay đổi trực tiếp của localStorage
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      const userId = localStorage.getItem("userId");
+      if (key === `cart_${userId}`) {
+        const cart = JSON.parse(value || '[]');
+        cartCount.value = cart.length;
+      }
+      originalSetItem.apply(this, arguments);
+    };
   }
 
   // Initialize on creation

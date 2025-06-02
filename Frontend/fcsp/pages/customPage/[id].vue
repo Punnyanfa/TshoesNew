@@ -161,7 +161,6 @@
           
           <div class="complete-actions">
             <button class="action-button" @click="saveAsDraft">Save as Draft</button>
-            <button class="action-button primary-button" @click="addToCart">Add to Cart</button>
           </div>
         </div>
       </div>
@@ -507,7 +506,6 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 import { useRoute, useRouter } from 'vue-router'
 import aiService from '@/server/ai-service'
 import { getTemplateById } from '~/server/custom-service'
-import { useCart } from '~/composables/useCart'
 import { CustomShoeDesign } from '~/server/designUp-service'
 import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js';
 import { getMyCustomById } from '~/server/myCustom-service';
@@ -1165,104 +1163,6 @@ const removeTextFromMesh = () => {
 
   renderer.render(scene, camera)
   calculateSurcharge()
-}
-
-const { updateCartCount } = useCart()
-
-const addToCart = async () => {
-  showCompleteModal.value = false
-  const urlParams = new URLSearchParams(window.location.search)
-  const isEditing = urlParams.get('edit') === 'true'
-  const editId = urlParams.get('id')
-  
-  calculateSurcharge()
-  
-  const productData = {
-    id: isEditing && editId ? parseInt(editId) : Date.now(),
-    name: customProductName.value || 'Custom Running Shoes',
-    manufacturerId: 1,
-    price: basePrice.value,
-    surcharge: surcharge.value,
-    selectedSize: selectedSize.value,
-    selectedQuantity: selectedQuantity.value,
-    image: captureAngles[1].preview,
-    designData: {
-      colors: {},
-      textures: {},
-      imagesData: {},
-      customText: customText.value,
-      textureParams: { ...textureParams },
-      timestamp: new Date().toISOString(),
-      manufacturerId: 1
-    },
-    previewImages: captureAngles.map(angle => angle.preview)
-  }
-  
-  for (const comp of components) {
-    const partName = comp.value
-    const partsToSave = partGroups[partName] || [partName]
-    partsToSave.forEach((subPart) => {
-      if (materials[subPart]) {
-        const hexColor = '#' + materials[subPart].color.getHexString()
-        productData.designData.colors[subPart] = hexColor
-        
-        if (customTextures[subPart]) {
-          const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
-          productData.designData.textures[subPart] = {
-            type: textureType,
-            textContent: customText.value
-          }
-          if (textureType === 'image' && customTextures[subPart].imageData) {
-            productData.designData.imagesData[subPart] = customTextures[subPart].imageData
-          }
-        }
-      }
-    })
-  }
-  
-  try {
-    // Lấy giỏ hàng từ localStorage
-    let cart = []
-    const savedCart = localStorage.getItem(`cart_${userId}`)
-    if (savedCart) {
-      cart = JSON.parse(savedCart)
-    }
-    
-    const totalPrice = basePrice.value + surcharge.value
-    const formattedTotalPrice = formatPrice(totalPrice)
-    const formattedSurcharge = surcharge.value > 0 ? `\nCustom Surcharge: ${formatPrice(surcharge.value)}` : ''
-    
-    if (isEditing && editId) {
-      const itemIndex = cart.findIndex(item => item.id === parseInt(editId))
-      if (itemIndex !== -1) {
-        cart[itemIndex] = productData
-        alert(`Design has been updated in cart!`)
-      } else {
-        cart.push(productData)
-        alert(`Design product has been successfully added to cart!`)
-      }
-    } else {
-      cart.push(productData)
-      alert(`Design product has been successfully added to cart!`)
-    }
-    
-    // Lưu giỏ hàng vào localStorage
-    const userId = localStorage.getItem("userId");
-    localStorage.setItem(`cart_${userId}`, JSON.stringify(cart))
-    
-    try {
-      // Cập nhật số lượng sản phẩm trong giỏ hàng
-      updateCartCount(cart.length)
-      // Chuyển hướng đến trang giỏ hàng sau khi cập nhật thành công
-      window.location.href = '/shoppingCartPage'
-    } catch (error) {
-      console.error('Error updating cart quantity:', error)
-      alert('Added to cart but there was an error updating quantity. Please refresh the page.')
-    }
-  } catch (error) {
-    console.error('Error adding to cart:', error)
-    alert('There was an error adding to cart. Please try again.')
-  }
 }
 
 const saveAsDraft = () => {
