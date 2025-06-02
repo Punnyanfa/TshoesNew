@@ -60,7 +60,7 @@
           </div>
         </template>
       </nav>
-      <span class="balance-display">{{ formatCurrency(userBalance) }}</span>
+      <!-- <span class="balance-display">{{ formatCurrency(userBalance) }}</span> -->
       <!-- User Actions -->
       <div class="user-actions">
         <!-- Cart Button -->
@@ -69,6 +69,25 @@
           <span class="sneaker-badge">{{ cartCount }}</span>
           
         </router-link>
+
+        <!-- Wallet Section -->
+        <section v-if="isAuthenticated" class="custom-dropdown wallet-dropdown">
+           <div class="nav-link" style="cursor: pointer;">
+             <i class="bi bi-wallet2"></i> <!-- Wallet icon -->
+           </div>
+           <div class="dropdown-content">
+              <div class="dropdown-item balance-display" style="font-weight: bold;">
+                 Số dư: {{ formatCurrency(userBalance) }}
+              </div>
+              <hr class="dropdown-divider">
+              <router-link class="dropdown-item" to="/depositPage"> <!-- Placeholder link -->
+                 <i class="bi bi-cash"></i> Nạp tiền
+              </router-link>
+              <router-link class="dropdown-item" to="/withdrawPage"> <!-- Placeholder link -->
+                 <i class="bi bi-credit-card"></i> Rút tiền
+              </router-link>
+           </div>
+        </section>
 
         <!-- User Section -->
         <section v-if="isAuthenticated">
@@ -129,11 +148,14 @@ import {
   LogoutOutlined, 
   HeartOutlined,
   BellOutlined,
-  ShoppingOutlined
+  ShoppingOutlined,
+  WalletOutlined,
+  DollarCircleOutlined
 } from '@ant-design/icons-vue';
 import { useRouter } from 'vue-router';
 import { useCart } from '~/composables/useCart';
 import { getUserBalance } from '@/server/user-service';
+import { getBalance } from '@/server/balance-service';
 
 const router = useRouter();
 const { cartCount } = useCart();
@@ -163,10 +185,12 @@ const navItems = [
 
 // Helper function to format currency
 const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined) return '$0.00';
-  return new Intl.NumberFormat('en-US', {
+  if (amount === null || amount === undefined) return '0 đ';
+  return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(amount);
 };
 
@@ -176,8 +200,9 @@ const fetchUserBalance = async () => {
     const userId = localStorage.getItem('userId');
     if (userId) {
       try {
-        const balance = await getUserBalance(userId);
-        userBalance.value = balance;
+        const balance = await getBalance(userId);
+        console.log(balance);
+        userBalance.value = balance.data.balance;
       } catch (error) {
         console.error('Failed to fetch user balance:', error);
         userBalance.value = 0; // Reset balance on error
@@ -212,12 +237,16 @@ const initDropdowns = async () => {
   if (process.client) {
     try {
       const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
-      const dropdownElements = document.querySelectorAll('.dropdown-toggle');
+      const dropdownElements = document.querySelectorAll('.user-dropdown > .nav-link, .custom-dropdown > .nav-link'); // Select dropdown triggers
+
       dropdownElements.forEach(element => {
-        new bootstrap.Dropdown(element);
+        // Check if a dropdown instance already exists to avoid re-initialization
+        if (!bootstrap.Dropdown.getInstance(element)) {
+           new bootstrap.Dropdown(element);
+        }
       });
     } catch (error) {
-      console.error('Error initializing dropdowns:', error);
+      console.error('Error initializing dropdowns:', error); // Updated error message
     }
   }
 };
@@ -620,5 +649,78 @@ const logout = () => {
   font-weight: 600;
   margin-left: 0.5rem;
   white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Add styles for Wallet Dropdown */
+.wallet-dropdown .nav-link {
+  /* Style for the wallet icon button */
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Space between icon and text if text were present */
+  padding: 0.5rem 1rem; /* Adjusted padding */
+  background: linear-gradient(135deg, #555555, #444444); /* Match login/cart button gradient */
+  color: white;
+  border-radius: 24px; /* Rounded like other buttons */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2); /* Match login/cart button shadow */
+  min-width: auto; /* Allow button to size based on content */
+}
+
+.wallet-dropdown .nav-link:hover {
+  transform: translateY(-2px); /* Hover effect */
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3); /* Hover shadow */
+  background: linear-gradient(135deg, #444444, #333333); /* Darker hover gradient */
+}
+
+.wallet-dropdown .nav-link i {
+    font-size: 1.2rem; /* Adjust icon size */
+    margin-right: 0; /* Remove margin as it's an icon-only button */
+}
+
+.wallet-dropdown .dropdown-content {
+  /* Style for the dropdown menu */
+  background: #ffffff; /* White background */
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 8px 0; /* Adjusted padding */
+  margin-top: 10px;
+  min-width: 180px; /* Ensure a reasonable width */
+}
+
+.wallet-dropdown .dropdown-item {
+  /* Style for individual items in the dropdown */
+  padding: 10px 16px;
+  color: #555555;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-weight: 500; /* Match user dropdown item font-weight */
+}
+
+.wallet-dropdown .dropdown-item:hover {
+  background-color: rgba(85, 85, 85, 0.08); /* Light highlight on hover, match user dropdown */
+  transform: translateX(3px); /* Slide effect on hover, match user dropdown */
+}
+
+.wallet-dropdown .dropdown-item i {
+  margin-right: 10px; /* Space between icon and text */
+  font-size: 1rem; /* Consistent icon size */
+}
+
+.wallet-dropdown .balance-display {
+  /* Style specifically for the balance display item */
+  font-weight: bold;
+  color: #AAAAAA; /* Highlight color for balance */
+  padding: 10px 16px;
+  background-color: transparent !important;
+  transform: none !important;
+  cursor: default; /* Change cursor for non-interactive item */
+}
+
+/* Ensure dropdown divider has correct styling */
+.wallet-dropdown .dropdown-divider {
+    margin: 8px 0;
+    border-top: 1px solid rgba(85, 85, 85, 0.1);
 }
 </style>

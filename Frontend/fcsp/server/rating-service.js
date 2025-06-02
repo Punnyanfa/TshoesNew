@@ -32,3 +32,16 @@ export async function postRating(ratingData) {
     throw error;
   }
 }
+
+export async function getRatingStatsByShoeDesignId(id) {
+  try {
+    const response = await instance.get(`/Rating/design/${id}`);
+    if (response.data.code === 200) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || `Failed to fetch rating stats for shoe design ${id}`);
+  } catch (error) {
+    console.error(`Error getting rating stats for shoe design ${id}:`, error);
+    throw error;
+  }
+}

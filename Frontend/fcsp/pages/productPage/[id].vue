@@ -101,62 +101,28 @@
         <div class="card-body">
           <h2 class="card-title mb-4">Customer Reviews</h2>
           
-          <!-- Add Review Form -->
-          <div class="add-review mb-5">
-            <h4 class="mb-3">Write a Review</h4>
-            <form @submit.prevent="submitReview" class="review-form">
-              <div class="mb-3">
-                <label class="form-label">Rating</label>
-                <div class="rating-stars">
-                  <span v-for="star in 5" :key="star" 
-                        class="star" 
-                        :class="{ 'active': newReview.rating >= star }"
-                        @click="newReview.rating = star">
-                    ★
-                  </span>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="reviewTitle" class="form-label">Title</label>
-                <input type="text" 
-                       class="form-control" 
-                       id="reviewTitle" 
-                       v-model="newReview.title"
-                       placeholder="Summarize your experience">
-              </div>
-              <div class="mb-3">
-                <label for="reviewContent" class="form-label">Review</label>
-                <textarea class="form-control" 
-                          id="reviewContent" 
-                          v-model="newReview.content"
-                          rows="4"
-                          placeholder="Share your thoughts about this product"></textarea>
-              </div>
-              <button type="submit" class="btn btn-sneaker">Submit Review</button>
-            </form>
-          </div>
-
           <!-- Reviews List -->
           <div class="reviews-list">
             <div v-if="reviews.length === 0" class="text-center py-4">
-              <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+              <p class="text-muted">No reviews yet.</p> <!-- Simplified message -->
             </div>
             <div v-else v-for="review in reviews" :key="review.id" class="review-item mb-4">
               <div class="d-flex justify-content-between align-items-start">
                 <div>
-                  <h5 class="mb-1">{{ review.title }}</h5>
+                  <h5 class="mb-1">{{ review.userName }}</h5> <!-- Display user name as title -->
                   <div class="rating-stars mb-2">
                     <span v-for="star in 5" :key="star" 
                           class="star" 
-                          :class="{ 'active': review.rating >= star }">★</span>
+                          :class="{ 'active': review.userRating >= star }">★</span> <!-- Use userRating -->
                   </div>
                 </div>
-                <small class="text-muted">{{ formatDate(review.date) }}</small>
+                <small class="text-muted">{{ formatDate(review.createdAt) }}</small> <!-- Use createdAt -->
               </div>
-              <p class="review-content mb-2">{{ review.content }}</p>
-              <div class="review-meta">
+              <p class="review-content mb-2">{{ review.comment }}</p> <!-- Use comment -->
+              <!-- Remove review-meta as it's redundant with user name displayed -->
+              <!-- <div class="review-meta">
                 <small class="text-muted">By {{ review.userName }}</small>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -171,6 +137,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getProductById } from '~/server/product-service';
 import { useCart } from '~/composables/useCart';
+import { getRatingStatsByShoeDesignId } from '~/server/rating-service';
 
 const route = useRoute();
 const router = useRouter();
@@ -181,30 +148,60 @@ const selectedSize = ref('');
 const selectedTextureIndex = ref(3);
 const selectedQuantity = ref(1);
 
-// Fetch product details from API
+const reviews = ref([]);
+
+// Fetch product details and reviews from API
 const fetchProduct = async () => {
   try {
     const productId = route.params.id;
-    const response = await getProductById(productId);
-    console.log("Raw API Response:", response);
-    product.value = response;
+    const productResponse = await getProductById(productId);
+    product.value = productResponse;
     console.log("Product value after assignment:", product.value);
     console.log("Description value:", product.value?.description);
+
+    // Fetch reviews after product details are loaded, using the product ID from the route
+    if (productId) { // Ensure productId exists
+      const reviewsResponse = await getRatingStatsByShoeDesignId(productId); // Use productId directly
+      console.log("Fetched reviews response using product ID:", reviewsResponse); // Updated log
+      // Assuming reviews are in reviewsResponse.rating based on the image
+      if (reviewsResponse && reviewsResponse.rating) {
+         reviews.value = reviewsResponse.rating;
+      } else {
+         console.error("Reviews data not found in response or response format unexpected:", reviewsResponse); // Updated error message
+         reviews.value = []; // Ensure reviews is an empty array if data is missing
+      }
+    } else {
+       console.warn("Product ID is undefined, cannot fetch reviews.");
+       reviews.value = [];
+    }
+
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error('Error fetching product or reviews:', error);
   } finally {
     loading.value = false;
   }
 };
 
-// Fetch product data when component is mounted
+// Fetch data when component is mounted
 onMounted(fetchProduct);
 
-// Modified addToCart function to save to localStorage
+const formatPrice = (price) => {
+  if (typeof price !== 'number') return 'N/A';
+  return price.toLocaleString('vi-VN');
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 const addToCart = () => {
   if (product.value && selectedSize.value && selectedQuantity.value > 0) {
-    // Determine the image URL to store
-    let imageUrl = '/placeholder.png'; // Default placeholder
+    let imageUrl = '/placeholder.png';
     if (product.value.previewImages && product.value.previewImages.length > 0) {
       imageUrl = product.value.previewImages[selectedTextureIndex.value];
     } else if (product.value.previewImageUrl) { 
@@ -218,99 +215,38 @@ const addToCart = () => {
       price: product.value.price,
       selectedSize: selectedSize.value,
       selectedQuantity: selectedQuantity.value,
-      previewImageUrl: imageUrl // Use the determined image URL
+      previewImageUrl: imageUrl
     };
 
     try {
-      // Get existing cart from localStorage
       const userId = localStorage.getItem("userId");
       let cart = JSON.parse(localStorage.getItem(`cart_${userId}`) || '[]');
     
-      // Check if item with same ID and size already exists
       const existingItemIndex = cart.findIndex(item =>
         item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize
       );
 
       if (existingItemIndex > -1) {
-        // Update quantity if item exists
         cart[existingItemIndex].selectedQuantity += productToAdd.selectedQuantity;
       } else {
-        // Add new item if it doesn't exist
         cart.push(productToAdd);
       }
 
-      // Save updated cart back to localStorage
       localStorage.setItem(`cart_${userId}`, JSON.stringify(cart));
 
-      // Update cart count
       updateCartCount(cart.length);
 
       console.log('Product added to cart:', productToAdd);
       console.log('Updated cart stored in localStorage:', cart);
 
-      // Optional: Navigate to the shopping cart page
       router.push('/shoppingCartPage');
 
     } catch (error) {
       console.error('Error adding product to cart:', error);
-      // Optional: Show error message to user
     }
   } else {
      console.warn('Please select size and quantity before adding to cart.');
-     // Optional: Show warning message to user
   }
-};
-
-const formatPrice = (price) => {
-  if (typeof price !== 'number') return 'N/A';
-  return price.toLocaleString('vi-VN');
-};
-
-// Reviews data
-const reviews = ref([]);
-const newReview = ref({
-  rating: 0,
-  title: '',
-  content: '',
-  userName: 'Anonymous User', // In a real app, this would come from user authentication
-  date: new Date()
-});
-
-// Format date for reviews
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-// Submit review
-const submitReview = () => {
-  if (newReview.value.rating === 0) {
-    alert('Please select a rating');
-    return;
-  }
-  if (!newReview.value.title.trim() || !newReview.value.content.trim()) {
-    alert('Please fill in all fields');
-    return;
-  }
-
-  // In a real app, this would be an API call
-  reviews.value.unshift({
-    id: Date.now(),
-    ...newReview.value,
-    date: new Date()
-  });
-
-  // Reset form
-  newReview.value = {
-    rating: 0,
-    title: '',
-    content: '',
-    userName: 'Anonymous User',
-    date: new Date()
-  };
 };
 </script>
 

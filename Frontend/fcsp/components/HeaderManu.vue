@@ -62,6 +62,25 @@
 
       <!-- User Actions -->
       <div class="user-actions">
+        <!-- Wallet Section -->
+        <section v-if="isAuthenticated" class="custom-dropdown wallet-dropdown">
+           <div class="nav-link" style="cursor: pointer;">
+             <i class="bi bi-wallet2"></i> <!-- Wallet icon -->
+           </div>
+           <div class="dropdown-content">
+              <div class="dropdown-item balance-display" style="font-weight: bold;">
+                 Số dư: {{ formatCurrency(userBalance) }}
+              </div>
+              <hr class="dropdown-divider">
+              <a class="dropdown-item" href="/depositPage"> <!-- Placeholder link -->
+                 <i class="bi bi-cash"></i> Nạp tiền
+              </a>
+              <a class="dropdown-item" href="/withdrawPage"> <!-- Placeholder link -->
+                 <i class="bi bi-credit-card"></i> Rút tiền
+              </a>
+           </div>
+        </section>
+
         <!-- User Section -->
         <section v-if="isAuthenticated">
           <div class="user-dropdown">
@@ -111,9 +130,12 @@ import {
   LogoutOutlined, 
   HeartOutlined,
   BellOutlined,
-  ShoppingOutlined
+  ShoppingOutlined,
+  WalletOutlined, // Add WalletOutlined import if using Ant Design
+  DollarCircleOutlined // Add DollarCircleOutlined import if using Ant Design
 } from '@ant-design/icons-vue';
 import { useCart } from '~/composables/useCart';
+import { getBalance } from '@/server/balance-service'; // Import getBalance
 
 const { cartCount } = useCart();
 const isAuthenticated = ref(false);
@@ -124,6 +146,7 @@ const isSearchOpen = ref(false);
 const searchQuery = ref('');
 const isDarkTheme = ref(true);
 const isScrolled = ref(false);
+const userBalance = ref(0); // Add userBalance ref
 
 const emit = defineEmits(['logout']); // Define the logout event
 
@@ -140,7 +163,40 @@ const navItems = computed(() => {
   return items;
 });
 
-// Watch for authentication state changes
+// Helper function to format currency (Copied from Header.vue)
+const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined) return '0 đ';
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+// Function to fetch user balance
+const fetchUserBalance = async () => {
+  if (process.client && localStorage.getItem('userId')) {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      try {
+        const balance = await getBalance(userId);
+        console.log('Fetched balance:', balance);
+        if (balance && balance.data && balance.data.balance !== undefined) {
+           userBalance.value = balance.data.balance;
+        } else {
+           console.error('Balance data not found in response:', balance);
+           userBalance.value = 0;
+        }
+      } catch (error) {
+        console.error('Failed to fetch user balance:', error);
+        userBalance.value = 0; // Reset balance on error
+      }
+    }
+  }
+};
+
+// Watch for authentication state changes and fetch balance
 watch(() => {
   const token = localStorage.getItem('userToken');
   const role = localStorage.getItem('role');
@@ -148,6 +204,11 @@ watch(() => {
   userRole.value = role || '';
   if (isAuthenticated.value) {
     userName.value = localStorage.getItem('username') || 'User';
+    fetchUserBalance(); // Fetch balance when authenticated
+  } else {
+      // Reset balance when user logs out
+      userBalance.value = 0;
+      userName.value = 'SneakerFan';
   }
 }, { immediate: true });
 
@@ -160,9 +221,13 @@ const initDropdowns = async () => {
   if (process.client) {
     try {
       const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
-      const dropdownElements = document.querySelectorAll('.dropdown-toggle');
+      // Adjust selector to target both user and custom dropdowns if needed
+      const dropdownElements = document.querySelectorAll('.user-dropdown > .nav-link, .custom-dropdown > .nav-link');
+
       dropdownElements.forEach(element => {
-        new bootstrap.Dropdown(element);
+        if (!bootstrap.Dropdown.getInstance(element)) {
+           new bootstrap.Dropdown(element);
+        }
       });
     } catch (error) {
       console.error('Error initializing dropdowns:', error);
@@ -175,9 +240,7 @@ onMounted(() => {
   nextTick(() => {
     initDropdowns();
   });
-  const token = localStorage.getItem('userToken');
-  userName.value = localStorage.getItem('username') || 'User';
-  userRole.value = localStorage.getItem('role') || '';
+  // Initial check for auth state and fetch balance is handled by the immediate watcher
 });
 
 onUnmounted(() => {
@@ -200,7 +263,24 @@ const onSearch = (value) => {
 };
 
 const emitLogout = () => {
-  // Emit logout event for parent components to handle
+  // Clear localStorage for the current tab (adjust as needed based on your auth logic)
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userEmail'); // Assuming these exist
+    localStorage.removeItem('role');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('username');
+  }
+
+  // Reset authentication state in this component
+  isAuthenticated.value = false;
+  userName.value = '';
+  userRole.value = '';
+  userBalance.value = 0; // Reset balance on logout
+
+  // Emit logout event for parent components to handle (e.g., navigation)
   emit('logout');
 };
 
@@ -552,5 +632,78 @@ const resetLogo = (e) => {
 
 .user-dropdown .dropdown-item.text-danger:hover {
   background-color: rgba(255, 77, 79, 0.08);
+}
+
+/* Add styles for Wallet Dropdown */
+.wallet-dropdown .nav-link {
+  /* Style for the wallet icon button */
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Space between icon and text if text were present */
+  padding: 0.5rem 1rem; /* Adjusted padding */
+  background: linear-gradient(135deg, #555555, #444444); /* Match login/cart button gradient */
+  color: white;
+  border-radius: 24px; /* Rounded like other buttons */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2); /* Match login/cart button shadow */
+  min-width: auto; /* Allow button to size based on content */
+}
+
+.wallet-dropdown .nav-link:hover {
+  transform: translateY(-2px); /* Hover effect */
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3); /* Hover shadow */
+  background: linear-gradient(135deg, #444444, #333333); /* Darker hover gradient */
+}
+
+.wallet-dropdown .nav-link i {
+    font-size: 1.2rem; /* Adjust icon size */
+    margin-right: 0; /* Remove margin as it's an icon-only button */
+}
+
+.wallet-dropdown .dropdown-content {
+  /* Style for the dropdown menu */
+  background: #ffffff; /* White background */
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 8px 0; /* Adjusted padding */
+  margin-top: 10px;
+  min-width: 180px; /* Ensure a reasonable width */
+}
+
+.wallet-dropdown .dropdown-item {
+  /* Style for individual items in the dropdown */
+  padding: 10px 16px;
+  color: #555555;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-weight: 500; /* Match user dropdown item font-weight */
+}
+
+.wallet-dropdown .dropdown-item:hover {
+  background-color: rgba(85, 85, 85, 0.08); /* Light highlight on hover, match user dropdown */
+  transform: translateX(3px); /* Slide effect on hover, match user dropdown */
+}
+
+.wallet-dropdown .dropdown-item i {
+  margin-right: 10px; /* Space between icon and text */
+  font-size: 1rem; /* Consistent icon size */
+}
+
+.wallet-dropdown .balance-display {
+  /* Style specifically for the balance display item */
+  font-weight: bold;
+  color: #AAAAAA; /* Highlight color for balance */
+  padding: 10px 16px;
+  background-color: transparent !important;
+  transform: none !important;
+  cursor: default; /* Change cursor for non-interactive item */
+}
+
+/* Ensure dropdown divider has correct styling */
+.wallet-dropdown .dropdown-divider {
+    margin: 8px 0;
+    border-top: 1px solid rgba(85, 85, 85, 0.1);
 }
 </style>
