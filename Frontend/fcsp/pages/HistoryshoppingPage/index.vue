@@ -271,7 +271,7 @@ import { postRating } from '@/server/rating-service';
     
     // Filter by status
     if (filters.value.status) {
-      result = result.filter(order => order.status === filters.value.status);
+      result = result.filter(order => order.status.toLowerCase() === filters.value.status.toLowerCase());
     }
     
     // Filter by date range
