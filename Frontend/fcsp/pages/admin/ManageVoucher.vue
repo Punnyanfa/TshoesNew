@@ -33,6 +33,8 @@
                         id="discountAmount" 
                         v-model="voucher.discountAmount"
                         placeholder="Enter discount amount"
+                        min="1"
+                        max="1000000"
                         required
                       >
                       <span class="input-group-text">VND</span>
@@ -160,6 +162,12 @@ export default {
     },
     async saveVoucher() {
       try {
+        // Validate discount amount
+        if (this.voucher.discountAmount < 1 || this.voucher.discountAmount > 1000000) {
+          alert('Discount amount must be between 1 and 1000000');
+          return;
+        }
+
         if (this.isEditing) {
           console.log('Update functionality not implemented yet');
           return;
