@@ -3,10 +3,11 @@ import { ref, watch } from 'vue';
 export const useCart = () => {
   const cartCount = ref(0);
 
-  // Initialize cart count from sessionStorage
+  // Initialize cart count from localStorage
   const initializeCartCount = () => {
     try {
-      const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+      const userId = localStorage.getItem("userId");
+      const cart = JSON.parse(localStorage.getItem(`cart_${userId}`) || '[]');
       cartCount.value = cart.length;
     } catch (error) {
       console.error('Error initializing cart count:', error);
@@ -14,7 +15,7 @@ export const useCart = () => {
     }
   };
 
-  // Watch for changes in sessionStorage
+  // Watch for changes in localStorage
   if (process.client) {
     window.addEventListener('storage', (e) => {
       if (e.key === 'cart') {

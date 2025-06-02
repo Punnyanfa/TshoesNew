@@ -226,8 +226,9 @@
     try {
       loading.value = true;
       
-      // Lấy dữ liệu đơn hàng từ sessionStorage
-      const orderDataStr = sessionStorage.getItem('orderData');
+      // Lấy dữ liệu đơn hàng từ localStorage
+      const userId = localStorage.getItem("userId");
+      const orderDataStr = localStorage.getItem(`orderData_${userId}`);
       if (!orderDataStr) {
         error.value = 'Không tìm thấy thông tin đơn hàng';
         return;
@@ -407,8 +408,8 @@
       const response = await postOrder(orderData);
       console.log('Order response:', response);
       
-      // Clear order data from sessionStorage
-      sessionStorage.removeItem('orderData');
+      // Clear order data from localStorage
+      localStorage.removeItem('orderData');
 
       // Check if we have a payment URL directly in the response
       if (response && response.paymentUrl) {

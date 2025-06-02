@@ -200,7 +200,7 @@ const fetchProduct = async () => {
 // Fetch product data when component is mounted
 onMounted(fetchProduct);
 
-// Modified addToCart function to save to sessionStorage
+// Modified addToCart function to save to localStorage
 const addToCart = () => {
   if (product.value && selectedSize.value && selectedQuantity.value > 0) {
     // Determine the image URL to store
@@ -222,9 +222,10 @@ const addToCart = () => {
     };
 
     try {
-      // Get existing cart from sessionStorage
-      let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
-
+      // Get existing cart from localStorage
+      const userId = localStorage.getItem("userId");
+      let cart = JSON.parse(localStorage.getItem(`cart_${userId}`) || '[]');
+    
       // Check if item with same ID and size already exists
       const existingItemIndex = cart.findIndex(item =>
         item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize
@@ -238,14 +239,14 @@ const addToCart = () => {
         cart.push(productToAdd);
       }
 
-      // Save updated cart back to sessionStorage
-      sessionStorage.setItem('cart', JSON.stringify(cart));
+      // Save updated cart back to localStorage
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(cart));
 
       // Update cart count
       updateCartCount(cart.length);
 
       console.log('Product added to cart:', productToAdd);
-      console.log('Updated cart stored in session:', cart);
+      console.log('Updated cart stored in localStorage:', cart);
 
       // Optional: Navigate to the shopping cart page
       router.push('/shoppingCartPage');

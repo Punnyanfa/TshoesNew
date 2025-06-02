@@ -326,7 +326,7 @@ async function removeFromCart(id) {
 const duplicateToCart = (item) => {
   try {
     let cart = []
-    const savedCart = sessionStorage.getItem('cart')
+    const savedCart = localStorage.getItem(`cart_${userId}`)
     if (savedCart) {
       cart = JSON.parse(savedCart)
     }
@@ -354,7 +354,8 @@ const duplicateToCart = (item) => {
     }
     
     cart.push(newCartItem)
-    sessionStorage.setItem('cart', JSON.stringify(cart))
+    const userId = localStorage.getItem("userId");
+    localStorage.setItem(`cart_${userId}`, JSON.stringify(cart))
     
     const totalPrice = newCartItem.price + newCartItem.surcharge
     const formattedTotalPrice = formatPrice(totalPrice)
@@ -409,7 +410,7 @@ const addToProduct = async (item) => {
     } catch (error) {
       console.error('Error updating status:', error);
       if (error.response?.status === 401) {
-        alert('Your session has expired. Please login again!');
+        alert('Your localStorage has expired. Please login again!');
       } else {
         alert(error.response?.data?.message || 'Error occurred while updating status!');
       }
