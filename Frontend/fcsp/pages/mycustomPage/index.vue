@@ -326,7 +326,7 @@ async function removeFromCart(id) {
 const duplicateToCart = (item) => {
   try {
     let cart = []
-    const savedCart = localStorage.getItem(`cart_${userId}`)
+    const savedCart = localStorage.getItem(`cart_${localStorage.getItem("userId")}`)
     if (savedCart) {
       cart = JSON.parse(savedCart)
     }
@@ -354,8 +354,7 @@ const duplicateToCart = (item) => {
     }
     
     cart.push(newCartItem)
-    const userId = localStorage.getItem("userId");
-    localStorage.setItem(`cart_${userId}`, JSON.stringify(cart))
+    localStorage.setItem(`cart_${localStorage.getItem("userId")}`, JSON.stringify(cart))
     
     const totalPrice = newCartItem.price + newCartItem.surcharge
     const formattedTotalPrice = formatPrice(totalPrice)
