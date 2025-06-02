@@ -23,9 +23,9 @@ export default defineNuxtRouteMiddleware((to) => {
     //   return navigateTo('/not-authorized');
     // }
     // Chỉ admin được vào /admin
-    if (to.path.startsWith('/admin') && role !== 'admin') {
-      return navigateTo('/not-authorized');
-    }
+    // if (to.path.startsWith('/admin') && role !== 'admin') {
+    //   return navigateTo('/not-authorized');
+    // }
     
     // Các trang còn lại chỉ cho designer, customer hoặc chưa login
     if (

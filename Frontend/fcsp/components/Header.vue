@@ -60,13 +60,14 @@
           </div>
         </template>
       </nav>
-
+      <span class="balance-display">{{ formatCurrency(userBalance) }}</span>
       <!-- User Actions -->
       <div class="user-actions">
         <!-- Cart Button -->
         <router-link to="/shoppingCartPage" class="sneaker-btn-icon cart-btn">
           <ShoppingCartOutlined />
           <span class="sneaker-badge">{{ cartCount }}</span>
+          
         </router-link>
 
         <!-- User Section -->
@@ -132,6 +133,7 @@ import {
 } from '@ant-design/icons-vue';
 import { useRouter } from 'vue-router';
 import { useCart } from '~/composables/useCart';
+import { getUserBalance } from '@/server/user-service';
 
 const router = useRouter();
 const { cartCount } = useCart();
@@ -142,6 +144,7 @@ const isSearchOpen = ref(false);
 const searchQuery = ref('');
 const isDarkTheme = ref(true);
 const isScrolled = ref(false);
+const userBalance = ref(0);
 
 const navItems = [
   { path: '/homePage', label: 'Home', icon: 'home' },
@@ -158,12 +161,45 @@ const navItems = [
   }
 ];
 
-// Watch for authentication state changes
+// Helper function to format currency
+const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined) return '$0.00';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount);
+};
+
+// Function to fetch user balance
+const fetchUserBalance = async () => {
+  if (process.client && localStorage.getItem('userId')) {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      try {
+        const balance = await getUserBalance(userId);
+        userBalance.value = balance;
+      } catch (error) {
+        console.error('Failed to fetch user balance:', error);
+        userBalance.value = 0; // Reset balance on error
+      }
+    }
+  }
+};
+
+// Watch for authentication state changes and fetch balance
 watch(() => {
-  const token = localStorage.getItem('username');
-  isAuthenticated.value = !!token;
+  const usernameToken = localStorage.getItem('username');
+  const userIdToken = localStorage.getItem('userId');
+  isAuthenticated.value = !!usernameToken; // isAuthenticated depends on username token
+
   if (isAuthenticated.value) {
-    userName.value = localStorage.getItem('username') || 'User';
+    userName.value = usernameToken || 'User';
+    // Fetch balance when authenticated state becomes true
+    fetchUserBalance();
+  } else {
+      // Reset balance when user logs out
+      userBalance.value = 0;
+      userName.value = 'SneakerFan'; // Reset username on logout
   }
 }, { immediate: true });
 
@@ -191,13 +227,11 @@ onMounted(() => {
   nextTick(() => {
     initDropdowns();
   });
-  const token = localStorage.getItem('username');
-  userName.value = localStorage.getItem('username') || 'User';
+  // fetchUserBalance is already called by the immediate watcher on mount
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
-
 });
 
 const toggleNav = () => {
@@ -230,6 +264,7 @@ const logout = () => {
   // Reset authentication state
   isAuthenticated.value = false;
   userName.value = '';
+  userBalance.value = 0;
 
   // Redirect to home page
   router.push('/homePage');
@@ -578,5 +613,12 @@ const logout = () => {
 
 .user-dropdown .dropdown-item.text-danger:hover {
   background-color: rgba(255, 77, 79, 0.08);
+}
+
+.balance-display {
+  color: #555555;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  white-space: nowrap; /* Prevent wrapping */
 }
 </style>

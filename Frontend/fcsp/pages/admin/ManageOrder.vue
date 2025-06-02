@@ -343,7 +343,7 @@
 </template>
 
 <script>
-import { getAllOrders, getOrderById } from '@/server/order-service';
+import { getAllOrders, getOrderById, putOrderStatus } from '@/server/order-service';
 import { getAllShippingInfo } from '@/server/shipping-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 import { onMounted, ref } from 'vue';
@@ -395,9 +395,9 @@ export default {
         'Pending',
         'Confirmed',
         'Processing',
-        'Shipping',
-        'Delivered',
-        'Cancelled'
+        'Completed',
+        'Cancelled',
+        'Refunded'
       ],
       orders: [],
       shippingInfos: []
@@ -459,10 +459,9 @@ export default {
         'Pending': 'bg-warning text-dark',
         'Confirmed': 'bg-info',
         'Processing': 'bg-primary',
-        'Shipping': 'bg-info',
-        'Delivered': 'bg-success',
         'Completed': 'bg-success',
-        'Cancelled': 'bg-danger'
+        'Cancelled': 'bg-danger',
+        'Refunded': 'bg-secondary'
       };
       return classes[status] || 'bg-secondary';
     },
@@ -555,17 +554,47 @@ export default {
     async confirmStatusUpdate() {
       try {
         // TODO: Implement API call to update order status
-        this.selectedOrder.statusName = this.newStatus;
+        // this.selectedOrder.statusName = this.newStatus;
         
-        // Show success message
-        this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
-        
-        // Close the modal
-        if (this.modalRefs.updateStatusModal) {
-          this.modalRefs.updateStatusModal.hide();
+        const statusMapping = {
+          'Pending': 0,
+          'Confirmed': 1,
+          'Processing': 2,
+          'Completed': 3,
+          'Cancelled': 4,
+          'Refunded': 5
+        };
+
+        const newStatusId = statusMapping[this.newStatus];
+        if (newStatusId === undefined) {
+          throw new Error('Invalid status selected');
         }
+
+        console.log(this.selectedOrder.id, newStatusId);
+        const response = await putOrderStatus(this.selectedOrder.id, newStatusId);
+        console.log(response);
+
+        if (response && response.code === 200) {
+          // Update the status in the local orders array
+          const orderIndex = this.orders.findIndex(order => order.id === this.selectedOrder.id);
+          if (orderIndex !== -1) {
+            this.orders[orderIndex].statusName = this.newStatus;
+          }
+
+          // Show success message
+          this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
+          
+          // Close the modal
+          if (this.modalRefs.updateStatusModal) {
+            this.modalRefs.updateStatusModal.hide();
+          }
+        } else {
+           throw new Error(response?.message || 'Failed to update order status');
+        }
+
       } catch (error) {
         // Show error message
+        console.error('Error updating order status:', error.response?.data || error.message || error);
         this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái', 'danger');
       }
     },

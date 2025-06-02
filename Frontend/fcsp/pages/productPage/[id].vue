@@ -94,6 +94,74 @@
         </div>
       </div>
     </section>
+
+    <!-- Reviews Section -->
+    <section class="container mb-5">
+      <div class="card border-0">
+        <div class="card-body">
+          <h2 class="card-title mb-4">Customer Reviews</h2>
+          
+          <!-- Add Review Form -->
+          <div class="add-review mb-5">
+            <h4 class="mb-3">Write a Review</h4>
+            <form @submit.prevent="submitReview" class="review-form">
+              <div class="mb-3">
+                <label class="form-label">Rating</label>
+                <div class="rating-stars">
+                  <span v-for="star in 5" :key="star" 
+                        class="star" 
+                        :class="{ 'active': newReview.rating >= star }"
+                        @click="newReview.rating = star">
+                    ★
+                  </span>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="reviewTitle" class="form-label">Title</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="reviewTitle" 
+                       v-model="newReview.title"
+                       placeholder="Summarize your experience">
+              </div>
+              <div class="mb-3">
+                <label for="reviewContent" class="form-label">Review</label>
+                <textarea class="form-control" 
+                          id="reviewContent" 
+                          v-model="newReview.content"
+                          rows="4"
+                          placeholder="Share your thoughts about this product"></textarea>
+              </div>
+              <button type="submit" class="btn btn-sneaker">Submit Review</button>
+            </form>
+          </div>
+
+          <!-- Reviews List -->
+          <div class="reviews-list">
+            <div v-if="reviews.length === 0" class="text-center py-4">
+              <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+            </div>
+            <div v-else v-for="review in reviews" :key="review.id" class="review-item mb-4">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="mb-1">{{ review.title }}</h5>
+                  <div class="rating-stars mb-2">
+                    <span v-for="star in 5" :key="star" 
+                          class="star" 
+                          :class="{ 'active': review.rating >= star }">★</span>
+                  </div>
+                </div>
+                <small class="text-muted">{{ formatDate(review.date) }}</small>
+              </div>
+              <p class="review-content mb-2">{{ review.content }}</p>
+              <div class="review-meta">
+                <small class="text-muted">By {{ review.userName }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <Footer />
   </div>
 </template>
@@ -195,6 +263,53 @@ const addToCart = () => {
 const formatPrice = (price) => {
   if (typeof price !== 'number') return 'N/A';
   return price.toLocaleString('vi-VN');
+};
+
+// Reviews data
+const reviews = ref([]);
+const newReview = ref({
+  rating: 0,
+  title: '',
+  content: '',
+  userName: 'Anonymous User', // In a real app, this would come from user authentication
+  date: new Date()
+});
+
+// Format date for reviews
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+// Submit review
+const submitReview = () => {
+  if (newReview.value.rating === 0) {
+    alert('Please select a rating');
+    return;
+  }
+  if (!newReview.value.title.trim() || !newReview.value.content.trim()) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  // In a real app, this would be an API call
+  reviews.value.unshift({
+    id: Date.now(),
+    ...newReview.value,
+    date: new Date()
+  });
+
+  // Reset form
+  newReview.value = {
+    rating: 0,
+    title: '',
+    content: '',
+    userName: 'Anonymous User',
+    date: new Date()
+  };
 };
 </script>
 
@@ -457,5 +572,84 @@ const formatPrice = (price) => {
 .product-detail .row > .col-md-6:first-child > div:first-child,
 .product-detail .row > .col-md-6:last-child > div:first-child {
   margin-top: 0 !important;
+}
+
+/* Reviews Section Styles */
+.review-form {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.rating-stars {
+  display: flex;
+  gap: 5px;
+}
+
+.star {
+  font-size: 24px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.star.active {
+  color: #ffd700;
+}
+
+.review-item {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.review-item:hover {
+  transform: translateY(-2px);
+}
+
+.review-content {
+  color: #555;
+  line-height: 1.6;
+}
+
+.review-meta {
+  border-top: 1px solid #eee;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #555;
+}
+
+.form-control {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 15px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 0.2rem rgba(170, 170, 170, 0.25);
+}
+
+@media (max-width: 768px) {
+  .review-form {
+    padding: 1.5rem;
+  }
+  
+  .review-item {
+    padding: 1rem;
+  }
+  
+  .star {
+    font-size: 20px;
+  }
 }
 </style>

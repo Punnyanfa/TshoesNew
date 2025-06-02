@@ -103,3 +103,14 @@ export async function getOrdersByUserId(userId) {
 }
 
 
+export async function putOrderStatus(id, status) {
+  console.log('id', id);
+  console.log('status', status);
+  try {
+    const response = await instance.put('/Order/status', { id, status });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating order status:', error.response?.data || error);
+    throw error.response?.data || error;
+  }
+}
