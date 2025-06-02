@@ -323,6 +323,7 @@ namespace FCSP.Services.RatingService
         private async Task<GetRatingsByCustomShoeDesignIdResponse> GetCustomShoeDesignRatings(GetRatingsByCustomShoeDesignIdRequest request)
         {
             var ratings = await _ratingRepository.GetAll()
+                                                .Include(r => r.User)
                                                 .Where(r => !r.IsDeleted && r.CustomShoeDesignId == request.CustomShoeDesignId)
                                                 .ToListAsync(); // Lọc các bản ghi chưa bị xóa mềm
 
