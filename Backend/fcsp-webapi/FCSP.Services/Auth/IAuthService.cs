@@ -9,6 +9,7 @@ public interface IAuthService
     string HashPassword(string password);
     Task<BaseResponseModel<GetAllUsersResponse>> GetAllUsers();
     Task<BaseResponseModel<GetUserByIdResponse>> GetUserById(GetUserByIdRequest request);
+    Task<BaseResponseModel<GetUserBalanceByIdResponse>> GetUserBalanceById(GetUserBalanceByIdRequest request);
     Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request);
     Task<BaseResponseModel<UserRegisterResponse>> Register(UserRegisterRequest request);
     Task<BaseResponseModel<UpdateUserStatusResponse>> UpdateUserStatus(UpdateUserStatusRequest request);

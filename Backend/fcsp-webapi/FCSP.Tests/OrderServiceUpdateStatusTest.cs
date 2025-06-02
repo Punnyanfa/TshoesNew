@@ -52,13 +52,13 @@ namespace FCSP.Tests
         [Fact]
         public async Task OrderServiceUpdateStatus_IdIsZero()
         {
-            var request = new UpdateOrderRequest
+            var request = new UpdateOrderStatusRequest
             {
                 Id = 0,
                 Status = OrderStatus.Processing
             };
 
-            var exception = await _orderService.UpdateOrder(request);
+            var exception = await _orderService.UpdateOrderStatus(request);
 
             Assert.Equal(400, exception.Code);
             Assert.Contains("Id can not be 0", exception.Message);
@@ -67,7 +67,7 @@ namespace FCSP.Tests
         [Fact]
         public async Task OrderServiceUpdateStatus_OrderNotFound()
         {
-            var request = new UpdateOrderRequest
+            var request = new UpdateOrderStatusRequest
             {
                 Id = 1,
                 Status = OrderStatus.Processing
@@ -75,7 +75,7 @@ namespace FCSP.Tests
 
             _orderRepositoryMock.Setup(x => x.FindAsync()).ReturnsAsync((Order)null);
 
-            var exception = await _orderService.UpdateOrder(request);
+            var exception = await _orderService.UpdateOrderStatus(request);
             Assert.Equal(404, exception.Code);
             Assert.Contains($"{request.Id} not found", exception.Message);
         }
@@ -83,7 +83,7 @@ namespace FCSP.Tests
         [Fact]
         public async Task OrderServiceUpdateStatus_InvalidStatus()
         {
-            var request = new UpdateOrderRequest
+            var request = new UpdateOrderStatusRequest
             {
                 Id = 1,
                 Status = (OrderStatus)999
@@ -91,7 +91,7 @@ namespace FCSP.Tests
             var order = new Order { Id = 1, Status = OrderStatus.Pending };
 
             _orderRepositoryMock.Setup(x => x.FindAsync(request.Id)).ReturnsAsync(order);
-            var exception = await _orderService.UpdateOrder(request);
+            var exception = await _orderService.UpdateOrderStatus(request);
 
             Assert.Equal(400, exception.Code);
             Assert.Contains("Invalid order status", exception.Message);
@@ -99,7 +99,7 @@ namespace FCSP.Tests
         [Fact]
         public async Task OrderServiceUpdateStatus_Success()
         {
-            var request = new UpdateOrderRequest
+            var request = new UpdateOrderStatusRequest
             {
                 Id = 1,
                 Status = OrderStatus.Pending
@@ -107,7 +107,7 @@ namespace FCSP.Tests
             var order = new Order { Id = 1, Status = OrderStatus.Refunded };
             _orderRepositoryMock.Setup(x => x.FindAsync(request.Id)).ReturnsAsync(order);
 
-            var response = await _orderService.UpdateOrder(request);
+            var response = await _orderService.UpdateOrderStatus(request);
 
             Assert.Equal(200, response.Code);
             Assert.Contains("successfully", response.Message);

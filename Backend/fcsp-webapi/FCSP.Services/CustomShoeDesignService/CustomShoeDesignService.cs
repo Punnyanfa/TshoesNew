@@ -390,6 +390,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                                                         .Include(d => d.DesignPreviews)
                                                         .Include(d => d.DesignServices)
                                                             .ThenInclude(s => s.Service)
+                                                        .Where(d => d.Status != Common.Enums.CustomShoeDesignStatus.Private)
                                                         .Where(d => d.IsDeleted == false)
                                                         .ToListAsync();
         if (designs == null || !designs.Any())
@@ -409,7 +410,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.OrderBy(p => p.CreatedAt).Skip(3).FirstOrDefault()?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount
@@ -432,12 +433,13 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             responses.Add(new GetSimpleCustomShoeDesignResponse
             {
                 Id = d.Id,
+                ManufacturerId = d.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
                 Name = d.CustomShoeDesignTemplate?.Name,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.OrderBy(p => p.CreatedAt).Skip(3).FirstOrDefault()?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount
@@ -466,7 +468,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
                 RatingCount = d.Ratings?.Count ?? 0,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.OrderBy(p => p.CreatedAt).Skip(3).FirstOrDefault()?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount
@@ -484,36 +486,38 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                                                         .Include(d => d.CustomShoeDesignTextures)
                                                             .ThenInclude(t => t.Texture)
                                                         .Include(d => d.DesignPreviews)
+                                                        .Include(d => d.DesignServices)
+                                                            .ThenInclude(ds => ds.Service)
                                                         .Where(d => d.IsDeleted == false)
                                                         .FirstOrDefaultAsync(d => d.Id == request.Id);
         var sizes = await _sizeRepository.GetAllAsync();
-        var services = await _serviceRepository.GetActiveServicesAsync();
+        // var services = await _serviceRepository.GetActiveServicesAsync();
         if (design == null)
         {
             return null;
         }
 
-        long manufacturerId = 0;
-        var designServices = await _designServiceRepository.GetAll()
-            .Include(ds => ds.Service)
-                .ThenInclude(s => s.Manufacturer)
-            .Where(ds => ds.CustomShoeDesignId == design.Id)
-            .ToListAsync();
+        // long manufacturerId = 0;
+        // var designServices = await _designServiceRepository.GetAll()
+        //     .Include(ds => ds.Service)
+        //         .ThenInclude(s => s.Manufacturer)
+        //     .Where(ds => ds.CustomShoeDesignId == design.Id)
+        //     .ToListAsync();
 
-        if (designServices != null && designServices.Any())
-        {
-            var firstService = designServices.First();
-            if (firstService.Service?.ManufacturerId != null)
-            {
-                manufacturerId = firstService.Service.ManufacturerId;
-            }
-        }
+        // if (designServices != null && designServices.Any())
+        // {
+        //     var firstService = designServices.First();
+        //     if (firstService.Service?.ManufacturerId != null)
+        //     {
+        //         manufacturerId = firstService.Service.ManufacturerId;
+        //     }
+        // }
 
         var totalAmount = await CalculateTotalAmount(design);
         return new GetCustomShoeDesignByIdResponse
         {
             Id = design.Id,
-            ManufacturerId = manufacturerId,
+            ManufacturerId = design.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
             Name = design.CustomShoeDesignTemplate?.Name,
             Description = design.Description,
             Price = totalAmount,
@@ -524,8 +528,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Id = d.Id,
                 SizeValue = d.SizeValue
             }),
+            PreviewImages = design.DesignPreviews.Where(d => d.CustomShoeDesignId == design.Id).Select(d => d.PreviewImageUrl),
             TexturesUrls = design.CustomShoeDesignTextures?.Select(t => t.Texture?.ImageUrl),
-            Services = designServices?.Select(s => new DTOs.CustomShoeDesign.Services
+            Services = design.DesignServices.Select(s => new DTOs.CustomShoeDesign.Services
             {
                 Id = s.ServiceId,
                 Price = s.Service?.Price ?? 0
@@ -561,8 +566,9 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             responses.Add(new CustomDesignShoeGetByUserIdResponse
             {
                 Id = d.Id,
+                ManufacturerId = d.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
                 Name = d.CustomShoeDesignTemplate?.Name,
-                PreviewImageUrl = d.DesignPreviews?.FirstOrDefault(i => i.CustomShoeDesignId == d.Id)?.PreviewImageUrl,
+                PreviewImageUrl = d.DesignPreviews?.OrderBy(p => p.CreatedAt).Skip(3).FirstOrDefault()?.PreviewImageUrl,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount,
@@ -650,7 +656,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
-            string fileName = $"previewImage_{formattedDateTime}.jpeg";
+            string fileName = $"previewImage_{Guid.NewGuid()}_{formattedDateTime}.jpeg";
             byte[] fileBytes;
 
             using (var memoryStream = new MemoryStream())

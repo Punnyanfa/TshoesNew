@@ -59,6 +59,7 @@ namespace FCSP.Services.CartService
                     {
                         Id = ci.Id,
                         CustomShoeDesignId = ci.CustomShoeDesignId,
+                        ManufacturerId = ci.CustomShoeDesign.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
                         CustomShoeDesignName = ci.CustomShoeDesign?.Name ?? "Unknown Design",
                         Price = totalAmount,
                         Quantity = ci.Quantity

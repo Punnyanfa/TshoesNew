@@ -90,11 +90,45 @@ public class AuthService : IAuthService
                 Email = user.Email,
                 Dob = user.Dob ?? string.Empty,
                 Gender = user.Gender ?? string.Empty,
+                Balance = (int)user.Balance,
                 AvatarImageUrl = user.AvatarImageUrl ?? string.Empty,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 IsVerified = user.IsEmailVerified
             }
         };
+    }
+
+    public async Task<BaseResponseModel<GetUserBalanceByIdResponse>> GetUserBalanceById(GetUserBalanceByIdRequest request)
+    {
+        try
+        {
+            var user = await _userRepository.FindAsync(request.Id);
+            if (user == null)
+            {
+                return new BaseResponseModel<GetUserBalanceByIdResponse>
+                {
+                    Code = 404,
+                    Message = "User not found"
+                };
+            }
+            return new BaseResponseModel<GetUserBalanceByIdResponse>
+            {
+                Code = 200,
+                Message = "User balance retrieved successfully",
+                Data = new GetUserBalanceByIdResponse
+                {
+                    Balance = (int)user.Balance
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BaseResponseModel<GetUserBalanceByIdResponse>
+            {
+                Code = 500,
+                Message = $"Error retrieving user balance: {ex.Message}"
+            };
+        }
     }
 
     public async Task<BaseResponseModel<UserLoginResponse>> Login(UserLoginRequest request)
@@ -477,10 +511,10 @@ public class AuthService : IAuthService
                     Data = new SendEmailResponse { Success = false }
                 };
             }
-
+            var subject = $"From: {user.Email}. Subject: " + request.Subject;
             var emailSent = await _emailService.SendEmailAsync(
                 "trattrieu.an@gmail.com",
-                request.Subject,
+                subject,
                 request.Body,
                 request.IsHtml
             );

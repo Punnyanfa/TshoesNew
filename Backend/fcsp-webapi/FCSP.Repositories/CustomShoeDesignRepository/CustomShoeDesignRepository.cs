@@ -23,6 +23,7 @@ namespace FCSP.Repositories.Implementations
                     .ThenInclude(t => t.Texture)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
+                    .ThenInclude(d => d.Service)
                 .Where(d => d.IsDeleted == false)
                 .Where(d => d.Status == Common.Enums.CustomShoeDesignStatus.Public)
                 .ToListAsync();
@@ -39,6 +40,7 @@ namespace FCSP.Repositories.Implementations
                     .ThenInclude(t => t.Texture)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
+                    .ThenInclude(d => d.Service)
                 .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }
@@ -54,6 +56,7 @@ namespace FCSP.Repositories.Implementations
                     .ThenInclude(t => t.Texture)
                 .Include(d => d.DesignPreviews)
                 .Include(d => d.DesignServices)
+                    .ThenInclude(d => d.Service)
                 .Where(d => d.IsDeleted == false)
                 .ToListAsync();
         }

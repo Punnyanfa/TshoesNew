@@ -31,8 +31,6 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Include(m => m.Manufacturer)
-                .Include(ds => ds.DesignServices)
-                    .ThenInclude(s => s.Service)
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
     }

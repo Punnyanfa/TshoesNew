@@ -37,7 +37,7 @@ namespace FCSP.DTOs.Order
         public OrderDetailResponseDto OrderDetail { get; set; } = null!;
     }
 
-    public class GetOrderByManufacturerIdRequest
+    public class GetOrdersByManufacturerIdRequest
     {
         [Required(ErrorMessage = "ManufacturerId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "ManufacturerId must be greater than 0.")]
@@ -74,7 +74,7 @@ namespace FCSP.DTOs.Order
         public string? PaymentUrl { get; set; }
     }
 
-    public class UpdateOrderRequest
+    public class UpdateOrderStatusRequest
     {
         [Required(ErrorMessage = "OrderId is required.")]
         [Range(1, long.MaxValue, ErrorMessage = "OrderId must be greater than 0.")]
@@ -87,6 +87,16 @@ namespace FCSP.DTOs.Order
     public class UpdateOrderResponse
     {
         public bool Success { get; set; }
+    }
+
+    public class UpdateOrderShippingStatusRequest
+    {
+        [Required(ErrorMessage = "OrderId is required.")]
+        [Range(1, long.MaxValue, ErrorMessage = "OrderId must be greater than 0.")]
+        public long Id { get; set; }
+
+        [Required(ErrorMessage = "ShippingStatus is required.")]
+        public OrderShippingStatus ShippingStatus { get; set; }
     }
 
     public class CancelOrderRequest
@@ -121,6 +131,7 @@ namespace FCSP.DTOs.Order
     // DTO cho response (có UnitPrice)
     public class OrderDetailResponseDto
     {
+        public long CustomShoeDesignId { get; set;}
         public string? CustomShoeDesignName { get; set; }
         public string? CustomShoeDesignDescription { get; set; }
         public string? FirstPreviewImageUrl { get; set; }
@@ -130,6 +141,7 @@ namespace FCSP.DTOs.Order
         public int ServicePrice { get; set; }
         public int DesignerMarkup { get; set; }
         public int SizeValue { get; set; }
+        public IEnumerable<string> PreviewImageUrls { get; set; }
     }
 
     public class ProcessPaymentRequest

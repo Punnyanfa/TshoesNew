@@ -22,7 +22,6 @@ namespace FCSP.Services.OrderService
         private readonly IUserRepository _userRepository;
         private readonly ISizeRepository _sizeRepository;
         private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
-        
 
         public OrderService(
             IOrderRepository orderRepository,
@@ -75,7 +74,7 @@ namespace FCSP.Services.OrderService
             }
         }
 
-        public async Task<BaseResponseModel<GetOrderByManufacturerIdResponse>> GetOrdersByManufacturerId(GetOrderByManufacturerIdRequest request)
+        public async Task<BaseResponseModel<GetOrderByManufacturerIdResponse>> GetOrdersByManufacturerId(GetOrdersByManufacturerIdRequest request)
         {
             try
             {
@@ -187,11 +186,11 @@ namespace FCSP.Services.OrderService
             }
         }
 
-        public async Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrder(UpdateOrderRequest request)
+        public async Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrderStatus(UpdateOrderStatusRequest request)
         {
             try
             {
-                var order = await GetEntityFromUpdateOrderRequest(request);
+                var order = await GetEntityFromUpdateOrderStatusRequest(request);
                 await _orderRepository.UpdateAsync(order);
 
                 return new BaseResponseModel<UpdateOrderResponse>
@@ -229,6 +228,49 @@ namespace FCSP.Services.OrderService
                 };
             }
         }
+
+        public async Task<BaseResponseModel<UpdateOrderResponse>> UpdateOrderShippingStatus(UpdateOrderShippingStatusRequest request)
+        {
+            try
+            {
+                var order = await GetEntityFromUpdateOrderShippingStatusRequest(request);
+                await _orderRepository.UpdateAsync(order);
+
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = 200,
+                    Message = "Order shipping status updated successfully",
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = ex.Message.Contains("not found") ? 404 : 400,
+                    Message = ex.Message,
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<UpdateOrderResponse>
+                {
+                    Code = 500,
+                    Message = $"Error updating order shipping status: {ex.Message}",
+                    Data = new UpdateOrderResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -245,6 +287,7 @@ namespace FCSP.Services.OrderService
                                                 .Include(o => o.Voucher)
                                                 .Include(o => o.Payments)
                                                 .Where(o => o.UserId == request.UserId)
+                                                .Where(o => o.IsDeleted == false)
                                                 .ToListAsync();
 
             if (orders == null || !orders.Any())
@@ -266,6 +309,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -304,6 +348,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = order.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = orderDetail.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = orderDetail.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = orderDetail.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = orderDetail.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -312,20 +357,25 @@ namespace FCSP.Services.OrderService
                     TemplatePrice = orderDetail.TemplatePrice,
                     ServicePrice = orderDetail.ServicePrice,
                     DesignerMarkup = orderDetail.DesignerMarkup,
-                    SizeValue = orderDetail.Size.SizeValue
+                    SizeValue = orderDetail.Size.SizeValue,
+                    PreviewImageUrls = orderDetail.CustomShoeDesign?.DesignPreviews?.Select(dp => dp.PreviewImageUrl).ToList()
                 }
             };
         }
 
-        private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByManufacturerIdAsync(GetOrderByManufacturerIdRequest request)
+        private async Task<IEnumerable<GetOrderByIdResponse>> GetOrdersByManufacturerIdAsync(GetOrdersByManufacturerIdRequest request)
         {
             var orders = await _orderRepository.GetAll()
                                                 .Include(o => o.OrderDetails)
-                                                .ThenInclude(od => od.Size)
+                                                   .ThenInclude(od => od.Size)
+                                                .Include(o => o.OrderDetails)
+                                                   .ThenInclude(od => od.CustomShoeDesign)
+                                                       .ThenInclude(cd => cd.DesignPreviews)
                                                 .Include(o => o.User)
                                                 .Include(o => o.Voucher)
                                                 .Include(o => o.Payments)
                                                 .Where(o => o.OrderDetails.Any(o => o.ManufacturerId == request.ManufacturerId))
+                                                .Where(o => o.IsDeleted == false)
                                                 .ToListAsync();
             if (orders == null || !orders.Any())
             {
@@ -343,7 +393,20 @@ namespace FCSP.Services.OrderService
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
                 TotalPrice = o.TotalPrice,
                 CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
+                UpdatedAt = o.UpdatedAt,
+                OrderDetail = new OrderDetailResponseDto
+                {
+                    CustomShoeDesignId = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id ?? 0,
+                    CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
+                    CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
+                    FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
+                    Quantity = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Quantity ?? 0,
+                    UnitPrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TotalPrice ?? 0,
+                    TemplatePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.TemplatePrice ?? 0,
+                    ServicePrice = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.ServicePrice ?? 0,
+                    DesignerMarkup = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.DesignerMarkup ?? 0,
+                    SizeValue = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.Size.SizeValue ?? 0
+                }
             });
         }
 
@@ -358,6 +421,7 @@ namespace FCSP.Services.OrderService
                                                .Include(o => o.User)
                                                .Include(o => o.Voucher)
                                                .Include(o => o.Payments)
+                                               .Where(o => o.IsDeleted == false)
                                                .ToListAsync();
 
             if (orders == null || !orders.Any())
@@ -379,6 +443,7 @@ namespace FCSP.Services.OrderService
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
                 {
+                    CustomShoeDesignId = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id ?? 0,
                     CustomShoeDesignName = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Name,
                     CustomShoeDesignDescription = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Description,
                     FirstPreviewImageUrl = o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl,
@@ -486,7 +551,7 @@ namespace FCSP.Services.OrderService
                 ShippingInfoId = request.ShippingInfoId,
                 VoucherId = request.VoucherId ?? null,
                 TotalPrice = totalAmount,
-                AmountPaid = amountPaid,
+                AmountPaid = amountPaid + 30000,
                 Status = OrderStatus.Pending,
                 ShippingStatus = OrderShippingStatus.Preparing,
                 CreatedAt = DateTime.UtcNow,
@@ -530,7 +595,7 @@ namespace FCSP.Services.OrderService
             var payment = new AddPaymentRequest
             {
                 OrderId = order.Id,
-                Amount = order.TotalPrice,
+                Amount = order.AmountPaid,
                 PaymentMethod = paymentMethod,
             };
             
@@ -544,16 +609,12 @@ namespace FCSP.Services.OrderService
             return paymentResponse.Data.Response;
         }
 
-        private async Task<Order> GetEntityFromUpdateOrderRequest(UpdateOrderRequest request)
+        private async Task<Order> GetEntityFromUpdateOrderStatusRequest(UpdateOrderStatusRequest request)
         {
-            if(request.Status == null)
-            {
-                throw new InvalidOperationException("Status is required");
-            }
             if (!Enum.IsDefined(typeof(OrderStatus), request.Status))
-            {
-                throw new InvalidOperationException("Invalid order status");
-            }
+                {
+                    throw new InvalidOperationException("Invalid order status");
+                }
             if (request.Id <= 0)
             {
                 throw new InvalidOperationException("Id can not be 0");
@@ -564,8 +625,25 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException($"Order with ID {request.Id} not found");
             }
             order.Status = request.Status;
-            order.UpdatedAt = DateTime.UtcNow;
+            return order;
+        }
 
+        private async Task<Order> GetEntityFromUpdateOrderShippingStatusRequest(UpdateOrderShippingStatusRequest request)
+        {
+            if (!Enum.IsDefined(typeof(OrderShippingStatus), request.ShippingStatus))
+            {
+                throw new InvalidOperationException("Invalid order shipping status");
+            }
+            if (request.Id <= 0)
+            {
+                throw new InvalidOperationException("Id can not be 0");
+            }
+            var order = await _orderRepository.FindAsync(request.Id);
+            if (order == null)
+            {
+                throw new InvalidOperationException($"Order with ID {request.Id} not found");
+            }
+            order.ShippingStatus = request.ShippingStatus;
             return order;
         }
 

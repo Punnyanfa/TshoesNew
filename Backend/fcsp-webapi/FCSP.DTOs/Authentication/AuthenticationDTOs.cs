@@ -28,9 +28,20 @@ public class GetUserByIdResponse
     public string Email { get; set; } = string.Empty;
     public string Dob { get; set; } = string.Empty;
     public string Gender { get; set; } = string.Empty;
+    public int Balance { get; set; }
     public string AvatarImageUrl { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public bool IsVerified { get; set; } = false;
+}
+
+public class GetUserBalanceByIdRequest
+{
+    public long Id { get; set; }
+}
+
+public class GetUserBalanceByIdResponse
+{
+    public int Balance { get; set; }
 }
 
 public class UserLoginRequest
