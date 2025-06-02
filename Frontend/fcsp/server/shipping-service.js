@@ -54,7 +54,7 @@ export async function putShippingInfo(shippingData) {
       isDefault: shippingData.isDefault,
       receiverName: shippingData.receiverName
     };
-    if (shippingData.id) {
+    if (shippingData.id) {  
       payload.id = shippingData.id;
     }
     const response = await instance.put('/ShippingInfo', payload);

@@ -370,7 +370,6 @@ import Header from '~/components/Header.vue';
           if (this.isEditing) {
             // Call putShippingInfo for update
             response = await putShippingInfo(addressData);
-            console.log("Response from API:", response);
           } else {
             // Call postShippingInfo for add new
             response = await postShippingInfo(addressData);

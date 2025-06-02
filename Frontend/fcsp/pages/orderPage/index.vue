@@ -11,7 +11,7 @@
         <div v-else>
           <div class="order-info">
             <div class="address-section">
-              <h5>Địa Chỉ Nhận Hàng</h5>
+              <h5>Shipping Address</h5>
               <div v-if="shippingAddress">
                 <p class="recipient-info">
                   <strong>{{ shippingAddress.receiverName }}</strong>
@@ -26,9 +26,9 @@
                 <!-- <div v-if="shippingAddress.isDefault" class="default-badge">Mặc định</div> -->
               </div>
               <div v-else class="no-address">
-                <p>Chưa có địa chỉ nhận hàng</p>
+                <p>No shipping address yet</p>
               </div>
-              <button class="btn btn-link" @click="toggleAddressModal">Thay Đổi</button>
+              <button class="btn btn-link" @click="toggleAddressModal">Change</button>
             </div>
   
             <!-- Modal chọn địa chỉ (Bootstrap Modal) -->
@@ -36,7 +36,7 @@
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title" id="addressModalLabel">Địa Chỉ Của Tôi</h5>
+                    <h5 class="modal-title" id="addressModalLabel">My Addresses</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -68,8 +68,8 @@
                     </div>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" @click="confirmAddress">Xác nhận</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @click="confirmAddress">Confirm</button>
                   </div>
                 </div>
               </div>
@@ -77,15 +77,15 @@
   
   
             <div class="product-section">
-              <h5>Sản phẩm đã chọn</h5>
+              <h5>Selected Products</h5>
               <div v-if="error" class="alert alert-danger">{{ error }}</div>
               <table class="table">
                 <thead>
                   <tr>
-                    <th style="width: 40%">Sản phẩm</th>
-                    <th style="width: 20%">Đơn giá</th>
-                    <th style="width: 20%">Số lượng</th>
-                    <th style="width: 20%">Thành tiền</th>
+                    <th style="width: 40%">Product</th>
+                    <th style="width: 20%">Unit Price</th>
+                    <th style="width: 20%">Quantity</th>
+                    <th style="width: 20%">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -108,13 +108,13 @@
             </div>
   
             <div class="summary-section">
-              <h5>Tổng số tiền</h5>
+              <h5>Order Summary</h5>
               <div class="d-flex justify-content-between mb-2">
-                <span>Tổng tiền hàng:</span>
+                <span>Subtotal:</span>
                 <span class="text-primary">{{ formatPrice(order?.totalPrice) }}</span>
               </div>
               <div class="d-flex justify-content-between mb-2">
-                <span>Phí vận chuyển:</span>
+                <span>Shipping Cost:</span>
                 <span>{{ formatPrice(order?.shippingCost) }}</span>
               </div>
 
@@ -125,7 +125,7 @@
                     type="text" 
                     class="form-control" 
                     v-model="voucherCode"
-                    placeholder="Nhập mã giảm giá"
+                    placeholder="Enter discount code"
                     :disabled="voucherApplied"
                   >
                   <button 
@@ -134,33 +134,33 @@
                     @click="applyVoucher"
                     :disabled="!voucherCode"
                   >
-                    Áp dụng
+                    Apply
                   </button>
                   <button 
                     v-else
                     class="btn btn-outline-danger" 
                     @click="removeVoucher"
                   >
-                    Xóa mã
+                    Remove
                   </button>
                 </div>
                 <div v-if="errorMessage" class="mt-2 text-danger">
                   {{ errorMessage }}
                 </div>
                 <div v-if="voucherApplied" class="mt-2 text-success">
-                  Đã áp dụng mã giảm giá: -{{ discountAmount.toLocaleString() }}đ
+                  Applied discount code: -{{ discountAmount.toLocaleString() }}đ
                 </div>
               </div>
 
               <hr>
               <div class="d-flex justify-content-between fw-bold">
-                <span>Tổng thanh toán:</span>
+                <span>Total Payment:</span>
                 <span class="text-danger fs-5">{{ formatPrice(finalTotal) }}</span>
               </div>
             </div>
   
             <button class="btn btn-primary w-100 mt-4" @click="placeOrder" :disabled="!shippingAddress || !order?.items?.length">
-              Đặt hàng
+              Place Order
             </button>
           </div>
         </div>
@@ -226,11 +226,11 @@
     try {
       loading.value = true;
       
-      // Lấy dữ liệu đơn hàng từ localStorage
+      // Lấy dữ liệu đơn hàng từ localStorage -> Get order data from localStorage
       const userId = localStorage.getItem("userId");
       const orderDataStr = localStorage.getItem(`orderData_${userId}`);
       if (!orderDataStr) {
-        error.value = 'Không tìm thấy thông tin đơn hàng';
+        error.value = 'Order information not found';
         return;
       }
 
@@ -256,7 +256,7 @@
 
     } catch (error) {
       console.error('Error loading order:', error);
-      error.value = 'Không thể tải thông tin đơn hàng. Vui lòng thử lại.';
+      error.value = 'Unable to load order information. Please try again.';
     } finally {
       loading.value = false;
     }
@@ -269,18 +269,18 @@
       
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        error.value = 'Vui lòng đăng nhập để xem địa chỉ giao hàng';
+        error.value = 'Please login to view shipping addresses';
         return;
       }
 
       const response = await shippingInfo(parseInt(userId));
       
       if (!response || !response.shippingInfos) {
-        error.value = 'Không thể tải thông tin địa chỉ giao hàng';
+        error.value = 'Unable to load shipping address information';
         return;
       }
 
-      // Xử lý dữ liệu địa chỉ từ response.shippingInfos
+      // Xử lý dữ liệu địa chỉ từ response.shippingInfos -> Process address data from response.shippingInfos
       const shippingData = response.shippingInfos;
       if (Array.isArray(shippingData)) {
         addresses.value = shippingData;
@@ -289,11 +289,11 @@
         shippingAddress.value = defaultAddress || shippingData[0];
         selectedAddress.value = shippingAddress.value;
       } else {
-        error.value = 'Định dạng dữ liệu địa chỉ không hợp lệ';
+        error.value = 'Invalid address data format';
       }
     } catch (err) {
       console.error('Error fetching shipping address:', err);
-      error.value = 'Đã có lỗi xảy ra khi tải địa chỉ giao hàng';
+      error.value = 'An error occurred while loading shipping addresses';
       addresses.value = [];
       shippingAddress.value = null;
       selectedAddress.value = null;
@@ -305,7 +305,7 @@
   const confirmAddress = () => {
     try {
       if (!selectedAddress.value) {
-        alert('Please select a shipping address');
+        alert('Please select a shipping address'); // Keep English
         return;
       }
 
@@ -316,7 +316,7 @@
       }
     } catch (err) {
       console.error('Error confirming address:', err);
-      alert('Unable to update shipping address. Please try again.');
+      alert('Unable to update shipping address. Please try again.'); // Keep English
     }
   };
   
@@ -355,19 +355,19 @@
   const placeOrder = async () => {
     try {
       if (!shippingAddress.value) {
-        alert('Please select a shipping address');
+        alert('Please select a shipping address'); // Keep English
         return;
       }
 
       if (!order.value || !order.value.items || order.value.items.length === 0) {
-        alert('No products in order');
+        alert('No products in order'); // Keep English
         return;
       }
 
       // Get userId from localStorage
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        alert('Please login to place an order');
+        alert('Please login to place an order'); // Keep English
         return;
       }
 
@@ -377,7 +377,7 @@
         const sizeId = await getSizeIdByValue(Number(item.selectedSize));
         const manufacturerId = 1;
         if (!sizeId) {
-          throw new Error(`Không tìm thấy size ID cho size ${item.selectedSize}`);
+          throw new Error(`Size ID not found for size ${item.selectedSize}`);
         }
         return {
           customShoeDesignId: parseInt(item.id),
@@ -425,10 +425,10 @@
       }
 
       // If we get here, something went wrong
-      throw new Error(response?.message || 'Đặt hàng thất bại');
+      throw new Error(response?.message || 'Order failed');
     } catch (err) {
       console.error('Error placing order:', err);
-      const errorMessage = err.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.';
+      const errorMessage = err.message || 'An error occurred while placing the order. Please try again.';
       alert(errorMessage);
     }
   };
@@ -459,7 +459,7 @@
       errorMessage.value = '';
       
       if (!voucherCode.value) {
-        errorMessage.value = 'Vui lòng nhập mã giảm giá';
+        errorMessage.value = 'Please enter a discount code';
         return;
       }
 
@@ -475,7 +475,7 @@
         discountAmount.value = voucher.discountAmount;
         // Recalculate the total
         calculateTotal();
-        alert('Coupon applied successfully!');
+        alert('Coupon applied successfully!'); // Keep English
       } else {
         // Check specific reasons why voucher is invalid
         const existingVoucher = availableVouchers.value.find(v => 
@@ -483,18 +483,18 @@
         );
 
         if (!existingVoucher) {
-          errorMessage.value = 'Mã giảm giá không tồn tại';
+          errorMessage.value = 'Discount code does not exist';
         } else if (existingVoucher.isUsed) {
-          errorMessage.value = 'Mã giảm giá đã được sử dụng';
+          errorMessage.value = 'Discount code has been used';
         } else if (new Date(existingVoucher.expiryDate) <= new Date()) {
-          errorMessage.value = 'Mã giảm giá đã hết hạn';
+          errorMessage.value = 'Discount code has expired';
         } else {
-          errorMessage.value = 'Mã giảm giá không hợp lệ';
+          errorMessage.value = 'Invalid discount code';
         }
       }
     } catch (error) {
       console.error('Error applying voucher:', error);
-      errorMessage.value = 'Có lỗi xảy ra khi áp dụng mã giảm giá';
+      errorMessage.value = 'An error occurred while applying the discount code';
     }
   };
 

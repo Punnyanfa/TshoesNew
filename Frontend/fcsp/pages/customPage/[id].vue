@@ -613,6 +613,7 @@ onMounted(async () => {
   initThree();
 
   const res = await getManufacturerAll();
+  console.log(res);
   if (res && res.data && Array.isArray(res.data)) {
     manufacturerList.value = res.data;
     if (res.data.length > 0) {
@@ -755,7 +756,7 @@ const components = reactive([
   { name: 'Base', value: 'Base' },
   { name: 'Heel', value: 'Heel' },
   { name: 'Lace', value: 'Lace' },
-  { name: 'Outsole', value: 'OutSode' },
+  { name: 'Outsole', value: 'outsole' },
   { name: 'Midsole', value: 'MidSole'},
   { name: 'Tip', value: 'Tip' },
   { name: 'Accent', value: 'Accent' },

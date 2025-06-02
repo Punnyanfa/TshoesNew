@@ -115,7 +115,7 @@ const { updateCartCount } = useCart();
 const cartItems = ref([]);
 const loading = ref(true);
 // const shippingCost = ref(10.00);
-const shippingCost = ref(0);
+const shippingCost = ref(30000);
 
 // Use a Set to store unique IDs of selected items (e.g., 'id-size')
 const selectedItems = ref(new Set());
