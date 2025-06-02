@@ -224,25 +224,61 @@ const togglePreviewImages = (item) => {
 // Chỉnh sửa thiết kế
 const editDesign = async (item) => {
   try {
-    // Gọi API lấy chi tiết custom để lấy link file json
-    const detail = await getMyCustomById(item.id);
+    // Step 1: Fetch design details from the API
+    const response = await fetch(`https://fcspwebapi20250527114117.azurewebsites.net/api/CustomShoeDesign/${item.id}`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        // Add authorization header if required, e.g., Bearer token
+        // 'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+      },
+    });
 
-    let editingItem = { ...item };
-    if (detail && detail.data && detail.data.designData) {
+    if (!response.ok) {
+      throw new Error(`Failed to fetch design details: ${response.statusText}`);
+    }
+
+    const apiData = await response.json();
+    if (apiData.code !== 200 || !apiData.data) {
+      throw new Error(apiData.message || 'Invalid API response');
+    }
+
+    const design = apiData.data;
+
+    // Step 2: Fetch the designData JSON
+    let designDataObj = {};
+    if (design.designData) {
       try {
-        const response = await fetch(detail.data.designData);
-        if (response.ok) {
-          const designDataObj = await response.json();
-          editingItem.designData = designDataObj;
+        const designDataResponse = await fetch(design.designData);
+        if (!designDataResponse.ok) {
+          throw new Error(`Failed to fetch designData JSON: ${designDataResponse.statusText}`);
         }
+        designDataObj = await designDataResponse.json();
       } catch (e) {
-        console.error('Không thể tải lại file json model 3D:', e);
+        console.error('Error fetching designData JSON:', e);
+        alert('Unable to load 3D model configuration. Proceeding with basic design data.');
       }
     }
+
+    // Step 3: Prepare the item with designData
+    const editingItem = {
+      ...item,
+      designData: designDataObj,
+      templateUrl: design.templateUrl, // Include the 3D model template URL if needed
+      previewImages: design.previewImages || item.previewImages,
+      sizes: design.sizes || item.sizes,
+      texturesUrls: design.texturesUrls || item.texturesUrls,
+      services: design.services || item.services,
+    };
+
+    // Step 4: Store the editing item in localStorage for the custom page
+    localStorage.setItem('editingDesign', JSON.stringify(editingItem));
+
+    // Step 5: Redirect to the custom page
     window.location.href = `/customPage/${item.id}?edit=true`;
   } catch (e) {
-    alert('Unable to get detailed design data!');
-    console.error(e);
+    console.error('Error in editDesign:', e);
+    alert('Unable to load design for editing. Please try again.');
   }
 };
 
@@ -277,7 +313,7 @@ const refreshDataFromStorage = () => {
       }));
     } catch (e) {
       console.error('Lỗi khi làm mới dữ liệu giỏ hàng:', e);
-    }
+    }cacs
   }
   
   // Kiểm tra dữ liệu bản nháp
