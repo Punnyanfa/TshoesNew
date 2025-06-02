@@ -40,6 +40,35 @@ export async function postShippingInfo(shippingData) {
       throw error;
     }
 }
+export async function putShippingInfo(shippingData) {
+  console.log(shippingData);
+  try {
+    const payload = {
+      userId: shippingData.userId,
+      phoneNumber: shippingData.phoneNumber,
+      address: shippingData.address,
+      city: shippingData.city,
+      district: shippingData.district,
+      ward: shippingData.ward,
+      country: shippingData.country || "Vietnam", 
+      isDefault: shippingData.isDefault,
+      receiverName: shippingData.receiverName
+    };
+    if (shippingData.id) {
+      payload.id = shippingData.id;
+    }
+    const response = await instance.put('/ShippingInfo', payload);
+   
+    if (response.data && response.data.code === 200) {
+      return response.data.data;
+    }
+    
+    throw new Error(response.data?.message || 'Failed to save shipping info');
+  } catch (error) {
+    console.error('Error in postShippingInfo:', error);
+    throw error;
+  }
+}
 
 export async function shippingInfo(userId) {
     try {
@@ -70,3 +99,4 @@ export async function deleteShippingInfo(id) {
       throw error;
     }
 }
+

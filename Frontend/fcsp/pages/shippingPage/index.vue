@@ -79,6 +79,17 @@
                 <form @submit.prevent="saveAddress">
                   <div class="row">
                     <div class="col-md-6 mb-3">
+                      <label for="receiverName" class="form-label">Receiver Name*</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        id="receiverName" 
+                        v-model="currentAddress.receiverName"
+                        required
+                        :disabled="loading"
+                      >
+                    </div>
+                    <div class="col-md-6 mb-3">
                       <label for="phoneNumber" class="form-label">Phone Number*</label>
                       <input 
                         type="tel" 
@@ -89,6 +100,9 @@
                         :disabled="loading"
                       >
                     </div>
+                  </div>
+                  
+                  <div class="row">
                     <div class="col-md-6 mb-3">
                       <label for="country" class="form-label">Country</label>
                       <input 
@@ -207,7 +221,7 @@
   </template>
   
   <script>
-  import { postShippingInfo, shippingInfo, deleteShippingInfo } from '@/server/shipping-service'
+  import { postShippingInfo, shippingInfo, deleteShippingInfo, putShippingInfo } from '@/server/shipping-service'
 import Header from '~/components/Header.vue';
 
   export default {
@@ -265,7 +279,8 @@ import Header from '~/components/Header.vue';
           district: '',
           ward: '',
           country: 'Vietnam',
-          isDefault: false
+          isDefault: false,
+          receiverName: ''
         };
       },
       async fetchAddresses() {
@@ -351,9 +366,20 @@ import Header from '~/components/Header.vue';
             addressData.isDefault = true;
           }
 
-          const response = await postShippingInfo(addressData);
+          let response;
+          if (this.isEditing) {
+            // Call putShippingInfo for update
+            response = await putShippingInfo(addressData);
+            console.log("Response from API:", response);
+          } else {
+            // Call postShippingInfo for add new
+            response = await postShippingInfo(addressData);
+          }
+
           console.log("Response from API:", response);
           
+          // Check if the API call was successful based on the structure of your service function
+          // Both postShippingInfo and putShippingInfo in your service seem to return data on success
           if (response) {
             await this.fetchAddresses();
             this.closeModal();
