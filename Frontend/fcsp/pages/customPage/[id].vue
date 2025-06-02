@@ -2032,7 +2032,6 @@ onBeforeUnmount(() => {
 })
 </script>
 
-
 <style scoped>
 .custom-detail-page {
   height: 100vh;

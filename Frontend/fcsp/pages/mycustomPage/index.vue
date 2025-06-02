@@ -372,8 +372,8 @@ const duplicateToCart = (item) => {
       customShoeDesignId: item.id,
       name: item.name,
       manufacturerId: item.manufacturerId,
-      price: item.price,
-      surcharge: item.surcharge,
+      price: item.price + (item.surcharge || 0),
+      surcharge: item.surcharge || 0,
       selectedSize: '40',
       selectedQuantity: item.selectedQuantity || 1,
       previewImageUrl: item.image || item.previewImageUrl,
@@ -392,7 +392,7 @@ const duplicateToCart = (item) => {
     cart.push(newCartItem)
     localStorage.setItem(`cart_${localStorage.getItem("userId")}`, JSON.stringify(cart))
     
-    const totalPrice = newCartItem.price + newCartItem.surcharge
+    const totalPrice = newCartItem.price
     const formattedTotalPrice = formatPrice(totalPrice)
     const formattedSurcharge = newCartItem.surcharge > 0 ? `\nCustomization fee: ${formatPrice(newCartItem.surcharge)}` : ''
     
