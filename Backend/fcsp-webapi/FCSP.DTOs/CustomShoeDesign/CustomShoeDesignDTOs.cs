@@ -85,6 +85,7 @@ namespace FCSP.DTOs.CustomShoeDesign
     {
         public long Id { get; set; }
         public string? Component { get; set; }
+        public string? Type { get; set; }
         public int? Price { get; set; }
     }
 

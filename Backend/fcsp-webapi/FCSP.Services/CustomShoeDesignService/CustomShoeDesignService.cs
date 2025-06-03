@@ -536,6 +536,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Services = design.DesignServices.Select(s => new DTOs.CustomShoeDesign.Services
             {
                 Id = s.ServiceId,
+                Component = s.Service.Component,
+                Type = s.Service.Type,
                 Price = s.Service?.Price ?? 0
             }) ?? new List<DTOs.CustomShoeDesign.Services>()
         };
