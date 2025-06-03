@@ -21,9 +21,9 @@ namespace FCSP.Repositories.Implementations
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveRangeAsync(IEnumerable<long> designIds)
+        public async Task RemoveRangeAsync(IEnumerable<long> textureIds)
         {
-            var texturesToDelete = await _dbContext.CustomShoeDesignTextures.Where(t => designIds.Contains(t.CustomShoeDesignId)).ToListAsync();
+            var texturesToDelete = await _dbContext.CustomShoeDesignTextures.Where(t => textureIds.Contains(t.TextureId)).ToListAsync();
             _dbContext.CustomShoeDesignTextures.RemoveRange(texturesToDelete);
             await _dbContext.SaveChangesAsync();
         }

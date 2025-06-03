@@ -25,9 +25,9 @@ namespace FCSP.Repositories.Implementations
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveRangeAsync(IEnumerable<long> designIds)
+        public async Task RemoveRangeAsync(IEnumerable<long> serviceIds)
         {
-            var designServicesToDelete = await _dbContext.DesignServices.Where(ds => designIds.Contains(ds.CustomShoeDesignId)).ToListAsync();
+            var designServicesToDelete = await _dbContext.DesignServices.Where(ds => serviceIds.Contains(ds.ServiceId)).ToListAsync();
             _dbContext.DesignServices.RemoveRange(designServicesToDelete);
             await _dbContext.SaveChangesAsync();
         }
