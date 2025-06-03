@@ -25,7 +25,7 @@ namespace FCSP.Repositories.Implementations
 
         public async Task UpdateAsync(T entity)
         {
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.Now;
             _context.Update(entity);
             await _context.SaveChangesAsync();
         }
@@ -36,6 +36,7 @@ namespace FCSP.Repositories.Implementations
             if (entity != null)
             {
                 entity.IsDeleted = true;
+                entity.UpdatedAt = DateTime.Now;
                 Entities.Update(entity);
                 await _context.SaveChangesAsync();
             }
