@@ -104,8 +104,8 @@ public class CustomShoeDesignController : ControllerBase
     /// <param name="request">Custom shoe design ID</param>
     /// <param name="designDto">Updated custom shoe design data</param>
     /// <returns>Updated custom shoe design</returns>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCustomShoeDesign([FromRoute]long id, [FromBody] UpdateCustomShoeDesignRequest request)
+    [HttpPut]
+    public async Task<IActionResult> UpdateCustomShoeDesign([FromForm] UpdateCustomShoeDesignRequest request)
     {
         var response = await _customShoeDesignService.UpdateCustomShoeDesign(request);
         return StatusCode(response.Code, response);

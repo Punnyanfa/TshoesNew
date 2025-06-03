@@ -1,5 +1,6 @@
 ﻿using FCSP.Common.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Security;
 
 namespace FCSP.DTOs.Order
 {
@@ -32,6 +33,8 @@ namespace FCSP.DTOs.Order
         public string Status { get; set; }
         public string ShippingStatus { get; set; }
         public string PaymentMethod { get; set; }
+        public long RatingId { get; set; }
+        public int UserRating { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public OrderDetailResponseDto OrderDetail { get; set; } = null!;

@@ -12,13 +12,16 @@ namespace FCSP.Services.RatingService
     {
         private readonly IRatingRepository _ratingRepository;
         private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
+        private readonly IOrderRepository _orderRepository;
 
         public RatingService(
             IRatingRepository ratingRepository,
-            ICustomShoeDesignRepository customShoeDesignRepository)
+            ICustomShoeDesignRepository customShoeDesignRepository,
+            IOrderRepository orderRepository)
         {
             _ratingRepository = ratingRepository;
             _customShoeDesignRepository = customShoeDesignRepository;
+            _orderRepository = orderRepository;
         }
 
         #region Public Methods
@@ -41,6 +44,7 @@ namespace FCSP.Services.RatingService
                     Data = ratings.Select(d => new GetRatingByIdResponse
                     {
                         Id = d.Id,
+                        CustomShoeDesignId = d.CustomShoeDesignId,
                         DesignName = d.CustomShoeDesign.Name,
                         DesignPreviewUrl = d.CustomShoeDesign.DesignPreviews?.FirstOrDefault()?.PreviewImageUrl ?? string.Empty,
                         UserName = d.User.Name,
@@ -88,7 +92,7 @@ namespace FCSP.Services.RatingService
         {
             try
             {
-                var rating = await AddRatingInternal(request);
+                var rating = await AddRatingAsync(request);
                 return new BaseResponseModel<AddRatingResponse>
                 {
                     Code = 200,
@@ -153,29 +157,6 @@ namespace FCSP.Services.RatingService
             }
         }
 
-        public async Task<BaseResponseModel<List<CustomShoeRatingStats>>> GetCustomShoeRatingStats()
-        {
-            try
-            {
-                var stats = await GetCustomShoeRatingStatsInternal();
-                return new BaseResponseModel<List<CustomShoeRatingStats>>
-                {
-                    Code = 200,
-                    Message = "Rating stats retrieved successfully",
-                    Data = stats
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponseModel<List<CustomShoeRatingStats>>
-                {
-                    Code = 500,
-                    Message = ex.Message,
-                    Data = null
-                };
-            }
-        }
-
         public async Task<BaseResponseModel<List<TopRatedCustomShoe>>> GetTopRatedCustomShoes()
         {
             try
@@ -199,12 +180,12 @@ namespace FCSP.Services.RatingService
             }
         }
 
-        public async Task<BaseResponseModel<CustomShoeRatingStats>> GetCustomShoeRatingStatsById(long customShoeDesignId)
+        public async Task<BaseResponseModel<GetRatingsByCustomShoeDesignIdResponse>> GetRatingsByCustomShoeDesignId(GetRatingsByCustomShoeDesignIdRequest request)
         {
             try
             {
-                var stats = await GetCustomShoeRatingStatsByIdInternal(customShoeDesignId);
-                return new BaseResponseModel<CustomShoeRatingStats>
+                var stats = await GetCustomShoeDesignRatings(request);
+                return new BaseResponseModel<GetRatingsByCustomShoeDesignIdResponse>
                 {
                     Code = 200,
                     Message = "Rating stats for custom shoe design retrieved successfully",
@@ -213,7 +194,7 @@ namespace FCSP.Services.RatingService
             }
             catch (Exception ex)
             {
-                return new BaseResponseModel<CustomShoeRatingStats>
+                return new BaseResponseModel<GetRatingsByCustomShoeDesignIdResponse>
                 {
                     Code = 500,
                     Message = ex.Message,
@@ -241,12 +222,22 @@ namespace FCSP.Services.RatingService
             return rating;
         }
 
-        private async Task<Rating> AddRatingInternal(AddRatingRequest request)
+        private async Task<Rating> AddRatingAsync(AddRatingRequest request)
         {
             var customShoeDesign = await _customShoeDesignRepository.FindAsync(request.CustomShoeDesignId);
             if (customShoeDesign == null || customShoeDesign.IsDeleted)
             {
                 throw new InvalidOperationException($"Custom shoe design with ID {request.CustomShoeDesignId} not found or has been deleted");
+            }
+
+            var rate = await _ratingRepository.GetAll()
+                                .Where(r => r.CustomShoeDesignId == request.CustomShoeDesignId)
+                                .Where(r => r.UserId == request.UserId)
+                                .Where(r => r.IsDeleted == false)
+                                .ToListAsync();
+            if (rate != null)
+            {
+                throw new InvalidOperationException($"User {request.UserId} has already rated custom shoe design {request.CustomShoeDesignId}");
             }
 
             var rating = new Rating
@@ -313,36 +304,6 @@ namespace FCSP.Services.RatingService
             };
         }
 
-        private async Task<List<CustomShoeRatingStats>> GetCustomShoeRatingStatsInternal()
-        {
-            var ratings = await _ratingRepository.GetAllAsync();
-            var groupedRatings = ratings
-                .Where(r => !r.IsDeleted) // Lọc các bản ghi chưa bị xóa mềm
-                .GroupBy(r => r.CustomShoeDesignId)
-                .Select(g => new CustomShoeRatingStats
-                {
-                    CustomShoeDesignId = g.Key,
-                    RatingBreakdown = g.GroupBy(r => r.UserRating)
-                        .ToDictionary(
-                            r => r.Key,
-                            r => r.Count()
-                        )
-                }).ToList();
-
-            foreach (var stat in groupedRatings)
-            {
-                for (int i = 1; i <= 5; i++)
-                {
-                    if (!stat.RatingBreakdown.ContainsKey(i))
-                    {
-                        stat.RatingBreakdown[i] = 0;
-                    }
-                }
-            }
-
-            return groupedRatings;
-        }
-
         private async Task<List<TopRatedCustomShoe>> GetTopRatedCustomShoesInternal()
         {
             var ratings = await _ratingRepository.GetAllAsync();
@@ -359,36 +320,30 @@ namespace FCSP.Services.RatingService
                 .ToList();
         }
 
-        private async Task<CustomShoeRatingStats> GetCustomShoeRatingStatsByIdInternal(long customShoeDesignId)
+        private async Task<GetRatingsByCustomShoeDesignIdResponse> GetCustomShoeDesignRatings(GetRatingsByCustomShoeDesignIdRequest request)
         {
-            var ratings = await _ratingRepository.GetAllAsync();
-            var filteredRatings = ratings
-                .Where(r => !r.IsDeleted && r.CustomShoeDesignId == customShoeDesignId) // Lọc các bản ghi chưa bị xóa mềm
-                .ToList();
+            var ratings = await _ratingRepository.GetAll()
+                                                .Include(r => r.User)
+                                                .Where(r => !r.IsDeleted && r.CustomShoeDesignId == request.CustomShoeDesignId)
+                                                .ToListAsync(); // Lọc các bản ghi chưa bị xóa mềm
 
-            if (!filteredRatings.Any())
+            if (!ratings.Any())
             {
-                throw new InvalidOperationException($"No ratings found for CustomShoeDesignId {customShoeDesignId}");
+                throw new InvalidOperationException($"No ratings found for CustomShoeDesignId {request.CustomShoeDesignId}");
             }
 
-            var stats = new CustomShoeRatingStats
+            var stats = new GetRatingsByCustomShoeDesignIdResponse
             {
-                CustomShoeDesignId = customShoeDesignId,
-                RatingBreakdown = filteredRatings
-                    .GroupBy(r => r.UserRating)
-                    .ToDictionary(
-                        r => r.Key,
-                        r => r.Count()
-                    )
-            };
-
-            for (int i = 1; i <= 5; i++)
-            {
-                if (!stats.RatingBreakdown.ContainsKey(i))
+                CustomShoeDesignId = request.CustomShoeDesignId,
+                Rating = ratings.Select(r => new RatingDto
                 {
-                    stats.RatingBreakdown[i] = 0;
-                }
-            }
+                    UserId = r.UserId,
+                    UserName = r.User.Name,
+                    UserRating = r.UserRating,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt
+                })
+            };
 
             return stats;
         }

@@ -22,6 +22,7 @@ namespace FCSP.Services.OrderService
         private readonly IUserRepository _userRepository;
         private readonly ISizeRepository _sizeRepository;
         private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
+        private readonly IRatingRepository _ratingRepository;
 
         public OrderService(
             IOrderRepository orderRepository,
@@ -33,7 +34,8 @@ namespace FCSP.Services.OrderService
             ICustomShoeDesignRepository customShoeDesignRepository,
             IUserRepository userRepository,
             ISizeRepository sizeRepository,
-            ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository)
+            ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository,
+            IRatingRepository ratingRepository)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -45,6 +47,7 @@ namespace FCSP.Services.OrderService
             _userRepository = userRepository;
             _sizeRepository = sizeRepository;
             _customShoeDesignTemplateRepository = customShoeDesignTemplateRepository;
+            _ratingRepository = ratingRepository;
         }
 
         #region Public Methods
@@ -295,6 +298,10 @@ namespace FCSP.Services.OrderService
                 throw new InvalidOperationException($"No orders found for user with ID {request.UserId}");
             }
 
+            var rating = await _ratingRepository.GetAll()
+                                        .Where(r => r.UserId == request.UserId && r.IsDeleted == false)
+                                        .ToListAsync();
+
             return orders.Select(o => new GetOrderByIdResponse
             {
                 Id = o.Id,
@@ -305,6 +312,8 @@ namespace FCSP.Services.OrderService
                 ShippingStatus = o.ShippingStatus.ToString(),
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
                 TotalPrice = o.TotalPrice,
+                RatingId = rating?.FirstOrDefault(r => r.CustomShoeDesignId == o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id)?.Id ?? 0,
+                UserRating = rating?.FirstOrDefault(r => r.CustomShoeDesignId == o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id)?.UserRating ?? 0,
                 CreatedAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto

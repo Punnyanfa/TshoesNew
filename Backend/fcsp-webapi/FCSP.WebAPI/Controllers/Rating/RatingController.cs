@@ -62,13 +62,6 @@ namespace FCSP.WebAPI.Controllers.Rating
             return StatusCode(response.Code, response);
         }
 
-        [HttpGet("stats")]
-        public async Task<IActionResult> GetCustomShoeRatingStats()
-        {
-            var stats = await _ratingService.GetCustomShoeRatingStats();
-            return StatusCode(stats.Code, stats);
-        }
-
         [HttpGet("top-rated")]
         public async Task<IActionResult> GetTopRatedCustomShoes()
         {
@@ -76,12 +69,13 @@ namespace FCSP.WebAPI.Controllers.Rating
             return StatusCode(topRated.Code, topRated);
         }
 
-        [HttpGet("stats/{customShoeDesignId}")]
-        public async Task<IActionResult> GetCustomShoeRatingStatsById(long customShoeDesignId)
+        [HttpGet("design/{id}")]
+        public async Task<IActionResult> GetCustomShoeRatingStatsById([FromRoute] long id)
         {
             try
             {
-                var response = await _ratingService.GetCustomShoeRatingStatsById(customShoeDesignId);
+                var request = new GetRatingsByCustomShoeDesignIdRequest { CustomShoeDesignId = id }; 
+                var response = await _ratingService.GetRatingsByCustomShoeDesignId(request);
                 return StatusCode(response.Code, response);
             }
             catch (InvalidOperationException ex)

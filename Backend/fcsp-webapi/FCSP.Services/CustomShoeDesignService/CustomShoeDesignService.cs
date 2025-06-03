@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FCSP.DTOs;
 using FCSP.DTOs.CustomShoeDesign;
+using FCSP.DTOs.DesignPreview;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -9,14 +10,12 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 
-
 namespace FCSP.Services.CustomShoeDesignService;
 
 public class CustomShoeDesignService : ICustomShoeDesignService
 {
     private readonly IOrderDetailRepository _orderDetailRepository;
     private readonly ICustomShoeDesignRepository _customShoeDesignRepository;
-    private readonly ICustomShoeDesignTextureRepository _customShoeDesignTextureRepository;
     private readonly IDesignPreviewRepository _designPreviewRepository;
     private readonly ICustomShoeDesignTexturesRepository _customShoeDesignTexturesRepository;
     private readonly ICustomShoeDesignTemplateRepository _customShoeDesignTemplateRepository;
@@ -31,7 +30,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     public CustomShoeDesignService(
         ICustomShoeDesignRepository customShoeDesignRepository,
         IOrderDetailRepository orderDetailRepository,
-        ICustomShoeDesignTextureRepository customShoeDesignTextureRepository,
         IDesignPreviewRepository designPreviewRepository,
         ICustomShoeDesignTexturesRepository customShoeDesignTexturesRepository,
         ICustomShoeDesignTemplateRepository customShoeDesignTemplateRepository,
@@ -42,7 +40,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
     {
         _customShoeDesignRepository = customShoeDesignRepository;
         _orderDetailRepository = orderDetailRepository;
-        _customShoeDesignTextureRepository = customShoeDesignTextureRepository;
         _designPreviewRepository = designPreviewRepository;
         _customShoeDesignTexturesRepository = customShoeDesignTexturesRepository;
         _customShoeDesignTemplateRepository = customShoeDesignTemplateRepository;
@@ -253,7 +250,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
             if (designTextures.Any())
             {
-                await _customShoeDesignTextureRepository.AddRangeAsync(designTextures);
+                await _customShoeDesignTexturesRepository.AddRangeAsync(designTextures);
             }
 
             if (designServices.Any())
@@ -325,7 +322,11 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
             await _customShoeDesignRepository.UpdateAsync(design);
 
+            await UpdateCustomShoeDesignPreviewImages(request);
+
             await UpdateCustomShoeDesignTextures(request);
+
+            await UpdateCustomShoeDesignServices(request);
 
             return new BaseResponseModel<UpdateCustomShoeDesignResponse>
             {
@@ -496,22 +497,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             return null;
         }
-
-        // long manufacturerId = 0;
-        // var designServices = await _designServiceRepository.GetAll()
-        //     .Include(ds => ds.Service)
-        //         .ThenInclude(s => s.Manufacturer)
-        //     .Where(ds => ds.CustomShoeDesignId == design.Id)
-        //     .ToListAsync();
-
-        // if (designServices != null && designServices.Any())
-        // {
-        //     var firstService = designServices.First();
-        //     if (firstService.Service?.ManufacturerId != null)
-        //     {
-        //         manufacturerId = firstService.Service.ManufacturerId;
-        //     }
-        // }
 
         var totalAmount = await CalculateTotalAmount(design);
         return new GetCustomShoeDesignByIdResponse
@@ -739,11 +724,83 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             throw new InvalidOperationException($"Custom shoe design template with ID {request.CustomShoeDesignTemplateId} not found");
         }
 
-        design.DesignData = request.DesignData ?? design.DesignData;
-        design.UpdatedAt = DateTime.UtcNow;
+        int servicesPrice = 0;
+        if (request.ServiceIds != null && request.ServiceIds.Any())
+        {
+            foreach (var serviceId in request.ServiceIds)
+            {
+                var serviceAmount = await _serviceRepository.FindAsync(serviceId);
+                if (serviceAmount != null)
+                {
+                    servicesPrice += serviceAmount.Price;
+                }
+            }
+        }
+
+        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
+        string fileName = $"designData_{formattedDateTime}.json";
+        byte[] fileBytes;
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await request.DesignData.CopyToAsync(memoryStream);
+            fileBytes = memoryStream.ToArray();
+        }
+        var designDataPath = await UploadDesignDataToAzureStorage(fileName, fileBytes);
+
+
+        design.DesignData = designDataPath;
+        design.Name = request.Name;
+        design.Description = request.Description;
+        design.DesignerMarkup = request.DesignerMarkup ?? 0;
+
         return design;
     }
 
+    private async Task UpdateCustomShoeDesignPreviewImages(UpdateCustomShoeDesignRequest request)
+    {
+        if (request.CustomShoeDesignPreviewImages == null || !request.CustomShoeDesignPreviewImages.Any())
+        {
+            throw new InvalidOperationException("No preview images provided");
+        }
+
+        // Get existing preview images
+        var existingPreviewImages = await _designPreviewRepository.GetPreviewsByCustomShoeDesignIdAsync(request.Id);
+        
+        // Delete existing preview images
+        if (existingPreviewImages.Any())
+        {
+            await _designPreviewRepository.RemoveRangeAsync(existingPreviewImages.Select(p => p.Id));
+        }
+
+        // Upload new preview images
+        List<DesignPreview> previewImages = new List<DesignPreview>();
+        foreach (var previewImage in request.CustomShoeDesignPreviewImages)
+        {
+            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
+            string fileName = $"previewImage_{Guid.NewGuid()}_{formattedDateTime}.jpeg";
+            byte[] fileBytes;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await previewImage.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+            var previewImagePath = await UploadImageToAzureStorage(fileName, fileBytes);
+            previewImages.Add(new DesignPreview
+            {
+                CustomShoeDesignId = request.Id,
+                PreviewImageUrl = previewImagePath,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+
+            await _designPreviewRepository.AddRangeAsync(previewImages);
+        }
+    }
+    
     private async Task UpdateCustomShoeDesignTextures(UpdateCustomShoeDesignRequest request)
     {
         var existingTextures = await _customShoeDesignTexturesRepository.GetByCustomShoeDesignIdAsync(request.Id);
@@ -751,7 +808,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
         if (request.TextureIds == null || !request.TextureIds.Any())
         {
-            await _customShoeDesignTextureRepository.RemoveRangeAsync(existingTextures.Select(t => t.Id));
+            await _customShoeDesignTexturesRepository.RemoveRangeAsync(existingTextures.Select(t => t.Id));
             return;
         }
 
@@ -759,7 +816,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
         if (removeTextureIds.Any())
         {
-            await _customShoeDesignTextureRepository.RemoveRangeAsync(removeTextureIds);
+            await _customShoeDesignTexturesRepository.RemoveRangeAsync(removeTextureIds);
         }
 
         var addTextureIds = request.TextureIds.Except(existingTextureIds).ToList();
@@ -774,7 +831,41 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 UpdatedAt = DateTime.UtcNow
             });
 
-            await _customShoeDesignTextureRepository.AddRangeAsync(newTextures);
+            await _customShoeDesignTexturesRepository.AddRangeAsync(newTextures);
+        }
+    }
+
+    private async Task UpdateCustomShoeDesignServices(UpdateCustomShoeDesignRequest request)
+    {
+        var existingServices = await _designServiceRepository.GetServicesByCustomShoeDesignIdAsync(request.Id);
+        var existingServiceIds = existingServices.Select(s => s.ServiceId).ToList();
+
+        if (request.ServiceIds == null || !request.ServiceIds.Any())
+        {
+            await _designServiceRepository.RemoveRangeAsync(existingServices.Select(s => s.Id));
+            return;
+        }
+
+        var removeServiceIds = existingServiceIds.Except(request.ServiceIds).ToList();
+
+        if (removeServiceIds.Any())
+        {
+            await _designServiceRepository.RemoveRangeAsync(removeServiceIds);
+        }
+
+        var addServiceIds = request.ServiceIds.Except(existingServiceIds).ToList();
+
+        if (addServiceIds.Any())
+        {
+            var newServices = addServiceIds.Select(serviceId => new DesignService
+            {
+                CustomShoeDesignId = request.Id,
+                ServiceId = serviceId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+
+            await _designServiceRepository.AddRangeAsync(newServices);
         }
     }
 

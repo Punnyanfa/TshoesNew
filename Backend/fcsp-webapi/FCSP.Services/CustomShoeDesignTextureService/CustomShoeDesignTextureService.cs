@@ -7,16 +7,16 @@ namespace FCSP.Services.CustomShoeDesignTextureService
 {
     public class CustomShoeDesignTextureService : ICustomShoeDesignTextureService
     {
-        private readonly ICustomShoeDesignTextureRepository _customShoeDesignTextureRepository;
+        private readonly ICustomShoeDesignTexturesRepository _customShoeDesignTexturesRepository;
 
-        public CustomShoeDesignTextureService(ICustomShoeDesignTextureRepository customShoeDesignTextureRepository)
+        public CustomShoeDesignTextureService(ICustomShoeDesignTexturesRepository customShoeDesignTexturesRepository)
         {
-            _customShoeDesignTextureRepository = customShoeDesignTextureRepository;
+            _customShoeDesignTexturesRepository = customShoeDesignTexturesRepository;
         }
 
         public async Task<IEnumerable<CustomShoeDesignTextures>> GetAllCustomShoeDesignTextures()
         {
-            var response = await _customShoeDesignTextureRepository.GetAllAsync();
+            var response = await _customShoeDesignTexturesRepository.GetAllAsync();
             return response;
         }
 
@@ -33,27 +33,27 @@ namespace FCSP.Services.CustomShoeDesignTextureService
         public async Task<AddCustomShoeDesignTextureResponse> AddCustomShoeDesignTexture(AddCustomShoeDesignTextureRequest request)
         {
             CustomShoeDesignTextures customShoeDesignTexture = GetEntityFromAddRequest(request);
-            var addedCustomShoeDesignTexture = await _customShoeDesignTextureRepository.AddAsync(customShoeDesignTexture);
+            var addedCustomShoeDesignTexture = await _customShoeDesignTexturesRepository.AddAsync(customShoeDesignTexture);
             return new AddCustomShoeDesignTextureResponse { Id = addedCustomShoeDesignTexture.Id };
         }
 
         public async Task<AddCustomShoeDesignTextureResponse> UpdateCustomShoeDesignTexture(UpdateCustomShoeDesignTextureRequest request)
         {
             CustomShoeDesignTextures customShoeDesignTexture = await GetEntityFromUpdateRequest(request);
-            await _customShoeDesignTextureRepository.UpdateAsync(customShoeDesignTexture);
+            await _customShoeDesignTexturesRepository.UpdateAsync(customShoeDesignTexture);
             return new AddCustomShoeDesignTextureResponse { Id = customShoeDesignTexture.Id };
         }
 
         public async Task<AddCustomShoeDesignTextureResponse> DeleteCustomShoeDesignTexture(DeleteCustomShoeDesignTextureRequest request)
         {
             CustomShoeDesignTextures customShoeDesignTexture = await GetEntityFromDeleteRequest(request);
-            await _customShoeDesignTextureRepository.DeleteAsync(customShoeDesignTexture.Id);
+            await _customShoeDesignTexturesRepository.DeleteAsync(customShoeDesignTexture.Id);
             return new AddCustomShoeDesignTextureResponse { Id = customShoeDesignTexture.Id };
         }
 
         private async Task<CustomShoeDesignTextures> GetEntityFromGetByIdRequest(GetCustomShoeDesignTextureByIdRequest request)
         {
-            CustomShoeDesignTextures customShoeDesignTexture = await _customShoeDesignTextureRepository.FindAsync(request.Id);
+            CustomShoeDesignTextures customShoeDesignTexture = await _customShoeDesignTexturesRepository.FindAsync(request.Id);
             if (customShoeDesignTexture == null)
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");
@@ -74,7 +74,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
 
         private async Task<CustomShoeDesignTextures> GetEntityFromUpdateRequest(UpdateCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTextures customShoeDesignTexture = await _customShoeDesignTextureRepository.FindAsync(request.Id);
+            CustomShoeDesignTextures customShoeDesignTexture = await _customShoeDesignTexturesRepository.FindAsync(request.Id);
             if (customShoeDesignTexture == null)
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");
@@ -88,7 +88,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
 
         private async Task<CustomShoeDesignTextures> GetEntityFromDeleteRequest(DeleteCustomShoeDesignTextureRequest request)
         {
-            CustomShoeDesignTextures customShoeDesignTexture = await _customShoeDesignTextureRepository.FindAsync(request.Id);
+            CustomShoeDesignTextures customShoeDesignTexture = await _customShoeDesignTexturesRepository.FindAsync(request.Id);
             if (customShoeDesignTexture == null)
             {
                 throw new InvalidOperationException("CustomShoeDesignTexture not found");

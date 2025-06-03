@@ -10,6 +10,7 @@ namespace FCSP.DTOs.Rating
     public class GetRatingByIdResponse
     {
         public long Id { get; set; }
+        public long CustomShoeDesignId { get; set; }
         public string? DesignName { get; set; }
         public string? DesignPreviewUrl { get; set; }
         public string? UserName { get; set; }
@@ -66,10 +67,24 @@ namespace FCSP.DTOs.Rating
         public bool Success { get; set; }
     }
 
-    public class CustomShoeRatingStats
+    public class GetRatingsByCustomShoeDesignIdRequest
     {
         public long CustomShoeDesignId { get; set; }
-        public Dictionary<int, int> RatingBreakdown { get; set; } = new Dictionary<int, int>();
+    }
+
+    public class GetRatingsByCustomShoeDesignIdResponse
+    {
+        public long CustomShoeDesignId { get; set; }
+        public IEnumerable<RatingDto> Rating { get; set; } = Enumerable.Empty<RatingDto>();
+    }
+
+    public class RatingDto
+    {
+        public long UserId { get; set; }
+        public string? UserName { get; set; }
+        public int UserRating { get; set; }
+        public string? Comment { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class TopRatedCustomShoe
