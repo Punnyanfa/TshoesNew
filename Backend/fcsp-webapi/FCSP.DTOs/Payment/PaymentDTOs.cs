@@ -1,5 +1,6 @@
 using FCSP.DTOs;
 using FCSP.Common.Enums;
+using Net.payOS.Types;
 
 namespace FCSP.DTOs.Payment
 {
@@ -30,10 +31,19 @@ namespace FCSP.DTOs.Payment
     public class GetPaymentInfoResponse
     {
         public long PaymentId { get; set; }
-        public String Status { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public int Amount { get; set; }
         public int AmountPaid { get; set; }
         public int AmountRemaining { get; set; }
+        public IEnumerable<Net.payOS.Types.Transaction> Transactions = new List<Transaction>();
+    }
+
+    public class PayOSPaymentDTO
+    {
+        public long Id { get; set; }
+        public int Amount { get; set; }
+        public long OrderId { get; set; }
+        public string PaymentMessage { get; set; } = string.Empty;
     }
 
     public class AddPaymentRequest
