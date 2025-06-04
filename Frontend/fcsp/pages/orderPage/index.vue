@@ -95,7 +95,7 @@
                         <img v-if="item.image" :src="item.image" alt="product" class="product-image me-2">
                         <div>
                           <div class="product-name">{{ item.name }}</div>
-                          <div class="product-size text-muted">Size: {{ mappedSizes[item.id] || 'Loading...' }}</div>
+                          <div class="product-size text-muted">Size: {{ item.selectedSize || 'Loading...' }}</div>
                         </div>
                       </div>
                     </td>
