@@ -139,17 +139,6 @@
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
               <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge) }}</p>
-              <div class="quantity-section">
-                <p><strong>Quantity:</strong></p>
-                <div class="quantity-input">
-                  <input 
-                    type="number" 
-                    v-model="selectedQuantity"
-                    @input="updateQuantity($event)"
-                    min="1"
-                    class="quantity-value">
-                </div>
-              </div>
             </div>
           </div>
           
@@ -521,9 +510,6 @@ const showConfirmModal = ref(false)
 const selectedAngleIndex = ref(0)
 const customProductName = ref('')
 const generatedImageUrl = ref('')
-
-// Size and quantity selection
-const selectedQuantity = ref(1)
 
 // Manufacturer and pricing
 const apiSurcharges = ref([])
