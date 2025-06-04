@@ -575,6 +575,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 Name = d.Name,
                 Description = d.Description,
                 PreviewImageUrl = d.DesignPreviews?.OrderBy(p => p.CreatedAt).Skip(3).FirstOrDefault()?.PreviewImageUrl,
+                TemplateId = d.CustomShoeDesignTemplateId,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount,
