@@ -13,23 +13,23 @@
             <input 
               type="text" 
               v-model="searchQuery" 
-              placeholder="Search by order ID or customer name..."
-              @input="handleSearch"
+              placeholder="Search by Order ID..."
             >
           </div>
           <div class="filter-section">
-            <select v-model="statusFilter" @change="handleFilter">
+            <select v-model="statusFilter">
               <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
+              <option value="PENDING">Pending</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="FAILED">Failed</option>
+              <!-- Removed Refunded as it's not in current API status values -->
             </select>
             <i class="fas fa-chevron-down select-icon"></i>
           </div>
         </div>
       </div>
 
+      <!-- Keep stats cards or remove if data not available from API -->
       <div class="stats-cards">
         <div class="stat-card">
           <div class="stat-icon completed">
@@ -37,8 +37,8 @@
           </div>
           <div class="stat-info">
             <h3>Completed</h3>
-            <p class="stat-value">$12,450</p>
-            <p class="stat-change positive">+12.5%</p>
+            <p class="stat-value">{{ formatCurrency(completedStats.total) }}</p>
+            <p class="stat-change positive">{{ completedStats.count }} transactions</p>
           </div>
         </div>
         <div class="stat-card">
@@ -47,8 +47,8 @@
           </div>
           <div class="stat-info">
             <h3>Pending</h3>
-            <p class="stat-value">$3,250</p>
-            <p class="stat-change">5 transactions</p>
+            <p class="stat-value">{{ formatCurrency(pendingStats.total) }}</p>
+            <p class="stat-change">{{ pendingStats.count }} transactions</p>
           </div>
         </div>
         <div class="stat-card">
@@ -57,8 +57,8 @@
           </div>
           <div class="stat-info">
             <h3>Failed</h3>
-            <p class="stat-value">$850</p>
-            <p class="stat-change negative">-2.3%</p>
+            <p class="stat-value">{{ formatCurrency(failedStats.total) }}</p>
+            <p class="stat-change negative">{{ failedStats.count }} transactions</p>
           </div>
         </div>
         <div class="stat-card">
@@ -67,8 +67,8 @@
           </div>
           <div class="stat-info">
             <h3>Refunded</h3>
-            <p class="stat-value">$1,200</p>
-            <p class="stat-change">3 transactions</p>
+            <p class="stat-value">{{ formatCurrency(refundedStats.total) }}</p>
+            <p class="stat-change">{{ refundedStats.count }} transactions</p>
           </div>
         </div>
       </div>
@@ -76,38 +76,25 @@
       <div class="payment-table-container">
         <div class="table-header">
           <h2>Recent Transactions</h2>
-          <div class="table-actions">
-            <button class="export-btn">
-              <i class="fas fa-download"></i>
-              Export
-            </button>
-          </div>
+          <!-- Removed Export button as related action methods are removed -->
         </div>
         <div class="payment-table">
           <table>
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Order ID</th>
-                <th>Customer</th>
                 <th>Amount</th>
                 <th>Payment Method</th>
-                <th>Date</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <!-- Removed Customer, Date, Actions columns -->
               </tr>
             </thead>
             <tbody>
-              <tr v-for="payment in filteredPayments" :key="payment.id" class="table-row">
+              <tr v-for="payment in paginatedPayments" :key="payment.id" class="table-row">
+                <td>{{ payment.id }}</td>
                 <td>
                   <span class="order-id">{{ payment.orderId }}</span>
-                </td>
-                <td>
-                  <div class="customer-info">
-                    <div class="customer-avatar">
-                      {{ getInitials(payment.customerName) }}
-                    </div>
-                    <span>{{ payment.customerName }}</span>
-                  </div>
                 </td>
                 <td>
                   <span class="amount">{{ formatCurrency(payment.amount) }}</span>
@@ -115,238 +102,179 @@
                 <td>
                   <div class="payment-method">
                     <i :class="getPaymentMethodIcon(payment.paymentMethod)"></i>
-                    <span>{{ payment.paymentMethod }}</span>
+                    <span>{{ formatPaymentMethod(payment.paymentMethod) }}</span>
                   </div>
                 </td>
                 <td>
-                  <span class="date">{{ formatDate(payment.date) }}</span>
-                </td>
-                <td>
-                  <span :class="['status-badge', payment.status.toLowerCase()]">
-                    {{ payment.status }}
+                  <span :class="['status-badge', formatStatus(payment.status).toLowerCase()]">
+                    {{ formatStatus(payment.status) }}
                   </span>
                 </td>
-                <td>
-                  <div class="action-buttons">
-                    <button 
-                      class="action-btn view-btn"
-                      @click="viewPaymentDetails(payment)"
-                      title="View Details"
-                    >
-                      <i class="fas fa-eye"></i>
-                    </button>
-                    <button 
-                      v-if="payment.status === 'PENDING'"
-                      class="action-btn approve-btn"
-                      @click="approvePayment(payment)"
-                      title="Approve Payment"
-                    >
-                      <i class="fas fa-check"></i>
-                    </button>
-                    <button 
-                      v-if="payment.status === 'COMPLETED'"
-                      class="action-btn refund-btn"
-                      @click="refundPayment(payment)"
-                      title="Refund Payment"
-                    >
-                      <i class="fas fa-undo"></i>
-                    </button>
-                  </div>
-                </td>
+                <!-- Removed Customer, Date, Actions cells -->
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
-
-      <!-- Payment Details Modal -->
-      <div v-if="showModal" class="modal-overlay" @click="closeModal">
-        <div class="modal-content" @click.stop>
-          <div class="modal-header">
-            <h2>Payment Details</h2>
-            <button @click="closeModal" class="close-btn">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="modal-body" v-if="selectedPayment">
-            <div class="detail-section">
-              <h3>Transaction Information</h3>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="label">Order ID</span>
-                  <span class="value">{{ selectedPayment.orderId }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Transaction ID</span>
-                  <span class="value">{{ selectedPayment.transactionId }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Amount</span>
-                  <span class="value amount">{{ formatCurrency(selectedPayment.amount) }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Status</span>
-                  <span :class="['status-badge', selectedPayment.status.toLowerCase()]">
-                    {{ selectedPayment.status }}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="detail-section">
-              <h3>Customer Information</h3>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="label">Customer Name</span>
-                  <span class="value">{{ selectedPayment.customerName }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Payment Method</span>
-                  <div class="payment-method">
-                    <i :class="getPaymentMethodIcon(selectedPayment.paymentMethod)"></i>
-                    <span>{{ selectedPayment.paymentMethod }}</span>
-                  </div>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Date</span>
-                  <span class="value">{{ formatDate(selectedPayment.date) }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <!-- Add pagination -->
+        <div class="pagination">
+          <button 
+            class="pagination-btn" 
+            :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button 
+            class="pagination-btn" 
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </div>
+
+      <!-- Removed Payment Details Modal -->
+
     </div>
   </div>
 </template>
 
 <script>
+import AdminSidebar from '~/components/AdminSidebar.vue'
+import { getPayment } from '~/server/payment-service'
+
 export default {
   name: 'ManagePayment',
+  components: { AdminSidebar },
   data() {
     return {
       searchQuery: '',
       statusFilter: '',
-      showModal: false,
-      selectedPayment: null,
-      payments: [
-        {
-          id: 1,
-          orderId: 'ORD-001',
-          customerName: 'John Doe',
-          amount: 150.00,
-          paymentMethod: 'Credit Card',
-          date: '2024-03-15',
-          status: 'COMPLETED',
-          transactionId: 'TRX-123456'
-        },
-        {
-          id: 2,
-          orderId: 'ORD-002',
-          customerName: 'Jane Smith',
-          amount: 75.50,
-          paymentMethod: 'PayPal',
-          date: '2024-03-14',
-          status: 'PENDING',
-          transactionId: 'TRX-123457'
-        },
-        {
-          id: 3,
-          orderId: 'ORD-003',
-          customerName: 'Mike Johnson',
-          amount: 299.99,
-          paymentMethod: 'Bank Transfer',
-          date: '2024-03-13',
-          status: 'FAILED',
-          transactionId: 'TRX-123458'
-        },
-        {
-          id: 4,
-          orderId: 'ORD-004',
-          customerName: 'Sarah Wilson',
-          amount: 199.50,
-          paymentMethod: 'Credit Card',
-          date: '2024-03-12',
-          status: 'REFUNDED',
-          transactionId: 'TRX-123459'
-        }
-      ]
+      payments: [],
+      loading: true,
+      error: null,
+      currentPage: 1,
+      itemsPerPage: 10,
     }
   },
   computed: {
     filteredPayments() {
       return this.payments.filter(payment => {
         const matchesSearch = 
-          payment.orderId.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          payment.customerName.toLowerCase().includes(this.searchQuery.toLowerCase())
+          String(payment.orderId).toLowerCase().includes(this.searchQuery.toLowerCase());
         
         const matchesStatus = !this.statusFilter || 
-          payment.status.toLowerCase() === this.statusFilter.toLowerCase()
+          (payment.status !== undefined && payment.status !== null && this.formatStatus(payment.status).toLowerCase() === this.statusFilter.toLowerCase());
         
         return matchesSearch && matchesStatus
-      })
-    }
+      });
+    },
+    paginatedPayments() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredPayments.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredPayments.length / this.itemsPerPage);
+    },
+    completedStats() {
+      const completed = this.payments.filter(p => this.formatStatus(p.status) === 'COMPLETED');
+      return {
+        total: completed.reduce((sum, p) => sum + (p.amount || 0), 0),
+        count: completed.length
+      };
+    },
+    pendingStats() {
+      const pending = this.payments.filter(p => this.formatStatus(p.status) === 'PENDING');
+      return {
+        total: pending.reduce((sum, p) => sum + (p.amount || 0), 0),
+        count: pending.length
+      };
+    },
+    failedStats() {
+      const failed = this.payments.filter(p => this.formatStatus(p.status) === 'FAILED');
+      return {
+        total: failed.reduce((sum, p) => sum + (p.amount || 0), 0),
+        count: failed.length
+      };
+    },
+    refundedStats() {
+      const refunded = this.payments.filter(p => this.formatStatus(p.status) === 'REFUNDED');
+      return {
+        total: refunded.reduce((sum, p) => sum + (p.amount || 0), 0),
+        count: refunded.length
+      };
+    },
   },
   methods: {
     formatCurrency(amount) {
-      return new Intl.NumberFormat('en-US', {
+      return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
-        currency: 'USD'
-      }).format(amount)
+        currency: 'VND',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
     },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    },
-    getInitials(name) {
-      return name
-        .split(' ')
-        .map(word => word[0])
-        .join('')
-        .toUpperCase()
-    },
+    // Removed formatDate and getInitials methods
     getPaymentMethodIcon(method) {
+      // Map numeric payment method to icon class
       const icons = {
-        'Credit Card': 'fas fa-credit-card',
-        'PayPal': 'fab fa-paypal',
-        'Bank Transfer': 'fas fa-university'
+        0: 'fas fa-qrcode', // Example icon for PayOS (using qrcode icon)
+        1: 'fas fa-wallet', // Example icon for Wallet
       }
-      return icons[method] || 'fas fa-money-bill'
+      return icons[method] || 'fas fa-money-bill' // Default icon
     },
-    handleSearch() {
-      // Implement search logic
+    formatPaymentMethod(method) {
+      // Map numeric payment method to string
+      const methodMap = {
+        0: 'payOS',
+        1: 'wallet',
+      };
+      return methodMap[method] || 'Unknown';
     },
-    handleFilter() {
-      // Implement filter logic
+    formatStatus(status) {
+      // Map numeric status to string status
+      const statusMap = {
+        0: 'PENDING',
+        1: 'COMPLETED',
+        2: 'FAILED',
+        // Add other mappings if needed based on API response
+      };
+      return statusMap[status] || 'Unknown';
     },
-    viewPaymentDetails(payment) {
-      this.selectedPayment = payment
-      this.showModal = true
-    },
-    closeModal() {
-      this.showModal = false
-      this.selectedPayment = null
-    },
-    async approvePayment(payment) {
-      try {
-        // Implement payment approval logic
-        // await this.$axios.post(`/api/payments/${payment.id}/approve`)
-        this.$toast.success('Payment approved successfully')
-      } catch (error) {
-        this.$toast.error('Failed to approve payment')
+    // Removed handleSearch, handleFilter, viewPaymentDetails, closeModal, approvePayment, refundPayment
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
       }
     },
-    async refundPayment(payment) {
-      try {
-        // Implement refund logic
-        // await this.$axios.post(`/api/payments/${payment.id}/refund`)
-        this.$toast.success('Refund processed successfully')
-      } catch (error) {
-        this.$toast.error('Failed to process refund')
+  },
+  async created() {
+    try {
+      this.loading = true;
+      this.error = null;
+      console.log('Fetching payments...');
+      const response = await getPayment();
+      console.log('Payment API Full Response:', response);
+      
+      // Check if response is an object and contains a 'payments' array directly
+      if (response && typeof response === 'object' && Array.isArray(response.payments)) {
+          // Assign the array of payment objects directly from response.payments
+          this.payments = response.payments;
+          console.log('Payments loaded successfully.', this.payments);
+      } else {
+          console.error('API response does not contain a valid payments array at response.payments:', response);
+          this.error = 'Invalid data format from API';
       }
+      
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      this.error = 'Failed to load payments. Please try again.';
+    } finally {
+      this.loading = false;
+      console.log('Payment fetching finished. Loading state:', this.loading);
     }
   }
 }
@@ -921,5 +849,44 @@ td {
   .payment-table-container {
     margin-right: 12px;
   }
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  gap: 16px;
+  border-top: 1px solid #e3e8ef;
+}
+
+.pagination-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  background-color: white;
+  color: #1a1f36;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #697386;
 }
 </style> 
