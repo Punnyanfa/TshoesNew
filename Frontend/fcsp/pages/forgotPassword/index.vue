@@ -24,7 +24,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-// import { resetPassword } from "@/server/auth/forgotPassword-service"; // Bạn cần tạo hàm này để gọi API
+import { resetPassword } from "@/server/auth/forgotPassword-service"; // Bạn cần tạo hàm này để gọi API
 
 const router = useRouter();
 const route = useRoute();

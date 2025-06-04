@@ -245,6 +245,7 @@
   const errorMessage = ref('');
   const totalBeforeDiscount = ref(0);
   const availableVouchers = ref([]);
+  const selectedVoucherId = ref(null);
 
   // Add new ref for mapped sizes
   const mappedSizes = ref({});
@@ -454,7 +455,7 @@
 
       const orderDetailsArr = await Promise.all(orderDetailsPromises);
       const orderDetail = orderDetailsArr[0];
-      const voucherId = typeof selectedVoucherId !== 'undefined' ? selectedVoucherId : null;
+      const voucherId = selectedVoucherId.value ? selectedVoucherId.value : null;
 
       const orderData = {
         userId: parseInt(userId),
@@ -541,12 +542,14 @@
       const voucher = availableVouchers.value.find(v => 
         v.code.toLowerCase() === voucherCode.value.toLowerCase() && 
         !v.isUsed && 
+        (v.status === 0 || v.status === '0') &&
         new Date(v.expiryDate) > new Date()
       );
 
       if (voucher) {
         voucherApplied.value = true;
         discountAmount.value = voucher.discountAmount;
+        selectedVoucherId.value = voucher.id;
         // Recalculate the total
         calculateTotal();
         alert('Coupon applied successfully!'); // Keep English
@@ -560,6 +563,8 @@
           errorMessage.value = 'Discount code does not exist';
         } else if (existingVoucher.isUsed) {
           errorMessage.value = 'Discount code has been used';
+        } else if (!(existingVoucher.status === 0 || existingVoucher.status === '0')) {
+          errorMessage.value = 'Discount code is not active';
         } else if (new Date(existingVoucher.expiryDate) <= new Date()) {
           errorMessage.value = 'Discount code has expired';
         } else {
@@ -578,6 +583,7 @@
     voucherApplied.value = false;
     discountAmount.value = 0;
     errorMessage.value = '';
+    selectedVoucherId.value = null;
     calculateTotal();
   };
   
