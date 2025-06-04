@@ -138,7 +138,7 @@ namespace FCSP.WebAPI.Controllers
                             var designerAmount = (int)(designerMarkup * (designerCommissionRate / 100.0f));
                             
                             // Create transaction for designer
-                            var designerTransaction = new Transaction
+                            var designerTransaction = new Models.Entities.Transaction
                             {
                                 ReceiverId = designerId,
                                 OrderDetailId = orderDetail.Id,
@@ -171,7 +171,7 @@ namespace FCSP.WebAPI.Controllers
                                 var manufacturerAmount = (int)(serviceAmount * (manufacturerCommissionRate / 100.0f));
                                 
                                 // Create transaction for manufacturer
-                                var manufacturerTransaction = new Transaction
+                                var manufacturerTransaction = new Models.Entities.Transaction
                                 {
                                     ReceiverId = manufacturer.UserId,
                                     OrderDetailId = orderDetail.Id,

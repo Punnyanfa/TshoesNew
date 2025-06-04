@@ -521,6 +521,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             Id = design.Id,
             ManufacturerId = design.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
+            TemplateId = design.CustomShoeDesignTemplateId,
             Name = design.Name,
             Description = design.Description,
             Price = totalAmount,

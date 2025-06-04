@@ -24,6 +24,7 @@ using FCSP.Services;
 using FCSP.Services.ManufacturerService;
 using FCSP.Services.CartService;
 using FCSP.Repositories.Interfaces;
+using FCSP.Services.TransactionService;
 namespace FCSP.WebAPI.Configuration;
 
 internal static class ServiceConfig
@@ -75,6 +76,7 @@ internal static class ServiceConfig
         services.AddScoped<IOrderDetailService, OrderDetailService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IVoucherService, VoucherService>();
+        services.AddScoped<ITransactionService, TransactionService>();
 
         // Service & Manufacturer services
         services.AddScoped<IServiceService, ServiceService>();

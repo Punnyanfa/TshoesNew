@@ -71,6 +71,7 @@ namespace FCSP.DTOs.CustomShoeDesign
     {
         public long Id { get; set; }
         public long ManufacturerId { get; set; }
+        public long TemplateId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? TemplateUrl { get; set; }
