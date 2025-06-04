@@ -143,7 +143,8 @@
           </div>
           
           <div class="complete-actions">
-            <button class="action-button" @click="saveAsDraft">Save as Draft</button>
+            <button v-if="!isEditing" class="action-button" @click="saveAsDraft">Save as Draft</button>
+            <button v-if="isEditing" class="action-button primary-button" @click="updateDesign">Update Design</button>
           </div>
         </div>
       </div>
@@ -492,7 +493,7 @@ import { getTemplateById } from '~/server/custom-service'
 import { CustomShoeDesign } from '~/server/designUp-service'
 import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js'
 import { getMyCustomById } from '~/server/myCustom-service'
-import axios from 'axios' // Added Axios import for API calls
+import axios from 'axios'
 
 // Container reference and state
 const container = ref(null)
@@ -694,12 +695,17 @@ const captureCurrentAngle = () => {
 }
 
 const captureAllAngles = async () => {
-  const initialPosition = camera.position.clone()
-  const initialTarget = controls.target.clone()
-  controls.target.set(0, 0, 0)
+  if (!camera || !renderer || !scene || !controls) {
+    console.error('Three.js components not initialized properly');
+    throw new Error('Three.js components not initialized');
+  }
+
+  const initialPosition = camera.position.clone();
+  const initialTarget = controls.target.clone();
+  controls.target.set(0, 0, 0);
 
   for (let i = 0; i < captureAngles.length; i++) {
-    selectedAngleIndex.value = i
+     selectedAngleIndex.value = i
     const anglePosition = captureAngles[i].position
     camera.position.set(anglePosition.x, anglePosition.y, anglePosition.z)
     controls.update()
@@ -712,7 +718,7 @@ const captureAllAngles = async () => {
   controls.target.copy(initialTarget)
   controls.update()
   selectedAngleIndex.value = 0
-}
+};
 
 const downloadSelectedAngle = () => {
   const selectedAngle = captureAngles[selectedAngleIndex.value]
@@ -738,16 +744,6 @@ const handleDone = () => {
   captureAllAngles().then(() => {
     showCompleteModal.value = true
   })
-}
-
-// New confirmComplete function
-const confirmComplete = () => {
-  showCompleteModal.value = false
-  if (isEditing.value) {
-    completeDesign()
-  } else {
-    saveAsDraft()
-  }
 }
 
 // Image handling
@@ -933,46 +929,91 @@ const dataURLtoFile = (dataurl, filename) => {
 }
 
 // Three.js initialization
+// const initThree = () => {
+//   scene = new THREE.Scene()
+//   scene.background = new THREE.Color(0xf0f0f0)
+
+//   camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
+//   camera.position.set(0, 1, 8)
+
+//   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+//   renderer.setPixelRatio(window.devicePixelRatio)
+//   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+//   renderer.shadowMap.enabled = true
+//   renderer.shadowMap.type = THREE.PCFSoftShadowMap
+//   container.value.appendChild(renderer.domElement)
+
+//   // Lighting setup
+//   const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
+//   scene.add(ambientLight)
+
+//   const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
+//   mainLight.position.set(5, 10, 7)
+//   mainLight.castShadow = true
+//   mainLight.shadow.mapSize.width = 1024
+//   mainLight.shadow.mapSize.height = 1024
+//   scene.add(mainLight)
+
+//   const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
+//   fillLight.position.set(-5, 0, -5)
+//   scene.add(fillLight)
+
+//   controls = new OrbitControls(camera, renderer.domElement)
+//   controls.enableDamping = true
+//   controls.dampingFactor = 0.05
+//   controls.rotateSpeed = 0.7
+//   controls.minDistance = 3
+//   controls.maxDistance = 20
+//   controls.target.set(0, 0, 0)
+
+//   animate()
+//   window.addEventListener('resize', onWindowResize)
+// }
 const initThree = () => {
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xf0f0f0)
+  if (!container.value) {
+    console.error('Container element is not available');
+    return;
+  }
 
-  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
-  camera.position.set(0, 1, 8)
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf0f0f0);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-  container.value.appendChild(renderer.domElement)
+  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000);
+  camera.position.set(0, 1, 8);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(container.value.clientWidth, container.value.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.value.appendChild(renderer.domElement);
 
   // Lighting setup
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0)
-  scene.add(ambientLight)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+  scene.add(ambientLight);
 
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5)
-  mainLight.position.set(5, 10, 7)
-  mainLight.castShadow = true
-  mainLight.shadow.mapSize.width = 1024
-  mainLight.shadow.mapSize.height = 1024
-  scene.add(mainLight)
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  mainLight.position.set(5, 10, 7);
+  mainLight.castShadow = true;
+  mainLight.shadow.mapSize.width = 1024;
+  mainLight.shadow.mapSize.height = 1024;
+  scene.add(mainLight);
 
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
-  fillLight.position.set(-5, 0, -5)
-  scene.add(fillLight)
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  fillLight.position.set(-5, 0, -5);
+  scene.add(fillLight);
 
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-  controls.dampingFactor = 0.05
-  controls.rotateSpeed = 0.7
-  controls.minDistance = 3
-  controls.maxDistance = 20
-  controls.target.set(0, 0, 0)
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.rotateSpeed = 0.7;
+  controls.minDistance = 3;
+  controls.maxDistance = 20;
+  controls.target.set(0, 0, 0);
 
-  animate()
-  window.addEventListener('resize', onWindowResize)
-}
+  animate();
+  window.addEventListener('resize', onWindowResize);
+};
 
 const loadModel = () => {
   const dracoLoader = new DRACOLoader()
@@ -1609,7 +1650,7 @@ const saveAsDraft = () => {
   calculateSurcharge()
   
   let serviceIds = []
-  let textureIds = [1]
+  let textureIds = []
 
   const productData = {
     id: isEditing.value ? editingDesign.value.id : Date.now(),
@@ -1698,13 +1739,34 @@ const saveAsDraft = () => {
     })
 }
 
-// New completeDesign function
-const completeDesign = async () => {
+const updateDesign = async () => {
   try {
-    await captureAllAngles()
+    console.log('Starting updateDesign process...');
+    await captureAllAngles();
 
-    let serviceIds = []
-    let textureIds = [1]
+    // Log all captureAngles previews
+    console.log('Capture Angles Previews:', captureAngles.map((angle, index) => ({
+      name: angle.name,
+      index,
+      previewLength: angle.preview ? angle.preview.length : 'null',
+      previewSnippet: angle.preview ? angle.preview.substring(0, 50) + '...' : 'null',
+    })));
+
+    // Validate that all captureAngles have valid previews
+    const validPreviews = captureAngles.every((angle, index) => {
+      if (!angle.preview || !angle.preview.startsWith('data:image')) {
+        console.warn(`Invalid preview for angle ${index} (${angle.name}):`, angle.preview);
+        return false;
+      }
+      return true;
+    });
+
+    if (!validPreviews || captureAngles.length === 0) {
+      throw new Error('No valid preview images generated. Please try capturing angles again.');
+    }
+
+    let serviceIds = [];
+    let textureIds = [];
 
     const designData = {
       colors: {},
@@ -1714,76 +1776,111 @@ const completeDesign = async () => {
       textureParams: { ...textureParams },
       timestamp: new Date().toISOString(),
       manufacturerId: selectedManufacturer.value || 1,
-      previewImages: captureAngles.map(angle => angle.preview)
-    }
+    };
 
     for (const comp of components) {
-      const partName = comp.value
-      const partsToSave = partGroups[partName] || [partName]
+      const partName = comp.value;
+      const partsToSave = partGroups[partName] || [partName];
       partsToSave.forEach((subPart) => {
         if (materials[subPart]) {
-          const hexColor = '#' + materials[subPart].color.getHexString()
-          designData.colors[subPart] = hexColor
+          const hexColor = '#' + materials[subPart].color.getHexString();
+          designData.colors[subPart] = hexColor;
           if (hexColor.toLowerCase() !== '#ffffff') {
             const colorService = apiSurcharges.value.find(
-              s => s.component === partName.toLowerCase() && s.type === 'colorapplication'
-            )
+              (s) => s.component === partName.toLowerCase() && s.type === 'colorapplication'
+            );
             if (colorService) {
-              serviceIds.push(colorService.id)
+              serviceIds.push(colorService.id);
             }
           }
           if (customTextures[subPart]) {
-            const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image'
+            const textureType = customTextures[subPart].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
             designData.textures[subPart] = {
               type: textureType,
-              textContent: customText.value
-            }
+              textContent: customText.value,
+            };
             if (textureType === 'image' && customTextures[subPart].imageData) {
-              designData.imagesData[subPart] = customTextures[subPart].imageData
+              designData.imagesData[subPart] = customTextures[subPart].imageData;
               const imageService = apiSurcharges.value.find(
-                s => s.component === partName.toLowerCase() && s.type === 'imageapplication'
-              )
+                (s) => s.component === partName.toLowerCase() && s.type === 'imageapplication'
+              );
               if (imageService) {
-                serviceIds.push(imageService.id)
+                serviceIds.push(imageService.id);
               }
             }
           }
         }
-      })
+      });
     }
 
-    serviceIds = Array.from(new Set(serviceIds)).map(Number)
-    textureIds = textureIds.map(Number)
+    serviceIds = Array.from(new Set(serviceIds)).map(Number);
+    textureIds = Array.from(new Set(textureIds)).map(Number);
 
-    const requestBody = {
-      id: editingDesign.value.id,
-      customShoeDesignTemplateId: parseInt(route.params.id),
-      name: customProductName.value || 'Custom Running Shoes',
-      description: description.value || 'stylish comfort that keeps you moving with confidence',
-      designData: JSON.stringify(designData),
-      designerMarkup: 0,
-      textureIds: textureIds,
-      serviceIds: serviceIds
-    }
+    // Convert designData to JSON string and create a Blob
+    const designDataJson = JSON.stringify(designData, null, 2);
+    const designDataBlob = new Blob([designDataJson], { type: 'application/json' });
 
-    const response = await axios.put(`/api/CustomShoeDesign/${editingDesign.value.id}`, requestBody, {
-      headers: {
-        'Content-Type': 'application/json'
+    // Create FormData to send the request
+    const formData = new FormData();
+    formData.append('UserId', localStorage.getItem('userId'));
+    formData.append('id', editingDesign.value.id);
+    formData.append('CustomShoeDesignTemplateId', editingDesign.value.templateId);
+    formData.append('Name', customProductName.value || 'Custom Running Shoes');
+    formData.append('Description', description.value || 'stylish comfort that keeps you moving with confidence');
+    formData.append('DesignData', designDataBlob);
+    formData.append('DesignerMarkup', '0');
+
+    // Append textureIds and serviceIds as individual elements
+    textureIds.forEach((id) => formData.append('TextureIds', id));
+    serviceIds.forEach((id) => formData.append('ServiceIds', id));
+
+    // Convert and append preview images as separate files
+    const appendedImages = [];
+    captureAngles.forEach((angle, index) => {
+      if (angle.preview && angle.preview.startsWith('data:image')) {
+        const arr = angle.preview.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+        const file = new File([u8arr], `preview_${index}.png`, { type: mime });
+        formData.append('CustomShoeDesignPreviewImages', file);
+        appendedImages.push({
+          name: angle.name,
+          index,
+          fileSize: file.size,
+          fileType: file.type,
+        });
+        console.log(`Appended preview image for ${angle.name} (index ${index})`);
       }
-    })
+    });
+
+    console.log('Appended Preview Images:', appendedImages);
+
+    if (appendedImages.length !== captureAngles.length) {
+      throw new Error(`Mismatch in number of appended images: expected ${captureAngles.length}, got ${appendedImages.length}`);
+    }
+
+    console.log('Sending request to /api/CustomShoeDesign...');
+    const response = await axios.put(`/api/CustomShoeDesign`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
 
     if (response.status === 200 || response.status === 204) {
-      localStorage.removeItem('editingDesign')
-      alert('Design updated successfully!')
-      router.push('/mycustomPage')
+      localStorage.removeItem('editingDesign');
+      alert('Design updated successfully!');
+      router.push('/mycustomPage');
     } else {
-      throw new Error('Unexpected response status')
+      throw new Error('Unexpected response status');
     }
   } catch (error) {
-    console.error('Error updating design:', error)
-    alert('An error occurred while updating the design. Please try again.')
+    console.error('Error updating design:', error);
+    alert('An error occurred while updating the design. Please try again.');
+  } finally {
+    showCompleteModal.value = false;
   }
-}
+};
 
 const toggleCanvasSize = () => {
   isCanvasExpanded.value = !isCanvasExpanded.value

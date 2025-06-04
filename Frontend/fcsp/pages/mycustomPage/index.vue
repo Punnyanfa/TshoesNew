@@ -292,6 +292,7 @@ const editDesign = async (item) => {
     // Step 3: Prepare the item with designData
     const editingItem = {
       ...item,
+      templateId: design.templateId,
       designData: designDataObj,
       templateUrl: design.templateUrl, // Include the 3D model template URL if needed
       previewImages: design.previewImages || item.previewImages,
