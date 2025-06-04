@@ -263,7 +263,7 @@ export default {
     async handleDelete() {
       try {
         if (!this.selectedShipping) {
-          alert('Không có địa chỉ giao hàng nào được chọn để xóa');
+          alert('No shipping addresses selected for deletion');
           return;
         }
         
@@ -273,7 +273,7 @@ export default {
         this.selectedShipping = null;
       } catch (error) {
         console.error('Error deleting shipping info:', error);
-        alert('Có lỗi xảy ra khi xóa địa chỉ giao hàng');
+        alert('An error occurred while deleting the shipping address.');
       }
     }
   },

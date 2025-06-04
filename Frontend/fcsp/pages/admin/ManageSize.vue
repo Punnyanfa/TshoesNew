@@ -214,7 +214,7 @@ export default {
     async handleDelete() {
       try {
         if (!this.selectedSize) {
-          alert('Không có size nào được chọn để xóa');
+          alert('No size selected for deletion');
           return;
         }
         
