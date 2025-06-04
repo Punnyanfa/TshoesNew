@@ -5,7 +5,7 @@ namespace FCSP.DTOs;
 public class RechargeRequestDTO
 {
     public long UserId { get; set; }
-    public long PaymentId { get; set; }
+    public long? PaymentId { get; set; }
     [Required]
     [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
     public float Amount { get; set; }
