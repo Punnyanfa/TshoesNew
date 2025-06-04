@@ -285,7 +285,7 @@ namespace FCSP.Services.OrderService
                                                     .ThenInclude(od => od.Size)
                                                 .Include(o => o.OrderDetails)
                                                     .ThenInclude(od => od.CustomShoeDesign)
-                                                        .ThenInclude(cd => cd.DesignPreviews)
+                                                        .ThenInclude(od => od.DesignPreviews)
                                                 .Include(o => o.User)
                                                 .Include(o => o.Voucher)
                                                 .Include(o => o.Payments)
@@ -299,6 +299,8 @@ namespace FCSP.Services.OrderService
             }
 
             var rating = await _ratingRepository.GetAll()
+                                            .Include(r => r.CustomShoeDesign)
+                                                .ThenInclude(r => r.Ratings)
                                         .Where(r => r.UserId == request.UserId && r.IsDeleted == false)
                                         .ToListAsync();
 
@@ -517,9 +519,12 @@ namespace FCSP.Services.OrderService
                 .Include(d => d.CustomShoeDesignTemplate)
                 .Include(d => d.DesignServices)
                     .ThenInclude(ds => ds.Service)
-                .FirstOrDefaultAsync(d => d.Id == request.OrderDetail.CustomShoeDesignId);
+                .FirstOrDefaultAsync(d => d.Id == request.OrderDetail.CustomShoeDesignId && d.IsDeleted == false);
 
-            
+            if (customShoeDesign == null)
+            {
+                throw new InvalidOperationException($"CustomShoeDesign with ID {request.OrderDetail.CustomShoeDesignId} not found.");
+            }
 
             var templatePrice = customShoeDesign.CustomShoeDesignTemplate?.Price ?? 0;
             var servicesPrice = customShoeDesign.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0;
@@ -605,7 +610,6 @@ namespace FCSP.Services.OrderService
                     ManufacturerId = orderDetailToAdd.ManufacturerId
                 };
                 await _orderDetailRepository.AddAsync(orderDetail);
-            
         }
 
         private async Task<string> AddPaymentAsync(Order order, PaymentMethod paymentMethod)

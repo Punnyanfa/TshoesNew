@@ -47,7 +47,7 @@ namespace FCSP.Services.CartService
                         .Include(d => d.CustomShoeDesignTemplate)
                         .Include(d => d.DesignServices)
                             .ThenInclude(ds => ds.Service)
-                        .FirstOrDefaultAsync(d => d.Id == ci.CustomShoeDesignId);
+                        .FirstOrDefaultAsync(d => d.Id == ci.CustomShoeDesignId && d.IsDeleted == false);
 
                     if (design == null) continue;
 
@@ -202,7 +202,7 @@ namespace FCSP.Services.CartService
                                 .Include(d => d.CustomShoeDesignTemplate)
                                 .Include(d => d.DesignServices)
                                     .ThenInclude(ds => ds.Service)
-                                .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId);
+                                .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId && d.IsDeleted == false);
                             if (design != null)
                             {
                                 newCartTotal += await CalculateTotalAmount(design) * item.Quantity;
@@ -301,7 +301,7 @@ namespace FCSP.Services.CartService
                             .Include(d => d.CustomShoeDesignTemplate)
                             .Include(d => d.DesignServices)
                                 .ThenInclude(ds => ds.Service)
-                            .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId);
+                            .FirstOrDefaultAsync(d => d.Id == item.CustomShoeDesignId && d.IsDeleted == false);
                         if (design != null)
                         {
                             cartTotal += await CalculateTotalAmount(design) * item.Quantity;
