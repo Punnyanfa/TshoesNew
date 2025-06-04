@@ -25,7 +25,7 @@ namespace FCSP.Services.PaymentService
             _logger = logger;
             var intervalMinutes = configuration.GetValue<int>("PaymentProcessing:PaymentProcessingCheckIntervalMinutes", 1); // Default 1 minute
             _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
-            _daysAfterOrderToPayOut = configuration.GetValue<int>("PaymentProcessing:DaysAfterOrderToPayOut", 30); // Default 30 days
+            _daysAfterOrderToPayOut = configuration.GetValue<int>("PaymentProcessing:DaysAfterOrderToPayOut", 1); // Default 30 days
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

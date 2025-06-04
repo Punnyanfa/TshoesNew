@@ -310,7 +310,12 @@ namespace FCSP.Services.PaymentService
                 {
                     var responsePayOS = await GetPaymentInfoFromPayOS(new GetPaymentInfoRequest { PaymentId = payment.Id });
                     var userId = responsePayOS.Data.Transactions.First().description.Split(" ")[8];
-                    await _transactionService.AddBalanceAsync(new RechargeRequestDTO { UserId = long.Parse(userId), PaymentId = payment.Id, Amount = payment.Amount });
+                    var transactionResponse = await _transactionService.UpdateBalanceAsync(new RechargeRequestDTO { UserId = long.Parse(userId), PaymentId = payment.Id, Amount = payment.Amount });
+
+                    if (transactionResponse.Code != 200)
+                    {
+                        throw new Exception($"Payment failed: {transactionResponse.Message}");
+                    }
                 }
                 else
                 {
@@ -395,6 +400,71 @@ namespace FCSP.Services.PaymentService
                 };
             }
         }
+
+        public async Task<BaseResponseModel<WithdrawBalanceResponse>> WithdrawBalanceAsync(WithdrawRequestDTO request)
+        {
+            try
+            {
+                var user = await _userRepository.FindAsync(request.UserId);
+                if (user == null)
+                {
+                    throw new Exception("User not found");
+                }
+
+                // Check if user has sufficient balance
+                if (user.Balance < request.Amount)
+                {
+                    throw new Exception("Insufficient balance");
+                }
+
+                var withdrawAmount = -request.Amount;
+
+                var payment = new Payment
+                {
+                    OrderId = 1, // No order for recharge
+                    Amount = (int)withdrawAmount,
+                    PaymentMethod = PaymentMethod.Wallet,
+                    PaymentStatus = PaymentStatus.Received,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _paymentRepository.AddAsync(payment);
+
+                var transactionResponse = await _transactionService.UpdateBalanceAsync(new RechargeRequestDTO
+                {   
+                    UserId = request.UserId,
+                    PaymentId = payment.Id,
+                    Amount = payment.Amount 
+                });
+
+                if (transactionResponse.Code != 200)
+                {
+                    throw new Exception($"Transaction failed: {transactionResponse.Message}");
+                }
+
+                return new BaseResponseModel<WithdrawBalanceResponse>
+                {
+                    Code = 200,
+                    Message = "Withdrawal created successfully",
+                    Data = new WithdrawBalanceResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<WithdrawBalanceResponse>
+                {
+                    Code = 500,
+                    Message = $"Error creating withdrawal: {ex.Message}",
+                    Data = new WithdrawBalanceResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -436,7 +506,10 @@ namespace FCSP.Services.PaymentService
 
         private async Task<string> ProcessWalletPayment(Payment payment)
         {
-            var paymentWithIncludes = await _paymentRepository.GetAll().Include(x => x.Order).ThenInclude(x => x.User).FirstOrDefaultAsync(p => p.Id == payment.Id);
+            var paymentWithIncludes = await _paymentRepository.GetAll()
+                                                            .Include(x => x.Order)
+                                                            .ThenInclude(x => x.User)
+                                                            .FirstOrDefaultAsync(p => p.Id == payment.Id);
             var user = await _userRepository.FindAsync(paymentWithIncludes.Order.UserId);
             var order = await _orderRepository.FindAsync(payment.OrderId);
             if (user == null)

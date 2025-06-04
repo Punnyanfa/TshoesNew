@@ -16,7 +16,7 @@ public class TransactionService : ITransactionService
         _userRepository = userRepository;
     }
 
-    public async Task<BaseResponseModel<TransactionResponseDTO>> AddBalanceAsync(RechargeRequestDTO request)
+    public async Task<BaseResponseModel<TransactionResponseDTO>> UpdateBalanceAsync(RechargeRequestDTO request)
     {
         try
         {

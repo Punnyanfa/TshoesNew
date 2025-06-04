@@ -15,5 +15,6 @@ namespace FCSP.Services.PaymentService
         Task<BaseResponseModel<ConfirmWebhookResponse>> ConfirmWebhook(ConfirmWebhookRequest request);
         Task<BaseResponseModel<UpdatePaymentUsingWebhookResponse>> UpdatePaymentUsingWebhook(UpdatePaymentUsingWebhookRequest request);
         Task<BaseResponseModel<AddPaymentResponse>> RechargeBalanceAsync(RechargeRequestDTO request);
+        Task<BaseResponseModel<WithdrawBalanceResponse>> WithdrawBalanceAsync(WithdrawRequestDTO request);
     }
 }

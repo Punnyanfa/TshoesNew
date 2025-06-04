@@ -47,6 +47,17 @@ namespace FCSP.DTOs.Payment
         public string PaymentMessage { get; set; } = string.Empty;
     }
 
+    public class WithdrawRequestDTO
+    {
+        public long UserId { get; set; }
+        public int Amount { get; set; }
+    }
+
+    public class WithdrawBalanceResponse
+    {
+        public bool Success { get; set; }
+    }
+
     public class AddPaymentRequest
     {
         public long OrderId { get; set; }
