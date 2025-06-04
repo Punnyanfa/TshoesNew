@@ -66,7 +66,7 @@ namespace FCSP.Tests
                 Id = 1,
                 UserRole = UserRole.Admin,
                 IsBanned = false,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateUserStatusRequest { Id = 1, IsBanned = true };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
@@ -85,7 +85,7 @@ namespace FCSP.Tests
                 Id = 1,
                 UserRole = UserRole.Customer,
                 IsBanned = false,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateUserStatusRequest { Id = 1, IsBanned = true };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
@@ -107,7 +107,7 @@ namespace FCSP.Tests
                 Id = 1,
                 UserRole = UserRole.Designer,
                 IsBanned = false,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var designer = new Designer
             {
@@ -136,7 +136,7 @@ namespace FCSP.Tests
                 Id = 1,
                 UserRole = UserRole.Manufacturer,
                 IsBanned = false,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var manufacturer = new Manufacturer
             {

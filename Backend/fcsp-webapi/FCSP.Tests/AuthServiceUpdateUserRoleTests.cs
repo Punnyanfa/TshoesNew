@@ -86,7 +86,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateUserRoleRequest
             {
@@ -115,7 +115,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
@@ -138,7 +138,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
@@ -160,7 +160,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
@@ -180,7 +180,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var designer = new Designer
             {
@@ -219,7 +219,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var manufacturer = new Manufacturer
             {

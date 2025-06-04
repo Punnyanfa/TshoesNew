@@ -160,7 +160,7 @@ namespace FCSP.Services.ShippingInfoService
                 shippingInfo.PhoneNumber = request.PhoneNumber;
                 shippingInfo.ContactNumber = request.ReceiverName;
                 shippingInfo.IsDefault = request.IsDefault;
-                shippingInfo.UpdatedAt = DateTime.UtcNow;
+                shippingInfo.UpdatedAt = DateTime.Now;
 
                 await _shippingInfoRepository.UpdateAsync(shippingInfo);
 
@@ -232,7 +232,7 @@ namespace FCSP.Services.ShippingInfoService
                 {
                     await SetOtherAddressesToNonDefault(request.UserId);
                     shippingInfo.IsDefault = true;
-                    shippingInfo.UpdatedAt = DateTime.UtcNow;
+                    shippingInfo.UpdatedAt = DateTime.Now;
                     await _shippingInfoRepository.UpdateAsync(shippingInfo);
                 }
 
@@ -420,8 +420,8 @@ namespace FCSP.Services.ShippingInfoService
                 Country = request.Country,
                 PhoneNumber = request.PhoneNumber,
                 ContactNumber = "N/A",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
                 IsDefault = request.IsDefault
             };
         }

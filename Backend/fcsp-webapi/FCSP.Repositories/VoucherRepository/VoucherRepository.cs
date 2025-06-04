@@ -16,7 +16,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Voucher>> GetNonExpiredVouchersAsync()
         {
             return await _context.Vouchers
-                 .Where(v => v.ExpirationDate >= DateTime.UtcNow && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
+                 .Where(v => v.ExpirationDate >= DateTime.Now && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
                  .Include(v => v.Orders)
                  .ToListAsync();
         }
@@ -37,7 +37,7 @@ namespace FCSP.Repositories.Implementations
 
         public async Task<int> UpdateExpiredVouchersAsync()
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var vouchersToUpdate = await _context.Vouchers
                 .Where(v => v.ExpirationDate < now && v.Status == (int)VoucherStatus.Active)
                 .ToListAsync();
@@ -45,7 +45,7 @@ namespace FCSP.Repositories.Implementations
             foreach (var voucher in vouchersToUpdate)
             {
                 voucher.Status = (int)VoucherStatus.Expired;
-                voucher.UpdatedAt = DateTime.UtcNow;
+                voucher.UpdatedAt = DateTime.Now;
             }
 
              await _context.SaveChangesAsync();

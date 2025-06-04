@@ -84,7 +84,7 @@ namespace FCSP.WebAPI.Controllers
             var designerRepository = scope.ServiceProvider.GetRequiredService<IDesignerRepository>();
 
             // Use a much shorter time frame for manual testing (1 hour instead of days)
-            var cutoffDate = DateTime.UtcNow.AddHours(-1);
+            var cutoffDate = DateTime.Now.AddHours(-1);
             
             var eligibleOrders = await orderRepository.GetAll()
                 .Where(o => o.Status == OrderStatus.Completed && o.UpdatedAt <= cutoffDate)
@@ -144,8 +144,8 @@ namespace FCSP.WebAPI.Controllers
                                 OrderDetailId = orderDetail.Id,
                                 PaymentId = payment.Id,
                                 Amount = designerAmount,
-                                CreatedAt = DateTime.UtcNow,
-                                UpdatedAt = DateTime.UtcNow
+                                CreatedAt = DateTime.Now,
+                                UpdatedAt = DateTime.Now
                             };
                             await transactionRepository.AddAsync(designerTransaction);
                             
@@ -177,8 +177,8 @@ namespace FCSP.WebAPI.Controllers
                                     OrderDetailId = orderDetail.Id,
                                     PaymentId = payment.Id,
                                     Amount = manufacturerAmount,
-                                    CreatedAt = DateTime.UtcNow,
-                                    UpdatedAt = DateTime.UtcNow
+                                    CreatedAt = DateTime.Now,
+                                    UpdatedAt = DateTime.Now
                                 };
                                 await transactionRepository.AddAsync(manufacturerTransaction);
                                 

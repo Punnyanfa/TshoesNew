@@ -74,7 +74,7 @@ namespace FCSP.Tests
                 Id = 1,
                 UserRole = UserRole.Admin,
                 IsBanned = false,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateUserStatusRequest { Id = 1, IsBanned = true };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))

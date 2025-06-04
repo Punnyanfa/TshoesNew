@@ -611,7 +611,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             }
         }
 
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
         string fileName = $"designData_{formattedDateTime}.json";
         byte[] fileBytes;
@@ -633,8 +633,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
             IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         };
         return design;
     }
@@ -662,7 +662,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         List<DesignPreview> previewImages = new List<DesignPreview>();
         foreach (var previewImage in request.CustomShoeDesignPreviewImages)
         {
-            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
             string fileName = $"previewImage_{Guid.NewGuid()}_{formattedDateTime}.jpeg";
             byte[] fileBytes;
@@ -677,8 +677,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 CustomShoeDesignId = designId,
                 PreviewImageUrl = previewImagePath,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             });
         }
 
@@ -695,8 +695,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             CustomShoeDesignId = designId,
             TextureId = textureId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         });
     }
 
@@ -710,8 +710,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             CustomShoeDesignId = designId,
             ServiceId = serviceId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         });
     }
 
@@ -729,7 +729,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         design.Status = request.Status;
-        design.UpdatedAt = DateTime.UtcNow;
+        design.UpdatedAt = DateTime.Now;
         return design;
     }
 
@@ -760,7 +760,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             }
         }
 
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
         string fileName = $"designData_{formattedDateTime}.json";
         byte[] fileBytes;
@@ -800,7 +800,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         List<DesignPreview> previewImages = new List<DesignPreview>();
         foreach (var previewImage in request.CustomShoeDesignPreviewImages)
         {
-            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
             string fileName = $"previewImage_{Guid.NewGuid()}_{formattedDateTime}.jpeg";
             byte[] fileBytes;
@@ -815,8 +815,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 CustomShoeDesignId = request.Id,
                 PreviewImageUrl = previewImagePath,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             });
         }
         return previewImages;
@@ -850,8 +850,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 {
                     CustomShoeDesignId = request.Id,
                     TextureId = textureId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 });
             }
         }
@@ -886,8 +886,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
                 {
                     CustomShoeDesignId = request.Id,
                     ServiceId = serviceId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 });
             }
         }
@@ -904,7 +904,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         design.IsDeleted = true;
-        design.UpdatedAt = DateTime.UtcNow;
+        design.UpdatedAt = DateTime.Now;
         design.Status = Common.Enums.CustomShoeDesignStatus.Archived;
 
         return design;

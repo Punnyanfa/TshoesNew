@@ -389,7 +389,7 @@ namespace FCSP.Services.TemplateService
 
         private async Task<string> UploadPreviewImage(IFormFile previewImage)
         {
-            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
             string fileName = $"templatePreviewImage_{formattedDateTime}.jpeg";
             byte[] fileBytes;
@@ -406,7 +406,7 @@ namespace FCSP.Services.TemplateService
 
         private async Task<string> Upload3DModel(IFormFile model3DFile)
         {
-            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
             string fileName = $"template3DModel_{formattedDateTime}.glb";
             byte[] fileBytes;

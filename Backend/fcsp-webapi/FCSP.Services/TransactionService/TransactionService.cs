@@ -35,10 +35,10 @@ public class TransactionService : ITransactionService
             {
                 ReceiverId = request.UserId,
                 OrderDetailId = 1,
-                PaymentId = request.PaymentId,
+                PaymentId = request.PaymentId.Value,
                 Amount = (int)request.Amount,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             // Update user balance

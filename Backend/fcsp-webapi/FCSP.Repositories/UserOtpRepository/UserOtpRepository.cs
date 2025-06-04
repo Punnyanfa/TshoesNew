@@ -33,7 +33,7 @@ namespace FCSP.Repositories.Implementations
                     o.OtpCode == otpCode && 
                     o.PurposeType == purpose && 
                     !o.IsUsed && 
-                    o.ExpiryTime > DateTime.UtcNow);
+                    o.ExpiryTime > DateTime.Now);
 
             if (otp == null)
             {

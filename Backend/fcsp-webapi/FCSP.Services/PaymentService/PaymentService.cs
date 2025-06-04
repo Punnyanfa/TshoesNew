@@ -5,10 +5,13 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.TransactionService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
 using System;
+using System.Collections.Generic;
+using System.Data;
 
 namespace FCSP.Services.PaymentService
 {
@@ -363,8 +366,8 @@ namespace FCSP.Services.PaymentService
                     Amount = (int)request.Amount,
                     PaymentMethod = PaymentMethod.PayOS,
                     PaymentStatus = PaymentStatus.Pending,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 };
                 await _paymentRepository.AddAsync(payment);
 
@@ -425,8 +428,8 @@ namespace FCSP.Services.PaymentService
                     Amount = (int)withdrawAmount,
                     PaymentMethod = PaymentMethod.Wallet,
                     PaymentStatus = PaymentStatus.Received,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 };
                 await _paymentRepository.AddAsync(payment);
 
@@ -490,7 +493,8 @@ namespace FCSP.Services.PaymentService
         }
 
         private async Task<CreatePaymentResult> GetPayOSUrl(PayOSPaymentDTO payment)
-        {
+        {   
+            int expireAt = (int)DateTime.Now.AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
             PaymentData paymentData = new PaymentData(
                 payment.Id,
@@ -498,7 +502,13 @@ namespace FCSP.Services.PaymentService
                 payment.PaymentMessage,
                 null,
                 "https://tshoes.vercel.app/paymentCancelledPage",
-                "https://tshoes.vercel.app/paymentSuccessPage"
+                "https://tshoes.vercel.app/paymentSuccessPage",
+                _checksumKey,
+                null,
+                null,
+                null,
+                null,
+                expireAt
             );
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return paymentResponse;
@@ -518,6 +528,10 @@ namespace FCSP.Services.PaymentService
             }
             if (user.Balance < payment.Amount)
             {
+                order.Status = OrderStatus.Cancelled;
+                await _orderRepository.UpdateAsync(order);
+                payment.PaymentStatus = PaymentStatus.Cancelled;
+                await _paymentRepository.UpdateAsync(payment);
                 throw new Exception("Insufficient balance");
             }
             order.Status = OrderStatus.Confirmed;
@@ -536,8 +550,8 @@ namespace FCSP.Services.PaymentService
                 Amount = request.Amount,
                 PaymentMethod = request.PaymentMethod,
                 PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
         }
 
@@ -564,7 +578,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Invalid payment status");
             }
-            payment.UpdatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTime.Now;
             return payment;
         }
 
@@ -584,7 +598,7 @@ namespace FCSP.Services.PaymentService
             {
                 order.Status = OrderStatus.Confirmed;
             }
-            order.UpdatedAt = DateTime.UtcNow;
+            order.UpdatedAt = DateTime.Now;
             await _orderRepository.UpdateAsync(order);
         }
 
@@ -612,7 +626,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Invalid payment status");
             }
-            payment.UpdatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTime.Now;
             return payment;
         } 
         #endregion

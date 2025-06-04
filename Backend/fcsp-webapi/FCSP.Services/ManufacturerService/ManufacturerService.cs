@@ -205,7 +205,7 @@ namespace FCSP.Services.ManufacturerService
             {
                 var manufacturer = await GetManufacturer(request.Id);
                 manufacturer.Status = (ManufacturerStatus)request.Status;
-                manufacturer.UpdatedAt = DateTime.UtcNow;
+                manufacturer.UpdatedAt = DateTime.Now;
                 await _manufacturerRepository.UpdateAsync(manufacturer);
                 return new BaseResponseModel<UpdateManufacturerStatusResponse>
                 {
@@ -339,7 +339,7 @@ namespace FCSP.Services.ManufacturerService
             manufacturer.Description = request.Description;
             manufacturer.CommissionRate = request.CommissionRate;
             manufacturer.Status = (ManufacturerStatus)request.Status;
-            manufacturer.UpdatedAt = DateTime.UtcNow;           
+            manufacturer.UpdatedAt = DateTime.Now;           
             return manufacturer;
         }
         private async Task<List<GetManufacturerDetailResponse>> GetManufacturersByUserIdAsync(long userId)
@@ -422,8 +422,8 @@ namespace FCSP.Services.ManufacturerService
                 Description = request.Description,
                 CommissionRate = request.CommissionRate,
                 Status = (ManufacturerStatus)request.Status,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
         }
         private async Task<Manufacturer> DeleteManufacturerFromRequest(GetManufacturerRequest request)
@@ -441,7 +441,7 @@ namespace FCSP.Services.ManufacturerService
 
             manufacturer.IsDeleted = true;
             manufacturer.Status = ManufacturerStatus.Inactive;
-            manufacturer.UpdatedAt = DateTime.UtcNow;
+            manufacturer.UpdatedAt = DateTime.Now;
             return manufacturer;
         }
         private async Task<GetManufacturerDetailResponse> MapToDetailResponse(Manufacturer manufacturer)

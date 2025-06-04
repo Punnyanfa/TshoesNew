@@ -563,7 +563,7 @@ public class AuthService : IAuthService
 
             // Generate new OTP
             string otpCode = GenerateOtpCode();
-            DateTime expiryTime = DateTime.UtcNow.AddMinutes(request.ExpiryTimeInMinutes);
+            DateTime expiryTime = DateTime.Now.AddMinutes(request.ExpiryTimeInMinutes);
 
             // Create new OTP record
             var newOtp = new UserOtp
@@ -803,7 +803,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Only JPEG or PNG images are allowed");
         }
 
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
         string fileName = $"avatar_{user.Id}_{formattedDateTime}.jpeg";
         byte[] fileBytes;
@@ -955,9 +955,6 @@ public class AuthService : IAuthService
         {
             throw new InvalidOperationException("Invalid password update request");
         }
-      
-        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
-
         user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
         user.UpdatedAt = DateTime.Now;
         return user;

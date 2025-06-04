@@ -45,7 +45,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 Status = TemplateStatus.Private,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateTemplateStatusRequest { Id = 1, Status = TemplateStatus.Public };
             _templateRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
@@ -66,7 +66,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 Status = TemplateStatus.Public,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateTemplateStatusRequest { Id = 1, Status = TemplateStatus.Private };
             _templateRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
@@ -92,7 +92,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 Status = TemplateStatus.Public,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new UpdateTemplateStatusRequest { Id = 1, Status = (TemplateStatus)3 };
             _templateRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))

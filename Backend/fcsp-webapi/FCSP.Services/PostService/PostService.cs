@@ -41,8 +41,8 @@ namespace FCSP.Services.PostService
                 Title = request.Title,
                 Content = request.Content,
                 IsDeleted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             var addedPost = await _postRepository.AddAsync(post);
@@ -62,7 +62,7 @@ namespace FCSP.Services.PostService
 
             post.Title = request.Title;
             post.Content = request.Content;
-            post.UpdatedAt = DateTime.UtcNow;
+            post.UpdatedAt = DateTime.Now;
 
             await _postRepository.UpdateAsync(post);
 
@@ -74,7 +74,7 @@ namespace FCSP.Services.PostService
             var post = await GetEntityFromGetByIdRequest(new GetPostByIdRequest { Id = request.Id });
 
             post.IsDeleted = true;
-            post.UpdatedAt = DateTime.UtcNow;
+            post.UpdatedAt = DateTime.Now;
             await _postRepository.UpdateAsync(post);
 
             return MapToDetailedResponse(post);

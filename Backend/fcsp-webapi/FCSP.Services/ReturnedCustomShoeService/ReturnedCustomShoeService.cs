@@ -46,8 +46,8 @@ namespace FCSP.Services.ReturnedCustomShoeService
                     Price = totalAmount,
                     Quantity = request.Quantity,
                     IsDeleted = false,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 };
 
                 await _returnedCustomShoeRepository.AddAsync(returnedShoe);

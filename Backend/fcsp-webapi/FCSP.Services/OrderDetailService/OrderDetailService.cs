@@ -304,8 +304,8 @@ namespace FCSP.Services.OrderDetailService
                 TemplatePrice = templatePrice,
                 ServicePrice = servicesPrice,
                 DesignerMarkup = customShoeDesign.DesignerMarkup,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
         }
 
@@ -348,7 +348,7 @@ namespace FCSP.Services.OrderDetailService
             // Recalculate total price
             orderDetail.TotalPrice = orderDetail.TemplatePrice + orderDetail.ServicePrice + orderDetail.DesignerMarkup;
             
-            orderDetail.UpdatedAt = DateTime.UtcNow;
+            orderDetail.UpdatedAt = DateTime.Now;
 
             return orderDetail;
         }

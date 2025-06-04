@@ -29,7 +29,7 @@ public class VoucherExpirationService : BackgroundService
         {
             try
             {
-                _logger.LogInformation("Checking for expired vouchers at {Time}", DateTime.UtcNow);
+                _logger.LogInformation("Checking for expired vouchers at {Time}", DateTime.Now);
                 using var scope = _serviceProvider.CreateScope();
                 var voucherService = scope.ServiceProvider.GetRequiredService<IVoucherService>();
                 var response = await voucherService.UpdateExpiredVouchers();
@@ -44,7 +44,7 @@ public class VoucherExpirationService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating expired vouchers at {Time}.", DateTime.UtcNow);
+                _logger.LogError(ex, "Error occurred while updating expired vouchers at {Time}.", DateTime.Now);
             }
 
             await Task.Delay(_checkInterval, stoppingToken);

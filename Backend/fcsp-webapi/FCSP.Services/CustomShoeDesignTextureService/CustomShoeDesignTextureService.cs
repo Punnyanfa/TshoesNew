@@ -67,8 +67,8 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             {
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 TextureId = request.TextureId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
         }
 
@@ -81,7 +81,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             }
 
             customShoeDesignTexture.TextureId = request.TextureId;
-            customShoeDesignTexture.UpdatedAt = DateTime.UtcNow;
+            customShoeDesignTexture.UpdatedAt = DateTime.Now;
 
             return customShoeDesignTexture;
         }

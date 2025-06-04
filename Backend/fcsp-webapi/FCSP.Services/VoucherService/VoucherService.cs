@@ -437,8 +437,8 @@ namespace FCSP.Services.VoucherService
                 ExpirationDate = request.ExpiryDate,
                 Status = (int)VoucherStatus.Active,
                 Description = request.Code,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
         }
 
@@ -448,7 +448,7 @@ namespace FCSP.Services.VoucherService
             voucher.VoucherName = request.Code;
             voucher.VoucherValue = request.DiscountAmount.ToString();
             voucher.ExpirationDate = request.ExpiryDate;
-            voucher.UpdatedAt = DateTime.UtcNow;
+            voucher.UpdatedAt = DateTime.Now;
         }
 
         private GetVoucherByIdResponse MapToVoucherByIdResponse(Voucher voucher)
@@ -479,7 +479,7 @@ namespace FCSP.Services.VoucherService
 
         private void ValidateExpirationDate(DateTime expiryDate, DateTime? createdAt = null)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             createdAt ??= now;
 
             if (expiryDate < now)

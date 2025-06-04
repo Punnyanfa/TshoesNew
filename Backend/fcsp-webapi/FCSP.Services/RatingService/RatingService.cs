@@ -246,8 +246,8 @@ namespace FCSP.Services.RatingService
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 UserRating = request.Value,
                 Comment = request.Comment,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
                 IsDeleted = false // Đảm bảo mặc định là false khi tạo mới
             };
             return await _ratingRepository.AddAsync(rating);
@@ -270,7 +270,7 @@ namespace FCSP.Services.RatingService
             rating.UserRating = request.Value;
             rating.Comment = request.Comment;
             rating.CustomShoeDesignId = request.CustomShoeDesignId;
-            rating.UpdatedAt = DateTime.UtcNow;
+            rating.UpdatedAt = DateTime.Now;
 
             await _ratingRepository.UpdateAsync(rating);
             return rating;
@@ -286,7 +286,7 @@ namespace FCSP.Services.RatingService
 
             // Thực hiện soft delete
             rating.IsDeleted = true;
-            rating.UpdatedAt = DateTime.UtcNow;
+            rating.UpdatedAt = DateTime.Now;
             await _ratingRepository.UpdateAsync(rating); // Cập nhật thay vì xóa
         }
 

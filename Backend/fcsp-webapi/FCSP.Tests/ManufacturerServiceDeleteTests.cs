@@ -61,7 +61,7 @@ namespace FCSP.Tests
                 Id = 1,
                 IsDeleted = false,
                 Status = ManufacturerStatus.Active,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.Now
             };
             var request = new GetManufacturerRequest { Id = 1 };
             _manufacturerRepositoryMock.Setup(x => x.GetManufacturerWithDetailsAsync(1)).ReturnsAsync(manufacturer);

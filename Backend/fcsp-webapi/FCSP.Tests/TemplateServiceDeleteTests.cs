@@ -60,8 +60,8 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 IsDeleted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
             var request = new DeleteTemplateRequest { Id = 1 };
             _templateRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))

@@ -52,8 +52,8 @@ namespace FCSP.Services.PostsCommentsService
                 UserId = request.UserId,
                 PostsId = request.PostsId,
                 Comment = request.Comment,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             var addedComment = await _postsCommentsRepository.AddAsync(comment);
@@ -69,7 +69,7 @@ namespace FCSP.Services.PostsCommentsService
             }
 
             comment.Comment = request.Comment;
-            comment.UpdatedAt = DateTime.UtcNow;
+            comment.UpdatedAt = DateTime.Now;
 
             await _postsCommentsRepository.UpdateAsync(comment);
             return new UpdatePostsCommentResponse { PostsCommentId = comment.Id };

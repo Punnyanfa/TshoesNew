@@ -286,7 +286,7 @@ public class TextureService : ITextureService
 
     private async Task<Texture> GetTextureFromUploadTexture(AddTextureRequest request)
     {
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
         string fileName = $"texture__uploaded_{formattedDateTime}.jpeg";
         byte[] fileBytes;

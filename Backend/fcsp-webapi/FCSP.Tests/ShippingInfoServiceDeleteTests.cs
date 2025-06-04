@@ -54,8 +54,8 @@ namespace FCSP.Tests
                 Id = 123,
                 UserId = 1,
                 IsDeleted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
             var request = new DeleteShippingInfoRequest { Id = 123 };
             _shippingInfoRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 123)))
