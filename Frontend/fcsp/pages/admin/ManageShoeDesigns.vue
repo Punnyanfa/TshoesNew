@@ -319,8 +319,8 @@
                     </div>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" @click="editDesign(selectedDesign)">Chỉnh sửa</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @click="editDesign(selectedDesign)">Edit</button>
                   </div>
                 </div>
               </div>
@@ -339,7 +339,7 @@
                       <div class="row g-3">
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designName" class="form-label">Tên thiết kế</label>
+                            <label for="designName" class="form-label">Design name</label>
                             <input type="text" class="form-control" id="designName" v-model="editedDesign.name" required>
                           </div>
                         </div>
@@ -351,7 +351,7 @@
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designCategory" class="form-label">Danh mục</label>
+                            <label for="designCategory" class="form-label">Category</label>
                             <select class="form-select" id="designCategory" v-model="editedDesign.category" required>
                               <option v-for="category in categories" :key="category" :value="category">
                                 {{ category }}
@@ -361,7 +361,7 @@
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designPrice" class="form-label">Giá</label>
+                            <label for="designPrice" class="form-label">Price</label>
                             <div class="input-group">
                               <span class="input-group-text">₫</span>
                               <input type="number" class="form-control" id="designPrice" v-model="editedDesign.price" required min="0">
@@ -370,23 +370,23 @@
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designMaterial" class="form-label">Chất liệu</label>
+                            <label for="designMaterial" class="form-label">Material</label>
                             <input type="text" class="form-control" id="designMaterial" v-model="editedDesign.material">
                           </div>
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designGender" class="form-label">Giới tính</label>
+                            <label for="designGender" class="form-label">Gender</label>
                             <select class="form-select" id="designGender" v-model="editedDesign.gender">
-                              <option value="Nam">Nam</option>
-                              <option value="Nữ">Nữ</option>
+                              <option value="Nam">Male</option>
+                              <option value="Nữ">Female</option>
                               <option value="Unisex">Unisex</option>
                             </select>
                           </div>
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label class="form-label">Màu sắc</label>
+                            <label class="form-label">Color</label>
                             <div class="color-checkboxes bg-light p-2 rounded">
                               <div class="row g-2">
                                 <div class="col-4" v-for="color in availableColors" :key="color">
@@ -409,7 +409,7 @@
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label class="form-label">Kích cỡ</label>
+                            <label class="form-label">Size</label>
                             <div class="size-checkboxes bg-light p-2 rounded">
                               <div class="row g-2">
                                 <div class="col-3" v-for="size in availableSizes" :key="size">
@@ -432,19 +432,19 @@
                         </div>
                         <div class="col-12">
                           <div class="mb-3">
-                            <label for="designDescription" class="form-label">Mô tả</label>
+                            <label for="designDescription" class="form-label">Description</label>
                             <textarea class="form-control" id="designDescription" rows="3" v-model="editedDesign.description"></textarea>
                           </div>
                         </div>
                         <div class="col-12">
                           <div class="mb-3">
-                            <label for="designFeatures" class="form-label">Đặc điểm nổi bật (mỗi dòng là một đặc điểm)</label>
+                            <label for="designFeatures" class="form-label">Outstanding features (each line is a feature)</label>
                             <textarea class="form-control" id="designFeatures" rows="3" v-model="featuresText"></textarea>
                           </div>
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designImage" class="form-label">Hình ảnh chính</label>
+                            <label for="designImage" class="form-label">Main image</label>
                             <input type="text" class="form-control" id="designImage" v-model="editedDesign.image" placeholder="URL hình ảnh">
                             <div class="mt-2" v-if="editedDesign.image">
                               <img :src="editedDesign.image" class="img-thumbnail" style="height: 100px;" alt="Main image preview">
@@ -453,17 +453,17 @@
                         </div>
                         <div class="col-md-6">
                           <div class="mb-3">
-                            <label for="designStatus" class="form-label">Trạng thái</label>
+                            <label for="designStatus" class="form-label">Status</label>
                             <select class="form-select" id="designStatus" v-model="editedDesign.status" required>
-                              <option value="active">Đang hoạt động</option>
-                              <option value="draft">Bản nháp</option>
-                              <option value="archived">Đã lưu trữ</option>
+                              <option value="active">Active</option>
+                              <option value="draft">Draft</option>
+                              <option value="archived">Archived</option>
                             </select>
                           </div>
                         </div>
                         <div class="col-12">
                           <div class="mb-3">
-                            <label class="form-label">Hình ảnh bổ sung</label>
+                            <label class="form-label">Additional Images</label>
                             <div class="input-group mb-2" v-for="(image, index) in editedDesign.additionalImages" :key="index">
                               <input type="text" class="form-control" v-model="editedDesign.additionalImages[index]" placeholder="URL hình ảnh">
                               <button class="btn btn-outline-danger" type="button" @click="removeAdditionalImage(index)">
@@ -471,7 +471,7 @@
                               </button>
                             </div>
                             <button type="button" class="btn btn-outline-primary btn-sm" @click="addAdditionalImage">
-                              <i class="bi bi-plus-circle me-1"></i> Thêm hình ảnh
+                              <i class="bi bi-plus-circle me-1"></i> Add image
                             </button>
                           </div>
                         </div>
@@ -479,8 +479,8 @@
                     </form>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" form="designForm" class="btn" :class="isNewDesign ? 'btn-success' : 'btn-primary'">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="designForm" class="btn" :class="isNewDesign ? 'btn-success' : 'btn-primary'">Save</button>
                   </div>
                 </div>
               </div>
@@ -491,14 +491,14 @@
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Xác nhận xóa</h5>
+                    <h5 class="modal-title">Confirm deletion</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body" v-if="selectedDesign">
-                    <p>Bạn có chắc chắn muốn xóa thiết kế <strong>{{ selectedDesign.name }}</strong>?</p>
+                    <p>Are you sure you want to delete the design? <strong>{{ selectedDesign.name }}</strong>?</p>
                     <p class="text-danger">
                       <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                      Hành động này không thể hoàn tác.
+                      This action cannot be undone.
                     </p>
                   </div>
                   <div class="modal-footer">
