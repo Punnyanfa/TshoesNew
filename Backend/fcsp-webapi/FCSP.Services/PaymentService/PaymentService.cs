@@ -72,7 +72,8 @@ namespace FCSP.Services.PaymentService
                             Id = p.Id,
                             OrderId = p.OrderId,
                             Amount = p.Amount,
-                            Status = p.PaymentStatus
+                            Status = p.PaymentStatus,
+                            PaymentMethod = p.PaymentMethod
                         }).ToList()
                     }
                 };
@@ -309,7 +310,7 @@ namespace FCSP.Services.PaymentService
                 {
                     var responsePayOS = await GetPaymentInfoFromPayOS(new GetPaymentInfoRequest { PaymentId = payment.Id });
                     var userId = responsePayOS.Data.Transactions.First().description.Split(" ")[8];
-                    await _transactionService.RechargeBalanceAsync(new RechargeRequestDTO { UserId = long.Parse(userId), Amount = payment.Amount });
+                    await _transactionService.AddBalanceAsync(new RechargeRequestDTO { UserId = long.Parse(userId), PaymentId = payment.Id, Amount = payment.Amount });
                 }
                 else
                 {
@@ -367,7 +368,7 @@ namespace FCSP.Services.PaymentService
                     Id = payment.Id,
                     OrderId = payment.OrderId,
                     Amount = payment.Amount,
-                    PaymentMessage = "Recharge for user " + user.Id
+                    PaymentMessage = $"Recharge to user { user.Id } wallet"
                 };
                 var paymentResponse = await GetPayOSUrl(requestPayOS);
 

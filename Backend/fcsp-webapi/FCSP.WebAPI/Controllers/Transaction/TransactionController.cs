@@ -18,7 +18,7 @@ public class TransactionController : ControllerBase
     [HttpPost("recharge")]
     public async Task<IActionResult> RechargeBalance([FromBody] RechargeRequestDTO request)
     {
-        var result = await _transactionService.RechargeBalanceAsync(request);
+        var result = await _transactionService.AddBalanceAsync(request);
         return StatusCode(result.Code, result);
     }
 

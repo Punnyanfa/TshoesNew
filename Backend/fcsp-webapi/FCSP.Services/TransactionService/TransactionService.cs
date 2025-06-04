@@ -16,7 +16,7 @@ public class TransactionService : ITransactionService
         _userRepository = userRepository;
     }
 
-    public async Task<BaseResponseModel<TransactionResponseDTO>> RechargeBalanceAsync(RechargeRequestDTO request)
+    public async Task<BaseResponseModel<TransactionResponseDTO>> AddBalanceAsync(RechargeRequestDTO request)
     {
         try
         {
@@ -34,6 +34,8 @@ public class TransactionService : ITransactionService
             var transaction = new Transaction
             {
                 ReceiverId = request.UserId,
+                OrderDetailId = 1,
+                PaymentId = request.PaymentId,
                 Amount = (int)request.Amount,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

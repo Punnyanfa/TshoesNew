@@ -20,6 +20,7 @@ namespace FCSP.DTOs.Payment
         public long OrderId { get; set; }
         public int Amount { get; set; }
         public PaymentStatus Status { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
     }
 
 
