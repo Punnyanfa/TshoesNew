@@ -1,74 +1,64 @@
 <template>
   <Header />
-  <div class="container mt-5">
-    <h2 class="text-center mb-4">Withdrawal Page</h2>
-    
-    <!-- Balance Display -->
-    <div class="balance-container mb-4">
-      <div class="balance-label">Current Balance</div>
-      <div class="balance-amount">{{ balance.toFixed(2) }} ₫</div>
+  <section class="withdraw-modern-bg">
+    <h2 class="withdraw-title">Withdraw Funds</h2>
+    <div class="withdraw-balance-row">
+      <span class="withdraw-balance-label">Current Balance:</span>
+      <span class="withdraw-balance-amount">{{ balance.toLocaleString('vi-VN') }} ₫</span>
     </div>
-
-    <form @submit.prevent="handleSubmit" class="form-container">
-      <div class="mb-4">
-        <label for="amount" class="form-label">Withdrawal Amount</label>
-        <div class="input-group">
-          <span class="input-group-text">₫</span>
+    <form @submit.prevent="handleSubmit" class="withdraw-form-modern">
+      <div class="withdraw-form-row">
+        <label for="amount">Amount</label>
+        <div class="withdraw-input-group">
+          <span class="withdraw-currency">₫</span>
           <input
             type="number"
             id="amount"
             v-model="amount"
-            class="form-control"
             placeholder="Enter amount to withdraw"
             min="0"
-            step="0.01"
+            step="1000"
             required
           />
         </div>
-        <div v-if="amountError" class="error-message">{{ amountError }}</div>
+        <div v-if="amountError" class="withdraw-error">{{ amountError }}</div>
       </div>
-
-      <div class="mb-4">
-        <label for="email" class="form-label">Email Address</label>
+      <div class="withdraw-form-row">
+        <label for="email">Email Address</label>
         <input
           type="email"
           id="email"
           v-model="email"
-          class="form-control"
           placeholder="Enter your email address"
           required
         />
       </div>
-
-      <div class="mb-4">
-        <label for="accountNumber" class="form-label">Account Number</label>
+      <div class="withdraw-form-row">
+        <label for="accountNumber">Account Number</label>
         <input
           type="text"
           id="accountNumber"
           v-model="accountNumber"
-          class="form-control"
           placeholder="Enter your account number"
           required
         />
       </div>
-
-      <div class="mb-4">
-        <label for="accountName" class="form-label">Account Holder Name</label>
+      <div class="withdraw-form-row">
+        <label for="accountName">Account Holder Name</label>
         <input
           type="text"
           id="accountName"
           v-model="accountName"
-          class="form-control"
           placeholder="Enter account holder name"
           required
         />
       </div>
-
-      <button type="submit" class="btn btn-submit w-100" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Processing...' : 'Withdraw Funds' }}
+      <button type="submit" class="withdraw-btn-modern" :disabled="isSubmitting">
+        <span v-if="isSubmitting"><i class="fas fa-spinner fa-spin"></i> Processing...</span>
+        <span v-else>Withdraw Funds</span>
       </button>
     </form>
-  </div>
+  </section>
 </template>
 
 <script>
@@ -215,149 +205,132 @@ export default {
 </script>
 
 <style scoped>
-.container {
-  max-width: 550px;
-  background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  padding: 35px;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  margin: 60px auto;
+/* Modern Withdraw Page Styles */
+.withdraw-modern-bg {
+  min-height: 100vh;
+  padding: 48px 0 32px 0;
+  background: linear-gradient(120deg, #f8fafc 0%, #e0e7ff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
-h2 {
-  font-family: 'Poppins', sans-serif;
-  color: #2c3e50;
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-container {
-  background-color: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.form-label {
-  font-weight: 500;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  font-size: 15px;
-}
-
-.form-control {
-  border-radius: 12px;
-  border: 2px solid #e9ecef;
-  padding: 12px 16px;
-  font-size: 15px;
-  transition: all 0.3s ease;
-  background-color: #f8f9fa;
-}
-
-.form-control:focus {
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-  background-color: #ffffff;
-}
-
-.form-control::placeholder {
-  color: #adb5bd;
-}
-
-.btn-submit {
-  background: linear-gradient(135deg, #4a90e2, #357abd);
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 10px;
-}
-
-.btn-submit:hover {
-  background: linear-gradient(135deg, #357abd, #2c5f9e);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
-}
-
-.btn-submit:active {
-  transform: translateY(0);
-}
-
-.mb-4 {
-  margin-bottom: 1.8rem;
-}
-
-@media (max-width: 576px) {
-  .container {
-    margin: 30px 15px;
-    padding: 20px;
-  }
-  
-  .form-container {
-    padding: 20px;
-  }
-}
-
-.balance-container {
-  background: linear-gradient(135deg, #4a90e2, #357abd);
-  color: white;
-  padding: 20px;
-  border-radius: 15px;
+.withdraw-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 32px;
+  letter-spacing: 1px;
   text-align: center;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
 }
-
-.balance-label {
-  font-size: 16px;
+.withdraw-balance-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.2rem;
+  color: #374151;
+  margin-bottom: 32px;
+  background: #eef2ff;
+  padding: 16px 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
+}
+.withdraw-balance-label {
   font-weight: 500;
-  margin-bottom: 8px;
-  opacity: 0.9;
+  color: #6366f1;
 }
-
-.balance-amount {
-  font-size: 32px;
+.withdraw-balance-amount {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1.5rem;
+}
+.withdraw-form-modern {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(79, 70, 229, 0.08);
+  padding: 36px 32px 28px 32px;
+}
+.withdraw-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.withdraw-form-row label {
+  font-size: 1rem;
+  color: #4f46e5;
   font-weight: 600;
-  letter-spacing: 0.5px;
 }
-
-.input-group {
+.withdraw-form-row input {
+  padding: 12px 14px;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f8fafc;
+  transition: border 0.2s;
+}
+.withdraw-form-row input:focus {
+  border-color: #4f46e5;
+  outline: none;
+  background: #fff;
+}
+.withdraw-input-group {
   display: flex;
   align-items: center;
 }
-
-.input-group-text {
-  background-color: #f8f9fa;
-  border: 2px solid #e9ecef;
-  border-right: none;
-  border-radius: 12px 0 0 12px;
+.withdraw-currency {
+  background: #eef2ff;
+  color: #6366f1;
   padding: 12px 16px;
-  color: #2c3e50;
-  font-weight: 500;
+  border-radius: 8px 0 0 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid #e3e8ef;
+  border-right: none;
 }
-
-.input-group .form-control {
-  border-radius: 0 12px 12px 0;
+.withdraw-input-group input {
+  border-radius: 0 8px 8px 0;
+  border-left: none;
 }
-
-.error-message {
-  color: #dc3545;
+.withdraw-error {
+  color: #dc2626;
   font-size: 14px;
-  margin-top: 5px;
+  margin-top: 4px;
 }
-
-.btn-submit:disabled {
-  background: #ccc;
+.withdraw-btn-modern {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.withdraw-btn-modern:disabled {
+  background: #a5b4fc;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+}
+@media (max-width: 600px) {
+  .withdraw-form-modern {
+    padding: 18px 8px 16px 8px;
+    max-width: 98vw;
+  }
+  .withdraw-balance-row {
+    padding: 10px 8px;
+    font-size: 1rem;
+  }
+  .withdraw-title {
+    font-size: 1.3rem;
+  }
 }
 </style>

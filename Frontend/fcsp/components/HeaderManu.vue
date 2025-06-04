@@ -20,6 +20,7 @@
             v-if="item.path && item.path !== '/customPage'" 
             :href="item.path" 
             class="nav-link"
+            :class="{ active: isActiveRoute(item.path) }"
             @click="toggleNav"
           >
             <a-icon :type="item.icon" /> {{ item.label }}
@@ -291,6 +292,14 @@ const animateLogo = (e) => {
 const resetLogo = (e) => {
   e.target.style.transform = 'rotate(0deg) scale(1)';
 };
+
+// Active route checker for <a> tags
+const isActiveRoute = (path) => {
+  if (typeof window !== 'undefined') {
+    return window.location.pathname === path;
+  }
+  return false;
+};
 </script>
 
 <style scoped>
@@ -381,6 +390,11 @@ const resetLogo = (e) => {
 }
 
 .nav-link:hover::after {
+  width: 80%;
+}
+
+/* Always show underline for active nav-link */
+.nav-link.active::after {
   width: 80%;
 }
 

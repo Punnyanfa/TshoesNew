@@ -21,6 +21,7 @@
             v-if="item.path && item.path !== '/customPage'" 
             :to="item.path" 
             class="nav-link"
+            :class="{ active: isActiveRoute(item.path) }"
             @click="toggleNav"
           >
             <a-icon :type="item.icon" /> {{ item.label }}
@@ -152,12 +153,13 @@ import {
   WalletOutlined,
   DollarCircleOutlined
 } from '@ant-design/icons-vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useCart } from '~/composables/useCart';
 import { getUserBalance } from '@/server/user-service';
 import { getBalance } from '@/server/balance-service';
 
 const router = useRouter();
+const route = useRoute();
 const { cartCount } = useCart();
 const isAuthenticated = ref(false);
 const userName = ref('SneakerFan');
@@ -298,6 +300,11 @@ const logout = () => {
   // Redirect to home page
   router.push('/homePage');
 };
+
+const isActiveRoute = (path) => {
+  // So sánh chính xác path hiện tại
+  return route.path === path;
+};
 </script>
 
 <style scoped>
@@ -384,6 +391,11 @@ const logout = () => {
 }
 
 .nav-link:hover::after {
+  width: 80%;
+}
+
+/* Always show underline for active nav-link */
+.nav-link.active::after {
   width: 80%;
 }
 

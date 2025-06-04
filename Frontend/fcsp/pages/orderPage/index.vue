@@ -440,7 +440,7 @@
       // Convert size values to size IDs and prepare order details
       const orderDetailsPromises = order.value.items.map(async (item) => {
         const sizeId = await getSizeIdByValue(Number(item.selectedSize));
-        const manufacturerId = 1;
+        const manufacturerId = 2;
         if (!sizeId) {
           throw new Error(`Size ID not found for size ${item.selectedSize}`);
         }
