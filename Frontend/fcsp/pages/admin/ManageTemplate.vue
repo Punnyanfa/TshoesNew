@@ -57,7 +57,11 @@
                 </div>
               </td>
               <td>
-                <button class="action-button delete" @click="handleDelete(template)">
+                <button 
+                  class="delete-btn" 
+                  @click="confirmDelete(template)" 
+                  title="Delete"
+                > 
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </td>
@@ -73,6 +77,34 @@
         @template-added="handleTemplateAdded"
       />
     </div>
+
+    <client-only>
+      <teleport to="body">
+        <transition name="fade">
+          <div v-if="showDeleteModal" class="modal-overlay">
+            <div class="modal-wrapper delete-modal-wrapper">
+              <div class="modal-container delete-modal-container">
+                <div class="modal-header delete-modal-header">
+                  <span class="delete-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+                  </span>
+                  <h3>Xác nhận xóa mẫu giày</h3>
+                  <button class="modal-close" @click="showDeleteModal = false">×</button>
+                </div>
+                <div class="modal-body delete-modal-body">
+                  <p v-if="selectedTemplate" class="delete-modal-title">Bạn có chắc chắn muốn xóa mẫu giày <b>"{{ selectedTemplate.name }}"</b>?</p>
+                  <p class="text-danger delete-modal-warning">Hành động này không thể hoàn tác.</p>
+                </div>
+                <div class="modal-footer delete-modal-footer">
+                  <button class="btn-cancel" @click="showDeleteModal = false">Hủy</button>
+                  <button class="btn-delete" @click="handleDelete">Xóa</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </teleport>
+    </client-only>
   </div>
 </template>
 
@@ -93,7 +125,9 @@ export default {
       templates: [],
       searchQuery: '',
       categoryFilter: '',
-      showAddModal: false
+      showAddModal: false,
+      showDeleteModal: false,
+      selectedTemplate: null
     }
   },
   computed: {
@@ -155,19 +189,28 @@ export default {
     async handleTemplateAdded() {
       await this.fetchTemplates()
     },
-    async handleDelete(template) {
-      if (confirm('Are you sure you want to delete this template?')) {
-        try {
-          const response = await deleteTemplate(template.id)
-          if (response && response.code === 200) {
-            await this.fetchTemplates()
-            alert('Successfully deleted!')
-          } else {
-            alert(response.message || 'Delete failed!')
-          }
-        } catch (error) {
-          alert('Delete failed!')
+    confirmDelete(template) {
+      this.selectedTemplate = template;
+      this.showDeleteModal = true;
+    },
+    async handleDelete() {
+      try {
+        if (!this.selectedTemplate) {
+          alert('Không có mẫu giày nào được chọn để xóa');
+          return;
         }
+        
+        const response = await deleteTemplate(this.selectedTemplate.id);
+        if (response && response.code === 200) {
+          await this.fetchTemplates();
+          this.showDeleteModal = false;
+          this.selectedTemplate = null;
+        } else {
+          throw new Error(response.message || 'Xóa thất bại!');
+        }
+      } catch (error) {
+        console.error('Error deleting template:', error);
+        alert('Có lỗi xảy ra khi xóa mẫu giày');
       }
     }
   }
@@ -306,21 +349,169 @@ th {
   font-size: 14px;
 }
 
-.action-button {
-  background: none;
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: none;
-  cursor: pointer;
-  padding: 8px;
   border-radius: 4px;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f44336;
+  color: white;
 }
 
-.action-button.delete {
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.delete-btn i {
+  font-size: 16px;
+}
+
+/* Delete Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.delete-modal-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.delete-modal-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(220,53,69,0.15), 0 1.5px 4px rgba(0,0,0,0.08);
+  max-width: 380px;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  animation: popIn 0.25s cubic-bezier(.4,2,.6,1) both;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.delete-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 10px 24px;
+  border-bottom: 1px solid #f1f1f1;
+  background: #fff;
+}
+
+.delete-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff0f1;
+  border-radius: 50%;
+  padding: 8px;
+  margin-right: 8px;
+}
+
+.delete-modal-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #dc3545;
+  margin: 0;
+  flex: 1;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #888;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
   color: #dc3545;
 }
 
-.action-button.delete:hover {
-  background-color: #dc3545;
-  color: white;
+.delete-modal-body {
+  padding: 18px 24px 0 24px;
+  text-align: center;
+}
+
+.delete-modal-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.delete-modal-warning {
+  font-size: 14px;
+  color: #dc3545;
+  margin-bottom: 0;
+}
+
+.delete-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 24px 20px 24px;
+  background: #fff;
+  border-top: 1px solid #f1f1f1;
+}
+
+.btn-cancel {
+  background: #f1f1f1;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(220,53,69,0.08);
+}
+
+.btn-delete:hover {
+  background: #b52a37;
+}
+
+/* Transition animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
