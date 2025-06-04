@@ -139,24 +139,17 @@
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
               <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge) }}</p>
-              <p><strong>Size:</strong>
-              <select v-model="selectedSize" class="size-select">
-                <option v-for="size in sizes" :key="size" :value="size">
-                  {{ size }}
-                </option>
-              </select>
-            </p>
-            <div class="quantity-section">
-              <p><strong>Quantity:</strong></p>
-              <div class="quantity-input">
-                <input 
-                  type="number" 
-                  v-model="selectedQuantity"
-                  @input="updateQuantity($event)"
-                  min="1"
-                  class="quantity-value">
+              <div class="quantity-section">
+                <p><strong>Quantity:</strong></p>
+                <div class="quantity-input">
+                  <input 
+                    type="number" 
+                    v-model="selectedQuantity"
+                    @input="updateQuantity($event)"
+                    min="1"
+                    class="quantity-value">
+                </div>
               </div>
-            </div>
             </div>
           </div>
           
@@ -530,8 +523,6 @@ const customProductName = ref('')
 const generatedImageUrl = ref('')
 
 // Size and quantity selection
-const selectedSize = ref('38')
-const sizes = ref(['38', '39', '40', '41', '42', '43', '44', '45'])
 const selectedQuantity = ref(1)
 
 // Manufacturer and pricing
@@ -1641,7 +1632,6 @@ const saveAsDraft = () => {
     manufacturerId: selectedManufacturer.value || 1,
     price: basePrice.value,
     surcharge: surcharge.value,
-    size: selectedSize.value,
     image: captureAngles[1].preview,
     textureIds: textureIds,
     ServiceIds: serviceIds,
@@ -1952,8 +1942,6 @@ onMounted(async () => {
         customProductName.value = editingDesign.value.name || 'Custom Running Shoes'
         basePrice.value = editingDesign.value.price || 0
         model3DUrl.value = editingDesign.value.templateUrl || ''
-        selectedSize.value = editingDesign.value.sizes.value?.[0] || '38'
-        sizes.value = editingDesign.value.sizes.value || ['38', '39', '40', '41', '42', '43', '44', '45']
         selectedManufacturer.value = editingDesign.value.manufacturerId || null
         previewImageUrl.value = editingDesign.value.previewImages?.[0] || ''
         

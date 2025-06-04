@@ -28,7 +28,7 @@
                 </div>
                 <h4>{{ item.name }}</h4>
                 <p class="price">Base Price: {{ formatPrice(item.price) }}</p>
-                <!-- <p class="price">Size: {{ item.size }}</p> -->
+                <!-- <p class="size">Size: {{ item.size }}</p> -->
                 <p v-if="item.surcharge && item.surcharge > 0" class="price surcharge">Surcharge: {{ formatPrice(item.surcharge) }}</p>
                 <p v-if="item.surcharge && item.surcharge > 0" class="price total">Total: {{ formatPrice(item.total) }}</p>
 
@@ -139,6 +139,35 @@
 
     </div>
     <Footer />
+
+    <!-- Modal chọn size -->
+    <div class="size-modal" v-if="showSizeModal">
+      <div class="size-modal-content">
+        <div class="size-modal-header">
+          <h3>Chọn size giày</h3>
+          <button class="close-button" @click="showSizeModal = false">×</button>
+        </div>
+        <div class="size-modal-body">
+          <div class="size-options">
+            <button 
+              v-for="size in availableSizes" 
+              :key="size"
+              class="size-option"
+              :class="{ 'selected': selectedSize === size }"
+              @click="selectedSize = size"
+            >
+              {{ size }}
+            </button>
+          </div>
+        </div>
+        <div class="size-modal-footer">
+          <button class="btn btn-secondary" @click="showSizeModal = false">Hủy</button>
+          <button class="btn btn-primary" @click="confirmAddToCart" :disabled="!selectedSize">
+            Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -360,6 +389,12 @@ async function removeFromCart(id) {
 
 // Thêm thiết kế vào giỏ hàng
 const duplicateToCart = (item) => {
+  selectedItem.value = item;
+  selectedSize.value = null;
+  showSizeModal.value = true;
+};
+
+const confirmAddToCart = () => {
   try {
     let cart = []
     const savedCart = localStorage.getItem(`cart_${localStorage.getItem("userId")}`)
@@ -369,24 +404,24 @@ const duplicateToCart = (item) => {
     
     const newCartItem = {
       id: Date.now(),
-      customShoeDesignId: item.id,
-      name: item.name,
-      manufacturerId: item.manufacturerId,
-      price: item.price + (item.surcharge || 0),
-      surcharge: item.surcharge || 0,
-      selectedSize: '40',
-      selectedQuantity: item.selectedQuantity || 1,
-      previewImageUrl: item.image || item.previewImageUrl,
+      customShoeDesignId: selectedItem.value.id,
+      name: selectedItem.value.name,
+      manufacturerId: selectedItem.value.manufacturerId,
+      price: selectedItem.value.price + (selectedItem.value.surcharge || 0),
+      surcharge: selectedItem.value.surcharge || 0,
+      selectedSize: selectedSize.value,
+      selectedQuantity: 1,
+      previewImageUrl: selectedItem.value.image || selectedItem.value.previewImageUrl,
       designData: {
-        colors: item.designData?.colors || {},
-        textures: item.designData?.textures || {},
-        imagesData: item.designData?.imagesData || {},
-        customText: item.designData?.customText || '',
-        textureParams: item.designData?.textureParams || {},
+        colors: selectedItem.value.designData?.colors || {},
+        textures: selectedItem.value.designData?.textures || {},
+        imagesData: selectedItem.value.designData?.imagesData || {},
+        customText: selectedItem.value.designData?.customText || '',
+        textureParams: selectedItem.value.designData?.textureParams || {},
         timestamp: new Date().toISOString(),
-        manufacturerId: item.manufacturerId
+        manufacturerId: selectedItem.value.manufacturerId
       },
-      previewImages: item.previewImages || []
+      previewImages: selectedItem.value.previewImages || []
     }
     
     cart.push(newCartItem)
@@ -396,14 +431,18 @@ const duplicateToCart = (item) => {
     const formattedTotalPrice = formatPrice(totalPrice)
     const formattedSurcharge = newCartItem.surcharge > 0 ? `\nCustomization fee: ${formatPrice(newCartItem.surcharge)}` : ''
     
-    alert(`Design product has been successfully added to cart!`)
+    alert(`Đã thêm sản phẩm vào giỏ hàng thành công!`)
     
     setTimeout(() => {
       window.location.href = '/shoppingCartPage'
     }, 500)
   } catch (e) {
     console.error('Error adding to cart:', e)
-    alert('An error occurred while adding to cart. Please try again.')
+    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.')
+  } finally {
+    showSizeModal.value = false;
+    selectedItem.value = null;
+    selectedSize.value = null;
   }
 }
 
@@ -560,7 +599,7 @@ const getStatusText = (status) => {
     case 4:
       return 'Rejected';
     default:
-      return 'Prive';
+      return 'Privated';
   }
 };
 
@@ -635,6 +674,11 @@ onMounted(async () => {
   // Lấy userRole từ localStorage sau khi component được mount
   userRole.value = localStorage.getItem('role') || '';
 });
+
+const showSizeModal = ref(false);
+const selectedSize = ref(null);
+const selectedItem = ref(null);
+const availableSizes = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
 </script>
 
@@ -1209,5 +1253,87 @@ h1:hover {
 .status-unknown {
   background-color: #6c757d;
   color: white;
+}
+
+.size-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.size-modal-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.size-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.size-modal-header h3 {
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.size-options {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.size-option {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.size-option:hover {
+  background-color: #f0f0f0;
+}
+
+.size-option.selected {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.size-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.size-modal-footer button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.size-modal-footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
