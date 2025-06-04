@@ -6,10 +6,10 @@
       </div>
       <h1 class="success-title">Payment Successful!</h1>
       <p class="success-message">Thank you for your order. We will process your order as soon as possible.</p>
-      <div class="order-details">
+      <!-- <div class="order-details">
         <p>Order Code: <span class="order-code">{{ orderCode }}</span></p>
         <p>Status: <span class="order-status">{{ status }}</span></p>
-      </div>
+      </div> -->
       <NuxtLink to="/" class="home-button">
         <i class="bi bi-house-door"></i>
         Back to Home

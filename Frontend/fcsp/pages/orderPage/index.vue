@@ -152,6 +152,57 @@
                 </div>
               </div>
 
+              <!-- Payment Method Section -->
+              <div class="payment-method-section mb-4">
+                <h5 class="mb-3">Payment Method</h5>
+                <div class="payment-methods">
+                  <div 
+                    class="payment-method-option"
+                    :class="{ active: selectedPaymentMethod === 0 }"
+                    @click="selectPaymentMethod(0)"
+                  >
+                    <div class="method-icon payos">
+                      <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="method-info">
+                      <h6>PayOS</h6>
+                      <p class="mb-0">Pay with credit/debit card</p>
+                    </div>
+                    <div class="method-radio">
+                      <input 
+                        type="radio" 
+                        name="paymentMethod" 
+                        :value="0" 
+                        v-model="selectedPaymentMethod"
+                      >
+                    </div>
+                  </div>
+
+                  <div 
+                    class="payment-method-option"
+                    :class="{ active: selectedPaymentMethod === 1 }"
+                    @click="selectPaymentMethod(1)"
+                  >
+                    <div class="method-icon wallet">
+                      <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="method-info">
+                      <h6>Wallet</h6>
+                      <p class="mb-0">Pay with your wallet balance</p>
+                      <small class="text-muted">Current balance: {{ getWalletBalanceDisplay }}</small>
+                    </div>
+                    <div class="method-radio">
+                      <input 
+                        type="radio" 
+                        name="paymentMethod" 
+                        :value="1" 
+                        v-model="selectedPaymentMethod"
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <hr>
               <div class="d-flex justify-content-between fw-bold">
                 <span>Total Payment:</span>
@@ -179,6 +230,7 @@
   import { getAllVouchers } from '~/server/ManageVoucher-service';
   import { postOrder } from '@/server/order-service';
   import { getSizeValueById, getSizeIdByValue } from '@/server/size-service';
+  import { getBalance } from '@/server/balance-service';
   const order = ref(null);
   const loading = ref(true);
   const selectedAddress = ref(null);
@@ -196,6 +248,12 @@
 
   // Add new ref for mapped sizes
   const mappedSizes = ref({});
+
+  // Add new ref for payment method
+  const selectedPaymentMethod = ref(0); // 0 for PayOS, 1 for Wallet
+
+  // Add new ref for wallet balance
+  const walletBalance = ref(0);
 
   // Function to load and map sizes for order items
   const loadSizesForItems = async () => {
@@ -355,25 +413,32 @@
   const placeOrder = async () => {
     try {
       if (!shippingAddress.value) {
-        alert('Please select a shipping address'); // Keep English
+        alert('Please select a shipping address');
         return;
       }
 
       if (!order.value || !order.value.items || order.value.items.length === 0) {
-        alert('No products in order'); // Keep English
+        alert('No products in order');
         return;
       }
 
-      // Get userId from localStorage
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        alert('Please login to place an order'); // Keep English
+        alert('Please login to place an order');
         return;
+      }
+
+      // Check wallet balance if payment method is wallet
+      if (selectedPaymentMethod.value === 1) {
+        await fetchWalletBalance();
+        if (walletBalance.value < finalTotal.value) {
+          alert(`Insufficient wallet balance. Your current balance is ${formatPrice(walletBalance.value)}. Please add more funds or choose another payment method.`);
+          return;
+        }
       }
 
       // Convert size values to size IDs and prepare order details
       const orderDetailsPromises = order.value.items.map(async (item) => {
-        // Get the correct size ID for the size value
         const sizeId = await getSizeIdByValue(Number(item.selectedSize));
         const manufacturerId = 1;
         if (!sizeId) {
@@ -382,50 +447,59 @@
         return {
           customShoeDesignId: parseInt(item.id),
           quantity: parseInt(item.quantity || 1),
-          sizeId: sizeId,  // Use the looked up sizeId
+          sizeId: sizeId,
           manufacturerId: manufacturerId
         };
       });
 
-      // Wait for all size ID lookups to complete
       const orderDetailsArr = await Promise.all(orderDetailsPromises);
-      // Nếu chỉ có 1 sản phẩm, gửi object, nếu nhiều sản phẩm, gửi object đầu tiên (theo API mẫu)
       const orderDetail = orderDetailsArr[0];
-      // Nếu có voucherId, lấy từ state hoặc mặc định null
       const voucherId = typeof selectedVoucherId !== 'undefined' ? selectedVoucherId : null;
-      // Predpare request body
+
       const orderData = {
         userId: parseInt(userId),
         shippingInfoId: parseInt(shippingAddress.value.id),
-        paymentMethod: 0,
+        paymentMethod: selectedPaymentMethod.value,
         voucherId: voucherId,
         orderDetail: orderDetail,
       };
 
       console.log('Sending order data:', JSON.stringify(orderData, null, 2));
 
-      // Call the postOrder API
       const response = await postOrder(orderData);
       console.log('Order response:', response);
       
-      // Clear order data from localStorage
       localStorage.removeItem('orderData');
 
-      // Check if we have a payment URL directly in the response
+      // Check payment method first for specific handling
+      if (selectedPaymentMethod.value === 1) { // Wallet payment
+        if (response && response.code === 200) {
+          // For wallet, successful order means redirect to success page
+          router.push('/paymentSuccessPage');
+        } else {
+          // Wallet payment failed
+          throw new Error(response?.message || 'Wallet payment failed');
+        }
+        return; // Exit after handling wallet payment
+      }
+
+      // For other payment methods (like PayOS = 0)
       if (response && response.paymentUrl) {
+        // If a payment URL is returned, redirect there (e.g., to PayOS gateway)
         window.location.href = response.paymentUrl;
         return;
       }
       
-      // If no payment URL but order was successful
+      // If no payment URL but order is successful (code 200) for non-wallet methods
       if (response && response.code === 200) {
-        alert('Order placed successfully!');
-        router.push('/');
-        return;
+         alert('Order placed successfully!');
+         router.push('/'); // Redirect to home or a general success page
+         return;
       }
 
-      // If we get here, something went wrong
+      // If none of the above, it's an error for non-wallet methods
       throw new Error(response?.message || 'Order failed');
+
     } catch (err) {
       console.error('Error placing order:', err);
       const errorMessage = err.message || 'An error occurred while placing the order. Please try again.';
@@ -522,11 +596,38 @@
     return order.value.totalPayment;
   };
   
+  // Add method to handle payment method selection
+  const selectPaymentMethod = (method) => {
+    selectedPaymentMethod.value = method;
+  };
+  
+  // Add function to fetch wallet balance
+  const fetchWalletBalance = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+      
+      const response = await getBalance(userId);
+      if (response && response.data && response.data.balance !== undefined) {
+        walletBalance.value = response.data.balance;
+      }
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+      walletBalance.value = 0;
+    }
+  };
+
+  // Add wallet balance display in payment method section
+  const getWalletBalanceDisplay = computed(() => {
+    return formatPrice(walletBalance.value);
+  });
+  
   onMounted(() => {
     Promise.all([
       fetchOrder(), 
       fetchShippingAddress(),
-      loadAvailableVouchers() // Add this
+      loadAvailableVouchers(),
+      fetchWalletBalance() // Add this
     ]).catch(err => {
       console.error('Error during initialization:', err);
       error.value = 'Đã có lỗi xảy ra khi khởi tạo trang';
@@ -657,6 +758,102 @@
   
   .text-success {
     color: #4caf50 !important;
+  }
+
+  .payment-method-section {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .payment-method-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #e3e8ef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .payment-method-option:hover {
+    border-color: #4f46e5;
+    transform: translateY(-1px);
+  }
+
+  .payment-method-option.active {
+    border-color: #4f46e5;
+    background: #eef2ff;
+  }
+
+  .method-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .method-icon.payos {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+  }
+
+  .method-icon.wallet {
+    background-color: #dcfce7;
+    color: #16a34a;
+  }
+
+  .method-info {
+    flex: 1;
+  }
+
+  .method-info h6 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1f36;
+  }
+
+  .method-info p {
+    font-size: 14px;
+    color: #697386;
+  }
+
+  .method-radio input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .payment-method-option {
+      padding: 12px;
+    }
+
+    .method-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+
+    .method-info h6 {
+      font-size: 14px;
+    }
+
+    .method-info p {
+      font-size: 12px;
+    }
   }
   </style>
   
