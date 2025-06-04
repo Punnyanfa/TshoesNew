@@ -77,14 +77,14 @@
            </div>
            <div class="dropdown-content">
               <div class="dropdown-item balance-display" style="font-weight: bold;">
-                 Số dư: {{ formatCurrency(userBalance) }}
+                 Balance: {{ formatCurrency(userBalance) }}
               </div>
               <hr class="dropdown-divider">
               <router-link class="dropdown-item" to="/depositPage"> <!-- Placeholder link -->
-                 <i class="bi bi-cash"></i> Nạp tiền
+                 <i class="bi bi-cash"></i> Deposit
               </router-link>
               <router-link class="dropdown-item" to="/withdrawPage"> <!-- Placeholder link -->
-                 <i class="bi bi-credit-card"></i> Rút tiền
+                 <i class="bi bi-credit-card"></i> Withdraw
               </router-link>
            </div>
         </section>

@@ -6,10 +6,10 @@
       </div>
       <h1 class="cancelled-title">Payment Cancelled</h1>
       <p class="cancelled-message">Your payment has been cancelled. If you have any questions, please contact our support team.</p>
-      <div class="order-details">
+      <!-- <div class="order-details">
         <p>Order Code: <span class="order-code">{{ orderCode }}</span></p>
         <p>Status: <span class="order-status">{{ status }}</span></p>
-      </div>
+      </div> -->
       <NuxtLink to="/" class="home-button">
         <i class="bi bi-house-door"></i>
         Back to Home
