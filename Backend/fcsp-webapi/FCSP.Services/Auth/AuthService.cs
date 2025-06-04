@@ -910,11 +910,7 @@ public class AuthService : IAuthService
     private async Task<User> GetUserEntityFromForgetUserPasswordRequestAsync(ForgetUserPasswordRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !_passwordHashingService.VerifyHashedPassword(request.Password, user.PasswordHash))
-        {
-            throw new InvalidOperationException("Invalid user forget password request");
-        }
-
+        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.Password);
         return user;
     }
 
