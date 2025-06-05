@@ -215,7 +215,7 @@
               v-if="uploadedImageHistory.length > 1 && currentImageIndex > 0" 
               @click="showPreviousImage" 
               class="back-image-button"
-              title="Xem ảnh trước đó"
+              title="See the previous image"
             >
               ←
             </button>
@@ -223,7 +223,7 @@
               v-if="uploadedImageHistory.length > 1 && currentImageIndex < uploadedImageHistory.length - 1" 
               @click="showNextImage" 
               class="next-image-button"
-              title="Xem ảnh tiếp theo"
+              title="See the next image"
             >
               →
             </button>
@@ -236,20 +236,20 @@
       
       <!-- Tùy chỉnh màu và texture ở giữa -->
       <div class="customizer-card">
-        <h3 class="card-title">TÙY CHỈNH</h3>
+        <h3 class="card-title">CUSTOMIZABLE</h3>
         
         <div class="customizer-tabs">
           <button 
             :class="{'tab-button': true, 'active': activeTab === 'color'}" 
             @click="activeTab = 'color'"
           >
-            Màu nền
+            Color
           </button>
           <button 
             :class="{'tab-button': true, 'active': activeTab === 'image'}" 
             @click="activeTab = 'image'"
           >
-            Hình ảnh
+            Image
           </button>
           <button 
             :class="{'tab-button': true, 'active': activeTab === 'ai'}" 
@@ -273,7 +273,7 @@
                 class="apply-custom-color-btn"
                 @click="applyCustomColor"
               >
-                Áp dụng
+                Apply
               </button>
             </div>
           </div>
@@ -292,14 +292,14 @@
                 id="image-upload"
               />
               <label for="image-upload" class="upload-button">
-                Chọn ảnh
+                Choose picture
               </label>
               <div class="image-buttons">
                 <button class="text-button apply-text" @click="applyImageToMesh" :disabled="!selectedImage" title="Áp dụng ảnh vào phần đã chọn">
-                  Áp dụng
+                  Apply
                 </button>
                 <button class="text-button remove-text" @click="removeImagePreview" title="Xóa ảnh đã chọn">
-                  Xóa
+                  Delete
                 </button>
               </div>
             </div>
@@ -329,10 +329,10 @@
                 <img :src="generatedAIImage" alt="Generated AI Image" class="generated-image"/>
                 <div class="image-buttons">
                   <button class="text-button apply-text" @click="moveToImageSection" title="Chuyển sang phần Hình ảnh">
-                    Chuyển sang Hình ảnh
+                    Move to Image 
                   </button>
                   <button class="text-button remove-text" @click="removeAIImage" title="Xóa ảnh đã tạo">
-                    Xóa
+                    Delete
                   </button>
                 </div>
               </div>
