@@ -86,10 +86,12 @@
               <div class="mb-3">
                 <label for="modalFullName" class="form-label">Full Name</label>
                 <input type="text" class="form-control" id="modalFullName" v-model="editProfile.fullName" required />
+                <div class="text-danger small mt-1" v-if="errors.fullName">{{ errors.fullName }}</div>
               </div>
               <div class="mb-3">
                 <label for="modalPhone" class="form-label">Phone Number</label>
                 <input type="text" class="form-control" id="modalPhone" v-model="editProfile.phone" required />
+                <div class="text-danger small mt-1" v-if="errors.phone">{{ errors.phone }}</div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Gender</label>
@@ -102,6 +104,7 @@
               <div class="mb-3">
                 <label for="modalDob" class="form-label">Date of Birth</label>
                 <input type="date" class="form-control" id="modalDob" v-model="editProfile.birthdate" required />
+                <div class="text-danger small mt-1" v-if="errors.birthdate">{{ errors.birthdate }}</div>
               </div>
               <div class="modal-footer">
                 <button type="submit" class="btn btn-primary mx-auto">Save</button>
@@ -126,14 +129,17 @@
               <div class="mb-3">
                 <label class="form-label">Current Password</label>
                 <input type="password" class="form-control" v-model="changePassword.oldPassword" required />
+                <div class="text-danger small mt-1" v-if="errors.oldPassword">{{ errors.oldPassword }}</div>
               </div>
               <div class="mb-3">
                 <label class="form-label">New Password</label>
                 <input type="password" class="form-control" v-model="changePassword.newPassword" required />
+                <div class="text-danger small mt-1" v-if="errors.newPassword">{{ errors.newPassword }}</div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Confirm New Password</label>
                 <input type="password" class="form-control" v-model="changePassword.confirmPassword" required />
+                <div class="text-danger small mt-1" v-if="errors.confirmPassword">{{ errors.confirmPassword }}</div>
               </div>
               <div class="modal-footer">
                 <button type="submit" class="btn btn-primary mx-auto">Change</button>
@@ -177,6 +183,14 @@ export default {
         oldPassword: '',
         newPassword: '',
         confirmPassword: ''
+      },
+      errors: {
+        fullName: '',
+        phone: '',
+        birthdate: '',
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       }
     }
   },
@@ -211,7 +225,103 @@ export default {
     }
   },
   methods: {
+    validateProfile() {
+      let isValid = true;
+      this.errors = {
+        fullName: '',
+        phone: '',
+        birthdate: '',
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      };
+
+      // Validate Full Name
+      if (!this.editProfile.fullName.trim()) {
+        this.errors.fullName = 'Full name cannot be left blank';
+        isValid = false;
+      } else if (this.editProfile.fullName.length < 5) {
+        this.errors.fullName = 'Full name must be at least 5 characters';
+        isValid = false;
+      }
+
+      // Validate Phone Number
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!this.editProfile.phone) {
+        this.errors.phone = 'Phone number cannot be blank';
+        isValid = false;
+      } else if (!phoneRegex.test(this.editProfile.phone)) {
+        this.errors.phone = 'Phone number must be 10 digits';
+        isValid = false;
+      }
+
+      // Validate Date of Birth
+      if (!this.editProfile.birthdate) {
+        this.errors.birthdate = 'Date of birth cannot be left blank';
+        isValid = false;
+      } else {
+        const dob = new Date(this.editProfile.birthdate);
+        const today = new Date();
+        if (dob > today) {
+          this.errors.birthdate = 'Date of birth cannot be greater than current date';
+          isValid = false;
+        }
+      }
+
+      return isValid;
+    },
+
+    validatePassword() {
+      let isValid = true;
+      this.errors = {
+        fullName: '',
+        phone: '',
+        birthdate: '',
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      };
+
+      // Validate Old Password
+      if (!this.changePassword.oldPassword) {
+        this.errors.oldPassword = 'Current password cannot be blank';
+        isValid = false;
+      }
+
+      // Validate New Password
+      if (!this.changePassword.newPassword) {
+        this.errors.newPassword = 'New password cannot be blank';
+        isValid = false;
+      } else if (this.changePassword.newPassword.length < 8) {
+        this.errors.newPassword = 'New password must be at least 8 characters';
+        isValid = false;
+      } else if (!/[A-Z]/.test(this.changePassword.newPassword)) {
+        this.errors.newPassword = 'New password must have at least 1 uppercase letter';
+        isValid = false;
+      } else if (!/[a-z]/.test(this.changePassword.newPassword)) {
+        this.errors.newPassword = 'New password must have at least 1 lowercase letter';
+        isValid = false;
+      } else if (!/[A-Z]/.test(this.changePassword.newPassword)) {
+        this.errors.newPassword = 'New password must have at least 1 special character';
+        isValid = false;
+      }
+
+      // Validate Confirm Password
+      if (!this.changePassword.confirmPassword) {
+        this.errors.confirmPassword = 'Confirm password cannot be blank';
+        isValid = false;
+      } else if (this.changePassword.newPassword !== this.changePassword.confirmPassword) {
+        this.errors.confirmPassword = 'Confirmation password does not match';
+        isValid = false;
+      }
+
+      return isValid;
+    },
+
     async submitUpdate() {
+      if (!this.validateProfile()) {
+        return;
+      }
       const id = localStorage.getItem('userId');
       if (!id) {
         alert('You need to login to update your information!');
@@ -281,12 +391,7 @@ export default {
         })
     },
     async submitChangePassword() {
-      if (this.changePassword.newPassword !== this.changePassword.confirmPassword) {
-        alert('New password and confirm password do not match!');
-        return;
-      }
-      if (this.changePassword.newPassword.length < 8) {
-        alert('Password must be at least 8 characters!');
+      if (!this.validatePassword()) {
         return;
       }
       const id = localStorage.getItem('userId');

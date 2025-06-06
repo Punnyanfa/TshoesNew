@@ -62,6 +62,7 @@
                   placeholder="Your Email"
                   required
                 />
+                <div class="text-danger small mt-1" v-if="errors.email">{{ errors.email }}</div>
               </div>
               <div class="form-group mb-4">
                 <label class="form-label">Subject</label>
@@ -71,6 +72,7 @@
                   placeholder="Subject"
                   required
                 />
+                <div class="text-danger small mt-1" v-if="errors.subject">{{ errors.subject }}</div>
               </div>
               <div class="form-group mb-5">
                 <label class="form-label">Message</label>
@@ -81,6 +83,7 @@
                   placeholder="Message"
                   required
                 ></textarea>
+                <div class="text-danger small mt-1" v-if="errors.message">{{ errors.message }}</div>
               </div>
               <button type="submit" class="btn btn-primary w-100">
                 Send Message
@@ -121,13 +124,66 @@ import { ref } from 'vue';
 import { sendEmail } from '../../server/auth/senEmail-service';
 
 const form = ref({
-
   email: '',
   subject: '',
   message: ''
 });
 
+const errors = ref({
+  email: '',
+  subject: '',
+  message: ''
+});
+
+const validateForm = () => {
+  let isValid = true;
+  errors.value = {
+    email: '',
+    subject: '',
+    message: ''
+  };
+
+  // Validate Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!form.value.email) {
+    errors.value.email = 'Email cannot be blank';
+    isValid = false;
+  } else if (!emailRegex.test(form.value.email)) {
+    errors.value.email = 'Please enter a valid email address';
+    isValid = false;
+  }
+
+  // Validate Subject
+  if (!form.value.subject.trim()) {
+    errors.value.subject = 'Subject cannot be blank';
+    isValid = false;
+  } else if (form.value.subject.length < 5) {
+    errors.value.subject = 'Subject must be at least 5 characters';
+    isValid = false;
+  } else if (form.value.subject.length > 100) {
+    errors.value.subject = 'Subject cannot exceed 100 characters';
+    isValid = false;
+  }
+
+  // Validate Message
+  if (!form.value.message.trim()) {
+    errors.value.message = 'Message cannot be blank';
+    isValid = false;
+  } else if (form.value.message.length < 10) {
+    errors.value.message = 'Message must be at least 10 characters';
+    isValid = false;
+  } else if (form.value.message.length > 1000) {
+    errors.value.message = 'Message cannot exceed 1000 characters';
+    isValid = false;
+  }
+
+  return isValid;
+};
+
 const sendMessage = async () => {
+  if (!validateForm()) {
+    return;
+  }
   try {
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -136,7 +192,7 @@ const sendMessage = async () => {
     }
     await sendEmail(userId, form.value.subject, form.value.message);
     alert('Your message has been sent successfully! We will respond within 24 hours.');
-    form.value = { firstName: '', lastName: '', email: '', subject: '', message: '' };
+    form.value = { email: '', subject: '', message: '' };
   } catch (error) {
     alert('Failed to send message. Please try again later.');
     console.error(error);
