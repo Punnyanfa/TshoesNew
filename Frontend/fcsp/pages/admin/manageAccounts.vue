@@ -109,14 +109,6 @@
                         <td class="date-text">{{ formatDate(account.createdAt) }}</td>
                         <td class="text-end">
                           <button 
-                            class="btn btn-sm btn-outline-primary me-1" 
-                            data-bs-toggle="tooltip" 
-                            title="View Details"
-                            @click="viewAccountDetails(account)"
-                          >
-                            <i class="bi bi-eye"></i>
-                          </button>
-                          <button 
                             class="btn btn-sm btn-outline-success me-1" 
                             data-bs-toggle="tooltip" 
                             title="Edit"
@@ -159,93 +151,6 @@
                 <!-- <button class="btn btn-primary" @click="showAddAccountModal">
                   <i class="bi bi-plus-circle me-1"></i> Add New Account
                 </button> -->
-              </div>
-            </div>
-    
-            <!-- Account Details Modal -->
-            <div class="modal fade" id="accountDetailsModal" tabindex="-1" ref="accountDetailsModal">
-              <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                  <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Account Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body" v-if="selectedAccount">
-                    <div class="row">
-                      <div class="col-md-4 text-center mb-4 mb-md-0">
-                        <div class="avatar-container mb-3">
-                          <img 
-                            :src="selectedAccount.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedAccount.name) + '&background=random&size=200'" 
-                            class="img-fluid rounded-circle avatar-large"
-                            alt="Avatar"
-                          >
-                        </div>
-                        <h4 class="mb-1">{{ selectedAccount.name }}</h4>
-                        <p class="text-muted mb-2">{{ selectedAccount.username }}</p>
-                        <span :class="['badge', getRoleBadgeClass(userRoles.find(r => r.value === selectedAccount.role)?.label)]">
-                          {{ userRoles.find(r => r.value === selectedAccount.role)?.label || selectedAccount.role }}
-                        </span>
-                      </div>
-                      <div class="col-md-8">
-                        <div class="card border-0 bg-light">
-                          <div class="card-body">
-                            <h5 class="card-title text-primary mb-3">
-                              <i class="bi bi-person-badge me-2"></i>Account Information
-                            </h5>
-                            <ul class="list-group list-group-flush bg-transparent">
-                              <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                <span class="fw-medium">ID:</span>
-                                <span>{{ selectedAccount.id }}</span>
-                              </li>
-                              <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                <span class="fw-medium">Email:</span>
-                                <span>{{ selectedAccount.email }}</span>
-                              </li>
-                              <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                <span class="fw-medium">Phone:</span>
-                                <span>{{ selectedAccount.phone }}</span>
-                              </li>
-                              <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                <span class="fw-medium">Created Date:</span>
-                                <span>{{ formatDate(selectedAccount.createdAt) }}</span>
-                              </li>
-                              <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                <span class="fw-medium">Last Login:</span>
-                                <span>{{ formatDateTime(selectedAccount.lastLogin) }}</span>
-                              </li>
-                              <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                <span class="fw-medium">Status:</span>
-                                <span :class="['badge', selectedAccount.status === 'active' ? 'bg-success' : 'bg-danger']">
-                                  {{ selectedAccount.status === 'active' ? 'Active' : 'Inactive' }}
-                                </span>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        
-                        <div class="card border-0 bg-light mt-3">
-                          <div class="card-body">
-                            <h5 class="card-title text-primary mb-3">
-                              <i class="bi bi-shield-lock me-2"></i>Permissions
-                            </h5>
-                            <div class="permission-list">
-                              <div v-for="(permission, index) in selectedAccount.permissions" :key="index" class="permission-item">
-                                <span class="badge bg-info me-2">
-                                  <i class="bi bi-check-circle me-1"></i>
-                                </span>
-                                {{ permission }}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" @click="editAccount(selectedAccount)">Edit</button>
-                  </div>
-                </div>
               </div>
             </div>
     
@@ -435,9 +340,6 @@ export default {
         'Manufacturer': 'bg-info'
       };
       return classes[role] || 'bg-secondary';
-    },
-    viewAccountDetails(account) {
-      this.selectedAccount = account;
     },
     toggleAccountStatus(account) {
       if (!account) return;
