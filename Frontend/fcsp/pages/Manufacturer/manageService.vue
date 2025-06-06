@@ -17,6 +17,7 @@
                       <th>Component</th>
                       <th>Color Fee (₫)</th>
                       <th>Image Fee (₫)</th>
+                      <th>Delete</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -27,6 +28,11 @@
                       </td>
                       <td>
                         <input type="number" min="0" class="form-control text-end" v-model.number="fee.imageFee" placeholder="0" />
+                      </td>
+                      <td>
+                        <button class="btn btn-danger btn-sm" @click="deleteFee(fee)">
+                          <span>×</span>
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -39,7 +45,7 @@
                 <b>Note:</b> These fees will be used as default when adding new services.
               </div>
             </div>
-          </div>      
+          </div>
         </div>
       </div>
     </div>
@@ -48,7 +54,7 @@
 
 <script>
 import HeaderManu from '@/components/HeaderManu.vue';
-import { addManufacture, getManufacturerById, updateManufacturer } from '@/server/manuService-service.js';
+import axios from 'axios';
 
 export default {
   name: 'ManageService',
@@ -59,39 +65,11 @@ export default {
   data() {
     return {
       defaultCustomFees: [
-        { part: 'Base', colorFee: 0, imageFee: 0 },
-        { part: 'Heel', colorFee: 0, imageFee: 0 },
-        { part: 'Lace', colorFee: 0, imageFee: 0 },
-        { part: 'Outsole', colorFee: 0, imageFee: 0 },
-        { part: 'Midsole', colorFee: 0, imageFee: 0 },
-        { part: 'Tip', colorFee: 0, imageFee: 0 },
-        { part: 'Accent', colorFee: 0, imageFee: 0 },
-        { part: 'Logo', colorFee: 0, imageFee: 0 },
-        { part: 'Details', colorFee: 0, imageFee: 0 }
-      ],
-      services: [
-        { id: 1, name: 'Custom Design', description: 'Create custom shoe designs', price: 150, status: 1, customFees: [
-          { part: 'Base', colorFee: 0, imageFee: 0 },
-          { part: 'Heel', colorFee: 0, imageFee: 0 },
-          { part: 'Lace', colorFee: 0, imageFee: 0 },
-          { part: 'Outsole', colorFee: 0, imageFee: 0 },
-          { part: 'Midsole', colorFee: 0, imageFee: 0 },
-          { part: 'Tip', colorFee: 0, imageFee: 0 },
-          { part: 'Accent', colorFee: 0, imageFee: 0 },
-          { part: 'Logo', colorFee: 0, imageFee: 0 },
-          { part: 'Details', colorFee: 0, imageFee: 0 }
-        ] },
-        { id: 2, name: 'Bulk Order', description: 'Order in bulk quantities', price: 100, status: 1, customFees: [
-          { part: 'Base', colorFee: 0, imageFee: 0 },
-          { part: 'Heel', colorFee: 0, imageFee: 0 },
-          { part: 'Lace', colorFee: 0, imageFee: 0 },
-          { part: 'Outsole', colorFee: 0, imageFee: 0 },
-          { part: 'Midsole', colorFee: 0, imageFee: 0 },
-          { part: 'Tip', colorFee: 0, imageFee: 0 },
-          { part: 'Accent', colorFee: 0, imageFee: 0 },
-          { part: 'Logo', colorFee: 0, imageFee: 0 },
-          { part: 'Details', colorFee: 0, imageFee: 0 }
-        ] }
+        { part: 'Base', colorFee: 0, imageFee: 0, colorServiceId: null, imageServiceId: null },
+        { part: 'Lace', colorFee: 0, imageFee: 0, colorServiceId: null, imageServiceId: null },
+        { part: 'Sole', colorFee: 0, imageFee: 0, colorServiceId: null, imageServiceId: null },
+        { part: 'Accent', colorFee: 0, imageFee: 0, colorServiceId: null, imageServiceId: null },
+        { part: 'Details', colorFee: 0, imageFee: 0, colorServiceId: null, imageServiceId: null }
       ],
       showServiceModal: false,
       isEditing: false,
@@ -103,13 +81,9 @@ export default {
         status: 1,
         customFees: [
           { part: 'Base', colorFee: 0, imageFee: 0 },
-          { part: 'Heel', colorFee: 0, imageFee: 0 },
           { part: 'Lace', colorFee: 0, imageFee: 0 },
-          { part: 'Outsole', colorFee: 0, imageFee: 0 },
-          { part: 'Midsole', colorFee: 0, imageFee: 0 },
-          { part: 'Tip', colorFee: 0, imageFee: 0 },
+          { part: 'Sole', colorFee: 0, imageFee: 0 },
           { part: 'Accent', colorFee: 0, imageFee: 0 },
-          { part: 'Logo', colorFee: 0, imageFee: 0 },
           { part: 'Details', colorFee: 0, imageFee: 0 }
         ]
       }
@@ -128,6 +102,39 @@ export default {
         style: 'currency',
         currency: 'VND'
       }).format(value);
+    },
+    async deleteFee(fee) {
+      if (confirm(`Are you sure you want to delete fees for ${fee.part}?`)) {
+        try {
+          // Delete color fee if it exists
+          if (fee.colorServiceId) {
+            const colorResponse = await axios.delete(`https://fcspwebapi20250527114117.azurewebsites.net/api/Service/${fee.colorServiceId}`, {
+              headers: { 'accept': '*/*' }
+            });
+            if (!(colorResponse.status === 200 && colorResponse.data.data.success)) {
+              throw new Error('Failed to delete color fee');
+            }
+          }
+          // Delete image fee if it exists
+          if (fee.imageServiceId) {
+            const imageResponse = await axios.delete(`https://fcspwebapi20250527114117.azurewebsites.net/api/Service/${fee.imageServiceId}`, {
+              headers: { 'accept': '*/*' }
+            });
+            if (!(imageResponse.status === 200 && imageResponse.data.data.success)) {
+              throw new Error('Failed to delete image fee');
+            }
+          }
+          // Update local state
+          this.defaultCustomFees = this.defaultCustomFees.filter(f => f.part !== fee.part);
+          // Reload the page
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error('Error deleting fee:', error);
+          alert('Error deleting fees!');
+        }
+      }
     },
     showAddServiceModal() {
       this.isEditing = false;
@@ -174,13 +181,27 @@ export default {
       await this.submitServiceToBE();
       this.hideServiceModal();
     },
-    deleteService(serviceId) {
+    async deleteService(serviceId) {
       if (confirm('Are you sure you want to delete this service?')) {
-        this.services = this.services.filter(s => s.id !== serviceId);
+        try {
+          const response = await axios.delete(`https://fcspwebapi20250527114117.azurewebsites.net/api/Service/${serviceId}`, {
+            headers: {
+              'accept': '*/*'
+            }
+          });
+          if (response.status === 200 && response.data.data.success) {
+            this.services = this.services.filter(s => s.id !== serviceId);
+            alert('Service deleted successfully!');
+          } else {
+            alert('Failed to delete service!');
+          }
+        } catch (error) {
+          console.error('Error deleting service:', error);
+          alert('Error deleting service!');
+        }
       }
     },
     logout() {
-      // Clear all localStorage items
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userToken');
         localStorage.removeItem('userEmail');
@@ -191,8 +212,6 @@ export default {
         localStorage.removeItem('username');
         localStorage.removeItem('ManufacturerId');
       }
-
-      // Redirect to login page
       if (typeof window !== 'undefined') {
         window.location.href = '/loginPage';
       }
@@ -202,67 +221,104 @@ export default {
       if (typeof window !== 'undefined') {
         manufacturerId = localStorage.getItem('ManufacturerId') || 1;
       } else {
-        manufacturerId = 1; // Fallback for SSR
+        manufacturerId = 1;
       }
 
-      const res = await getManufacturerById(manufacturerId);
-      const currentServices = (res && res.data && Array.isArray(res.data.services)) ? res.data.services : [];
-
-      const idMap = {};
-      currentServices.forEach(s => {
-        idMap[`${s.component}_${s.type}`] = s.id;
-      });
-
-      const updateServices = [];
-      this.defaultCustomFees.forEach(fee => {
-        if (fee.colorFee > 0) {
-          updateServices.push({
-            id: idMap[`${fee.part.toLowerCase()}_colorapplication`],
-            price: Number(fee.colorFee)
-          });
-        }
-        if (fee.imageFee > 0) {
-          updateServices.push({
-            id: idMap[`${fee.part.toLowerCase()}_imageapplication`],
-            price: Number(fee.imageFee)
-          });
-        }
-      });
-
       try {
-        if (currentServices.length > 0 && updateServices.length > 0) {
-          // Use updateManufacturer for updating existing services
-          await updateManufacturer(updateServices);
-          alert('Default fees updated successfully!');
-        } else if (currentServices.length === 0) {
-          // Add new services if none exist
-          const addServices = [];
-          this.defaultCustomFees.forEach(fee => {
-            if (fee.colorFee > 0) {
-              addServices.push({
-                component: fee.part.toLowerCase(),
-                type: 'colorapplication',
-                price: Number(fee.colorFee),
-                manufacturerId: manufacturerId
-              });
+        // Step 1: Fetch existing services
+        let existingServices = [];
+        try {
+          const existingServicesResponse = await axios.get(`https://fcspwebapi20250527114117.azurewebsites.net/api/Service/manufacturer/${manufacturerId}`, {
+            headers: { 'accept': '*/*' }
+          });
+          if (existingServicesResponse.status === 200 && Array.isArray(existingServicesResponse.data.data)) {
+            existingServices = existingServicesResponse.data.data;
+          }
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            // No services found, treat as empty list
+            existingServices = [];
+          } else {
+            throw error; // Rethrow other errors
+          }
+        }
+
+        // Step 2: Collect services to add and identify existing ones to delete
+        const addServices = [];
+        const servicesToDelete = [];
+
+        this.defaultCustomFees.forEach(fee => {
+          const componentLower = fee.part.toLowerCase();
+
+          // Check for existing color fee
+          if (fee.colorFee > 0) {
+            const existingColorService = existingServices.find(
+              s => s.component === componentLower && s.type === 'colorapplication' && !s.isDeleted
+            );
+            if (existingColorService) {
+              servicesToDelete.push(existingColorService.id);
             }
-            if (fee.imageFee > 0) {
-              addServices.push({
-                component: fee.part.toLowerCase(),
-                type: 'imageapplication',
-                price: Number(fee.imageFee),
-                manufacturerId: manufacturerId
-              });
+            addServices.push({
+              component: componentLower,
+              type: 'colorapplication',
+              price: Number(fee.colorFee),
+              manufacturerId: manufacturerId
+            });
+          }
+
+          // Check for existing image fee
+          if (fee.imageFee > 0) {
+            const existingImageService = existingServices.find(
+              s => s.component === componentLower && s.type === 'imageapplication' && !s.isDeleted
+            );
+            if (existingImageService) {
+              servicesToDelete.push(existingImageService.id);
+            }
+            addServices.push({
+              component: componentLower,
+              type: 'imageapplication',
+              price: Number(fee.imageFee),
+              manufacturerId: manufacturerId
+            });
+          }
+        });
+
+        // Step 3: Delete existing services
+        for (const serviceId of servicesToDelete) {
+          const deleteResponse = await axios.delete(`https://fcspwebapi20250527114117.azurewebsites.net/api/Service/${serviceId}`, {
+            headers: { 'accept': '*/*' }
+          });
+          if (!(deleteResponse.status === 200 && deleteResponse.data.data.success)) {
+            throw new Error(`Failed to delete service with ID ${serviceId}`);
+          }
+        }
+
+        // Step 4: Add new services
+        if (addServices.length > 0) {
+          const response = await axios.post('https://fcspwebapi20250527114117.azurewebsites.net/api/Service', {
+            addServices: addServices
+          }, {
+            headers: {
+              'accept': '*/*',
+              'Content-Type': 'application/json'
             }
           });
-          await addManufacture({ addServices });
-          alert('Default fees saved successfully!');
+
+          if (response.status === 201 && response.data.data.success) {
+            alert('Default fees saved successfully!');
+            // Reload the page to sync the new fees
+            if (typeof window !== 'undefined') {
+              window.location.reload();
+            }
+          } else {
+            throw new Error('Failed to save default fees');
+          }
         } else {
           alert('No changes to save!');
         }
       } catch (error) {
         console.error('Error saving default fees:', error);
-        alert('Error saving/updating default fees!');
+        alert('Error saving default fees!');
       }
     },
     async submitServiceToBE() {
@@ -270,7 +326,7 @@ export default {
       if (typeof window !== 'undefined') {
         manufacturerId = localStorage.getItem('ManufacturerId') || 1;
       } else {
-        manufacturerId = 1; 
+        manufacturerId = 1;
       }
       const addServices = [];
 
@@ -291,8 +347,19 @@ export default {
 
       try {
         console.log('Sending data:', addServices);
-        await addManufacture({ addServices });
-        alert('Service added successfully!');
+        const response = await axios.post('https://fcspwebapi20250527114117.azurewebsites.net/api/Service', {
+          addServices: addServices
+        }, {
+          headers: {
+            'accept': '*/*',
+            'Content-Type': 'application/json'
+          }
+        });
+        if (response.status === 201 && response.data.data.success) {
+          alert('Service added successfully!');
+        } else {
+          throw new Error('Failed to add service');
+        }
       } catch (error) {
         console.error('Error submitting service:', error);
         alert('Error adding service!');
@@ -307,36 +374,55 @@ export default {
           return;
         }
       } else {
-        // Skip during SSR or use a default/fallback value
         return;
       }
 
       try {
-        const res = await getManufacturerById(manufacturerId);
-        console.log(res);
-        if (!res || !res.data || !Array.isArray(res.data.services)) {
-          alert('No service data from API!');
-          return;
-        }
-        const colorMap = {};
-        const imageMap = {};
-        res.data.services.forEach(s => {
-          if (s.type === 'colorapplication') colorMap[s.component] = s.currentAmount;
-          if (s.type === 'imageapplication') imageMap[s.component] = s.currentAmount;
+        const res = await axios.get(`https://fcspwebapi20250527114117.azurewebsites.net/api/Service/manufacturer/${manufacturerId}`, {
+          headers: { 'accept': '*/*' }
         });
-        this.defaultCustomFees = this.defaultCustomFees.map(fee => ({
-          ...fee,
-          colorFee: colorMap[fee.part.toLowerCase()] ?? 0,
-          imageFee: imageMap[fee.part.toLowerCase()] ?? 0
-        }));
+        if (res.status === 200 && Array.isArray(res.data.data)) {
+          const colorMap = {};
+          const imageMap = {};
+          const colorIdMap = {};
+          const imageIdMap = {};
+          res.data.data.forEach(s => {
+            if (s.isDeleted) return; // Skip deleted services
+            if (s.type === 'colorapplication') {
+              colorMap[s.component] = s.price;
+              colorIdMap[s.component] = s.id;
+            }
+            if (s.type === 'imageapplication') {
+              imageMap[s.component] = s.price;
+              imageIdMap[s.component] = s.id;
+            }
+          });
+          this.defaultCustomFees = this.defaultCustomFees.map(fee => ({
+            ...fee,
+            colorFee: colorMap[fee.part.toLowerCase()] ?? 0,
+            imageFee: imageMap[fee.part.toLowerCase()] ?? 0,
+            colorServiceId: colorIdMap[fee.part.toLowerCase()] ?? null,
+            imageServiceId: imageIdMap[fee.part.toLowerCase()] ?? null
+          }));
+        }
       } catch (error) {
-        console.error('Error syncing default fees:', error);
-        alert('Error syncing fees!');
+        if (error.response && error.response.status === 404) {
+          // No services found, reset fees to default (all 0)
+          this.defaultCustomFees = this.defaultCustomFees.map(fee => ({
+            ...fee,
+            colorFee: 0,
+            imageFee: 0,
+            colorServiceId: null,
+            imageServiceId: null
+          }));
+        } else {
+          console.error('Error syncing default fees:', error);
+          alert('Error syncing fees!');
+        }
       }
     }
   },
   mounted() {
-    // Only call syncDefaultCustomFees on the client side
     if (typeof window !== 'undefined') {
       this.syncDefaultCustomFees();
     }
@@ -397,7 +483,6 @@ export default {
   background-clip: padding-box;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 0.3rem;
-  outline: 0;
 }
 
 .modal-header {

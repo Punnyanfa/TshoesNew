@@ -92,7 +92,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="order in filteredOrders" :key="order.id">
+                        <tr v-for="order in paginatedOrders" :key="order.id">
                           <td class="fw-medium">{{ order.id }}</td>
                           <td>{{ order.userName }}</td>
                           <td class="total-amount">{{ formatCurrency(order.totalPrice) }}</td>
@@ -135,6 +135,38 @@
                         </tr>
                       </tbody>
                     </table>
+                  </div>
+                  <div class="card-footer bg-white">
+                    <div class="d-flex flex-column align-items-center">
+                      <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                            <a class="page-link" href="#" @click.prevent="currentPage = 1">
+                              <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                          </li>
+                          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                            <a class="page-link" href="#" @click.prevent="currentPage--">
+                              <i class="bi bi-chevron-left"></i>
+                            </a>
+                          </li>
+                          <li v-for="page in displayedPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+                            <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
+                            <span v-else class="page-link">...</span>
+                          </li>
+                          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                            <a class="page-link" href="#" @click.prevent="currentPage++">
+                              <i class="bi bi-chevron-right"></i>
+                            </a>
+                          </li>
+                          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                            <a class="page-link" href="#" @click.prevent="currentPage = totalPages">
+                              <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                          </li>
+                        </ul>
+                      </nav>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -476,7 +508,9 @@ export default {
         'Cancelled'
       ],
       orders: [],
-      shippingInfos: []
+      shippingInfos: [],
+      currentPage: 1,
+      itemsPerPage: 7
     };
   },
   computed: {
@@ -487,10 +521,15 @@ export default {
     filteredOrders() {
       let result = [...this.orders];
       
+      // Lọc theo status
       if (this.statusFilter) {
-        result = result.filter(order => this.getStatusText(order.statusName) === this.statusFilter);
+        result = result.filter(order => {
+          const orderStatus = this.getStatusText(order.statusName);
+          return orderStatus === this.statusFilter;
+        });
       }
       
+      // Lọc theo khoảng thời gian
       if (this.dateRange[0] && this.dateRange[1]) {
         const startDate = new Date(this.dateRange[0]);
         const endDate = new Date(this.dateRange[1]);
@@ -502,6 +541,7 @@ export default {
         });
       }
       
+      // Lọc theo tìm kiếm
       if (this.search) {
         const searchLower = this.search.toLowerCase();
         result = result.filter(order => 
@@ -511,6 +551,51 @@ export default {
       }
       
       return result;
+    },
+    paginatedOrders() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredOrders.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredOrders.length / this.itemsPerPage);
+    },
+    displayedPages() {
+      const pages = [];
+      const maxDisplayedPages = 5;
+      
+      if (this.totalPages <= maxDisplayedPages) {
+        // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
+        for (let i = 1; i <= this.totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Luôn hiển thị trang đầu tiên
+        pages.push(1);
+        
+        // Tính toán các trang ở giữa
+        let startPage = Math.max(2, this.currentPage - 1);
+        let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
+        
+        // Điều chỉnh để luôn hiển thị 3 trang ở giữa
+        if (startPage > 2) {
+          pages.push('...');
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          pages.push(i);
+        }
+        
+        // Thêm dấu ... nếu cần
+        if (endPage < this.totalPages - 1) {
+          pages.push('...');
+        }
+        
+        // Luôn hiển thị trang cuối cùng
+        pages.push(this.totalPages);
+      }
+      
+      return pages;
     }
   },
   methods: {
