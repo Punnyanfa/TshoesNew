@@ -134,16 +134,16 @@
                   <span class="delete-icon">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
                   </span>
-                  <h3>Xác nhận xóa voucher</h3>
+                  <h3>Confirm voucher deletion</h3>
                   <button class="modal-close" @click="showDeleteModal = false">×</button>
                 </div>
                 <div class="modal-body delete-modal-body">
-                  <p v-if="selectedVoucher" class="delete-modal-title">Bạn có chắc chắn muốn xóa voucher <b>"{{ selectedVoucher.code }}"</b>?</p>
-                  <p class="text-danger delete-modal-warning">Hành động này không thể hoàn tác.</p>
+                  <p v-if="selectedVoucher" class="delete-modal-title">Are you sure you want to delete the voucher<b>"{{ selectedVoucher.code }}"</b>?</p>
+                  <p class="text-danger delete-modal-warning">This action cannot be undone.</p>
                 </div>
                 <div class="modal-footer delete-modal-footer">
-                  <button class="btn-cancel" @click="showDeleteModal = false">Hủy</button>
-                  <button class="btn-delete" @click="handleDelete">Xóa</button>
+                  <button class="btn-cancel" @click="showDeleteModal = false">Cancel</button>
+                  <button class="btn-delete" @click="handleDelete">Delete</button>
                 </div>
               </div>
             </div>
@@ -237,7 +237,7 @@ export default {
     async handleDelete() {
       try {
         if (!this.selectedVoucher) {
-          alert('Không có voucher nào được chọn để xóa');
+          alert('No vouchers have been selected for deletion.');
           return;
         }
         
@@ -247,11 +247,11 @@ export default {
           this.showDeleteModal = false;
           this.selectedVoucher = null;
         } else {
-          throw new Error(response.message || 'Xóa thất bại!');
+          throw new Error(response.message || 'Delete failure!');
         }
       } catch (error) {
         console.error('Error deleting voucher:', error);
-        alert('Có lỗi xảy ra khi xóa voucher');
+        alert('An error occurred while deleting the voucher.');
       }
     },
     resetForm() {

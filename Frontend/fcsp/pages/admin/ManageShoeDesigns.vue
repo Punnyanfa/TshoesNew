@@ -502,8 +502,8 @@
                     </p>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" @click="deleteDesign">Xóa</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" @click="deleteDesign">Delete</button>
                   </div>
                 </div>
               </div>
@@ -891,9 +891,9 @@ export default {
         this.deleteDesignModal.hide();
         
         // Show success message
-        this.showToast(`Thiết kế "${this.selectedDesign.name}" đã được xóa thành công`, 'success');
+        this.showToast(`Design "${this.selectedDesign.name}" was deleted successfully`, 'success');
       } catch (error) {
-        this.showToast('Có lỗi xảy ra khi xóa thiết kế', 'danger');
+        this.showToast('An error occurred while deleting the design.', 'danger');
       }
     },
     async saveDesign() {

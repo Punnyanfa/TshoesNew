@@ -170,16 +170,16 @@
                 <span class="delete-icon">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
                 </span>
-                <h3>Xác nhận xóa địa chỉ giao hàng</h3>
+                <h3>Confirm deletion of shipping address</h3>
                 <button class="modal-close" @click="showDeleteModal = false">×</button>
               </div>
               <div class="modal-body delete-modal-body">
-                <p v-if="selectedShipping" class="delete-modal-title">Bạn có chắc chắn muốn xóa địa chỉ giao hàng này?</p>
-                <p class="text-danger delete-modal-warning">Hành động này không thể hoàn tác.</p>
+                <p v-if="selectedShipping" class="delete-modal-title">Are you sure you want to delete this shipping address?</p>
+                <p class="text-danger delete-modal-warning">This action cannot be undone.</p>
               </div>
               <div class="modal-footer delete-modal-footer">
-                <button class="btn-cancel" @click="showDeleteModal = false">Hủy</button>
-                <button class="btn-delete" @click="handleDelete">Xóa</button>
+                <button class="btn-cancel" @click="showDeleteModal = false">Cancel</button>
+                <button class="btn-delete" @click="handleDelete">Delete</button>
               </div>
             </div>
           </div>
