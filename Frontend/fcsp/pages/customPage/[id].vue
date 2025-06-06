@@ -1828,7 +1828,7 @@ const updateDesign = async () => {
     formData.append('Name', customProductName.value || 'Custom Running Shoes');
     formData.append('Description', description.value || 'stylish comfort that keeps you moving with confidence');
     formData.append('DesignData', designDataBlob);
-    formData.append('DesignerMarkup', '0');
+    formData.append('DesignerMarkup', isDesigner.value ? designerMarkup.value : 0);
 
     // Append textureIds and serviceIds as individual elements
     textureIds.forEach((id) => formData.append('TextureIds', id));
