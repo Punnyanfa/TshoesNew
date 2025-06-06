@@ -432,14 +432,14 @@ const confirmAddToCart = () => {
     const formattedTotalPrice = formatPrice(totalPrice)
     const formattedSurcharge = newCartItem.surcharge > 0 ? `\nCustomization fee: ${formatPrice(newCartItem.surcharge)}` : ''
     
-    alert(`Đã thêm sản phẩm vào giỏ hàng thành công!`)
+    alert(`Product added to cart successfully!`)
     
     setTimeout(() => {
       window.location.href = '/shoppingCartPage'
     }, 500)
   } catch (e) {
     console.error('Error adding to cart:', e)
-    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.')
+    alert('There was an error adding to cart. Please try again.')
   } finally {
     showSizeModal.value = false;
     selectedItem.value = null;

@@ -11,12 +11,6 @@
       </div>
       <div class="row">
         <div class="col-md-8">
-          <!-- Nút Update Profile -->
-          <div class="mb-3 row">
-            <div class="col-sm-9 offset-sm-3">
-              <button type="button" class="button-btn" @click="showModal = true">Update Profile</button>
-            </div>
-          </div>
           <!-- Thông tin profile -->
           <div class="mb-3 row">
             <label for="fullName" class="col-sm-3 col-form-label text-md-end">Full Name</label>
@@ -49,7 +43,8 @@
             </div>
           </div>
           <div class="mb-3 row">
-            <div class="col-sm-9 offset-sm-3">
+            <div class="col-sm-9 offset-sm-3 d-flex gap-3">
+              <button type="button" class="button-btn" @click="showModal = true">Update Profile</button>
               <button type="button" class="button-btn" @click="showChangePassword = true">Change Password</button>
             </div>
           </div>
@@ -488,7 +483,7 @@ input[type="file"] {
   color: #fff;
   border: none;
   border-radius: 50px;
-  padding: 12px 30px;
+  padding: 5px 30px;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.5px;
@@ -500,6 +495,7 @@ input[type="file"] {
   cursor: pointer;
   width: 100%;
   max-width: 200px;
+  flex: 1;
 }
 
 .button-btn:hover {
