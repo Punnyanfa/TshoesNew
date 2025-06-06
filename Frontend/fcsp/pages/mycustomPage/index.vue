@@ -378,7 +378,7 @@ async function removeFromCart(id) {
     const result = await deleteCustom(id);
     if (result.code === 200) { 
       cart.value = cart.value.filter(item => item.id !== id);
-      alert('Successfully deleted!');
+ 
     } else {
       alert(result.message || 'Delete failed!');
     }

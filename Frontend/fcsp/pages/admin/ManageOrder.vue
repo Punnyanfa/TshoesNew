@@ -11,7 +11,7 @@
             <div class="card mb-4 search-card">
               <div class="card-body">
                 <div class="row g-3">
-                  <div class="col-12 col-md-4">
+                  <div class="col-12 col-md-3">
                     <div class="input-group">
                       <span class="input-group-text bg-light">
                         <i class="bi bi-search"></i>
@@ -19,20 +19,20 @@
                       <input 
                         type="text" 
                         class="form-control" 
-                        v-model="search" 
-                        placeholder="Search orders"
+                        v-model="searchOrderId" 
+                        placeholder="Search Order ID"
                       >
                       <button 
-                        v-if="search" 
+                        v-if="searchOrderId" 
                         class="btn btn-outline-secondary" 
                         type="button"
-                        @click="search = ''"
+                        @click="searchOrderId = ''"
                       >
                         <i class="bi bi-x"></i>
                       </button>
                     </div>
                   </div>
-                  <div class="col-12 col-md-4">
+                  <div class="col-12 col-md-3">
                     <div class="input-group">
                       <span class="input-group-text bg-light">
                         <i class="bi bi-funnel"></i>
@@ -45,7 +45,20 @@
                       </select>
                     </div>
                   </div>
-                  <div class="col-12 col-md-4">
+                  <div class="col-12 col-md-3">
+                    <div class="input-group">
+                      <span class="input-group-text bg-light">
+                        <i class="bi bi-funnel"></i>
+                      </span>
+                      <select class="form-select" v-model="shippingStatusFilter">
+                        <option value="">All Shipping Status</option>
+                        <option v-for="status in shippingStatuses" :key="status" :value="status">
+                          {{ status }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-3">
                     <div class="input-group">
                       <span class="input-group-text bg-light">
                         <i class="bi bi-calendar3"></i>
@@ -101,7 +114,11 @@
                             {{ getStatusText(order.statusName) }}
                           </span>
                         </td>
-                        <td>{{ order.shippingStatusName }}</td>
+                        <td>
+                          <span :class="['badge', getShippingStatusBadgeClass(order)]">
+                            {{ getShippingStatusText(order) }}
+                          </span>
+                        </td>
                         <td class="date-text">{{ formatDate(order.createdAt) }}</td>
                         <td class="text-end">
                           <button 
@@ -113,24 +130,33 @@
                             <i class="bi bi-eye"></i>
                           </button>
                           <button 
-                            class="btn btn-sm btn-outline-success" 
+                            class="btn btn-sm btn-outline-success me-1" 
                             data-bs-toggle="tooltip" 
                             title="Update Status"
                             @click="updateOrderStatus(order)"
                           >
                             <i class="bi bi-pencil"></i>
                           </button>
+                          <button 
+                            v-if="order.statusName === 'Completed' && order.shippingStatusName !== 'Returned'"
+                            class="btn btn-sm btn-outline-warning" 
+                            data-bs-toggle="tooltip" 
+                            title="Update Shipping Status"
+                            @click="updateShippingStatus(order)"
+                          >
+                            <i class="bi bi-truck"></i>
+                          </button>
                         </td>
                       </tr>
                       <tr v-if="loading">
-                        <td colspan="6" class="text-center py-4">
+                        <td colspan="7" class="text-center py-4">
                           <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
                           </div>
                         </td>
                       </tr>
                       <tr v-if="!loading && filteredOrders.length === 0">
-                        <td colspan="6" class="text-center py-4">
+                        <td colspan="7" class="text-center py-4">
                           No orders found
                         </td>
                       </tr>
@@ -152,8 +178,8 @@
                           </a>
                         </li>
                         <li v-for="page in displayedPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
-                          <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
-                          <span v-else class="page-link">...</span>
+                          <a v-if="page !== '…'" class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
+                          <span v-else class="page-link">…</span>
                         </li>
                         <li class="page-item" :class="{ disabled: currentPage === totalPages }">
                           <a class="page-link" href="#" @click.prevent="currentPage++">
@@ -242,6 +268,12 @@
                                 </span>
                               </li>
                               <li class="list-group-item bg-transparent px-0">
+                                <strong>Shipping Status:</strong> 
+                                <span :class="['badge', getShippingStatusBadgeClass(selectedOrder)]">
+                                  {{ getShippingStatusText(selectedOrder) }}
+                                </span>
+                              </li>
+                              <li class="list-group-item bg-transparent px-0">
                                 <strong>Total:</strong> 
                                 <span class="total-amount">{{ formatCurrency(selectedOrder.totalPrice) }}</span>
                               </li>
@@ -281,12 +313,6 @@
                                 <td class="text-end align-middle total-amount">{{ formatCurrency(product.unitPrice * product.quantity) }}</td>
                               </tr>
                             </tbody>
-                            <!-- <tfoot class="table-light">
-                              <tr>
-                                <td colspan="6" class="text-end fw-bold">Total:</td>
-                                <td class="total-amount fw-bold">{{ formatCurrency(selectedOrder.totalPrice) }}</td>
-                              </tr>
-                            </tfoot> -->
                           </table>
                         </div>
                       </div>
@@ -320,6 +346,32 @@
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-success" @click="confirmStatusUpdate">Update</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Update Shipping Status Modal -->
+            <div class="modal fade" id="updateShippingStatusModal" tabindex="-1" ref="updateShippingStatusModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">Update Shipping Status</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label for="newShippingStatus" class="form-label">New Shipping Status</label>
+                      <select class="form-select" id="newShippingStatus" v-model="newShippingStatus">
+                        <option v-for="status in findValidShippingStatuses(newShippingStatus)" :key="status" :value="status">
+                          {{ status }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" @click="confirmShippingStatusUpdate">Update</button>
                   </div>
                 </div>
               </div>
@@ -407,6 +459,7 @@ import { getAllOrders, getOrderById, putOrderStatus } from '@/server/order-servi
 import { getAllShippingInfo } from '@/server/shipping-service';
 import AdminSidebar from '@/components/AdminSidebar.vue';
 import { onMounted, ref } from 'vue';
+import axios from 'axios';
 
 export default {
   name: 'AdminOrders',
@@ -417,10 +470,12 @@ export default {
     const orderItemModal = ref(null);
     const orderDetailsModal = ref(null);
     const updateStatusModal = ref(null);
+    const updateShippingStatusModal = ref(null);
     const modalRefs = ref({
       orderItemModal: null,
       orderDetailsModal: null,
-      updateStatusModal: null
+      updateStatusModal: null,
+      updateShippingStatusModal: null
     });
 
     onMounted(async () => {
@@ -429,7 +484,8 @@ export default {
         modalRefs.value = {
           orderItemModal: new bootstrap.Modal(document.getElementById('orderItemModal')),
           orderDetailsModal: new bootstrap.Modal(document.getElementById('orderDetailsModal')),
-          updateStatusModal: new bootstrap.Modal(document.getElementById('updateStatusModal'))
+          updateStatusModal: new bootstrap.Modal(document.getElementById('updateStatusModal')),
+          updateShippingStatusModal: new bootstrap.Modal(document.getElementById('updateShippingStatusModal'))
         };
       }
     });
@@ -438,19 +494,22 @@ export default {
       orderItemModal,
       orderDetailsModal,
       updateStatusModal,
+      updateShippingStatusModal,
       modalRefs
     };
   },
   data() {
     return {
-      search: '',
+      searchOrderId: '',
       statusFilter: '',
+      shippingStatusFilter: '',
       datePickerVisible: false,
       dateRange: ['', ''],
       loading: false,
       selectedOrder: null,
       selectedOrderItem: null,
       newStatus: '',
+      newShippingStatus: '',
       currentPage: 1,
       itemsPerPage: 7,
       orderStatuses: [
@@ -460,6 +519,12 @@ export default {
         'Completed',
         'Cancelled',
         'Refunded'
+      ],
+      shippingStatuses: [
+        'Preparing',
+        'Shipping',
+        'Delivered',
+        'Returned'
       ],
       orders: [],
       shippingInfos: [],
@@ -473,9 +538,21 @@ export default {
     filteredOrders() {
       let result = [...this.orders];
       
+      // Apply Order ID search filter
+      if (this.searchOrderId) {
+        result = result.filter(order => 
+          order.id.toString().includes(this.searchOrderId)
+        );
+      }
+      
       // Apply status filter
       if (this.statusFilter) {
         result = result.filter(order => order.statusName === this.statusFilter);
+      }
+      
+      // Apply shipping status filter
+      if (this.shippingStatusFilter) {
+        result = result.filter(order => this.getShippingStatusText(order) === this.shippingStatusFilter);
       }
       
       // Apply date range filter
@@ -488,15 +565,6 @@ export default {
           const orderDate = new Date(order.createdAt);
           return orderDate >= startDate && orderDate <= endDate;
         });
-      }
-      
-      // Apply search filter
-      if (this.search) {
-        const searchLower = this.search.toLowerCase();
-        result = result.filter(order => 
-          order.id.toString().includes(searchLower) ||
-          order.userName.toString().includes(searchLower)
-        );
       }
       
       return result;
@@ -514,33 +582,26 @@ export default {
       const maxDisplayedPages = 5;
       
       if (this.totalPages <= maxDisplayedPages) {
-        // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
         for (let i = 1; i <= this.totalPages; i++) {
           pages.push(i);
         }
       } else {
-        // Luôn hiển thị trang đầu tiên
         pages.push(1);
-        
-        // Tính toán các trang ở giữa
         let startPage = Math.max(2, this.currentPage - 1);
         let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
         
-        // Điều chỉnh để luôn hiển thị 3 trang ở giữa
         if (startPage > 2) {
-          pages.push('...');
+          pages.push('…');
         }
         
         for (let i = startPage; i <= endPage; i++) {
           pages.push(i);
         }
         
-        // Thêm dấu ... nếu cần
         if (endPage < this.totalPages - 1) {
-          pages.push('...');
+          pages.push('…');
         }
         
-        // Luôn hiển thị trang cuối cùng
         pages.push(this.totalPages);
       }
       
@@ -572,6 +633,24 @@ export default {
       };
       return classes[status] || 'bg-secondary';
     },
+    getShippingStatusText(order) {
+      if (order.statusName === 'Cancelled') {
+        return 'Cancelled';
+      }
+      return order.shippingStatusName || 'Preparing';
+    },
+    getShippingStatusBadgeClass(order) {
+      if (order.statusName === 'Cancelled') {
+        return 'bg-danger';
+      }
+      const classes = {
+        'Preparing': 'bg-secondary',
+        'Shipping': 'bg-info',
+        'Delivered': 'bg-success',
+        'Returned': 'bg-warning'
+      };
+      return classes[order.shippingStatusName] || 'bg-secondary';
+    },
     getPaymentMethodText(method) {
       return method || 'Unknown';
     },
@@ -585,12 +664,13 @@ export default {
       const index = this.orderStatuses.findIndex(item => item === status);
       return this.orderStatuses.slice(index);
     },
+    findValidShippingStatuses(status) {
+      const index = this.shippingStatuses.findIndex(item => item === status);
+      return this.shippingStatuses.slice(index);
+    },
     async fetchShippingInfos() {
       try {
         const response = await getAllShippingInfo();
-     
-        
-        // Check if response has the expected structure
         if (response && Array.isArray(response.shippingInfos)) {
           this.shippingInfos = response.shippingInfos;
         } else if (Array.isArray(response)) {
@@ -599,8 +679,6 @@ export default {
           console.error('Unexpected shipping info response structure:', response);
           this.shippingInfos = [];
         }
-        
-        
       } catch (error) {
         console.error('Error fetching shipping info:', error);
         this.showMessage('Có lỗi xảy ra khi tải thông tin giao hàng', 'danger');
@@ -614,8 +692,6 @@ export default {
       this.loading = true;
       try {
         const response = await getAllOrders();
-        console.log('API Response:', response);
-        
         if (response && Array.isArray(response)) {
           this.orders = response.map(order => ({
             id: order.id,
@@ -624,15 +700,12 @@ export default {
             voucherCode: order.voucherCode,
             totalPrice: order.totalPrice,
             statusName: order.status,
-            shippingStatusName: order.shippingStatus,
+            shippingStatusName: order.shippingStatus || 'Preparing',
             paymentMethodName: order.paymentMethod,
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
             orderDetails: Array.isArray(order.orderDetail) ? order.orderDetail : [order.orderDetail]
           }));
-         
-          
-          // Fetch shipping information after orders are loaded
           await this.fetchShippingInfos();
         } else {
           throw new Error('Invalid response format from server');
@@ -657,6 +730,13 @@ export default {
         this.modalRefs.updateStatusModal.show();
       }
     },
+    updateShippingStatus(order) {
+      this.selectedOrder = order;
+      this.newShippingStatus = order.shippingStatusName || 'Preparing';
+      if (this.modalRefs.updateShippingStatusModal) {
+        this.modalRefs.updateShippingStatusModal.show();
+      }
+    },
     async confirmStatusUpdate() {
       try {
         const statusMapping = {
@@ -673,37 +753,74 @@ export default {
           throw new Error('Invalid status selected');
         }
 
-        console.log(this.selectedOrder.id, newStatusId);
         const response = await putOrderStatus(this.selectedOrder.id, newStatusId);
-        console.log(response);
-
         if (response && response.code === 200) {
-          // Update the status in the local orders array
           const orderIndex = this.orders.findIndex(order => order.id === this.selectedOrder.id);
           if (orderIndex !== -1) {
             this.orders[orderIndex].statusName = this.newStatus;
+            if (this.newStatus === 'Cancelled') {
+              this.orders[orderIndex].shippingStatusName = 'Cancelled';
+            }
           }
-
-          // Show success message
           this.showMessage('Cập nhật trạng thái đơn hàng thành công', 'success');
-          
-          // Close the modal
           if (this.modalRefs.updateStatusModal) {
             this.modalRefs.updateStatusModal.hide();
           }
         } else {
-           throw new Error(response?.message || 'Failed to update order status');
+          throw new Error(response?.message || 'Failed to update order status');
         }
-
       } catch (error) {
-        // Show error message
         console.error('Error updating order status:', error.response?.data || error.message || error);
         this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái', 'danger');
       }
     },
+    async confirmShippingStatusUpdate() {
+      try {
+        const shippingStatusMapping = {
+          'Preparing': 0,
+          'Shipping': 1,
+          'Delivered': 2,
+          'Returned': 3
+        };
+
+        const newShippingStatusId = shippingStatusMapping[this.newShippingStatus];
+        if (newShippingStatusId === undefined) {
+          throw new Error('Invalid shipping status selected');
+        }
+
+        const response = await axios.put(
+          'https://fcspwebapi20250527114117.azurewebsites.net/api/Order/shipping-status',
+          {
+            id: this.selectedOrder.id,
+            shippingStatus: newShippingStatusId
+          },
+          {
+            headers: {
+              'accept': '*/*',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response && response.data && response.data.code === 200) {
+          const orderIndex = this.orders.findIndex(order => order.id === this.selectedOrder.id);
+          if (orderIndex !== -1) {
+            this.orders[orderIndex].shippingStatusName = this.newShippingStatus;
+          }
+          this.showMessage('Cập nhật trạng thái giao hàng thành công', 'success');
+          if (this.modalRefs.updateShippingStatusModal) {
+            this.modalRefs.updateShippingStatusModal.hide();
+          }
+        } else {
+          throw new Error(response?.data?.message || 'Failed to update shipping status');
+        }
+      } catch (error) {
+        console.error('Error updating shipping status:', error.response?.data || error.message || error);
+        this.showMessage('Có lỗi xảy ra khi cập nhật trạng thái giao hàng', 'danger');
+      }
+    },
     showMessage(message, type = 'success') {
       // Implement your own message display logic here
-
     },
     viewOrderItemDetails(item) {
       this.selectedOrderItem = item;
@@ -731,7 +848,6 @@ export default {
   background-color: white;
 }
 
-/* Custom styling */
 .search-card {
   border: none;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -795,7 +911,6 @@ export default {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-/* Status badge styling */
 .badge {
   padding: 0.5em 0.75em;
   font-weight: 500;
@@ -804,7 +919,6 @@ export default {
   font-size: 0.75rem;
 }
 
-/* Modal styling */
 .modal-header {
   border-bottom: none;
 }
@@ -831,27 +945,24 @@ export default {
   box-shadow: none;
 }
 
-/* Button styling */
 .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
 }
 
-.btn-outline-primary, .btn-outline-success {
+.btn-outline-primary, .btn-outline-success, .btn-outline-warning {
   transition: all 0.2s ease;
 }
 
-.btn-outline-primary:hover, .btn-outline-success:hover {
+.btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-warning:hover {
   transform: translateY(-2px);
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
-/* Animation for status changes */
 .badge {
   transition: background-color 0.3s ease;
 }
 
-/* Responsive improvements */
 @media (max-width: 768px) {
   .card-body {
     padding: 1rem;
