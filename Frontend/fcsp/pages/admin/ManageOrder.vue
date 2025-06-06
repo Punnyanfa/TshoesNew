@@ -260,30 +260,33 @@
                           <table class="table table-striped">
                             <thead class="table-light">
                               <tr>
-                                <th>Product</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Size</th>
-                                <th>Total</th>
-                           
+                                <th class="text-center">Image</th>
+                                <th>Name</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-center">Size</th>
+                                <th class="text-end">Total</th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr v-for="(product, index) in selectedOrder.orderDetails" :key="index">
-                                <td>{{ product.customShoeDesignId }}</td>
-                                <td>{{ formatCurrency(product.unitPrice) }}</td>
-                                <td>{{ product.quantity }}</td>
-                                <td>{{ product.sizeValue }}</td>
-                                <td class="total-amount">{{ formatCurrency(product.unitPrice * product.quantity) }}</td>
-                                
+                                <td class="text-center align-middle">
+                                  <img v-if="product.firstPreviewImageUrl" :src="product.firstPreviewImageUrl" style="max-width:50px;max-height:50px; border-radius:4px;">
+                                  <span v-else class="text-muted">No image</span>
+                                </td>
+                                <td class="align-middle">{{ product.customShoeDesignName }}</td>
+                                <td class="text-end align-middle">{{ formatCurrency(product.unitPrice) }}</td>
+                                <td class="text-center align-middle">{{ product.quantity }}</td>
+                                <td class="text-center align-middle">{{ product.sizeValue }}</td>
+                                <td class="text-end align-middle total-amount">{{ formatCurrency(product.unitPrice * product.quantity) }}</td>
                               </tr>
                             </tbody>
-                            <tfoot class="table-light">
+                            <!-- <tfoot class="table-light">
                               <tr>
-                                <td colspan="3" class="text-end fw-bold">Total:</td>
+                                <td colspan="6" class="text-end fw-bold">Total:</td>
                                 <td class="total-amount fw-bold">{{ formatCurrency(selectedOrder.totalPrice) }}</td>
                               </tr>
-                            </tfoot>
+                            </tfoot> -->
                           </table>
                         </div>
                       </div>
@@ -333,29 +336,54 @@
                   <div class="modal-body" v-if="selectedOrderItem">
                     <div class="card border-0 bg-light mb-3">
                       <div class="card-body">
-                        <h6 class="text-primary mb-3">Thông tin sản phẩm</h6>
+                        <h6 class="text-primary mb-3">Product Information (Full Detail)</h6>
                         <ul class="list-group list-group-flush bg-transparent">
                           <li class="list-group-item bg-transparent d-flex justify-content-between">
-                            <strong>Mã thiết kế:</strong>
+                            <strong>customShoeDesignDescription:</strong>
+                            <span>{{ selectedOrderItem.customShoeDesignDescription }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>customShoeDesignId:</strong>
                             <span>{{ selectedOrderItem.customShoeDesignId }}</span>
                           </li>
                           <li class="list-group-item bg-transparent d-flex justify-content-between">
-                            <strong>Kích cỡ:</strong>
-                            <span>{{ selectedOrderItem.sizeValue }}</span>
+                            <strong>customShoeDesignName:</strong>
+                            <span>{{ selectedOrderItem.customShoeDesignName }}</span>
                           </li>
                           <li class="list-group-item bg-transparent d-flex justify-content-between">
-                            <strong>Đơn giá:</strong>
-                            <span>{{ formatCurrency(selectedOrderItem.unitPrice) }}</span>
+                            <strong>designerMarkup:</strong>
+                            <span>{{ selectedOrderItem.designerMarkup }}</span>
                           </li>
                           <li class="list-group-item bg-transparent d-flex justify-content-between">
-                            <strong>Số lượng:</strong>
+                            <strong>firstPreviewImageUrl:</strong>
+                            <span>
+                              <img v-if="selectedOrderItem.firstPreviewImageUrl" :src="selectedOrderItem.firstPreviewImageUrl" alt="Preview" style="max-width:80px;max-height:80px;">
+                              <span v-else class="text-muted">No image</span>
+                            </span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>previewImageUrls:</strong>
+                            <span>{{ selectedOrderItem.previewImageUrls }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>quantity:</strong>
                             <span>{{ selectedOrderItem.quantity }}</span>
                           </li>
                           <li class="list-group-item bg-transparent d-flex justify-content-between">
-                            <strong>Tổng tiền:</strong>
-                            <span class="text-primary fw-bold">
-                              {{ formatCurrency(selectedOrderItem.unitPrice * selectedOrderItem.quantity) }}
-                            </span>
+                            <strong>servicePrice:</strong>
+                            <span>{{ formatCurrency(selectedOrderItem.servicePrice) }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>sizeValue:</strong>
+                            <span>{{ selectedOrderItem.sizeValue }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>templatePrice:</strong>
+                            <span>{{ formatCurrency(selectedOrderItem.templatePrice) }}</span>
+                          </li>
+                          <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <strong>unitPrice:</strong>
+                            <span>{{ formatCurrency(selectedOrderItem.unitPrice) }}</span>
                           </li>
                         </ul>
                       </div>
@@ -600,12 +628,7 @@ export default {
             paymentMethodName: order.paymentMethod,
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
-            orderDetails: Array.isArray(order.orderDetails) ? order.orderDetails.map(detail => ({
-              customShoeDesignId: detail.customShoeDesignId,
-              quantity: detail.quantity,
-              unitPrice: detail.unitPrice,
-              sizeValue: detail.sizeValue
-            })) : []
+            orderDetails: Array.isArray(order.orderDetail) ? order.orderDetail : [order.orderDetail]
           }));
          
           
@@ -725,21 +748,40 @@ export default {
   overflow: hidden;
 }
 
-.table th {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-}
-
-.table td {
+.table th, .table td {
   vertical-align: middle;
   padding: 0.75rem 1rem;
+  font-size: 1rem;
 }
 
-.total-amount {
+.table .total-amount {
   font-weight: 600;
   color: #777777;
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+.table tfoot .total-amount,
+.table tfoot td.total-amount {
+  font-weight: 700;
+  color: #444;
+  font-size: 1.15rem;
+  text-align: right;
+  background: #f8f9fa;
+  border-top: 2px solid #e9ecef;
+}
+
+.table tfoot td {
+  background: #f8f9fa;
+  border-top: 2px solid #e9ecef;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #444;
+  text-align: right;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 2px solid #e9ecef;
 }
 
 .date-text {
