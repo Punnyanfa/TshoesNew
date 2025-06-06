@@ -1171,8 +1171,8 @@ const handleCustomColorChange = () => {
 
 const applyCustomColor = () => {
   if (!model) {
-    console.error('Model is not loaded. Cannot apply color.')
-    return
+    console.error('Model is not loaded. Cannot apply color.');
+    return;
   }
 
   const selectedPart = components[selectedComponentIndex.value].value;
@@ -1184,27 +1184,40 @@ const applyCustomColor = () => {
   }
 
   meshes.forEach(({ name }) => {
+    // Store the original material properties if not already stored
     if (!customTextures[selectedPart]) {
       customTextures[selectedPart] = {
         originalMap: materials[name] ? materials[name].map : null,
         originalColor: materials[name] && materials[name].color 
           ? materials[name].color.clone() 
-          : new THREE.Color('#ffffff')
+          : new THREE.Color('#ffffff'),
+        originalMaterial: materials[name] ? materials[name].clone() : null // Store the entire original material
       };
     }
 
-    const newMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(customColorValue.value),
-      map: partTextures[selectedPart] || null,
-      transparent: !!partTextures[selectedPart],
-      side: selectedPart === 'Lace' ? THREE.DoubleSide : THREE.FrontSide,
-      metalness: 0.3,
-      roughness: 0.4
-    });
+    // Clone the original material to preserve all properties (normal maps, roughness maps, etc.)
+    const newMaterial = customTextures[selectedPart].originalMaterial.clone();
 
+    // Update only the color property
+    newMaterial.color.set(new THREE.Color(customColorValue.value));
+
+    // Preserve the texture if it exists, or clear it if not needed
+    if (partTextures[selectedPart]) {
+      newMaterial.map = partTextures[selectedPart];
+      newMaterial.transparent = true;
+    } else {
+      newMaterial.map = customTextures[selectedPart].originalMap;
+      newMaterial.transparent = !!customTextures[selectedPart].originalMap;
+    }
+
+    // Ensure side property is consistent
+    newMaterial.side = selectedPart === 'Lace' ? THREE.DoubleSide : THREE.FrontSide;
+
+    // Update the material in the materials object
     materials[name] = newMaterial;
     materials[name].needsUpdate = true;
 
+    // Apply the new material to the mesh
     model.traverse((node) => {
       if (node.isMesh && node.name === name) {
         node.material = newMaterial;
@@ -1212,10 +1225,13 @@ const applyCustomColor = () => {
       }
     });
 
+    // Update partColors and clear any texture if not present
     partColors[selectedPart] = customColorValue.value;
     if (!partTextures[selectedPart]) {
       partTextures[selectedPart] = null;
-      delete customTextures[selectedPart].texture;
+      if (customTextures[selectedPart]) {
+        delete customTextures[selectedPart].texture;
+      }
     }
   });
 
