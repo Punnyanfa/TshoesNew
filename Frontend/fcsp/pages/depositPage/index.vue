@@ -6,7 +6,18 @@
       <form @submit.prevent="handleDeposit">
         <div class="form-group">
           <label for="amount">Amount (VND)</label>
-          <input v-model.number="form.amount" id="amount" type="number" min="1000" step="1000" required placeholder="Enter amount (VND)" />
+          <input 
+            v-model.number="form.amount" 
+            id="amount" 
+            type="number" 
+            min="20000" 
+            step="1000" 
+            required 
+            placeholder="Enter amount (minimum 20,000 VND)" 
+          />
+          <small class="error-message" v-if="form.amount && form.amount < 20000">
+            Minimum deposit amount is 20,000 VND
+          </small>
         </div>
         <button class="deposit-btn" :disabled="loading">
           <span v-if="loading"><i class="fas fa-spinner fa-spin"></i> Processing...</span>
@@ -38,6 +49,11 @@ export default {
   },
   methods: {
     async handleDeposit() {
+      if (this.form.amount < 20000) {
+        this.message = 'Minimum deposit amount is 20,000 VND';
+        this.messageType = 'error';
+        return;
+      }
       this.loading = true;
       this.message = '';
       this.messageType = '';
@@ -47,7 +63,7 @@ export default {
           paymentId: this.form.paymentId,
           amount: this.form.amount
         });
-        // Nếu có link thanh toán trả về từ API thì redirect
+        // If payment link is returned from API then redirect
         if (res && res.response) {
           window.location.href = res.response;
           return;
@@ -165,6 +181,11 @@ export default {
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fecaca;
+}
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 4px;
 }
 </style>
 

@@ -54,11 +54,11 @@
                         <th>Name</th>
                         <td>{{ order.orderDetail.customShoeDesignName }}</td>
                       </tr>
-                      <tr>
+                      <!-- <tr>
                         <th>Description</th>
                         <td>{{ order.orderDetail.customShoeDesignDescription }}</td>
                       </tr>
-                     
+                      -->
                       <tr>
                         <th>Preview Image</th>
                         <td>
@@ -133,15 +133,30 @@
         
         <!-- Pagination -->
         <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-center">
+          <ul class="pagination mb-0 justify-content-center">
             <li class="page-item" :class="{ disabled: currentPage === 1 }">
-              <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">Previous</a>
+              <a class="page-link" href="#" @click.prevent="currentPage = 1">
+                <i class="bi bi-chevron-double-left"></i>
+              </a>
             </li>
-            <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-              <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+              <a class="page-link" href="#" @click.prevent="currentPage--">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+            <li v-for="page in displayedPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+              <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
+              <span v-else class="page-link">...</span>
             </li>
             <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-              <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">Next</a>
+              <a class="page-link" href="#" @click.prevent="currentPage++">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+              <a class="page-link" href="#" @click.prevent="currentPage = totalPages">
+                <i class="bi bi-chevron-double-right"></i>
+              </a>
             </li>
           </ul>
         </nav>
@@ -305,6 +320,47 @@ import { postRating } from '@/server/rating-service';
   const totalPages = computed(() => {
     return Math.ceil(filteredOrders.value.length / itemsPerPage);
   });
+
+  // Get displayed pages for pagination
+  const displayedPages = computed(() => {
+    const pages = [];
+    const maxDisplayedPages = 5;
+    
+    if (totalPages.value <= maxDisplayedPages) {
+      // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
+      for (let i = 1; i <= totalPages.value; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Luôn hiển thị trang đầu tiên
+      pages.push(1);
+      
+      // Tính toán các trang ở giữa
+      let startPage = Math.max(2, currentPage.value - 1);
+      let endPage = Math.min(totalPages.value - 1, currentPage.value + 1);
+      
+      // Điều chỉnh để luôn hiển thị 3 trang ở giữa
+      if (startPage > 2) {
+        pages.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Thêm dấu ... nếu cần
+      if (endPage < totalPages.value - 1) {
+        pages.push('...');
+      }
+      
+      // Luôn hiển thị trang cuối cùng
+      if (totalPages.value > 1) {
+        pages.push(totalPages.value);
+      }
+    }
+    
+    return pages;
+  });
   
   // Get paginated orders
   const paginatedOrders = computed(() => {
@@ -334,9 +390,9 @@ import { postRating } from '@/server/rating-service';
   
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'VND'
     }).format(amount);
   };
   
@@ -503,4 +559,55 @@ import { postRating } from '@/server/rating-service';
     color: #ffc107;
     cursor: pointer;
   }
+
+  /* Responsive improvements */
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 1rem;
+    }
+    
+    .table th, .table td {
+      padding: 0.5rem;
+    }
+    
+    .btn-sm {
+      padding: 0.2rem 0.4rem;
+    }
+    
+    .avatar-large {
+      width: 100px;
+      height: 100px;
+    }
+  }
+
+  .pagination {
+    margin-bottom: 0;
+    justify-content: center;
+  }
+
+  .card-footer {
+    padding: 1rem;
+  }
+
+  .card-footer .d-flex {
+    width: 100%;
+  }
+
+  .page-link:hover {
+    z-index: 2;
+    color: #0d6efd;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+  }
+
+  .pagination li:first-child .page-link {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+  }
+
+  .pagination li:last-child .page-link {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+  }
+
   </style>

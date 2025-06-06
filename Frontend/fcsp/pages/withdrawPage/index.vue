@@ -15,8 +15,8 @@
             type="number"
             id="amount"
             v-model="amount"
-            placeholder="Enter amount to withdraw"
-            min="0"
+            placeholder="Enter amount to withdraw (minimum 20,000 VND)"
+            min="20000"
             step="1000"
             required
           />
@@ -147,8 +147,7 @@ export default {
         return false;
       }
 
-      // Assuming a minimum withdrawal of 10,000 VND for this example, adjust as needed.
-      const minWithdrawal = 10000;
+      const minWithdrawal = 20000;
       if (amount < minWithdrawal) {
         this.amountError = `Minimum withdrawal amount is ${minWithdrawal.toLocaleString('vi-VN')} ₫`;
         console.log('Validation failed: Amount below minimum');
@@ -162,6 +161,14 @@ export default {
       if (!this.validateAmount(this.amount)) return;
       if (!this.selectedBank) {
         alert('Please select your bank.');
+        return;
+      }
+      if (!this.accountNumber || this.accountNumber.length < 8) {
+        alert('Please enter a valid account number (minimum 8 characters).');
+        return;
+      }
+      if (!this.accountName || this.accountName.length < 3) {
+        alert('Please enter a valid account holder name (minimum 3 characters).');
         return;
       }
       this.isSubmitting = true;
