@@ -50,7 +50,15 @@
                   <p class="text-muted small mb-0">...</p>
                 </td>
                 <td>
-                  <span class="badge bg-secondary">{{ item.selectedSize }}</span>
+                  <select class="form-select form-select-sm" 
+                          v-model="item.selectedSize"
+                          @change="updateSize(item)">
+                    <option v-for="size in availableSizes" 
+                            :key="size" 
+                            :value="size">
+                      {{ size }}
+                    </option>
+                  </select>
                 </td>
                  <td>
                   <div class="input-group quantity-input">
@@ -146,8 +154,8 @@ const router = useRouter();
 const { updateCartCount } = useCart();
 const cartItems = ref([]);
 const loading = ref(true);
-// const shippingCost = ref(10.00);
 const shippingCost = ref(30000);
+const availableSizes = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
 // Use a Set to store unique IDs of selected items (e.g., 'id-size')
 const selectedItems = ref(new Set());
@@ -162,10 +170,11 @@ onMounted(() => {
     const userId = localStorage.getItem("userId");
     const storedCart = localStorage.getItem(`cart_${userId}`);
     if (storedCart) {
-      cartItems.value = JSON.parse(storedCart);
+      cartItems.value = JSON.parse(storedCart).map(item => ({
+        ...item,
+        originalSize: item.selectedSize // Đảm bảo có originalSize
+      }));
       console.log('Cart loaded from localStorage:', cartItems.value);
-      
-      // Cập nhật số lượng sản phẩm trong giỏ hàng
       updateCartCount(cartItems.value.length);
     } else {
       cartItems.value = [];
@@ -351,6 +360,28 @@ const handleDelete = () => {
     removeItem(selectedItem.value);
     showDeleteModal.value = false;
     selectedItem.value = null;
+  }
+};
+
+const updateSize = (item) => {
+  // Nếu chưa có originalSize thì gán luôn
+  if (!item.originalSize) item.originalSize = item.selectedSize;
+  // Nếu đổi sang size mới
+  if (item.selectedSize !== item.originalSize) {
+    // Kiểm tra có item khác cùng id và size mới không
+    const existingItemIndex = cartItems.value.findIndex(
+      cartItem => cartItem.id === item.id && cartItem.selectedSize === item.selectedSize && cartItem !== item
+    );
+    if (existingItemIndex > -1) {
+      // Nếu có, cộng dồn quantity và xóa item hiện tại
+      cartItems.value[existingItemIndex].selectedQuantity += item.selectedQuantity;
+      const oldIndex = cartItems.value.indexOf(item);
+      if (oldIndex > -1) cartItems.value.splice(oldIndex, 1);
+    } else {
+      // Nếu không, chỉ update lại originalSize
+      item.originalSize = item.selectedSize;
+    }
+    saveCartToLocal();
   }
 };
 </script>
@@ -675,5 +706,32 @@ h1 {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.form-select-sm {
+  width: 80px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.2rem;
+  border: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.form-select-sm:focus {
+  border-color: #AAAAAA;
+  box-shadow: 0 0 0 0.2rem rgba(170, 170, 170, 0.25);
+  background-color: #fff;
+}
+
+.form-select-sm option {
+  padding: 0.5rem;
+}
+
+.badge {
+  font-size: 0.875rem;
+  padding: 0.35em 0.65em;
+  margin-bottom: 0.5rem;
+  display: inline-block;
 }
 </style>
