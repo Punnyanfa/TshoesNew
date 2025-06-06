@@ -138,7 +138,16 @@
               <p><strong>Product Name:</strong> {{ customProductName }}</p>
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
-              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge) }}</p>
+              <div class="mb-2">
+                <label class="block text-sm font-medium text-gray-700">Design Markup:</label>
+                <input 
+                  type="number" 
+                  v-model="designMarkup"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Enter design markup"
+                />
+              </div>
+              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge + designMarkup) }}</p>
             </div>
           </div>
           
@@ -515,6 +524,7 @@ const generatedImageUrl = ref('')
 // Manufacturer and pricing
 const apiSurcharges = ref([])
 const basePrice = ref(0)
+const designMarkup = ref(0)
 const manufacturerList = ref([])
 const selectedManufacturer = ref(null)
 
@@ -1630,8 +1640,8 @@ const updateDesign = async () => {
     formData.append('Name', customProductName.value || 'Custom Running Shoes');
     formData.append('Description', description.value || 'stylish comfort that keeps you moving with confidence');
     formData.append('DesignData', designDataBlob);
-    formData.append('DesignerMarkup', isDesigner.value ? designerMarkup.value : 0);
-
+    formData.append('DesignerMarkup', designMarkup.value || '0');
+   
     textureIds.forEach((id) => formData.append('TextureIds', id));
     serviceIds.forEach((id) => formData.append('ServiceIds', id));
 
