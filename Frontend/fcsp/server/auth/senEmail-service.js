@@ -1,7 +1,10 @@
 import { instance } from "../api-instance-provider";
 
-export async function sendEmail(userId, subject, body) {
-  console.log("usser", userId)
+export async function sendEmail({ userId, subject, body, isHtml }) {
+  console.log("userId", userId);
+  console.log("subject", subject);
+  console.log("body", body);
+  console.log("isHtml", isHtml);
   try {
     const response = await instance.post("/Auth/SendEmailToAdmin", {
       userId,

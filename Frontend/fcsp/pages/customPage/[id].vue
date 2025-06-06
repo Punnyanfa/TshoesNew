@@ -138,7 +138,8 @@
               <p><strong>Product Name:</strong> {{ customProductName }}</p>
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
-              <div class="mb-2">
+            
+              <div v-if="showDesignMarkup" class="mb-2">
                 <label class="block text-sm font-medium text-gray-700">Design Markup:</label>
                 <input 
                   type="number" 
@@ -147,7 +148,7 @@
                   placeholder="Enter design markup"
                 />
               </div>
-              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge + designMarkup) }}</p>
+              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge ) }}</p>
             </div>
           </div>
           
@@ -488,6 +489,8 @@
       </div>
     </div>
   </div>
+
+  
 </template>
 
 <script setup>
@@ -1470,6 +1473,7 @@ const saveAsDraft = () => {
   let textureIds = [];
 
   const productData = {
+    userId: userId.value, // Add userId from frontend localStorage
     id: isEditing.value ? editingDesign.value.id : Date.now(),
     name: customProductName.value || 'Custom Running Shoes (Draft)',
     templateId: route.params.id,
@@ -1479,6 +1483,7 @@ const saveAsDraft = () => {
     image: captureAngles[1].preview,
     textureIds: textureIds,
     ServiceIds: serviceIds,
+    DesignerMarkup: designMarkup.value,
     designData: {
       colors: {},
       textures: {},
@@ -1487,9 +1492,10 @@ const saveAsDraft = () => {
       textureParams: { ...textureParams },
       timestamp: new Date().toISOString(),
       manufacturerId: selectedManufacturer.value || 1,
-      previewImages: captureAngles.map(angle => angle.preview) 
+      previewImages: captureAngles.map(angle => angle.preview), // Mảng base64 strings hoặc File objects
+      // Add DesignerMarkup here
     },
-    previewImages: []
+    previewImages: [] // This seems redundant/incorrect based on the log, I will remove it
   };
 
   for (const comp of components) {
@@ -1543,6 +1549,8 @@ const saveAsDraft = () => {
     return angle.preview;
   });
 
+  console.log('Data sent to CustomShoeDesign:', productData); // Thêm log này
+
   CustomShoeDesign(productData)
     .then(response => {
       console.log('Draft saved successfully:', response);
@@ -1584,99 +1592,26 @@ const updateDesign = async () => {
     let textureIds = [];
 
     const designData = {
-      colors: {},
-      textures: {},
-      imagesData: {},
-      customText: customText.value,
-      textureParams: { ...textureParams },
-      timestamp: new Date().toISOString(),
+      id: editingDesign.value?.id, // Chỉ thêm ID khi đang chỉnh sửa
+      name: customProductName.value,
+      description: description.value,
+      templateId: templateId,
       manufacturerId: selectedManufacturer.value || 1,
+      designData: {
+        colors: partColors, // Sử dụng partColors reactive object
+        textures: partTextures, // Sử dụng partTextures reactive object
+        imagesData: { /* cần thêm dữ liệu ảnh nếu có */ }, // Cần xem lại cấu trúc này
+        customText: customText.value,
+        textureParams: textureParams, // Sử dụng textureParams reactive object
+      },
+      previewImages: captureAngles.map(angle => angle.preview), // Mảng base64 strings hoặc File objects
+      DesignerMarkup: designMarkup.value, // Corrected key name
+      ServiceIds: [] // Cần thêm logic lấy ServiceIds nếu có
     };
 
-    for (const comp of components) {
-      const partName = comp.value;
-      const meshes = componentMeshes[partName] || [];
-      meshes.forEach(({ name }) => {
-        if (materials[name]) {
-          const hexColor = '#' + materials[name].color.getHexString();
-          designData.colors[partName] = hexColor;
-          if (hexColor.toLowerCase() !== '#ffffff') {
-            const colorService = apiSurcharges.value.find(
-              (s) => s.component === partName.toLowerCase() && s.type === 'colorapplication'
-            );
-            if (colorService) {
-              serviceIds.push(colorService.id);
-            }
-          }
-          if (customTextures[partName]) {
-            const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
-            designData.textures[partName] = {
-              type: textureType,
-              textContent: customText.value,
-            };
-            if (textureType === 'image' && customTextures[partName].imageData) {
-              designData.imagesData[partName] = customTextures[partName].imageData;
-              const imageService = apiSurcharges.value.find(
-                (s) => s.component === partName.toLowerCase() && s.type === 'imageapplication'
-              );
-              if (imageService) {
-                serviceIds.push(imageService.id);
-              }
-            }
-          }
-        }
-      });
-    }
+    console.log("Payload sent to CustomShoeDesign:", designData); // Add this log
 
-    serviceIds = Array.from(new Set(serviceIds)).map(Number);
-    textureIds = Array.from(new Set(textureIds)).map(Number);
-
-    const designDataJson = JSON.stringify(designData, null, 2);
-    const designDataBlob = new Blob([designDataJson], { type: 'application/json' });
-
-    const formData = new FormData();
-    formData.append('UserId', localStorage.getItem('userId'));
-    formData.append('id', editingDesign.value.id);
-    formData.append('CustomShoeDesignTemplateId', editingDesign.value.templateId);
-    formData.append('Name', customProductName.value || 'Custom Running Shoes');
-    formData.append('Description', description.value || 'stylish comfort that keeps you moving with confidence');
-    formData.append('DesignData', designDataBlob);
-    formData.append('DesignerMarkup', designMarkup.value || '0');
-   
-    textureIds.forEach((id) => formData.append('TextureIds', id));
-    serviceIds.forEach((id) => formData.append('ServiceIds', id));
-
-    const appendedImages = [];
-    captureAngles.forEach((angle, index) => {
-      if (angle.preview && angle.preview.startsWith('data:image')) {
-        const arr = angle.preview.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while(n--) u8arr[n] = bstr.charCodeAt(n);
-        const file = new File([u8arr], `preview_${index}.png`, { type: mime });
-        formData.append('CustomShoeDesignPreviewImages', file);
-        appendedImages.push({
-          name: angle.name,
-          index,
-          fileSize: file.size,
-          fileType: file.type,
-        });
-        console.log(`Appended preview image for ${angle.name} (index ${index})`);
-      }
-    });
-
-    console.log('Appended Preview Images:', appendedImages);
-
-    if (appendedImages.length !== captureAngles.length) {
-      throw new Error(`Mismatch in number of appended images: expected ${captureAngles.length}, got ${appendedImages.length}`);
-    }
-
-    console.log('Sending request to /api/CustomShoeDesign...');
-    const response = await axios.put(`/api/CustomShoeDesign`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await CustomShoeDesign(designData);
 
     if (response.status === 200 || response.status === 204) {
       localStorage.removeItem('editingDesign');
@@ -1819,6 +1754,19 @@ watch(showEditNameModal, (newValue) => {
 
 watch(textureParams, updateTextureParameters, { deep: true });
 
+const showDesignMarkup = ref(false)
+
+// Lấy role từ localStorage chỉ khi chạy ở client
+const userRole = ref(null); // Initialize with null or a default value
+
+onMounted(() => {
+  // Guard localStorage access to ensure it only runs on the client side
+  if (typeof window !== 'undefined' && window.localStorage) {
+    userRole.value = localStorage.getItem('role'); // Assign value in onMounted
+    showDesignMarkup.value = userRole.value === 'Designer';
+  }
+});
+
 onMounted(async () => {
   axios.defaults.baseURL = 'https://fcspwebapi20250527114117.azurewebsites.net';
 
@@ -1910,6 +1858,15 @@ onBeforeUnmount(() => {
   if (controls) controls.dispose();
   if (scene) scene.clear();
   if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value);
+});
+
+// Các biến khác lấy từ localStorage (ví dụ userId)
+const userId = ref(null);
+
+onMounted(() => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    userId.value = localStorage.getItem('userId');
+  }
 });
 </script>
 

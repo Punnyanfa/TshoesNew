@@ -23,15 +23,13 @@
         </div>
         <div v-if="amountError" class="withdraw-error">{{ amountError }}</div>
       </div>
+    
       <div class="withdraw-form-row">
-        <label for="email">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          v-model="email"
-          placeholder="Enter your email address"
-          required
-        />
+        <label for="bank">Bank Name</label>
+        <select id="bank" v-model="selectedBank" required class="form-select" style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e3e8ef;">
+          <option disabled value="">Select your bank</option>
+          <option v-for="bank in bankList" :key="bank" :value="bank">{{ bank }}</option>
+        </select>
       </div>
       <div class="withdraw-form-row">
         <label for="accountNumber">Account Number</label>
@@ -63,7 +61,7 @@
 
 <script>
 import { getBalance } from '~/server/balance-service';
-
+import { sendEmail } from '~/server/auth/senEmail-service';
 export default {
   data() {
     return {
@@ -74,29 +72,47 @@ export default {
       balance: 0,
       amountError: "",
       isSubmitting: false,
+      selectedBank: "",
+      bankList: [
+        'Vietcombank',
+        'Techcombank',
+        'BIDV',
+        'VietinBank',
+        'MB Bank',
+        'ACB',
+        'Sacombank',
+        'TPBank',
+        'VPBank',
+        'SHB',
+        'HDBank',
+        'Eximbank',
+        'OCB',
+        'SeABank',
+        'VIB',
+        'MSB',
+        'Nam A Bank',
+        'LienVietPostBank',
+        'ABBANK',
+        'SCB',
+        'PVcomBank',
+        'Bac A Bank',
+        'Saigonbank',
+        'BaoVietBank',
+      ],
     };
   },
   async created() {
     try {
-      // Assuming you have user ID stored in localStorage or Vuex
-      const userId = localStorage.getItem('userId'); // Adjust based on your auth implementation
-      console.log('Fetching balance for userId:', userId);
-      
+      // Lấy email từ localStorage
+      this.email = localStorage.getItem('userEmail') || '';
+      // Lấy userId để lấy balance
+      const userId = localStorage.getItem('userId');
       if (userId) {
         const balanceData = await getBalance(userId);
-        console.log('Balance API Response:', balanceData);
         this.balance = balanceData.data?.balance || 0;
-        console.log('Current balance set to:', this.balance);
-      } else {
-        console.warn('No userId found in localStorage');
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
     }
   },
   watch: {
@@ -143,61 +159,28 @@ export default {
       return true;
     },
     async handleSubmit() {
-      console.log('Starting withdrawal process...');
-      console.log('Form data:', {
-        amount: this.amount,
-        email: this.email,
-        accountNumber: this.accountNumber,
-        accountName: this.accountName
-      });
-
-      if (!this.validateAmount(this.amount)) {
-        console.log('Withdrawal cancelled: Amount validation failed');
+      if (!this.validateAmount(this.amount)) return;
+      if (!this.selectedBank) {
+        alert('Please select your bank.');
         return;
       }
-
       this.isSubmitting = true;
       try {
-        // Here you would typically call your withdrawal API
-        const withdrawalData = {
-          email: this.email,
-          accountNumber: this.accountNumber,
-          accountName: this.accountName,
-          amount: parseFloat(this.amount),
-          timestamp: new Date().toISOString()
-        };
-        
-        console.log('Submitting withdrawal request:', withdrawalData);
-        
-        // Update balance after successful withdrawal
-        const oldBalance = this.balance;
+        const userId = localStorage.getItem('userId');
+        const subject = `${this.email} rút tiền`;
+        const bodyText = `- Bank: ${this.selectedBank}\n- Account Number: ${this.accountNumber}\n- Account Name: ${this.accountName}\n- Amount: ${parseFloat(this.amount).toLocaleString('vi-VN')}₫`;
+        await sendEmail({ userId, subject, body: bodyText, isHtml: false });
         this.balance -= parseFloat(this.amount);
-        console.log('Balance updated:', {
-          oldBalance,
-          withdrawalAmount: this.amount,
-          newBalance: this.balance
-        });
-
         alert("Withdrawal request submitted successfully!");
-        
-        // Reset form
-        this.email = "";
+        // Reset form (trừ email)
+        this.selectedBank = "";
         this.accountNumber = "";
         this.accountName = "";
         this.amount = "";
-        console.log('Form reset completed');
       } catch (error) {
-        console.error('Withdrawal error:', error);
-        console.error('Error details:', {
-          message: error.message,
-          status: error.response?.status,
-          data: error.response?.data,
-          timestamp: new Date().toISOString()
-        });
         alert("Failed to process withdrawal. Please try again.");
       } finally {
         this.isSubmitting = false;
-        console.log('Withdrawal process completed');
       }
     },
   },

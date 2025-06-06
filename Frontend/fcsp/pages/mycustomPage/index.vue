@@ -172,7 +172,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import Header from '~/components/Header.vue';
 import Footer from '~/components/Footer.vue';
 import { getMyCustom, deleteCustom, getMyCustomById } from '~/server/myCustom-service.js';
