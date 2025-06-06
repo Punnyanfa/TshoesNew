@@ -48,7 +48,7 @@ const submitReset = async () => {
   }
   isLoading.value = true;
   try {
-    // await resetPassword({ email, newPassword: newPassword.value });
+    await resetPassword({ email, newPassword: newPassword.value });
     // Nếu backend yêu cầu token, truyền thêm token
     // await resetPassword({ token, newPassword: newPassword.value });
     // Giả lập thành công:
