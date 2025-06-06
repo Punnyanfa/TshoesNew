@@ -265,6 +265,7 @@
                                   <th>Quantity</th>
                                   <th>Size</th>
                                   <th>Total</th>
+                                  <th>Actions</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -284,11 +285,21 @@
                                   <td>{{ product.quantity }}</td>
                                   <td>{{ product.sizeValue }}</td>
                                   <td class="total-amount">{{ formatCurrency(product.unitPrice * product.quantity) }}</td>
+                                  <td>
+                                    <button 
+                                      class="btn btn-sm btn-outline-info me-1" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Preview Images"
+                                      @click="viewPreviewImages(product.customShoeDesignId)"
+                                    >
+                                      <i class="bi bi-images"></i>
+                                    </button>
+                                  </td>
                                 </tr>
                               </tbody>
                               <tfoot class="table-light">
                                 <tr>
-                                  <td colspan="5" class="text-end fw-bold">Total Amount:</td>
+                                  <td colspan="6" class="text-end fw-bold">Total Amount:</td>
                                   <td class="total-amount fw-bold">{{ formatCurrency(selectedOrder.totalPrice) }}</td>
                                 </tr>
                               </tfoot>
@@ -375,6 +386,43 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Preview Images Modal -->
+              <div class="modal fade" id="previewImagesModal" tabindex="-1" ref="previewImagesModal">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                      <h5 class="modal-title">Preview Images</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div v-if="loadingPreviewImages" class="text-center">
+                        <div class="spinner-border text-info" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+                      <div v-else-if="previewImages.length === 0" class="text-center text-muted">
+                        No preview images available
+                      </div>
+                      <div v-else class="row">
+                        <div v-for="(image, index) in previewImages" :key="image.id" class="col-md-4 mb-3">
+                          <div class="card preview-card">
+                            <img :src="image.previewImageUrl" class="card-img-top" alt="Preview Image" @error="handleImageError(index)">
+                            <div class="card-body">
+                              <p class="card-text text-muted small">
+                                Created: {{ formatDate(image.createdAt) }}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -399,7 +447,7 @@ const getManufacturerByUserId = async (userId) => {
     });
     const result = await response.json();
     if (result.code === 200 && Array.isArray(result.data) && result.data.length > 0) {
-      return result.data[0].id; // Return the first manufacturer's ID
+      return result.data[0].id;
     } else {
       throw new Error('No manufacturer found for this user');
     }
@@ -456,6 +504,27 @@ const updateOrderStatusApi = async (orderId, statusCode) => {
   }
 };
 
+const getPreviewImages = async (customShoeDesignId) => {
+  try {
+    const response = await fetch(`https://fcspwebapi20250527114117.azurewebsites.net/api/DesignPreview/design/${customShoeDesignId}`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+      }
+    });
+    const result = await response.json();
+    if (response.status === 200 && Array.isArray(result)) {
+      return result;
+    } else {
+      throw new Error('Failed to fetch preview images');
+    }
+  } catch (error) {
+    console.error('Error fetching preview images:', error);
+    throw error;
+  }
+};
+
 export default {
   name: 'ManufacturerOrders',
   components: {
@@ -465,10 +534,12 @@ export default {
     const orderItemModal = ref(null);
     const orderDetailsModal = ref(null);
     const updateStatusModal = ref(null);
+    const previewImagesModal = ref(null);
     const modalRefs = ref({
       orderItemModal: null,
       orderDetailsModal: null,
-      updateStatusModal: null
+      updateStatusModal: null,
+      previewImagesModal: null
     });
 
     onMounted(async () => {
@@ -477,7 +548,8 @@ export default {
         modalRefs.value = {
           orderItemModal: new bootstrap.Modal(document.getElementById('orderItemModal')),
           orderDetailsModal: new bootstrap.Modal(document.getElementById('orderDetailsModal')),
-          updateStatusModal: new bootstrap.Modal(document.getElementById('updateStatusModal'))
+          updateStatusModal: new bootstrap.Modal(document.getElementById('updateStatusModal')),
+          previewImagesModal: new bootstrap.Modal(document.getElementById('previewImagesModal'))
         };
       }
     });
@@ -486,6 +558,7 @@ export default {
       orderItemModal,
       orderDetailsModal,
       updateStatusModal,
+      previewImagesModal,
       modalRefs
     };
   },
@@ -496,9 +569,11 @@ export default {
       datePickerVisible: false,
       dateRange: ['', ''],
       loading: false,
+      loadingPreviewImages: false,
       selectedOrder: null,
       selectedOrderItem: null,
       newStatus: '',
+      previewImages: [],
       orderStatuses: [
         'Pending',
         'Confirmed',
@@ -521,7 +596,6 @@ export default {
     filteredOrders() {
       let result = [...this.orders];
       
-      // Lọc theo status
       if (this.statusFilter) {
         result = result.filter(order => {
           const orderStatus = this.getStatusText(order.statusName);
@@ -529,7 +603,6 @@ export default {
         });
       }
       
-      // Lọc theo khoảng thời gian
       if (this.dateRange[0] && this.dateRange[1]) {
         const startDate = new Date(this.dateRange[0]);
         const endDate = new Date(this.dateRange[1]);
@@ -541,7 +614,6 @@ export default {
         });
       }
       
-      // Lọc theo tìm kiếm
       if (this.search) {
         const searchLower = this.search.toLowerCase();
         result = result.filter(order => 
@@ -565,19 +637,15 @@ export default {
       const maxDisplayedPages = 5;
       
       if (this.totalPages <= maxDisplayedPages) {
-        // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
         for (let i = 1; i <= this.totalPages; i++) {
           pages.push(i);
         }
       } else {
-        // Luôn hiển thị trang đầu tiên
         pages.push(1);
         
-        // Tính toán các trang ở giữa
         let startPage = Math.max(2, this.currentPage - 1);
         let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
         
-        // Điều chỉnh để luôn hiển thị 3 trang ở giữa
         if (startPage > 2) {
           pages.push('...');
         }
@@ -586,12 +654,10 @@ export default {
           pages.push(i);
         }
         
-        // Thêm dấu ... nếu cần
         if (endPage < this.totalPages - 1) {
           pages.push('...');
         }
         
-        // Luôn hiển thị trang cuối cùng
         pages.push(this.totalPages);
       }
       
@@ -669,21 +735,17 @@ export default {
     async fetchOrders() {
       this.loading = true;
       try {
-        // Step 1: Get the user ID from localStorage
         const userId = localStorage.getItem('userId');
         if (!userId) {
           throw new Error('User ID not found in localStorage');
         }
 
-        // Step 2: Fetch the manufacturer ID using the user ID
         const manufacturerId = await getManufacturerByUserId(userId);
         console.log('Manufacturer ID:', manufacturerId);
 
-        // Step 3: Fetch orders for the manufacturer
         const ordersResponse = await getOrdersByManufacturerId(manufacturerId);
         console.log('Orders API Response:', ordersResponse);
 
-        // Step 4: Map the orders to the required format
         this.orders = ordersResponse.map(order => ({
           id: order.id,
           userName: order.userName,
@@ -701,8 +763,9 @@ export default {
             firstPreviewImageUrl: detail.firstPreviewImageUrl,
             quantity: detail.quantity,
             unitPrice: detail.unitPrice,
-            sizeValue: detail.sizeValue
-          })) : [order.orderDetail] // Handle single orderDetail object
+            sizeValue: detail.sizeValue,
+            customShoeDesignId: detail.customShoeDesignId
+          })) : [order.orderDetail]
         }));
         console.log('Transformed orders:', this.orders);
 
@@ -743,10 +806,8 @@ export default {
           throw new Error('Invalid status');
         }
 
-        // Call the API to update the order status
         await updateOrderStatusApi(this.selectedOrder.id, statusCode);
 
-        // Update the local order status
         const reverseStatusMap = {
           'Pending': 'Pending',
           'Confirmed': 'Confirmed',
@@ -758,7 +819,6 @@ export default {
         };
         this.selectedOrder.statusName = reverseStatusMap[this.newStatus] || this.newStatus;
 
-        // Close the modal
         if (this.modalRefs.updateStatusModal) {
           this.modalRefs.updateStatusModal.hide();
         }
@@ -767,6 +827,24 @@ export default {
       } catch (error) {
         this.showMessage('Error updating order status: ' + error.message, 'danger');
       }
+    },
+    async viewPreviewImages(customShoeDesignId) {
+      this.loadingPreviewImages = true;
+      this.previewImages = [];
+      try {
+        const images = await getPreviewImages(customShoeDesignId);
+        this.previewImages = images;
+        if (this.modalRefs.previewImagesModal) {
+          this.modalRefs.previewImagesModal.show();
+        }
+      } catch (error) {
+        this.showMessage('Error loading preview images: ' + error.message, 'danger');
+      } finally {
+        this.loadingPreviewImages = false;
+      }
+    },
+    handleImageError(index) {
+      this.previewImages[index].previewImageUrl = null;
     },
     showMessage(message, type = 'success') {
       console.log(`${type}: ${message}`);
@@ -924,6 +1002,16 @@ export default {
   background: white;
 }
 
+.preview-card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview-card img {
+  height: 150px;
+  object-fit: cover;
+}
+
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
@@ -942,12 +1030,12 @@ export default {
   border-radius: 6px;
 }
 
-.btn-outline-primary, .btn-outline-success {
+.btn-outline-primary, .btn-outline-success, .btn-outline-info {
   transition: all 0.3s ease;
   border-width: 2px;
 }
 
-.btn-outline-primary:hover, .btn-outline-success:hover {
+.btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-info:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
