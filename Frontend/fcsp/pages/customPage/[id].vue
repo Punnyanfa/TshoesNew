@@ -569,37 +569,38 @@ const aiError = ref(null)
 
 // Part colors and textures
 const partColors = reactive({
-  Accent: '#ffffff',
   Base: '#ffffff',
   Lace: '#ffffff',
   Sole: '#ffffff',
+  Accent: '#ffffff',
   Details: '#ffffff',
 })
 
 const partTextures = reactive({
-  Accent: null,
   Base: null,
   Lace: null,
   Sole: null,
+  Accent: null,
   Details: null,
 })
 
 // Components list
 const components = reactive([
   { name: 'Base', value: 'Base' },
-  { name: 'Details', value: 'Details' },
+  { name: 'Lace', value: 'Lace' },
   { name: 'Sole', value: 'Sole' },
   { name: 'Accent', value: 'Accent' },
-  { name: 'Lace', value: 'Lace' }
+  { name: 'Details', value: 'Details' }
+
 ])
 
 // Part groups
 const partGroups = reactive({
   Accent: ['Accent'],
-  Details: ['Details'],
+  Lace: ['Lace'],
   Sole: ['Sole'],
   Base: ['Base'],
-  Lace: ['Lace']
+  Details: ['Details']
 })
 
 // Selected component and color

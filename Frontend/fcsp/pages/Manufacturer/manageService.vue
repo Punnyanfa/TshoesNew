@@ -60,36 +60,24 @@ export default {
     return {
       defaultCustomFees: [
         { part: 'Base', colorFee: 0, imageFee: 0 },
-        { part: 'Heel', colorFee: 0, imageFee: 0 },
         { part: 'Lace', colorFee: 0, imageFee: 0 },
-        { part: 'Outsole', colorFee: 0, imageFee: 0 },
-        { part: 'Midsole', colorFee: 0, imageFee: 0 },
-        { part: 'Tip', colorFee: 0, imageFee: 0 },
+        { part: 'Sole', colorFee: 0, imageFee: 0 },
         { part: 'Accent', colorFee: 0, imageFee: 0 },
-        { part: 'Logo', colorFee: 0, imageFee: 0 },
         { part: 'Details', colorFee: 0, imageFee: 0 }
       ],
       services: [
         { id: 1, name: 'Custom Design', description: 'Create custom shoe designs', price: 150, status: 1, customFees: [
           { part: 'Base', colorFee: 0, imageFee: 0 },
-          { part: 'Heel', colorFee: 0, imageFee: 0 },
           { part: 'Lace', colorFee: 0, imageFee: 0 },
-          { part: 'Outsole', colorFee: 0, imageFee: 0 },
-          { part: 'Midsole', colorFee: 0, imageFee: 0 },
-          { part: 'Tip', colorFee: 0, imageFee: 0 },
+          { part: 'Sole', colorFee: 0, imageFee: 0 },
           { part: 'Accent', colorFee: 0, imageFee: 0 },
-          { part: 'Logo', colorFee: 0, imageFee: 0 },
           { part: 'Details', colorFee: 0, imageFee: 0 }
         ] },
         { id: 2, name: 'Bulk Order', description: 'Order in bulk quantities', price: 100, status: 1, customFees: [
           { part: 'Base', colorFee: 0, imageFee: 0 },
-          { part: 'Heel', colorFee: 0, imageFee: 0 },
           { part: 'Lace', colorFee: 0, imageFee: 0 },
-          { part: 'Outsole', colorFee: 0, imageFee: 0 },
-          { part: 'Midsole', colorFee: 0, imageFee: 0 },
-          { part: 'Tip', colorFee: 0, imageFee: 0 },
+          { part: 'Sole', colorFee: 0, imageFee: 0 },
           { part: 'Accent', colorFee: 0, imageFee: 0 },
-          { part: 'Logo', colorFee: 0, imageFee: 0 },
           { part: 'Details', colorFee: 0, imageFee: 0 }
         ] }
       ],
@@ -103,13 +91,9 @@ export default {
         status: 1,
         customFees: [
           { part: 'Base', colorFee: 0, imageFee: 0 },
-          { part: 'Heel', colorFee: 0, imageFee: 0 },
           { part: 'Lace', colorFee: 0, imageFee: 0 },
-          { part: 'Outsole', colorFee: 0, imageFee: 0 },
-          { part: 'Midsole', colorFee: 0, imageFee: 0 },
-          { part: 'Tip', colorFee: 0, imageFee: 0 },
+          { part: 'Sole', colorFee: 0, imageFee: 0 },
           { part: 'Accent', colorFee: 0, imageFee: 0 },
-          { part: 'Logo', colorFee: 0, imageFee: 0 },
           { part: 'Details', colorFee: 0, imageFee: 0 }
         ]
       }
