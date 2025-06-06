@@ -1163,7 +1163,7 @@ const onWindowResize = () => {
 }
 
 const handleComponentChange = () => {
-  // Logic if needed when component changes
+ 
 }
 
 const handleCustomColorChange = () => {
