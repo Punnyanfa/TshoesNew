@@ -44,7 +44,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="size in sizes" :key="size.id">
+                  <tr v-for="size in paginatedSizes" :key="size.id">
                     <td>{{ size.id }}</td>
                     <td>{{ size.sizeValue }}</td>
                     <td class="text-end">
@@ -62,6 +62,40 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="card-footer">
+              <div class="d-flex flex-column align-items-center">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <a class="page-link" href="#" @click.prevent="currentPage = 1">
+                        <i class="fas fa-angle-double-left"></i>
+                      </a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <a class="page-link" href="#" @click.prevent="currentPage--">
+                        <i class="fas fa-angle-left"></i>
+                      </a>
+                    </li>
+                    <li v-for="page in displayedPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+                      <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
+                      <span v-else class="page-link">...</span>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                      <a class="page-link" href="#" @click.prevent="currentPage++">
+                        <i class="fas fa-angle-right"></i>
+                      </a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                      <a class="page-link" href="#" @click.prevent="currentPage = totalPages">
+                        <i class="fas fa-angle-double-right"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
             </div>
           </div>
         </div>
@@ -138,8 +172,57 @@ export default {
       form: { id: null, sizeValue: '' },
       toast: null,
       showDeleteModal: false,
-      selectedSize: null
+      selectedSize: null,
+      currentPage: 1,
+      itemsPerPage: 7
     };
+  },
+  computed: {
+    paginatedSizes() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.sizes.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.sizes.length / this.itemsPerPage);
+    },
+    displayedPages() {
+      const pages = [];
+      const maxDisplayedPages = 5;
+      
+      if (this.totalPages <= maxDisplayedPages) {
+        // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
+        for (let i = 1; i <= this.totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Luôn hiển thị trang đầu tiên
+        pages.push(1);
+        
+        // Tính toán các trang ở giữa
+        let startPage = Math.max(2, this.currentPage - 1);
+        let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
+        
+        // Điều chỉnh để luôn hiển thị 3 trang ở giữa
+        if (startPage > 2) {
+          pages.push('...');
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          pages.push(i);
+        }
+        
+        // Thêm dấu ... nếu cần
+        if (endPage < this.totalPages - 1) {
+          pages.push('...');
+        }
+        
+        // Luôn hiển thị trang cuối cùng
+        pages.push(this.totalPages);
+      }
+      
+      return pages;
+    }
   },
   methods: {
     showToast() {
@@ -451,5 +534,45 @@ export default {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.pagination {
+  margin-bottom: 0;
+  justify-content: center;
+}
+
+.card-footer {
+  padding: 1rem;
+}
+
+.card-footer .d-flex {
+  width: 100%;
+}
+
+.page-link {
+  padding: 0.375rem 0.75rem;
+  color: #6c757d;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+}
+
+.page-item.active .page-link {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+
+.page-item.disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+  background-color: #fff;
+  border-color: #dee2e6;
+}
+
+.page-link:hover {
+  z-index: 2;
+  color: #0d6efd;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
 }
 </style> 

@@ -82,51 +82,37 @@
       </div>
 
       <!-- Pagination -->
-      <div class="pagination" v-if="totalPages > 1">
-        <button 
-          class="page-btn nav-btn" 
-          @click="previousPage" 
-          :disabled="currentPage === 1"
-        >
-          <i class="fas fa-chevron-left"></i>
-        </button>
-
-        <button 
-          v-if="displayedPages[0] > 1" 
-          class="page-btn" 
-          @click="changePage(1)"
-        >
-          1
-        </button>
-
-        <span v-if="displayedPages[0] > 2" class="page-ellipsis">...</span>
-
-        <button 
-          v-for="page in displayedPages" 
-          :key="page"
-          :class="['page-btn', currentPage === page ? 'active' : '']"
-          @click="changePage(page)"
-        >
-          {{ page }}
-        </button>
-
-        <span v-if="displayedPages[displayedPages.length - 1] < totalPages - 1" class="page-ellipsis">...</span>
-
-        <button 
-          v-if="displayedPages[displayedPages.length - 1] < totalPages" 
-          class="page-btn" 
-          @click="changePage(totalPages)"
-        >
-          {{ totalPages }}
-        </button>
-
-        <button 
-          class="page-btn nav-btn" 
-          @click="nextPage" 
-          :disabled="currentPage === totalPages"
-        >
-          <i class="fas fa-chevron-right"></i>
-        </button>
+      <div class="card-footer bg-white">
+        <div class="d-flex flex-column align-items-center">
+          <nav aria-label="Page navigation">
+            <ul class="pagination mb-0">
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <a class="page-link" href="#" @click.prevent="currentPage = 1">
+                  <i class="bi bi-chevron-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <a class="page-link" href="#" @click.prevent="previousPage">
+                  <i class="bi bi-chevron-left"></i>
+                </a>
+              </li>
+              <li v-for="page in displayedPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+                <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+                <span v-else class="page-link">...</span>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                <a class="page-link" href="#" @click.prevent="nextPage">
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                <a class="page-link" href="#" @click.prevent="currentPage = totalPages">
+                  <i class="bi bi-chevron-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </div>
 
       <!-- Add/Edit Product Modal -->
@@ -244,7 +230,7 @@ export default {
       searchQuery: '',
       categoryFilter: '',
       currentPage: 1,
-      itemsPerPage: 9,
+      itemsPerPage: 7,
       maxVisiblePages: 5,
       showAddModal: false,
       showEditModal: false,
@@ -292,21 +278,41 @@ export default {
       return Math.ceil(this.filteredProducts.length / this.itemsPerPage)
     },
     displayedPages() {
-      const half = Math.floor(this.maxVisiblePages / 2)
-      let start = this.currentPage - half
-      let end = this.currentPage + half
-
-      if (start < 1) {
-        start = 1
-        end = Math.min(this.totalPages, this.maxVisiblePages)
+      const pages = [];
+      const maxDisplayedPages = 5;
+      
+      if (this.totalPages <= maxDisplayedPages) {
+        // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
+        for (let i = 1; i <= this.totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Luôn hiển thị trang đầu tiên
+        pages.push(1);
+        
+        // Tính toán các trang ở giữa
+        let startPage = Math.max(2, this.currentPage - 1);
+        let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
+        
+        // Điều chỉnh để luôn hiển thị 3 trang ở giữa
+        if (startPage > 2) {
+          pages.push('...');
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          pages.push(i);
+        }
+        
+        // Thêm dấu ... nếu cần
+        if (endPage < this.totalPages - 1) {
+          pages.push('...');
+        }
+        
+        // Luôn hiển thị trang cuối cùng
+        pages.push(this.totalPages);
       }
-
-      if (end > this.totalPages) {
-        end = this.totalPages
-        start = Math.max(1, end - this.maxVisiblePages + 1)
-      }
-
-      return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+      
+      return pages;
     }
   },
   methods: {
@@ -675,52 +681,43 @@ th {
 }
 
 .pagination {
-  display: flex;
+  margin-bottom: 0;
   justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 20px;
 }
 
-.page-btn {
-  min-width: 32px;
-  height: 32px;
-  padding: 0 6px;
-  border: 1px solid #ddd;
-  background-color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.2s;
+.card-footer {
+  padding: 1rem;
 }
 
-.page-btn:hover:not(:disabled) {
-  background-color: #f5f5f5;
-  border-color: #ccc;
+.card-footer .d-flex {
+  width: 100%;
 }
 
-.page-btn.active {
-  background-color: #2196F3;
-  color: white;
-  border-color: #2196F3;
+.page-link {
+  padding: 0.375rem 0.75rem;
+  color: #6c757d;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
 }
 
-.page-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+.page-item.active .page-link {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
 }
 
-.nav-btn {
-  background-color: #f5f5f5;
+.page-item.disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+  background-color: #fff;
+  border-color: #dee2e6;
 }
 
-.page-ellipsis {
-  color: #666;
-  padding: 0 4px;
+.page-link:hover {
+  z-index: 2;
+  color: #0d6efd;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
 }
 
 .modal {
