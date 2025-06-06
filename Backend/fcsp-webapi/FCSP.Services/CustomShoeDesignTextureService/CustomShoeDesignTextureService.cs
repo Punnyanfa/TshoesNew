@@ -2,6 +2,7 @@ using FCSP.DTOs.CustomShoeDesignTexture;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using System;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.CustomShoeDesignTextureService
 {
@@ -67,8 +68,8 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             {
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 TextureId = request.TextureId,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
         }
 
@@ -81,7 +82,7 @@ namespace FCSP.Services.CustomShoeDesignTextureService
             }
 
             customShoeDesignTexture.TextureId = request.TextureId;
-            customShoeDesignTexture.UpdatedAt = DateTime.Now;
+            customShoeDesignTexture.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
             return customShoeDesignTexture;
         }

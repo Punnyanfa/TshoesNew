@@ -7,6 +7,7 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.TextureService;
 
@@ -286,7 +287,7 @@ public class TextureService : ITextureService
 
     private async Task<Texture> GetTextureFromUploadTexture(AddTextureRequest request)
     {
-        DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
+        DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7().AddHours(7);
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
         string fileName = $"texture__uploaded_{formattedDateTime}.jpeg";
         byte[] fileBytes;
@@ -322,7 +323,7 @@ public class TextureService : ITextureService
         }
 
         texture.IsDeleted = true;
-        texture.UpdatedAt = DateTime.Now;
+        texture.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
         return texture;
     }
@@ -365,7 +366,7 @@ public class TextureService : ITextureService
             throw new InvalidOperationException("No image data received from API");
         }
 
-        string formattedDateTime = DateTime.Now.ToString("dd-MM-yyyy_HH-mm");
+        string formattedDateTime = DateTimeUtils.GetCurrentGmtPlus7().ToString("dd-MM-yyyy_HH-mm");
         string fileName = $"texture_{formattedDateTime}.jpeg";
         byte[] imageBytes = Convert.FromBase64String(responseData.Data[0].B64Json);
 

@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Net.payOS;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.PaymentService
 {
@@ -41,7 +42,7 @@ namespace FCSP.Services.PaymentService
             {
                 try
                 {
-                    _logger.LogInformation($"Checking for expired payments at {DateTime.Now}");
+                    _logger.LogInformation($"Checking for expired payments at {DateTimeUtils.GetCurrentGmtPlus7()}");
                     
                     using var scope = _serviceProvider.CreateScope();
                     var paymentRepository = scope.ServiceProvider.GetRequiredService<IPaymentRepository>();
@@ -50,7 +51,7 @@ namespace FCSP.Services.PaymentService
                     // Get all pending payments that are older than 5 minutes
                     var expiredPayments = await paymentRepository.GetAll()
                         .Where(p => p.PaymentStatus == PaymentStatus.Pending && 
-                                  p.CreatedAt < DateTime.Now.AddMinutes(-5) && p.PaymentMethod == PaymentMethod.PayOS)
+                                  p.CreatedAt < DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(-5) && p.PaymentMethod == PaymentMethod.PayOS)
                         .ToListAsync();
 
                     foreach (var payment in expiredPayments)
@@ -63,7 +64,7 @@ namespace FCSP.Services.PaymentService
 
                             // Update payment status
                             payment.PaymentStatus = PaymentStatus.Cancelled;
-                            payment.UpdatedAt = DateTime.Now;
+                            payment.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                             await paymentRepository.UpdateAsync(payment);
 
                             // Update order status
@@ -71,7 +72,7 @@ namespace FCSP.Services.PaymentService
                             if (order != null)
                             {
                                 order.Status = OrderStatus.Cancelled;
-                                order.UpdatedAt = DateTime.Now;
+                                order.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                                 await orderRepository.UpdateAsync(order);
                             }
 
@@ -85,7 +86,7 @@ namespace FCSP.Services.PaymentService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error occurred while checking for expired payments at {DateTime.Now}");
+                    _logger.LogError(ex, $"Error occurred while checking for expired payments at {DateTimeUtils.GetCurrentGmtPlus7()}");
                 }
 
                 await Task.Delay(_checkInterval, stoppingToken);

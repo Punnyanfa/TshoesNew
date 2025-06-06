@@ -2,6 +2,7 @@ using FCSP.DTOs;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.TransactionService;
 
@@ -37,8 +38,8 @@ public class TransactionService : ITransactionService
                 OrderDetailId = 1,
                 PaymentId = request.PaymentId.Value,
                 Amount = (int)request.Amount,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
 
             // Update user balance

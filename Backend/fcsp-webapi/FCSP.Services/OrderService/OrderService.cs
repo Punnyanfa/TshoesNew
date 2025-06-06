@@ -7,6 +7,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.OrderService
 {
@@ -568,8 +569,8 @@ namespace FCSP.Services.OrderService
                 AmountPaid = amountPaid + 30000,
                 Status = OrderStatus.Pending,
                 ShippingStatus = OrderShippingStatus.Preparing,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
 
             return order;
@@ -605,8 +606,8 @@ namespace FCSP.Services.OrderService
                     TotalPrice = totalAmount,
                     ServicePrice = servicesPrice,
                     TemplatePrice = customShoeDesign.CustomShoeDesignTemplate.Price,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                     ManufacturerId = orderDetailToAdd.ManufacturerId
                 };
                 await _orderDetailRepository.AddAsync(orderDetail);
@@ -676,7 +677,7 @@ namespace FCSP.Services.OrderService
                 return (false, "Voucher is not active.");
             }
 
-            if (voucher.ExpirationDate < DateTime.Now)
+            if (voucher.ExpirationDate < DateTimeUtils.GetCurrentGmtPlus7())
             {
                 return (false, "Voucher has expired.");
             }

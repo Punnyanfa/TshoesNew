@@ -2,6 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -25,7 +26,7 @@ namespace FCSP.Repositories.Implementations
 
         public async Task UpdateAsync(T entity)
         {
-            entity.UpdatedAt = DateTime.Now;
+            entity.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             _context.Update(entity);
             await _context.SaveChangesAsync();
         }
@@ -36,7 +37,7 @@ namespace FCSP.Repositories.Implementations
             if (entity != null)
             {
                 entity.IsDeleted = true;
-                entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                 Entities.Update(entity);
                 await _context.SaveChangesAsync();
             }

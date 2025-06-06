@@ -8,6 +8,7 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.TemplateService
 {
@@ -128,7 +129,7 @@ namespace FCSP.Services.TemplateService
                 template.Price = request.BasePrice ?? template.Price;
                 template.TwoDImageUrl = previewImageUrl ?? template.TwoDImageUrl;
                 template.ThreeDFileUrl = model3DUrl;
-                template.UpdatedAt = DateTime.Now;
+                template.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
                 await _templateRepository.UpdateAsync(template);
 
@@ -272,7 +273,7 @@ namespace FCSP.Services.TemplateService
                     return new BaseResponseModel<UpdateTemplateStatusResponse> { Code = 400, Message = "status is invalid" };
 
                 template.Status = request.Status;
-                template.UpdatedAt = DateTime.Now;
+                template.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                 await _templateRepository.UpdateAsync(template);
 
                 return new BaseResponseModel<UpdateTemplateStatusResponse>
@@ -380,8 +381,8 @@ namespace FCSP.Services.TemplateService
                 Price = (int)request.BasePrice,
                 TwoDImageUrl = previewImageUrl,
                 ThreeDFileUrl = model3DUrl,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                 IsDeleted = false,
                 Status = Common.Enums.TemplateStatus.Private
             };
@@ -389,7 +390,7 @@ namespace FCSP.Services.TemplateService
 
         private async Task<string> UploadPreviewImage(IFormFile previewImage)
         {
-            DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
+            DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
             string fileName = $"templatePreviewImage_{formattedDateTime}.jpeg";
             byte[] fileBytes;
@@ -406,7 +407,7 @@ namespace FCSP.Services.TemplateService
 
         private async Task<string> Upload3DModel(IFormFile model3DFile)
         {
-            DateTime gmtPlus7Time = DateTime.Now.AddHours(7);
+            DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
             string fileName = $"template3DModel_{formattedDateTime}.glb";
             byte[] fileBytes;

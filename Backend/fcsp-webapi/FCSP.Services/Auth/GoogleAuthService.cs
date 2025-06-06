@@ -11,6 +11,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
+using FCSP.Common.Utils;
+
 namespace FCSP.Services.Auth;
 
 public class GoogleAuthService : IGoogleAuthService
@@ -44,8 +46,8 @@ public class GoogleAuthService : IGoogleAuthService
                     UserRole = Common.Enums.UserRole.Customer, // Default role
                     IsBanned = false,
                     IsDeleted = false,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                     AvatarImageUrl = payload.Picture 
                 };
 
@@ -102,7 +104,7 @@ public class GoogleAuthService : IGoogleAuthService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddDays(1),
+            expires: DateTimeUtils.GetCurrentGmtPlus7().AddDays(1),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

@@ -9,6 +9,7 @@ using FCSP.Services.Auth.Token;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
+using FCSP.Common.Utils;
 
 namespace FCSP.Tests
 {
@@ -86,7 +87,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var request = new UpdateUserRoleRequest
             {
@@ -115,7 +116,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
@@ -138,7 +139,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
@@ -148,8 +149,10 @@ namespace FCSP.Tests
             Assert.Equal(400, result.Code);
             Assert.Equal("commissionRate can not greater than 50", result.Message);
         }
+        [Fact]
         public async Task UpdateUserRole_InvalidCommissionRate_empty()
-        {             // Arrange
+        {
+            // Arrange
             var request = new UpdateUserRoleRequest
             {
                 Id = 1,
@@ -160,7 +163,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))
                 .ReturnsAsync(user);
@@ -180,7 +183,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var designer = new Designer
             {
@@ -219,7 +222,7 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 UserRole = UserRole.Customer,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var manufacturer = new Manufacturer
             {

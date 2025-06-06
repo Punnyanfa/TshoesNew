@@ -3,6 +3,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -16,7 +17,7 @@ namespace FCSP.Repositories.Implementations
         public async Task<IEnumerable<Voucher>> GetNonExpiredVouchersAsync()
         {
             return await _context.Vouchers
-                 .Where(v => v.ExpirationDate >= DateTime.Now && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
+                 .Where(v => v.ExpirationDate >= DateTimeUtils.GetCurrentGmtPlus7() && v.Status == (int)VoucherStatus.Active && !v.IsDeleted)
                  .Include(v => v.Orders)
                  .ToListAsync();
         }
@@ -37,7 +38,7 @@ namespace FCSP.Repositories.Implementations
 
         public async Task<int> UpdateExpiredVouchersAsync()
         {
-            var now = DateTime.Now;
+            var now = DateTimeUtils.GetCurrentGmtPlus7();
             var vouchersToUpdate = await _context.Vouchers
                 .Where(v => v.ExpirationDate < now && v.Status == (int)VoucherStatus.Active)
                 .ToListAsync();
@@ -45,7 +46,7 @@ namespace FCSP.Repositories.Implementations
             foreach (var voucher in vouchersToUpdate)
             {
                 voucher.Status = (int)VoucherStatus.Expired;
-                voucher.UpdatedAt = DateTime.Now;
+                voucher.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             }
 
              await _context.SaveChangesAsync();

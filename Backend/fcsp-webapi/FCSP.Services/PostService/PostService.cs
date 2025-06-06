@@ -1,6 +1,7 @@
 using FCSP.DTOs.Post;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using FCSP.Common.Utils;
 using System;
 using System.Linq;
 
@@ -41,8 +42,8 @@ namespace FCSP.Services.PostService
                 Title = request.Title,
                 Content = request.Content,
                 IsDeleted = false,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
 
             var addedPost = await _postRepository.AddAsync(post);
@@ -62,7 +63,7 @@ namespace FCSP.Services.PostService
 
             post.Title = request.Title;
             post.Content = request.Content;
-            post.UpdatedAt = DateTime.Now;
+            post.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
             await _postRepository.UpdateAsync(post);
 
@@ -74,7 +75,7 @@ namespace FCSP.Services.PostService
             var post = await GetEntityFromGetByIdRequest(new GetPostByIdRequest { Id = request.Id });
 
             post.IsDeleted = true;
-            post.UpdatedAt = DateTime.Now;
+            post.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             await _postRepository.UpdateAsync(post);
 
             return MapToDetailedResponse(post);

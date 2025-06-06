@@ -12,6 +12,7 @@ using Net.payOS.Types;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.PaymentService
 {
@@ -44,7 +45,7 @@ namespace FCSP.Services.PaymentService
         public async Task<BaseResponseModel<AddPaymentResponse>> TestPayOSAsync(AddPaymentRequest request)
         {
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
-            int expireAt = (int)DateTime.Now.AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+            int expireAt = (int)DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
             PaymentData paymentData = new PaymentData(request.OrderId, request.Amount, "Payment for order " + request.OrderId, null, "https://tshoes.vercel.app/paymentSuccessPage", "https://tshoes.vercel.app/paymentCancelledPage");
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return new BaseResponseModel<AddPaymentResponse>
@@ -366,8 +367,8 @@ namespace FCSP.Services.PaymentService
                     Amount = (int)request.Amount,
                     PaymentMethod = PaymentMethod.PayOS,
                     PaymentStatus = PaymentStatus.Pending,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                 };
                 await _paymentRepository.AddAsync(payment);
 
@@ -428,8 +429,8 @@ namespace FCSP.Services.PaymentService
                     Amount = (int)withdrawAmount,
                     PaymentMethod = PaymentMethod.Wallet,
                     PaymentStatus = PaymentStatus.Received,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                 };
                 await _paymentRepository.AddAsync(payment);
 
@@ -494,7 +495,7 @@ namespace FCSP.Services.PaymentService
 
         private async Task<CreatePaymentResult> GetPayOSUrl(PayOSPaymentDTO payment)
         {   
-            int expireAt = (int)DateTime.Now.AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+            int expireAt = (int)DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
             PaymentData paymentData = new PaymentData(
                 payment.Id,
@@ -550,8 +551,8 @@ namespace FCSP.Services.PaymentService
                 Amount = request.Amount,
                 PaymentMethod = request.PaymentMethod,
                 PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
         }
 
@@ -578,7 +579,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Invalid payment status");
             }
-            payment.UpdatedAt = DateTime.Now;
+            payment.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             return payment;
         }
 
@@ -598,7 +599,7 @@ namespace FCSP.Services.PaymentService
             {
                 order.Status = OrderStatus.Confirmed;
             }
-            order.UpdatedAt = DateTime.Now;
+            order.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             await _orderRepository.UpdateAsync(order);
         }
 
@@ -626,7 +627,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Invalid payment status");
             }
-            payment.UpdatedAt = DateTime.Now;
+            payment.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             return payment;
         } 
         #endregion

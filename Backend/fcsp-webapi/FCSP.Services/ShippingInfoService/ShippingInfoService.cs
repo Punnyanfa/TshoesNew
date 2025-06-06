@@ -5,6 +5,7 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Linq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.ShippingInfoService
 {
@@ -160,7 +161,7 @@ namespace FCSP.Services.ShippingInfoService
                 shippingInfo.PhoneNumber = request.PhoneNumber;
                 shippingInfo.ContactNumber = request.ReceiverName;
                 shippingInfo.IsDefault = request.IsDefault;
-                shippingInfo.UpdatedAt = DateTime.Now;
+                shippingInfo.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
                 await _shippingInfoRepository.UpdateAsync(shippingInfo);
 
@@ -232,7 +233,7 @@ namespace FCSP.Services.ShippingInfoService
                 {
                     await SetOtherAddressesToNonDefault(request.UserId);
                     shippingInfo.IsDefault = true;
-                    shippingInfo.UpdatedAt = DateTime.Now;
+                    shippingInfo.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                     await _shippingInfoRepository.UpdateAsync(shippingInfo);
                 }
 
@@ -372,8 +373,8 @@ namespace FCSP.Services.ShippingInfoService
                 Country = request.Country,
                 PhoneNumber = request.PhoneNumber,
                 ContactNumber = "N/A",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                 IsDefault = request.IsDefault
             };
         }

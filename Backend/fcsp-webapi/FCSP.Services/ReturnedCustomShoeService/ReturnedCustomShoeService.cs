@@ -2,6 +2,7 @@ using FCSP.DTOs;
 using FCSP.DTOs.ReturnedCustomShoe;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using FCSP.Common.Utils;
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -46,8 +47,8 @@ namespace FCSP.Services.ReturnedCustomShoeService
                     Price = totalAmount,
                     Quantity = request.Quantity,
                     IsDeleted = false,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                 };
 
                 await _returnedCustomShoeRepository.AddAsync(returnedShoe);

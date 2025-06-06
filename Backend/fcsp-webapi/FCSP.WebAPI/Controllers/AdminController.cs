@@ -3,6 +3,7 @@ using FCSP.DTOs;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
+using FCSP.Common.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -84,7 +85,7 @@ namespace FCSP.WebAPI.Controllers
             var designerRepository = scope.ServiceProvider.GetRequiredService<IDesignerRepository>();
 
             // Use a much shorter time frame for manual testing (1 hour instead of days)
-            var cutoffDate = DateTime.Now.AddHours(-1);
+            var cutoffDate = DateTimeUtils.GetCurrentGmtPlus7().AddHours(-1);
             
             var eligibleOrders = await orderRepository.GetAll()
                 .Where(o => o.Status == OrderStatus.Completed && o.UpdatedAt <= cutoffDate)
@@ -144,8 +145,8 @@ namespace FCSP.WebAPI.Controllers
                                 OrderDetailId = orderDetail.Id,
                                 PaymentId = payment.Id,
                                 Amount = designerAmount,
-                                CreatedAt = DateTime.Now,
-                                UpdatedAt = DateTime.Now
+                                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                             };
                             await transactionRepository.AddAsync(designerTransaction);
                             
@@ -177,8 +178,8 @@ namespace FCSP.WebAPI.Controllers
                                     OrderDetailId = orderDetail.Id,
                                     PaymentId = payment.Id,
                                     Amount = manufacturerAmount,
-                                    CreatedAt = DateTime.Now,
-                                    UpdatedAt = DateTime.Now
+                                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                                 };
                                 await transactionRepository.AddAsync(manufacturerTransaction);
                                 

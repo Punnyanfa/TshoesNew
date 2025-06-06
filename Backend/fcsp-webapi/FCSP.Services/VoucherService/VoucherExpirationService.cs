@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using FCSP.Common.Utils;
 
 public class VoucherExpirationService : BackgroundService
 {
@@ -29,7 +30,7 @@ public class VoucherExpirationService : BackgroundService
         {
             try
             {
-                _logger.LogInformation("Checking for expired vouchers at {Time}", DateTime.Now);
+                _logger.LogInformation("Checking for expired vouchers at {Time}", DateTimeUtils.GetCurrentGmtPlus7());
                 using var scope = _serviceProvider.CreateScope();
                 var voucherService = scope.ServiceProvider.GetRequiredService<IVoucherService>();
                 var response = await voucherService.UpdateExpiredVouchers();
@@ -44,7 +45,7 @@ public class VoucherExpirationService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating expired vouchers at {Time}.", DateTime.Now);
+                _logger.LogError(ex, "Error occurred while updating expired vouchers at {Time}.", DateTimeUtils.GetCurrentGmtPlus7());
             }
 
             await Task.Delay(_checkInterval, stoppingToken);

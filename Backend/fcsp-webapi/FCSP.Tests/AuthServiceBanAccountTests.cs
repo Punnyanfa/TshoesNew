@@ -7,6 +7,7 @@ using FCSP.Common.Enums;
 using Moq;
 using Microsoft.Extensions.Configuration;
 using FCSP.Models.Entities;
+using FCSP.Common.Utils;
 
 namespace FCSP.Tests
 {
@@ -74,7 +75,7 @@ namespace FCSP.Tests
                 Id = 1,
                 UserRole = UserRole.Admin,
                 IsBanned = false,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var request = new UpdateUserStatusRequest { Id = 1, IsBanned = true };
             _userRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))

@@ -1,10 +1,10 @@
-﻿
-using FCSP.DTOs.CustomShoeDesignTemplate;
+﻿using FCSP.DTOs.CustomShoeDesignTemplate;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.TemplateService;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Tests
 {
@@ -60,8 +60,8 @@ namespace FCSP.Tests
             {
                 Id = 1,
                 IsDeleted = false,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var request = new DeleteTemplateRequest { Id = 1 };
             _templateRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 1)))

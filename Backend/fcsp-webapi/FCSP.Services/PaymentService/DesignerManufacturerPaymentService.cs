@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.PaymentService
 {
@@ -36,7 +37,7 @@ namespace FCSP.Services.PaymentService
             {
                 try
                 {
-                    _logger.LogInformation("Processing payments for designers and manufacturers at {Time}", DateTime.Now);
+                    _logger.LogInformation("Processing payments for designers and manufacturers at {Time}", DateTimeUtils.GetCurrentGmtPlus7());
                     
                     using var scope = _serviceProvider.CreateScope();
                     
@@ -51,7 +52,7 @@ namespace FCSP.Services.PaymentService
                     var designerRepository = scope.ServiceProvider.GetRequiredService<IDesignerRepository>();
 
                     // Find completed orders ready for payout (status completed and completed for 30 days)
-                    var cutoffDate = DateTime.Now.AddDays(_daysAfterOrderToPayOut);
+                    var cutoffDate = DateTimeUtils.GetCurrentGmtPlus7().AddDays(_daysAfterOrderToPayOut);
                     
                     var eligibleOrders = await orderRepository.GetAll()
                         .Where(o => o.Status == OrderStatus.Completed && 
@@ -126,8 +127,8 @@ namespace FCSP.Services.PaymentService
                                         OrderDetailId = orderDetail.Id,
                                         PaymentId = payment.Id,
                                         Amount = designerAmount,
-                                        CreatedAt = DateTime.Now,
-                                        UpdatedAt = DateTime.Now
+                                        CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                                        UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                                     };
                                     await transactionRepository.AddAsync(designerTransaction);
                                     
@@ -168,8 +169,8 @@ namespace FCSP.Services.PaymentService
                                             OrderDetailId = orderDetail.Id,
                                             PaymentId = payment.Id,
                                             Amount = manufacturerAmount,
-                                            CreatedAt = DateTime.Now,
-                                            UpdatedAt = DateTime.Now
+                                            CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                                            UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                                         };
                                         await transactionRepository.AddAsync(manufacturerTransaction);
                                         
@@ -206,7 +207,7 @@ namespace FCSP.Services.PaymentService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while processing payments at {Time}", DateTime.Now);
+                    _logger.LogError(ex, "Error occurred while processing payments at {Time}", DateTimeUtils.GetCurrentGmtPlus7());
                 }
 
                 await Task.Delay(_checkInterval, stoppingToken);

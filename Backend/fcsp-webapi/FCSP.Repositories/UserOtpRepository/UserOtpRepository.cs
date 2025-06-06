@@ -2,6 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -33,7 +34,7 @@ namespace FCSP.Repositories.Implementations
                     o.OtpCode == otpCode && 
                     o.PurposeType == purpose && 
                     !o.IsUsed && 
-                    o.ExpiryTime > DateTime.Now);
+                    o.ExpiryTime > DateTimeUtils.GetCurrentGmtPlus7());
 
             if (otp == null)
             {
