@@ -31,3 +31,16 @@ export async function rechargePayment({ userId, paymentId, amount }) {
     throw error;
   }
 }
+export async function postWithdraw(data) {
+  console.log(data)
+  try {
+    const response = await instance.post(`/Payment/withdraw`, data);
+    if (response.data.code === 200) {
+      return response.data.data;  
+    }
+    throw new Error(response.data.message || `Failed to withdraw payment`);
+  } catch (error) {
+    console.error(`Error withdrawing payment:`, error);
+    throw error;
+  }
+}

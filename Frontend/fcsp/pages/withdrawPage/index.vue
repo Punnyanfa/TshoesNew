@@ -61,7 +61,7 @@
 
 <script>
 import { getBalance } from '~/server/balance-service';
-import { sendEmail } from '~/server/auth/senEmail-service';
+import {postWithdraw} from '~/server/payment-service'
 export default {
   data() {
     return {
@@ -124,37 +124,34 @@ export default {
     validateAmount(value) {
       const amount = parseFloat(value);
       this.amountError = "";
-      console.log('Validating amount:', amount, 'Current balance:', this.balance);
+     
 
       if (isNaN(amount)) {
         this.amountError = "Please enter a valid amount";
-        console.log('Validation failed: Invalid amount format');
+       
         return false;
       }
 
       if (amount <= 0) {
         this.amountError = "Amount must be greater than 0";
-        console.log('Validation failed: Amount <= 0');
+        
         return false;
       }
 
       if (amount > this.balance) {
         this.amountError = "Insufficient balance";
-        console.log('Validation failed: Amount exceeds balance', {
-          requested: amount,
-          available: this.balance
-        });
+       
         return false;
       }
 
       const minWithdrawal = 20000;
       if (amount < minWithdrawal) {
         this.amountError = `Minimum withdrawal amount is ${minWithdrawal.toLocaleString('vi-VN')} ₫`;
-        console.log('Validation failed: Amount below minimum');
+        
         return false;
       }
 
-      console.log('Amount validation passed');
+      
       return true;
     },
     async handleSubmit() {
@@ -174,9 +171,16 @@ export default {
       this.isSubmitting = true;
       try {
         const userId = localStorage.getItem('userId');
-        const subject = `${this.email} rút tiền`;
-        const bodyText = `- Bank: ${this.selectedBank}\n- Account Number: ${this.accountNumber}\n- Account Name: ${this.accountName}\n- Amount: ${parseFloat(this.amount).toLocaleString('vi-VN')}₫`;
-        await sendEmail({ userId, subject, body: bodyText, isHtml: false });
+        const data = {
+          userId: userId,
+          amount: parseFloat(this.amount),
+          bankInformation: {
+            bankName: this.selectedBank,
+            accountName: this.accountName,
+            accountNumber: this.accountNumber,
+          },
+        };
+        await postWithdraw(data);
         this.balance -= parseFloat(this.amount);
         alert("Withdrawal request submitted successfully!");
         // Reset form (trừ email)
@@ -184,6 +188,7 @@ export default {
         this.accountNumber = "";
         this.accountName = "";
         this.amount = "";
+        this.$router.push('/');
       } catch (error) {
         alert("Failed to process withdrawal. Please try again.");
       } finally {
