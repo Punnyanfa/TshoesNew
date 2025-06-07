@@ -3,13 +3,10 @@
     <AdminSidebar />
     <div class="content">
       
-      <!-- <div class="header">
-        <h1>Manage Products</h1>
-        <button class="add-btn" @click="showAddModal = true">
-          <i class="fas fa-plus"></i> Add Product
-        </button>
+     <div class="header">
+      <h1 class="mb-4 text-primary fw-bold">Manage Products</h1>
       </div>
-
+      
       <!-- Search and Filter -->
       <div class="search-filter">
         <div class="search-box">
@@ -644,6 +641,8 @@ th {
   gap: 8px;
   justify-content: center;
   align-items: center;
+  border-right: none;
+  margin-top: 10px;
 }
 
 .edit-btn, .delete-btn {
