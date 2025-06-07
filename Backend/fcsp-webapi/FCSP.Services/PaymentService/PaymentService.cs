@@ -438,6 +438,18 @@ namespace FCSP.Services.PaymentService
                 };
                 await _paymentRepository.AddAsync(payment);
 
+                var emailResponse = await _authService.SendEmailToAdmin(
+                    new DTOs.Authentication.SendEmailRequest{
+                        UserId = user.Id,
+                        Subject = "Withdrawal Request",
+                        Body = $"Bank Name: {request.BankInformation.BankName}\nAccount Name: {request.BankInformation.AccountName}\nAccount Number: {request.BankInformation.AccountNumber}\nAmount: {request.Amount}",
+                        IsHtml = true
+                });
+                if (emailResponse.Code != 200)
+                {
+                    throw new Exception($"Email failed: {emailResponse.Message}");
+                }
+
                 var transactionResponse = await _transactionService.UpdateBalanceAsync(new RechargeRequestDTO
                 {   
                     UserId = request.UserId,
@@ -449,13 +461,6 @@ namespace FCSP.Services.PaymentService
                 {
                     throw new Exception($"Transaction failed: {transactionResponse.Message}");
                 }
-
-                await _authService.SendEmailToAdmin(
-                    new DTOs.Authentication.SendEmailRequest{
-                        Subject = $"Withdrawal Request From {user.Email}",
-                        Body = $"Withdrawal Request From {user.Email}\nBank Name: {request.BankInformation.BankName}\nAccount Name: {request.BankInformation.AccountName}\nAccount Number: {request.BankInformation.AccountNumber}\nAmount: {request.Amount}",
-                        IsHtml = true
-                });
 
                 return new BaseResponseModel<WithdrawBalanceResponse>
                 {
