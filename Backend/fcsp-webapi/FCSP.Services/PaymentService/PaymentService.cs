@@ -81,7 +81,9 @@ namespace FCSP.Services.PaymentService
                             OrderId = p.OrderId,
                             Amount = p.Amount,
                             Status = p.PaymentStatus,
-                            PaymentMethod = p.PaymentMethod
+                            PaymentMethod = p.PaymentMethod,
+                            CreatedAt = p.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                            UpdatedAt = p.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")
                         }).ToList()
                     }
                 };

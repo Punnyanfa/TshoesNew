@@ -21,6 +21,8 @@ namespace FCSP.DTOs.Payment
         public int Amount { get; set; }
         public PaymentStatus Status { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
+        public string CreatedAt { get; set; } = string.Empty;
+        public string UpdatedAt { get; set; } = string.Empty;
     }
 
 
