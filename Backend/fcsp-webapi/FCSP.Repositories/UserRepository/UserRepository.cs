@@ -16,6 +16,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         return await Entities
                         .Include(u => u.Designers)
                         .Include(u => u.Manufacturers)
+                        .OrderByDescending(u => u.CreatedAt)
                         .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
     }
 
@@ -26,6 +27,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             {
                 Email = u.Email
             })
+            .OrderByDescending(u => u.CreatedAt)
             .FirstOrDefaultAsync();
     }
 
@@ -36,11 +38,14 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             {
                 Name = u.Name
             })
+            .OrderByDescending(u => u.CreatedAt)
             .FirstOrDefaultAsync();
     }
 
     public async Task<User?> GetByIdAsync(long userId)
     {
-        return await Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+        return await Entities
+            .OrderByDescending(u => u.CreatedAt)
+            .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
     }
 }

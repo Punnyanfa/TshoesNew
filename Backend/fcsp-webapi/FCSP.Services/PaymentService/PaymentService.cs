@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Data;
 using FCSP.Common.Utils;
 using FCSP.Services.Auth;
+using System.Linq;
 
 namespace FCSP.Services.PaymentService
 {
@@ -113,7 +114,10 @@ namespace FCSP.Services.PaymentService
                         Id = payment.Id,
                         OrderId = payment.OrderId,
                         Amount = payment.Amount,
-                        Status = payment.PaymentStatus
+                        Status = payment.PaymentStatus,
+                        PaymentMethod = payment.PaymentMethod,
+                        CreatedAt = payment.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        UpdatedAt = payment.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")
                     }
                 };
             }
@@ -498,7 +502,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("No payments found");
             }
-            return payments;
+            return payments.OrderByDescending(p => p.CreatedAt);
         }
 
         private async Task<Payment> GetEntityFromGetByIdRequest(GetPaymentByIdRequest request)

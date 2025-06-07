@@ -15,6 +15,7 @@ namespace FCSP.Repositories.Implementations
         {
             return await _context.Payments
                 .Where(p => p.OrderId == orderId)
+                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
     }

@@ -47,11 +47,12 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Where(x => !x.IsDeleted)
+                .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
         }
 
         public IQueryable<T> GetAll()
-            => Entities.Where(x => true).AsQueryable();
+            => Entities.Where(x => true).OrderByDescending(x => x.CreatedAt).AsQueryable();
 
         public T Find(params object[] keyValues)
         {

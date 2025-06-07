@@ -19,6 +19,7 @@ namespace FCSP.Repositories.Implementations
             return await Entities
                 .Include(si => si.User)
                 .Where(si => si.UserId == userId && !si.IsDeleted)
+                .OrderByDescending(si => si.CreatedAt)
                 .ToListAsync();
         }
         public async Task<ShippingInfo> GetByOrderIdAsync(long orderId)
@@ -26,15 +27,17 @@ namespace FCSP.Repositories.Implementations
             return await Entities
                 .Include(si => si.Orders).
                 Include(si => si.User)
+                .OrderByDescending(si => si.CreatedAt)
                 .FirstOrDefaultAsync(si => si.Orders.Any(o => o.Id == orderId && !si.IsDeleted));
         }
 
         public async Task<IEnumerable<ShippingInfo>> GetAllAsync()
         {
             return await _context.ShippingInfos
-        .Include(si => si.User)
-        .Where(si => !si.IsDeleted)
-        .ToListAsync();
+                .Include(si => si.User)
+                .Where(si => !si.IsDeleted)
+                .OrderByDescending(si => si.CreatedAt)
+                .ToListAsync();
         }
     }
 }

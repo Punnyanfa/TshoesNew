@@ -25,6 +25,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(d => d.DesignServices)
                     .ThenInclude(d => d.Service)
                 .Where(d => d.IsDeleted == false && d.Status == Common.Enums.CustomShoeDesignStatus.Public)
+                .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
         }
 
@@ -41,6 +42,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(d => d.DesignServices)
                     .ThenInclude(d => d.Service)
                 .Where(d => d.IsDeleted == false)
+                .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
         }
 

@@ -19,6 +19,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(t => t.Receiver)
                 .Include(t => t.OrderDetail)
                 .Include(t => t.Payment)
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
 
@@ -29,6 +30,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(t => t.Receiver)
                 .Include(t => t.OrderDetail)
                 .Include(t => t.Payment)
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
 
@@ -39,6 +41,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(t => t.Receiver)
                 .Include(t => t.OrderDetail)
                 .Include(t => t.Payment)
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
     }
