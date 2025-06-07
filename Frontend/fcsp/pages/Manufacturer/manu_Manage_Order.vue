@@ -494,8 +494,7 @@ const updateOrderStatusApi = async (orderId, statusCode) => {
     });
     const result = await response.json();
     if (result.code === 200 && result.data.success) {
-      // Notify success
-      showMessage('Update order status successfully', 'success');
+      alert ('Update order status successfully!')
       return true;
     } else {
       throw new Error(result.message || 'Failed to update order status');
@@ -583,8 +582,6 @@ export default {
         'Confirmed',
         'Processing',
         'Completed',
-        'Delivered',
-        'Cancelled'
       ],
       orders: [],
       shippingInfos: [],
@@ -685,8 +682,6 @@ export default {
         'Confirmed': 'Confirmed',
         'Processing': 'Processing',
         'Shipping': 'Shipping',
-        'Delivered': 'Delivered',
-        'Cancelled': 'Cancelled',
         'Completed': 'Completed'
       };
       return statusMap[status] || status || 'Unknown';
@@ -697,7 +692,6 @@ export default {
         'Confirmed': 'bg-info',
         'Processing': 'bg-primary',
         'Shipping': 'bg-info',
-        'Delivered': 'bg-success',
         'Completed': 'bg-success',
         'Cancelled': 'bg-danger'
       };
@@ -796,8 +790,7 @@ export default {
           'Confirmed': 1,
           'Processing': 2,
           'Completed': 3,
-          'Delivered': 4,
-          'Cancelled': 5
+
         };
 
         const statusCode = statusToCodeMap[this.newStatus];
@@ -812,7 +805,6 @@ export default {
           'Confirmed': 'Confirmed',
           'Processing': 'Processing',
           'Shipping': 'Shipping',
-          'Delivered': 'Delivered',
           'Cancelled': 'Cancelled',
           'Completed': 'Completed'
         };
