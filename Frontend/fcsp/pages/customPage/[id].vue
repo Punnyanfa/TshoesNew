@@ -151,7 +151,7 @@
               <p><strong>Product Name:</strong> {{ customProductName }}</p>
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
-              <p v-if="showDesignMarkup"><strong>Design Markup:</strong> {{ formatPrice(designMarkup) }}</p>
+              <p v-if="showDesignMarkup"><strong>Design Markup:</strong> <input type="number" v-model.number="designMarkup" min="0" step="1000" @input="handleDesignMarkupChange" /></p>
               <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge + (showDesignMarkup ? designMarkup : 0)) }}</p>
             </div>
           </div>
