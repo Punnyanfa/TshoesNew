@@ -56,12 +56,7 @@
               />
               <div class="image-skeleton" v-if="!imageLoaded[product.id]"></div>
               <div class="product-overlay">
-                <button 
-                  class="btn btn-add-cart"
-                  @click="addToCart(product)"
-                >
-                  <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
-                </button>
+                
               </div>
             </div>
             <div class="product-info mt-3">
