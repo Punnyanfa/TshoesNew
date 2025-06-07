@@ -954,11 +954,6 @@ export default {
   transition: all 0.3s ease;
 }
 
-.badge:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .modal-content {
   border: none;
   border-radius: 15px;
@@ -1009,11 +1004,6 @@ export default {
 .preview-card img {
   height: 150px;
   object-fit: cover;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .btn {
