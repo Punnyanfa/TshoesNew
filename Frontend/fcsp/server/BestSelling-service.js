@@ -5,7 +5,6 @@ import { instance, BestSelling } from "./api-instance-provider";
 export async function GetBestSelling() {
     try {
       const response = await instance.get(BestSelling.ORIGIN);
-      
       // Kiểm tra mã phản hồi và trả về toàn bộ phản hồi nếu mã là 200
       if (response.data.code === 200) {
         return response.data;  // 

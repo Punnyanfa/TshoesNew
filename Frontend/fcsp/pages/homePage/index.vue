@@ -48,7 +48,7 @@
           <div class="product-card">
             <div class="product-image position-relative">
               <img 
-                :src="product.image" 
+                :src="product.previewImageUrl" 
                 :alt="product.name" 
                 class="img-fluid rounded"
                 @load="handleImageLoad(product.id)"
@@ -66,7 +66,7 @@
             </div>
             <div class="product-info mt-3">
               <NuxtLink 
-                :to="`/product/${product.id}`" 
+                :to="`/productPage/${product.id}`" 
                 class="product-title text-decoration-none"
               >
                 <h5 class="fw-bold mb-2">{{ product.name }}</h5>
@@ -277,18 +277,21 @@ const isLoading = ref(false)
 const error = ref(null)
 const products = ref([])
 
+const handleImageLoad = (productId) => {
+  imageLoaded.value[productId] = true;
+};
+
 // Fetch products on component mount
 onMounted(async () => {
   isLoading.value = true
   error.value = null
   try {
     const response = await GetBestSelling()
-    console.log(response)
     if (response && response.data.designs) {
       products.value = response.data.designs.map(product => ({
         id: product.id,
         name: product.name,
-        image: product.previewImageUrl || '/default-shoe.png',
+        previewImageUrl: product.previewImageUrl,
         price: product.price,
         rating: product.rating,
         reviews: product.ratingCount
@@ -308,7 +311,7 @@ const addToCart = (product) => {
     id: product.id,
     name: product.name,
     price: product.price,
-    image: product.image,
+    image: product.previewImageUrl,
     quantity: 1
   })
 }
