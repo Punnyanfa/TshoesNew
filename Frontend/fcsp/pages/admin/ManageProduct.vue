@@ -642,7 +642,7 @@ th {
   justify-content: center;
   align-items: center;
   border-right: none;
-  margin-top: 10px;
+  margin-top: 18px;
 }
 
 .edit-btn, .delete-btn {
