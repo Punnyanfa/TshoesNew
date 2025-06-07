@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using FCSP.Common.Utils;
+using FCSP.Services.Auth;
 
 namespace FCSP.Services.PaymentService
 {
@@ -22,6 +23,7 @@ namespace FCSP.Services.PaymentService
         private readonly IOrderRepository _orderRepository;
         private readonly IUserRepository _userRepository;
         private readonly ITransactionService _transactionService;
+        private readonly IAuthService _authService;
         private readonly string _clientId;
         private readonly string _apiKey;
         private readonly string _checksumKey;
@@ -30,11 +32,13 @@ namespace FCSP.Services.PaymentService
                                 IOrderRepository orderRepository,
                                 IUserRepository userRepository,
                                 ITransactionService transactionService,
+                                IAuthService authService,
                                 IConfiguration configuration)
         {
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _userRepository = userRepository;
+            _authService = authService;
             _transactionService = transactionService;
             _clientId = configuration["PayOS:ClientId"] ?? string.Empty;
             _apiKey = configuration["PayOS:ApiKey"] ?? string.Empty;
@@ -445,6 +449,13 @@ namespace FCSP.Services.PaymentService
                 {
                     throw new Exception($"Transaction failed: {transactionResponse.Message}");
                 }
+
+                await _authService.SendEmailToAdmin(
+                    new DTOs.Authentication.SendEmailRequest{
+                        Subject = $"Withdrawal Request From {user.Email}",
+                        Body = $"Withdrawal Request From {user.Email}\nBank Name: {request.BankInformation.BankName}\nAccount Name: {request.BankInformation.AccountName}\nAccount Number: {request.BankInformation.AccountNumber}\nAmount: {request.Amount}",
+                        IsHtml = true
+                });
 
                 return new BaseResponseModel<WithdrawBalanceResponse>
                 {

@@ -51,6 +51,14 @@ namespace FCSP.DTOs.Payment
     {
         public long UserId { get; set; }
         public int Amount { get; set; }
+        public BankInformation BankInformation { get; set; }
+    }
+
+    public class BankInformation
+    {
+        public string BankName { get; set; } = string.Empty;
+        public string AccountName { get; set; } = string.Empty;
+        public string AccountNumber { get; set; } = string.Empty;
     }
 
     public class WithdrawBalanceResponse
