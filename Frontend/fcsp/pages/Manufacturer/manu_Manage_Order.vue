@@ -480,7 +480,7 @@ const getOrdersByManufacturerId = async (manufacturerId) => {
 
 const updateOrderStatusApi = async (orderId, statusCode) => {
   try {
-    const response = await fetch(`https://fcspwebapi20250527114117.azurewebsites.net/api/Order/${orderId}`, {
+    const response = await fetch('https://fcspwebapi20250527114117.azurewebsites.net/api/Order/status', {
       method: 'PUT',
       headers: {
         'accept': '*/*',
@@ -494,12 +494,16 @@ const updateOrderStatusApi = async (orderId, statusCode) => {
     });
     const result = await response.json();
     if (result.code === 200 && result.data.success) {
+      // Notify success
+      showMessage('Update order status successfully', 'success');
       return true;
     } else {
       throw new Error(result.message || 'Failed to update order status');
     }
   } catch (error) {
     console.error('Error updating order status:', error);
+    // Notify failure
+    showMessage('Error updating order status: ' + (error.message || 'Unknown error'), 'danger');
     throw error;
   }
 };
@@ -578,7 +582,7 @@ export default {
         'Pending',
         'Confirmed',
         'Processing',
-        'Shipping',
+        'Completed',
         'Delivered',
         'Cancelled'
       ],
@@ -710,9 +714,7 @@ export default {
     },
     async fetchShippingInfos() {
       try {
-        const response = await getAllShippingInfo();
-        console.log('Shipping API Response:', response);
-        
+        const response = await getAllShippingInfo();           
         if (response && Array.isArray(response.shippingInfos)) {
           this.shippingInfos = response.shippingInfos;
         } else if (Array.isArray(response)) {
@@ -721,8 +723,7 @@ export default {
           console.error('Unexpected shipping info response structure:', response);
           this.shippingInfos = [];
         }
-        
-        console.log('Processed shipping infos:', this.shippingInfos);
+             
       } catch (error) {
         console.error('Error fetching shipping info:', error);
         this.showMessage('Có lỗi xảy ra khi tải thông tin giao hàng', 'danger');
@@ -743,9 +744,7 @@ export default {
         const manufacturerId = await getManufacturerByUserId(userId);
         console.log('Manufacturer ID:', manufacturerId);
 
-        const ordersResponse = await getOrdersByManufacturerId(manufacturerId);
-        console.log('Orders API Response:', ordersResponse);
-
+        const ordersResponse = await getOrdersByManufacturerId(manufacturerId);     
         this.orders = ordersResponse.map(order => ({
           id: order.id,
           userName: order.userName,
@@ -767,7 +766,7 @@ export default {
             customShoeDesignId: detail.customShoeDesignId
           })) : [order.orderDetail]
         }));
-        console.log('Transformed orders:', this.orders);
+      
 
         await this.fetchShippingInfos();
       } catch (error) {
@@ -796,7 +795,7 @@ export default {
           'Pending': 0,
           'Confirmed': 1,
           'Processing': 2,
-          'Shipping': 3,
+          'Completed': 3,
           'Delivered': 4,
           'Cancelled': 5
         };

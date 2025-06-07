@@ -117,6 +117,14 @@
                             <i class="bi bi-pencil"></i>
                           </button>
                           <button 
+                            class="btn btn-sm btn-outline-primary me-1" 
+                            data-bs-toggle="tooltip" 
+                            title="Send Email"
+                            @click="openEmailModal(account)"
+                          >
+                            <i class="bi bi-envelope"></i>
+                          </button>
+                          <button 
                             v-if="isAdmin"
                             class="btn btn-sm"
                             :class="account.status === 'active' ? 'btn-outline-danger' : 'btn-outline-success'"
@@ -146,11 +154,6 @@
               </div>
               <div class="card-footer bg-white">
                 <div class="d-flex flex-column align-items-center">
-                  <!-- <div class="mb-2">
-                    Showing <span class="fw-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to 
-                    <span class="fw-medium">{{ Math.min(currentPage * itemsPerPage, filteredAccounts.length) }}</span> of 
-                    <span class="fw-medium">{{ filteredAccounts.length }}</span> accounts
-                  </div> -->
                   <nav aria-label="Page navigation">
                     <ul class="pagination mb-0">
                       <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -183,7 +186,7 @@
               </div>
             </div>
     
-            <!-- Edit Account Modal (customized for role/commissionRate) -->
+            <!-- Edit Account Modal -->
             <div class="modal fade" :class="{ show: showEditModal }" style="display: block;" v-if="showEditModal">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -212,6 +215,34 @@
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
                         <button type="submit" class="btn btn-success">Save</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+    
+            <!-- Send Email Modal -->
+            <div class="modal fade" :class="{ show: showEmailModal }" style="display: block;" v-if="showEmailModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Send Email to {{ selectedAccount?.name }}</h5>
+                    <button type="button" class="btn-close btn-close-white" @click="showEmailModal = false"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form @submit.prevent="sendEmail">
+                      <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control" v-model="emailForm.subject" required />
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Body</label>
+                        <textarea class="form-control" v-model="emailForm.body" rows="5" required></textarea>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="showEmailModal = false">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Email</button>
                       </div>
                     </form>
                   </div>
@@ -259,6 +290,7 @@ import { getAllUser, updateStatus, updateRole } from '@/server/manageAccounts-se
 import AdminSidebar from '@/components/AdminSidebar.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 export default {
   name: 'AccountManagement',
@@ -278,6 +310,11 @@ export default {
       selectedAccount: null,
       editedAccount: {},
       showEditModal: false,
+      showEmailModal: false,
+      emailForm: {
+        subject: '',
+        body: ''
+      },
       currentPage: 1,
       itemsPerPage: 7,
       userRoles: [
@@ -344,19 +381,15 @@ export default {
       const maxDisplayedPages = 5;
       
       if (this.totalPages <= maxDisplayedPages) {
-        // Nếu tổng số trang ít hơn hoặc bằng maxDisplayedPages, hiển thị tất cả
         for (let i = 1; i <= this.totalPages; i++) {
           pages.push(i);
         }
       } else {
-        // Luôn hiển thị trang đầu tiên
         pages.push(1);
         
-        // Tính toán các trang ở giữa
         let startPage = Math.max(2, this.currentPage - 1);
         let endPage = Math.min(this.totalPages - 1, this.currentPage + 1);
         
-        // Điều chỉnh để luôn hiển thị 3 trang ở giữa
         if (startPage > 2) {
           pages.push('...');
         }
@@ -365,12 +398,10 @@ export default {
           pages.push(i);
         }
         
-        // Thêm dấu ... nếu cần
         if (endPage < this.totalPages - 1) {
           pages.push('...');
         }
         
-        // Luôn hiển thị trang cuối cùng
         pages.push(this.totalPages);
       }
       
@@ -420,7 +451,6 @@ export default {
     toggleAccountStatus(account) {
       if (!account) return;
       
-      // Check if current user is admin
       if (!this.isAdmin) {
         ElMessage({
           type: 'warning',
@@ -429,7 +459,6 @@ export default {
         return;
       }
 
-      // Don't allow admin to lock themselves
       try {
         const currentUserId = typeof window !== 'undefined' && localStorage ? localStorage.getItem('userId') : null;
         if (currentUserId === account.id) {
@@ -458,16 +487,12 @@ export default {
       .then(async () => {
         try {
           const newStatus = account.status === 'active' ? 'inactive' : 'active';
-          // Call API with correct parameters
           await updateStatus(account.id, account.status === 'active');
           
-          // Update local state
           account.status = newStatus;
           
-          // Refresh the accounts list
           await this.fetchAccounts();
           
-          // Show success message
           ElMessage({
             type: 'success',
             message: `Account has been ${newStatus === 'active' ? 'unlocked' : 'locked'} successfully`
@@ -490,7 +515,6 @@ export default {
     },
     async saveAccount() {
       try {
-        // Gọi API updateRole
         const roleNumber = typeof this.editedAccount.role === 'number' ? this.editedAccount.role : this.userRoles.find(r => r.value === this.editedAccount.role)?.value;
         await updateRole(this.editedAccount.id, roleNumber, this.editedAccount.commissionRate || 0);
         await this.fetchAccounts();
@@ -503,6 +527,42 @@ export default {
         ElMessage({
           type: 'error',
           message: error.message || 'Failed to save account'
+        });
+      }
+    },
+    openEmailModal(account) {
+      this.selectedAccount = account;
+      this.emailForm = { subject: '', body: '' };
+      this.showEmailModal = true;
+    },
+    async sendEmail() {
+      try {
+        const response = await axios.post('https://fcspwebapi20250527114117.azurewebsites.net/api/Auth/SendEmailToUser', {
+          userId: this.selectedAccount.id,
+          subject: this.emailForm.subject,
+          body: this.emailForm.body,
+          isHtml: true
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*'
+          }
+        });
+
+        if (response.data.code === 200) {
+          ElMessage({
+            type: 'success',
+            message: response.data.message || 'Email sent successfully'
+          });
+          this.showEmailModal = false;
+        } else {
+          throw new Error('Failed to send email');
+        }
+      } catch (error) {
+        console.error('Error sending email:', error);
+        ElMessage({
+          type: 'error',
+          message: error.message || 'Failed to send email'
         });
       }
     },
@@ -562,7 +622,6 @@ export default {
   padding: 20px;
 }
 
-/* Custom styling */
 .search-card {
   border: none;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -615,7 +674,6 @@ export default {
   font-size: 0.9rem;
 }
 
-/* Status badge styling */
 .badge {
   padding: 0.5em 0.75em;
   font-weight: 500;
@@ -624,7 +682,6 @@ export default {
   font-size: 0.75rem;
 }
 
-/* Modal styling */
 .modal-header {
   border-bottom: 0;
 }
@@ -644,7 +701,6 @@ export default {
   border-color: rgba(0, 0, 0, 0.05);
 }
 
-/* Button styling */
 .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
@@ -659,7 +715,6 @@ export default {
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
-/* Permission styling */
 .permission-list {
   display: flex;
   flex-wrap: wrap;
@@ -678,12 +733,10 @@ export default {
   overflow-y: auto;
 }
 
-/* Animation for status changes */
 .badge {
   transition: background-color 0.3s ease;
 }
 
-/* Responsive improvements */
 @media (max-width: 768px) {
   .card-body {
     padding: 1rem;
