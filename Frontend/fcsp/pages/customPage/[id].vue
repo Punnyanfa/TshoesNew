@@ -4,13 +4,26 @@
     <div class="product-info">
       <div class="product-name-container">
         <h2 class="product-name">{{ customProductName }}</h2>
-        <button class="edit-name-btn" @click="openEditNameModal">
+        <!-- <button class="edit-name-btn" @click="openEditNameModal">
           <i class="fas fa-edit"></i>
-        </button>
+        </button> -->
       </div>
       <p class="product-price">{{ formatPrice(basePrice) }}</p>
-      <p class="product-surcharge" v-if="surcharge > 0">Surcharge: {{ formatPrice(surcharge) }}</p>
-      
+      <!-- <p class="product-surcharge" v-if="surcharge > 0">Surcharge: {{ formatPrice(surcharge) }}</p> -->
+      <!-- Design Markup Input -->
+      <!-- <div v-if="showDesignMarkup" class="design-markup-input">
+        <label for="designMarkup">Design Markup:</label>
+        <input
+          type="number"
+          id="designMarkup"
+          v-model.number="designMarkup"
+          min="0"
+          step="1000"
+          class="form-control"
+          placeholder="Enter design markup (VND)"
+          @input="handleDesignMarkupChange"
+        />
+      </div> -->
       <!-- Dropdown chọn nhà sản xuất -->
       <div class="manufacturer-selector">
         <label for="manufacturer">Custom Shop:</label>
@@ -138,8 +151,8 @@
               <p><strong>Product Name:</strong> {{ customProductName }}</p>
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
-            
-              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge ) }}</p>
+              <p v-if="showDesignMarkup"><strong>Design Markup:</strong> {{ formatPrice(designMarkup) }}</p>
+              <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge + (showDesignMarkup ? designMarkup : 0)) }}</p>
             </div>
           </div>
           
@@ -152,7 +165,7 @@
     </div>
     
     <!-- Modal sửa tên sản phẩm -->
-    <div v-if="showEditNameModal" class="edit-name-modal">
+    <!-- <div v-if="showEditNameModal" class="edit-name-modal">
       <div class="edit-name-modal-content">
         <div class="edit-name-modal-header">
           <h3>Edit Product Name</h3>
@@ -169,7 +182,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     
     <!-- Canvas for the 3D model -->
     <div class="model-container-wrapper" :class="{ 'expanded': isCanvasExpanded }">
@@ -480,8 +493,6 @@
       </div>
     </div>
   </div>
-
-  
 </template>
 
 <script setup>
@@ -497,7 +508,6 @@ import { CustomShoeDesign } from '~/server/designUp-service'
 import { getManufacturerById, getManufacturerAll } from '@/server/manuService-service.js'
 import { getMyCustomById } from '~/server/myCustom-service'
 import axios from 'axios'
-
 // Container reference and state
 const container = ref(null)
 const surcharge = ref(0)
@@ -506,6 +516,7 @@ const router = useRouter()
 const route = useRoute()
 
 // Modal states
+const isLoading = ref(false)
 const showCaptureModal = ref(false)
 const showCompleteModal = ref(false)
 const showSurchargeInfo = ref(false)
@@ -542,7 +553,7 @@ const editingDesign = ref(null)
 let scene, camera, renderer, controls, model
 const materials = reactive({})
 const customTextures = reactive({})
-const componentMeshes = reactive({}) // Define componentMeshes as a reactive object
+const componentMeshes = reactive({})
 
 // State for customization
 const customText = ref('')
@@ -595,7 +606,6 @@ const components = reactive([
   { name: 'Sole', value: 'Sole' },
   { name: 'Accent', value: 'Accent' },
   { name: 'Details', value: 'Details' }
-
 ])
 
 // Part groups
@@ -634,21 +644,14 @@ const selectedComponent = computed(() => {
   return selected ? selected.name : null
 })
 
+const showDesignMarkup = computed(() => {
+  return userRole.value === 'Designer'
+})
+
+// const userRole = ref(localStorage.getItem('role') || '')
+const userRole = ref('')
+const userId = ref('')
 // Modal handlers
-const openEditNameModal = () => {
-  if (!customProductName.value) {
-    customProductName.value = 'Custom Running Shoes'
-  }
-  showEditNameModal.value = true
-}
-
-const updateProductName = () => {
-  if (customProductName.value.trim() === '') {
-    customProductName.value = 'Custom Running Shoes'
-  }
-  showEditNameModal.value = false
-}
-
 const openCaptureModal = () => {
   originalCameraPosition = {
     position: camera ? camera.position.clone() : null,
@@ -1087,6 +1090,9 @@ const onModelLoaded = (gltf) => {
     if (designData.textureParams) {
       Object.assign(textureParams, designData.textureParams);
     }
+    if (designData.DesignerMarkup !== undefined) {
+      designMarkup.value = designData.DesignerMarkup;
+    }
   }
 
   // Apply initial colors and textures
@@ -1167,7 +1173,7 @@ const onWindowResize = () => {
 }
 
 const handleComponentChange = () => {
- 
+  // Handle component change logic if needed
 }
 
 const handleCustomColorChange = () => {
@@ -1189,24 +1195,19 @@ const applyCustomColor = () => {
   }
 
   meshes.forEach(({ name }) => {
-    // Store the original material properties if not already stored
     if (!customTextures[selectedPart]) {
       customTextures[selectedPart] = {
         originalMap: materials[name] ? materials[name].map : null,
         originalColor: materials[name] && materials[name].color 
           ? materials[name].color.clone() 
           : new THREE.Color('#ffffff'),
-        originalMaterial: materials[name] ? materials[name].clone() : null // Store the entire original material
+        originalMaterial: materials[name] ? materials[name].clone() : null
       };
     }
 
-    // Clone the original material to preserve all properties (normal maps, roughness maps, etc.)
     const newMaterial = customTextures[selectedPart].originalMaterial.clone();
-
-    // Update only the color property
     newMaterial.color.set(new THREE.Color(customColorValue.value));
 
-    // Preserve the texture if it exists, or clear it if not needed
     if (partTextures[selectedPart]) {
       newMaterial.map = partTextures[selectedPart];
       newMaterial.transparent = true;
@@ -1215,14 +1216,10 @@ const applyCustomColor = () => {
       newMaterial.transparent = !!customTextures[selectedPart].originalMap;
     }
 
-    // Ensure side property is consistent
     newMaterial.side = selectedPart === 'Lace' ? THREE.DoubleSide : THREE.FrontSide;
-
-    // Update the material in the materials object
     materials[name] = newMaterial;
     materials[name].needsUpdate = true;
 
-    // Apply the new material to the mesh
     model.traverse((node) => {
       if (node.isMesh && node.name === name) {
         node.material = newMaterial;
@@ -1230,7 +1227,6 @@ const applyCustomColor = () => {
       }
     });
 
-    // Update partColors and clear any texture if not present
     partColors[selectedPart] = customColorValue.value;
     if (!partTextures[selectedPart]) {
       partTextures[selectedPart] = null;
@@ -1456,6 +1452,14 @@ const removeTextFromMesh = () => {
   calculateSurcharge();
 };
 
+const handleDesignMarkupChange = () => {
+  if (designMarkup.value < 0) {
+    designMarkup.value = 0;
+  }
+  designMarkup.value = Math.round(designMarkup.value / 1000) * 1000;
+  calculateSurcharge();
+};
+
 const saveAsDraft = () => {
   showCompleteModal.value = false;
   calculateSurcharge();
@@ -1464,7 +1468,7 @@ const saveAsDraft = () => {
   let textureIds = [];
 
   const productData = {
-    userId: userId.value, // Add userId from frontend localStorage
+    userId: userId.value,
     id: isEditing.value ? editingDesign.value.id : Date.now(),
     name: customProductName.value || 'Custom Running Shoes (Draft)',
     templateId: route.params.id,
@@ -1474,7 +1478,7 @@ const saveAsDraft = () => {
     image: captureAngles[1].preview,
     textureIds: textureIds,
     ServiceIds: serviceIds,
-    DesignerMarkup: 0,
+    DesignerMarkup: designMarkup.value || 0,
     designData: {
       colors: {},
       textures: {},
@@ -1483,10 +1487,10 @@ const saveAsDraft = () => {
       textureParams: { ...textureParams },
       timestamp: new Date().toISOString(),
       manufacturerId: selectedManufacturer.value || 1,
-      previewImages: captureAngles.map(angle => angle.preview), // Mảng base64 strings hoặc File objects
-      // Add DesignerMarkup here
+      previewImages: captureAngles.map(angle => angle.preview),
+      DesignerMarkup: designMarkup.value || 0
     },
-    previewImages: [] // This seems redundant/incorrect based on the log, I will remove it
+    previewImages: []
   };
 
   for (const comp of components) {
@@ -1540,7 +1544,7 @@ const saveAsDraft = () => {
     return angle.preview;
   });
 
-  console.log('Data sent to CustomShoeDesign:', productData); // Thêm log này
+  console.log('Data sent to CustomShoeDesign:', productData);
 
   CustomShoeDesign(productData)
     .then(response => {
@@ -1591,7 +1595,7 @@ const updateDesign = async () => {
       timestamp: new Date().toISOString(),
       manufacturerId: selectedManufacturer.value || 1,
       previewImages: captureAngles.map(angle => angle.preview),
-      // Add DesignerMarkup here
+      DesignerMarkup: designMarkup.value || 0
     };
 
     for (const comp of components) {
@@ -1643,7 +1647,6 @@ const updateDesign = async () => {
     formData.append('Description', description.value || 'stylish comfort that keeps you moving with confidence');
     formData.append('DesignData', designDataBlob);
     formData.append('DesignerMarkup', designMarkup.value || '0');
-   
     textureIds.forEach((id) => formData.append('TextureIds', id));
     serviceIds.forEach((id) => formData.append('ServiceIds', id));
 
@@ -1794,6 +1797,7 @@ const calculateSurcharge = () => {
       if (imageFee) totalSurcharge += imageFee.currentAmount;
     }
   }
+  totalSurcharge += designMarkup.value || 0;
   surcharge.value = Math.round(totalSurcharge);
 };
 
@@ -1820,91 +1824,89 @@ watch(showEditNameModal, (newValue) => {
 
 watch(textureParams, updateTextureParameters, { deep: true });
 
-const showDesignMarkup = ref(false)
-
-// Lấy role từ localStorage chỉ khi chạy ở client
-const userRole = ref(null); // Initialize with null or a default value
-
-onMounted(() => {
-  // Guard localStorage access to ensure it only runs on the client side
-  if (typeof window !== 'undefined' && window.localStorage) {
-    userRole.value = localStorage.getItem('role'); // Assign value in onMounted
-    showDesignMarkup.value = userRole.value === 'Designer';
-  }
+watch(userRole, (newRole) => {
+  localStorage.setItem('role', newRole);
 });
 
 onMounted(async () => {
-  axios.defaults.baseURL = 'https://fcspwebapi20250527114117.azurewebsites.net';
+  // Only access localStorage on the client side
+  if (typeof window !== 'undefined' && window.localStorage) {
+    userRole.value = localStorage.getItem('role') || ''
+    userId.value = localStorage.getItem('userId') || ''
+  }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  isEditing.value = urlParams.get('edit') === 'true';
-  const editId = route.params.id;
+  axios.defaults.baseURL = 'https://fcspwebapi20250527114117.azurewebsites.net'
+
+  const urlParams = new URLSearchParams(window.location.search)
+  isEditing.value = urlParams.get('edit') === 'true'
+  const editId = route.params.id
 
   if (isEditing.value) {
-    const storedDesign = localStorage.getItem('editingDesign');
+    const storedDesign = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('editingDesign') : null
     if (storedDesign) {
       try {
-        editingDesign.value = JSON.parse(storedDesign);
+        editingDesign.value = JSON.parse(storedDesign)
         
-        customProductName.value = editingDesign.value.name || 'Custom Running Shoes';
-        basePrice.value = editingDesign.value.price || 0;
-        model3DUrl.value = editingDesign.value.templateUrl || '';
-        selectedManufacturer.value = editingDesign.value.manufacturerId || null;
-        previewImageUrl.value = editingDesign.value.previewImages?.[0] || '';
+        customProductName.value = editingDesign.value.name || 'Custom Running Shoes'
+        basePrice.value = editingDesign.value.price || 0
+        model3DUrl.value = editingDesign.value.templateUrl || ''
+        selectedManufacturer.value = editingDesign.value.manufacturerId || null
+        previewImageUrl.value = editingDesign.value.previewImages?.[0] || ''
+        designMarkup.value = editingDesign.value.designData?.DesignerMarkup || 0
         
         if (editingDesign.value.previewImages?.length) {
           captureAngles.forEach((angle, index) => {
             if (editingDesign.value.previewImages[index]) {
-              angle.preview = editingDesign.value.previewImages[index];
+              angle.preview = editingDesign.value.previewImages[index]
             }
-          });
+          })
         }
       } catch (e) {
-        console.error('Error parsing editingDesign:', e);
-        alert('Unable to load design data for editing.');
+        console.error('Error parsing editingDesign:', e)
+        alert('Unable to load design data for editing.')
       }
     } else {
-      alert('No design data found for editing.');
+      alert('No design data found for editing.')
     }
   }
 
-  let response;
+  let response
   if (isEditing.value) {
-    response = await getMyCustomById(editId);
-    if (response && response.data) response = response.data;
+    response = await getMyCustomById(editId)
+    if (response && response.data) response = response.data
   } else {
-    response = await getTemplateById(editId);
+    response = await getTemplateById(editId)
   }
   
   if (response) {
-    templateData.value = response;
+    templateData.value = response
     if (!isEditing.value) {
-      customProductName.value = response.name || '';
-      previewImageUrl.value = response.previewImageUrl || '';
-      basePrice.value = response.basePrice || response.price || 0;
-      model3DUrl.value = response.model3DUrl || response.templateUrl || '';
-      description.value = response.description || 'stylish comfort that keeps you moving with confidence';
-      color.value = response.color || '';
-      gender.value = response.gender || '';
-      isAvailable.value = response.isAvailable || false;
-      createdAt.value = response.createdAt || '';
-      updatedAt.value = response.updatedAt || '';
+      customProductName.value = response.name || ''
+      previewImageUrl.value = response.previewImageUrl || ''
+      basePrice.value = response.basePrice || response.price || 0
+      model3DUrl.value = response.model3DUrl || response.templateUrl || ''
+      description.value = response.description || 'stylish comfort that keeps you moving with confidence'
+      color.value = response.color || ''
+      gender.value = response.gender || ''
+      isAvailable.value = response.isAvailable || false
+      createdAt.value = response.createdAt || ''
+      updatedAt.value = response.updatedAt || ''
     }
   }
 
-  const res = await getManufacturerAll();
+  const res = await getManufacturerAll()
   if (res && res.data && Array.isArray(res.data)) {
-    manufacturerList.value = res.data;
+    manufacturerList.value = res.data
     if (!selectedManufacturer.value && res.data.length > 0) {
-      selectedManufacturer.value = res.data[0].id;
+      selectedManufacturer.value = res.data[0].id
     }
-    await fetchSurchargeData(selectedManufacturer.value);
-    calculateSurcharge();
+    await fetchSurchargeData(selectedManufacturer.value)
+    calculateSurcharge()
   }
 
-  initThree();
-  loadModel();
-});
+  initThree()
+  loadModel()
+})
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize);
@@ -1926,17 +1928,42 @@ onBeforeUnmount(() => {
   if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value);
 });
 
-// Các biến khác lấy từ localStorage (ví dụ userId)
-const userId = ref(null);
-
-onMounted(() => {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    userId.value = localStorage.getItem('userId');
-  }
-});
+//const userId = ref(localStorage.getItem('userId') || '');
 </script>
 
 <style scoped>
+.design-markup-input {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.design-markup-input label {
+  font-weight: bold;
+  color: #333;
+}
+
+.design-markup-input input {
+  width: 150px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.design-markup-input input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Ensure other existing styles are preserved */
+.custom-detail-page {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
 .custom-detail-page {
   height: 100vh;
   display: flex;
