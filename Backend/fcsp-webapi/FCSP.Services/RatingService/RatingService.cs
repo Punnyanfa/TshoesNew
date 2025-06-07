@@ -232,11 +232,9 @@ namespace FCSP.Services.RatingService
             }
 
             var rate = await _ratingRepository.GetAll()
-                                .Where(r => r.CustomShoeDesignId == request.CustomShoeDesignId)
-                                .Where(r => r.UserId == request.UserId)
-                                .Where(r => r.IsDeleted == false)
+                                .Where(r => r.CustomShoeDesignId == request.CustomShoeDesignId && r.UserId == request.UserId && r.IsDeleted == false)
                                 .ToListAsync();
-            if (rate != null)
+            if (rate.Count != 0)
             {
                 throw new InvalidOperationException($"User {request.UserId} has already rated custom shoe design {request.CustomShoeDesignId}");
             }
