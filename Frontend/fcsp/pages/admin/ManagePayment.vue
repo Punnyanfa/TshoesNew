@@ -4,7 +4,7 @@
     <div class="payment-management">
       <div class="page-header">
         <div class="header-content">
-          <h1>Payment Management</h1>
+          <h1 class="mb-4 text-primary fw-bold">Payment Management</h1>
           <p class="subtitle">Manage and track all payment transactions</p>
         </div>
         <div class="header-actions">

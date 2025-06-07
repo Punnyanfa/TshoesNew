@@ -35,7 +35,7 @@
               </div>
             </div>
           </div>
-          <div class="col-sm-6 col-xl-3">
+          <!-- <div class="col-sm-6 col-xl-3">
             <div class="stat-card bg-gradient">
               <div class="stat-icon bg-warning text-dark">
                 <i class="bi bi-hourglass-split"></i>
@@ -45,8 +45,8 @@
                 <h2 class="stat-value">{{ pendingCount }}</h2>
               </div>
             </div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
+          </div> -->
+          <!-- <div class="col-sm-6 col-xl-3">
             <div class="stat-card bg-gradient">
               <div class="stat-icon bg-info text-white">
                 <i class="bi bi-reply"></i>
@@ -56,7 +56,7 @@
                 <h2 class="stat-value">75%</h2>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
         
         <!-- Search and Filter -->
