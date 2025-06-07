@@ -139,15 +139,6 @@
               <p><strong>Base Price:</strong> {{ formatPrice(basePrice) }}</p>
               <p v-if="surcharge > 0"><strong>Surcharge:</strong> {{ formatPrice(surcharge) }}</p>
             
-              <div v-if="showDesignMarkup" class="mb-2">
-                <label class="block text-sm font-medium text-gray-700">Design Markup:</label>
-                <input 
-                  type="number" 
-                  v-model="designMarkup"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  placeholder="Enter design markup"
-                />
-              </div>
               <p><strong>Total:</strong> {{ formatPrice(basePrice + surcharge ) }}</p>
             </div>
           </div>
@@ -1483,7 +1474,7 @@ const saveAsDraft = () => {
     image: captureAngles[1].preview,
     textureIds: textureIds,
     ServiceIds: serviceIds,
-    DesignerMarkup: designMarkup.value,
+    DesignerMarkup: 0,
     designData: {
       colors: {},
       textures: {},
@@ -1592,26 +1583,101 @@ const updateDesign = async () => {
     let textureIds = [];
 
     const designData = {
-      id: editingDesign.value?.id, // Chỉ thêm ID khi đang chỉnh sửa
-      name: customProductName.value,
-      description: description.value,
-      templateId: templateId,
+      colors: {},
+      textures: {},
+      imagesData: {},
+      customText: customText.value,
+      textureParams: { ...textureParams },
+      timestamp: new Date().toISOString(),
       manufacturerId: selectedManufacturer.value || 1,
-      designData: {
-        colors: partColors, // Sử dụng partColors reactive object
-        textures: partTextures, // Sử dụng partTextures reactive object
-        imagesData: { /* cần thêm dữ liệu ảnh nếu có */ }, // Cần xem lại cấu trúc này
-        customText: customText.value,
-        textureParams: textureParams, // Sử dụng textureParams reactive object
-      },
-      previewImages: captureAngles.map(angle => angle.preview), // Mảng base64 strings hoặc File objects
-      DesignerMarkup: designMarkup.value, // Corrected key name
-      ServiceIds: [] // Cần thêm logic lấy ServiceIds nếu có
+      previewImages: captureAngles.map(angle => angle.preview),
+      // Add DesignerMarkup here
     };
 
-    console.log("Payload sent to CustomShoeDesign:", designData); // Add this log
+    for (const comp of components) {
+      const partName = comp.value;
+      const meshes = componentMeshes[partName] || [];
+      meshes.forEach(({ name }) => {
+        if (materials[name]) {
+          const hexColor = '#' + materials[name].color.getHexString();
+          designData.colors[partName] = hexColor;
+          if (hexColor.toLowerCase() !== '#ffffff') {
+            const colorService = apiSurcharges.value.find(
+              (s) => s.component === partName.toLowerCase() && s.type === 'colorapplication'
+            );
+            if (colorService) {
+              serviceIds.push(colorService.id);
+            }
+          }
+          if (customTextures[partName]) {
+            const textureType = customTextures[partName].texture instanceof THREE.CanvasTexture ? 'text' : 'image';
+            designData.textures[partName] = {
+              type: textureType,
+              textContent: customText.value,
+            };
+            if (textureType === 'image' && customTextures[partName].imageData) {
+              designData.imagesData[partName] = customTextures[partName].imageData;
+              const imageService = apiSurcharges.value.find(
+                (s) => s.component === partName.toLowerCase() && s.type === 'imageapplication'
+              );
+              if (imageService) {
+                serviceIds.push(imageService.id);
+              }
+            }
+          }
+        }
+      });
+    }
 
-    const response = await CustomShoeDesign(designData);
+    serviceIds = Array.from(new Set(serviceIds)).map(Number);
+    textureIds = Array.from(new Set(textureIds)).map(Number);
+
+    const designDataJson = JSON.stringify(designData, null, 2);
+    const designDataBlob = new Blob([designDataJson], { type: 'application/json' });
+
+    const formData = new FormData();
+    formData.append('UserId', localStorage.getItem('userId'));
+    formData.append('id', editingDesign.value.id);
+    formData.append('CustomShoeDesignTemplateId', editingDesign.value.templateId);
+    formData.append('Name', customProductName.value || 'Custom Running Shoes');
+    formData.append('Description', description.value || 'stylish comfort that keeps you moving with confidence');
+    formData.append('DesignData', designDataBlob);
+    formData.append('DesignerMarkup', designMarkup.value || '0');
+   
+    textureIds.forEach((id) => formData.append('TextureIds', id));
+    serviceIds.forEach((id) => formData.append('ServiceIds', id));
+
+    const appendedImages = [];
+    captureAngles.forEach((angle, index) => {
+      if (angle.preview && angle.preview.startsWith('data:image')) {
+        const arr = angle.preview.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--) u8arr[n] = bstr.charCodeAt(n);
+        const file = new File([u8arr], `preview_${index}.png`, { type: mime });
+        formData.append('CustomShoeDesignPreviewImages', file);
+        appendedImages.push({
+          name: angle.name,
+          index,
+          fileSize: file.size,
+          fileType: file.type,
+        });
+        console.log(`Appended preview image for ${angle.name} (index ${index})`);
+      }
+    });
+
+    console.log('Appended Preview Images:', appendedImages);
+
+    if (appendedImages.length !== captureAngles.length) {
+      throw new Error(`Mismatch in number of appended images: expected ${captureAngles.length}, got ${appendedImages.length}`);
+    }
+
+    console.log('Sending request to /api/CustomShoeDesign...');
+    const response = await axios.put(`/api/CustomShoeDesign`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
 
     if (response.status === 200 || response.status === 204) {
       localStorage.removeItem('editingDesign');

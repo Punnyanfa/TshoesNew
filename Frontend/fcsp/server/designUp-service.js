@@ -6,11 +6,12 @@ export async function CustomShoeDesign(data) {
   let formData = new FormData();
 
   // Thêm các trường đơn giản
-  formData.append('UserId', data.userId);
+  const userId = localStorage.getItem('userId');
+  formData.append('UserId', userId);
   formData.append('CustomShoeDesignTemplateId', data.templateId);
   formData.append('Name', data.name);
   formData.append('Description', data.description);
-  formData.append('DesignerMarkup', data.DesignerMarkup);
+  formData.append('DesignerMarkup', data.DesignerMarkup || 0);
 
   // DesignData: nếu là object, stringify rồi append như file
   if (typeof data.designData === 'object') {
