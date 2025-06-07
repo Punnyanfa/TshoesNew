@@ -190,7 +190,12 @@ const sendMessage = async () => {
       alert('You need to login to send a message!');
       return;
     }
-    await sendEmail(userId, form.value.subject, form.value.message);
+    await sendEmail({
+      userId: userId,
+      subject: form.value.subject,
+      body: form.value.message,
+      isHtml: false // Assuming messages from contact form are plain text
+    });
     alert('Your message has been sent successfully! We will respond within 24 hours.');
     form.value = { email: '', subject: '', message: '' };
   } catch (error) {
