@@ -313,6 +313,9 @@ import { postRating } from '@/server/rating-service';
       }
     }
     
+    // Sort by createdAt in descending order (newest first)
+    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     return result;
   });
   

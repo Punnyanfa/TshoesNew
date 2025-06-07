@@ -86,6 +86,7 @@
                 <th>Order ID</th>
                 <th>Amount</th>
                 <th>Payment Method</th>
+                <th>Date</th>
                 <th>Status</th>
                 <!-- Removed Customer, Date, Actions columns -->
               </tr>
@@ -105,6 +106,7 @@
                     <span>{{ formatPaymentMethod(payment.paymentMethod) }}</span>
                   </div>
                 </td>
+                <td>{{ formatDate(payment.createdAt) }}</td>
                 <td>
                   <span :class="['status-badge', formatStatus(payment.status).toLowerCase()]">
                     {{ formatStatus(payment.status) }}
@@ -268,6 +270,18 @@ export default {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       }).format(amount);
+    },
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
     },
     // Removed formatDate and getInitials methods
     getPaymentMethodIcon(method) {
