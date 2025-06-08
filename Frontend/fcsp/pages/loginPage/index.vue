@@ -152,12 +152,7 @@ const login = async () => {
         return;
       }
 
-      ElNotification({
-        title: 'Success',
-        message: 'Đăng nhập thành công! Đang chuyển hướng...',
-        type: 'success',
-        duration: 2000
-      });
+     
       
       // Add a small delay before redirecting
       setTimeout(() => {
