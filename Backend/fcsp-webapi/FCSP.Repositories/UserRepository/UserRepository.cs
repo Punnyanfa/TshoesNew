@@ -22,23 +22,25 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     public async Task<User> GetEmailByUserIdAsync(long userId)
     {
-        return await Entities.Where(u => u.Id == userId && !u.IsDeleted)
+        return await Entities
+            .Where(u => u.Id == userId && !u.IsDeleted)
+            .OrderByDescending(u => u.CreatedAt)
             .Select(u => new User
             {
                 Email = u.Email
             })
-            .OrderByDescending(u => u.CreatedAt)
             .FirstOrDefaultAsync();
     }
 
     public async Task<User> GetUserNameByUserIdAsync(long userId)
     {
-        return await Entities.Where(u => u.Id == userId && !u.IsDeleted)
+        return await Entities
+            .Where(u => u.Id == userId && !u.IsDeleted)
+            .OrderByDescending(u => u.CreatedAt) // Order by the original entity's CreatedAt
             .Select(u => new User
             {
                 Name = u.Name
             })
-            .OrderByDescending(u => u.CreatedAt)
             .FirstOrDefaultAsync();
     }
 
