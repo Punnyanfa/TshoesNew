@@ -265,7 +265,7 @@
                                   <th>Quantity</th>
                                   <th>Size</th>
                                   <th>Total</th>
-                                  <th>Actions</th>
+                                  <th>Previews</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -622,6 +622,9 @@ export default {
           order.userName.toString().toLowerCase().includes(searchLower)
         );
       }
+      
+      // Sort by createdAt in descending order (newest first)
+      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
       return result;
     },
