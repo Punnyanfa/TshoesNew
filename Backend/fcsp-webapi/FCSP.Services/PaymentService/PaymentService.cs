@@ -3,11 +3,18 @@ using FCSP.DTOs;
 using FCSP.DTOs.Payment;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using FCSP.Services.TransactionService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
 using System;
+using System.Collections.Generic;
+using System.Data;
+using FCSP.Common.Utils;
+using FCSP.Services.Auth;
+using System.Linq;
 
 namespace FCSP.Services.PaymentService
 {
@@ -16,15 +23,24 @@ namespace FCSP.Services.PaymentService
         private readonly IPaymentRepository _paymentRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ITransactionService _transactionService;
+        private readonly IAuthService _authService;
         private readonly string _clientId;
         private readonly string _apiKey;
         private readonly string _checksumKey;
 
-        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IUserRepository userRepository, IConfiguration configuration)
+        public PaymentService(IPaymentRepository paymentRepository,
+                                IOrderRepository orderRepository,
+                                IUserRepository userRepository,
+                                ITransactionService transactionService,
+                                IAuthService authService,
+                                IConfiguration configuration)
         {
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _userRepository = userRepository;
+            _authService = authService;
+            _transactionService = transactionService;
             _clientId = configuration["PayOS:ClientId"] ?? string.Empty;
             _apiKey = configuration["PayOS:ApiKey"] ?? string.Empty;
             _checksumKey = configuration["PayOS:ChecksumKey"] ?? string.Empty;
@@ -34,7 +50,7 @@ namespace FCSP.Services.PaymentService
         public async Task<BaseResponseModel<AddPaymentResponse>> TestPayOSAsync(AddPaymentRequest request)
         {
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
-            int expireAt = (int)DateTime.Now.AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+            int expireAt = (int)DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
             PaymentData paymentData = new PaymentData(request.OrderId, request.Amount, "Payment for order " + request.OrderId, null, "https://tshoes.vercel.app/paymentSuccessPage", "https://tshoes.vercel.app/paymentCancelledPage");
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return new BaseResponseModel<AddPaymentResponse>
@@ -65,7 +81,10 @@ namespace FCSP.Services.PaymentService
                             Id = p.Id,
                             OrderId = p.OrderId,
                             Amount = p.Amount,
-                            Status = p.PaymentStatus
+                            Status = p.PaymentStatus,
+                            PaymentMethod = p.PaymentMethod,
+                            CreatedAt = p.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                            UpdatedAt = p.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")
                         }).ToList()
                     }
                 };
@@ -95,7 +114,10 @@ namespace FCSP.Services.PaymentService
                         Id = payment.Id,
                         OrderId = payment.OrderId,
                         Amount = payment.Amount,
-                        Status = payment.PaymentStatus
+                        Status = payment.PaymentStatus,
+                        PaymentMethod = payment.PaymentMethod,
+                        CreatedAt = payment.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        UpdatedAt = payment.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")
                     }
                 };
             }
@@ -117,7 +139,14 @@ namespace FCSP.Services.PaymentService
                 await _paymentRepository.AddAsync(payment);
                 if (request.PaymentMethod == PaymentMethod.PayOS)
                 {
-                    var response = await GetPayOSUrl(payment);
+                    var requestPayOS = new PayOSPaymentDTO
+                    {
+                        Id = payment.Id,
+                        OrderId = payment.OrderId,
+                        Amount = payment.Amount,
+                        PaymentMessage = "Payment for order " + payment.OrderId
+                    };
+                    var response = await GetPayOSUrl(requestPayOS);
                     return new BaseResponseModel<AddPaymentResponse>
                     {
                         Code = 200,
@@ -206,6 +235,7 @@ namespace FCSP.Services.PaymentService
                     Data = new GetPaymentInfoResponse
                     {
                         PaymentId = paymentInfo.orderCode,
+                        Transactions = paymentInfo.transactions,
                         Status = paymentInfo.status,
                         Amount = paymentInfo.amount,
                         AmountPaid = paymentInfo.amountPaid,
@@ -290,7 +320,22 @@ namespace FCSP.Services.PaymentService
                 var payment = await GetEntityFromUpdatePaymentRequest(request);
                 await _paymentRepository.UpdateAsync(payment);
 
-                await UpdateOrderStatus(payment);
+                if(payment.OrderId == 1 && payment.PaymentStatus == PaymentStatus.Received)
+                {
+                    var responsePayOS = await GetPaymentInfoFromPayOS(new GetPaymentInfoRequest { PaymentId = payment.Id });
+                    var userId = responsePayOS.Data.Transactions.First().description.Split(" ")[8];
+                    var transactionResponse = await _transactionService.UpdateBalanceAsync(new RechargeRequestDTO { UserId = long.Parse(userId), PaymentId = payment.Id, Amount = payment.Amount });
+
+                    if (transactionResponse.Code != 200)
+                    {
+                        throw new Exception($"Payment failed: {transactionResponse.Message}");
+                    }
+                }
+                else
+                {
+                    await UpdateOrderStatus(payment);
+                }
+                
                 return new BaseResponseModel<UpdatePaymentUsingWebhookResponse>
                 {
                     Code = 200,
@@ -314,6 +359,138 @@ namespace FCSP.Services.PaymentService
                 };
             }
         }
+
+        public async Task<BaseResponseModel<AddPaymentResponse>> RechargeBalanceAsync(RechargeRequestDTO request)
+        {
+            try
+            {
+                var user = await _userRepository.FindAsync(request.UserId);
+                if (user == null)
+                {
+                    throw new Exception("User not found");
+                }
+
+                // Create a payment record for recharge
+                var payment = new Payment
+                {
+                    OrderId = 1, // No order for recharge
+                    Amount = (int)request.Amount,
+                    PaymentMethod = PaymentMethod.PayOS,
+                    PaymentStatus = PaymentStatus.Pending,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
+                };
+                await _paymentRepository.AddAsync(payment);
+
+                var requestPayOS = new PayOSPaymentDTO
+                {
+                    Id = payment.Id,
+                    OrderId = payment.OrderId,
+                    Amount = payment.Amount,
+                    PaymentMessage = $"Recharge to user { user.Id } wallet"
+                };
+                var paymentResponse = await GetPayOSUrl(requestPayOS);
+
+                return new BaseResponseModel<AddPaymentResponse>
+                {
+                    Code = 200,
+                    Message = "Recharge payment created successfully",
+                    Data = new AddPaymentResponse
+                    {
+                        Response = paymentResponse.checkoutUrl
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<AddPaymentResponse>
+                {
+                    Code = 500,
+                    Message = $"Error creating recharge payment: {ex.Message}",
+                    Data = new AddPaymentResponse
+                    {
+                        Response = string.Empty
+                    }
+                };
+            }
+        }
+
+        public async Task<BaseResponseModel<WithdrawBalanceResponse>> WithdrawBalanceAsync(WithdrawRequestDTO request)
+        {
+            try
+            {
+                var user = await _userRepository.FindAsync(request.UserId);
+                if (user == null)
+                {
+                    throw new Exception("User not found");
+                }
+
+                // Check if user has sufficient balance
+                if (user.Balance < request.Amount)
+                {
+                    throw new Exception("Insufficient balance");
+                }
+
+                var withdrawAmount = -request.Amount;
+
+                var payment = new Payment
+                {
+                    OrderId = 1, // No order for recharge
+                    Amount = (int)withdrawAmount,
+                    PaymentMethod = PaymentMethod.Wallet,
+                    PaymentStatus = PaymentStatus.Received,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
+                };
+                await _paymentRepository.AddAsync(payment);
+
+                var emailResponse = await _authService.SendEmailToAdmin(
+                    new DTOs.Authentication.SendEmailRequest{
+                        UserId = user.Id,
+                        Subject = "Withdrawal Request",
+                        Body = $"Bank Name: {request.BankInformation.BankName}\nAccount Name: {request.BankInformation.AccountName}\nAccount Number: {request.BankInformation.AccountNumber}\nAmount: {request.Amount}",
+                        IsHtml = true
+                });
+                if (emailResponse.Code != 200)
+                {
+                    throw new Exception($"Email failed: {emailResponse.Message}");
+                }
+
+                var transactionResponse = await _transactionService.UpdateBalanceAsync(new RechargeRequestDTO
+                {   
+                    UserId = request.UserId,
+                    PaymentId = payment.Id,
+                    Amount = payment.Amount 
+                });
+
+                if (transactionResponse.Code != 200)
+                {
+                    throw new Exception($"Transaction failed: {transactionResponse.Message}");
+                }
+
+                return new BaseResponseModel<WithdrawBalanceResponse>
+                {
+                    Code = 200,
+                    Message = "Withdrawal created successfully",
+                    Data = new WithdrawBalanceResponse
+                    {
+                        Success = true
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<WithdrawBalanceResponse>
+                {
+                    Code = 500,
+                    Message = $"Error creating withdrawal: {ex.Message}",
+                    Data = new WithdrawBalanceResponse
+                    {
+                        Success = false
+                    }
+                };
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -325,7 +502,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("No payments found");
             }
-            return payments;
+            return payments.OrderByDescending(p => p.CreatedAt);
         }
 
         private async Task<Payment> GetEntityFromGetByIdRequest(GetPaymentByIdRequest request)
@@ -338,16 +515,23 @@ namespace FCSP.Services.PaymentService
             return payment;
         }
 
-        private async Task<CreatePaymentResult> GetPayOSUrl(Payment payment)
-        {
+        private async Task<CreatePaymentResult> GetPayOSUrl(PayOSPaymentDTO payment)
+        {   
+            int expireAt = (int)DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(5).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
             var payOS = new PayOS(_clientId, _apiKey, _checksumKey);
             PaymentData paymentData = new PaymentData(
                 payment.Id,
                 payment.Amount,
-                "Payment for order " + payment.OrderId,
+                payment.PaymentMessage,
                 null,
-                "http://localhost:3000/paymentCancelledPage",
-                "http://localhost:3000/paymentSuccessPage"
+                "https://tshoes.vercel.app/paymentCancelledPage",
+                "https://tshoes.vercel.app/paymentSuccessPage",
+                _checksumKey,
+                null,
+                null,
+                null,
+                null,
+                expireAt
             );
             var paymentResponse = await payOS.createPaymentLink(paymentData);
             return paymentResponse;
@@ -355,7 +539,10 @@ namespace FCSP.Services.PaymentService
 
         private async Task<string> ProcessWalletPayment(Payment payment)
         {
-            var paymentWithIncludes = await _paymentRepository.GetAll().Include(x => x.Order).ThenInclude(x => x.User).FirstOrDefaultAsync(p => p.Id == payment.Id);
+            var paymentWithIncludes = await _paymentRepository.GetAll()
+                                                            .Include(x => x.Order)
+                                                            .ThenInclude(x => x.User)
+                                                            .FirstOrDefaultAsync(p => p.Id == payment.Id);
             var user = await _userRepository.FindAsync(paymentWithIncludes.Order.UserId);
             var order = await _orderRepository.FindAsync(payment.OrderId);
             if (user == null)
@@ -364,6 +551,10 @@ namespace FCSP.Services.PaymentService
             }
             if (user.Balance < payment.Amount)
             {
+                order.Status = OrderStatus.Cancelled;
+                await _orderRepository.UpdateAsync(order);
+                payment.PaymentStatus = PaymentStatus.Cancelled;
+                await _paymentRepository.UpdateAsync(payment);
                 throw new Exception("Insufficient balance");
             }
             order.Status = OrderStatus.Confirmed;
@@ -382,8 +573,8 @@ namespace FCSP.Services.PaymentService
                 Amount = request.Amount,
                 PaymentMethod = request.PaymentMethod,
                 PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
         }
 
@@ -410,7 +601,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Invalid payment status");
             }
-            payment.UpdatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             return payment;
         }
 
@@ -430,7 +621,7 @@ namespace FCSP.Services.PaymentService
             {
                 order.Status = OrderStatus.Confirmed;
             }
-            order.UpdatedAt = DateTime.UtcNow;
+            order.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             await _orderRepository.UpdateAsync(order);
         }
 
@@ -458,7 +649,7 @@ namespace FCSP.Services.PaymentService
             {
                 throw new Exception("Invalid payment status");
             }
-            payment.UpdatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             return payment;
         } 
         #endregion

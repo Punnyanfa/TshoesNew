@@ -1,4 +1,5 @@
 ﻿using FCSP.Common.Enums;
+using FCSP.Common.Utils;
 
 using FCSP.DTOs.Manufacturer;
 using FCSP.Models.Entities;
@@ -61,7 +62,7 @@ namespace FCSP.Tests
                 Id = 1,
                 IsDeleted = false,
                 Status = ManufacturerStatus.Active,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var request = new GetManufacturerRequest { Id = 1 };
             _manufacturerRepositoryMock.Setup(x => x.GetManufacturerWithDetailsAsync(1)).ReturnsAsync(manufacturer);
@@ -76,6 +77,37 @@ namespace FCSP.Tests
             Assert.True(result.Data);
             Assert.True(manufacturer.IsDeleted);
             Assert.Equal(ManufacturerStatus.Inactive, manufacturer.Status);
+        }
+
+        [Fact]
+        public async Task DeleteManufacturer_ValidRequest_WithDateTimeUtils()
+        {
+            // Arrange
+            var manufacturerId = 1;
+            var manufacturer = new Manufacturer
+            {
+                Id = manufacturerId,
+                Description = "Test Description",
+                Status = ManufacturerStatus.Active,
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
+            };
+
+            _manufacturerRepositoryMock.Setup(x => x.GetManufacturerWithDetailsAsync(manufacturerId))
+                .ReturnsAsync(manufacturer);
+            _manufacturerRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Manufacturer>())).Returns(Task.CompletedTask);
+
+            var request = new GetManufacturerRequest { Id = manufacturerId };
+            // Act
+            var result = await _manufacturerService.DeleteManufacturer(request);
+
+            // Assert
+            Assert.Equal(200, result.Code);
+            Assert.Equal("Manufacturer marked as inactive successfully", result.Message);
+            Assert.True(result.Data);
+            Assert.True(manufacturer.IsDeleted);
+            Assert.Equal(ManufacturerStatus.Inactive, manufacturer.Status);
+            _manufacturerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Manufacturer>()), Times.Once);
         }
     }
 }

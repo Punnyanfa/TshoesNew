@@ -4,6 +4,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.ManufacturerService;
 using Moq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Tests
 {
@@ -160,7 +161,7 @@ namespace FCSP.Tests
             // Arrange
             var request = new AddManufacturerRequest { UserId = 1, Description = "Highly recommended for GenZ style", CommissionRate = 10, Status = (int)ManufacturerStatus.Active };
             var user = new User { Id = 1, UserRole = UserRole.Manufacturer };
-            var addedManufacturer = new Manufacturer { Id = 1, Description = request.Description, CreatedAt = DateTime.UtcNow };
+            var addedManufacturer = new Manufacturer { Id = 1, Description = request.Description, CreatedAt = DateTimeUtils.GetCurrentGmtPlus7() };
             _userRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(user);
             _manufacturerRepositoryMock.Setup(repo => repo.GetManufacturerByUserIdAsync(1)).ReturnsAsync((Manufacturer)null);
             _manufacturerRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Manufacturer>())).ReturnsAsync(addedManufacturer);

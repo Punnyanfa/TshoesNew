@@ -5,6 +5,7 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.RatingService
 {
@@ -231,11 +232,9 @@ namespace FCSP.Services.RatingService
             }
 
             var rate = await _ratingRepository.GetAll()
-                                .Where(r => r.CustomShoeDesignId == request.CustomShoeDesignId)
-                                .Where(r => r.UserId == request.UserId)
-                                .Where(r => r.IsDeleted == false)
+                                .Where(r => r.CustomShoeDesignId == request.CustomShoeDesignId && r.UserId == request.UserId && r.IsDeleted == false)
                                 .ToListAsync();
-            if (rate != null)
+            if (rate.Count != 0)
             {
                 throw new InvalidOperationException($"User {request.UserId} has already rated custom shoe design {request.CustomShoeDesignId}");
             }
@@ -246,8 +245,8 @@ namespace FCSP.Services.RatingService
                 CustomShoeDesignId = request.CustomShoeDesignId,
                 UserRating = request.Value,
                 Comment = request.Comment,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                 IsDeleted = false // Đảm bảo mặc định là false khi tạo mới
             };
             return await _ratingRepository.AddAsync(rating);
@@ -270,7 +269,7 @@ namespace FCSP.Services.RatingService
             rating.UserRating = request.Value;
             rating.Comment = request.Comment;
             rating.CustomShoeDesignId = request.CustomShoeDesignId;
-            rating.UpdatedAt = DateTime.UtcNow;
+            rating.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
             await _ratingRepository.UpdateAsync(rating);
             return rating;
@@ -286,7 +285,7 @@ namespace FCSP.Services.RatingService
 
             // Thực hiện soft delete
             rating.IsDeleted = true;
-            rating.UpdatedAt = DateTime.UtcNow;
+            rating.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             await _ratingRepository.UpdateAsync(rating); // Cập nhật thay vì xóa
         }
 

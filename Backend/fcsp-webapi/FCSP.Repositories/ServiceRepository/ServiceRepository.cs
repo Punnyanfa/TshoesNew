@@ -16,6 +16,7 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Where(s => s.ManufacturerId == manufacturerId && !s.IsDeleted)
+                .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
         }
 
@@ -24,6 +25,7 @@ namespace FCSP.Repositories.Implementations
             return await Entities
                 .Where(s => !s.IsDeleted && s.Manufacturer.Status == ManufacturerStatus.Active)
                 .Include(s => s.Manufacturer)
+                .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
         }
 
@@ -31,6 +33,7 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Include(m => m.Manufacturer)
+                .OrderByDescending(s => s.CreatedAt)
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
     }

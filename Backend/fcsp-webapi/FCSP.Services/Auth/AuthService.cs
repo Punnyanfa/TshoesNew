@@ -11,6 +11,7 @@ using FCSP.Services.Auth.Token;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using FCSP.Common.Utils;
 namespace FCSP.Services.Auth;
 
 public class AuthService : IAuthService
@@ -563,7 +564,7 @@ public class AuthService : IAuthService
 
             // Generate new OTP
             string otpCode = GenerateOtpCode();
-            DateTime expiryTime = DateTime.UtcNow.AddMinutes(request.ExpiryTimeInMinutes);
+            DateTime expiryTime = DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(request.ExpiryTimeInMinutes);
 
             // Create new OTP record
             var newOtp = new UserOtp
@@ -769,7 +770,7 @@ public class AuthService : IAuthService
         }
 
         user.Balance = request.Balance;
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 
@@ -796,7 +797,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Only JPEG or PNG images are allowed");
         }
 
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm");
         string fileName = $"avatar_{user.Id}_{formattedDateTime}.jpeg";
         byte[] fileBytes;
@@ -809,7 +810,7 @@ public class AuthService : IAuthService
         var avatarPath = await UploadToAzureStorage(fileName, fileBytes);
 
         user.AvatarImageUrl = avatarPath;
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 
@@ -896,18 +897,14 @@ public class AuthService : IAuthService
         }
 
         user.IsBanned = request.IsBanned;
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 
     private async Task<User> GetUserEntityFromForgetUserPasswordRequestAsync(ForgetUserPasswordRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !_passwordHashingService.VerifyHashedPassword(request.Password, user.PasswordHash))
-        {
-            throw new InvalidOperationException("Invalid user forget password request");
-        }
-
+        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.Password);
         return user;
     }
 
@@ -948,11 +945,8 @@ public class AuthService : IAuthService
         {
             throw new InvalidOperationException("Invalid password update request");
         }
-      
         user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
-
-        user.PasswordHash = _passwordHashingService.GetHashedPassword(request.NewPassword);
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 
@@ -999,7 +993,7 @@ public class AuthService : IAuthService
         user.Gender = request.Gender ?? user.Gender;
         user.Dob = request.Dob ?? user.Dob;
         user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 
@@ -1012,7 +1006,7 @@ public class AuthService : IAuthService
         }
 
         user.IsDeleted = true;
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 
@@ -1047,7 +1041,7 @@ public class AuthService : IAuthService
         }
 
         user.UserRole = request.Role; // C?p nh?t UserRole
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return user;
     }
 

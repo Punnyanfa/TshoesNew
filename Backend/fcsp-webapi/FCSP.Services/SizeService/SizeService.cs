@@ -1,6 +1,7 @@
 using FCSP.DTOs.Size;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCSP.Services.SizeService
 {
@@ -35,7 +36,9 @@ namespace FCSP.Services.SizeService
 
         public async Task<SizeListResponse> GetAllSizesAsync()
         {
-            var sizes = await _sizeRepository.GetAllAsync();
+            var sizes = await _sizeRepository.GetAll()
+                                            .Where(s => s.IsDeleted == false)
+                                            .ToListAsync();
             return new SizeListResponse
             {
                 Code = 200,

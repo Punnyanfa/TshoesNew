@@ -4,6 +4,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.OrderDetailService
 {
@@ -304,8 +305,8 @@ namespace FCSP.Services.OrderDetailService
                 TemplatePrice = templatePrice,
                 ServicePrice = servicesPrice,
                 DesignerMarkup = customShoeDesign.DesignerMarkup,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
         }
 
@@ -348,7 +349,7 @@ namespace FCSP.Services.OrderDetailService
             // Recalculate total price
             orderDetail.TotalPrice = orderDetail.TemplatePrice + orderDetail.ServicePrice + orderDetail.DesignerMarkup;
             
-            orderDetail.UpdatedAt = DateTime.UtcNow;
+            orderDetail.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
             return orderDetail;
         }

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.CustomShoeDesignService;
 
@@ -322,11 +323,26 @@ public class CustomShoeDesignService : ICustomShoeDesignService
 
             await _customShoeDesignRepository.UpdateAsync(design);
 
-            await UpdateCustomShoeDesignPreviewImages(request);
+            var previewImages = await UpdateCustomShoeDesignPreviewImages(request);
 
-            await UpdateCustomShoeDesignTextures(request);
+            var textures = await UpdateCustomShoeDesignTextures(request);
 
-            await UpdateCustomShoeDesignServices(request);
+            var services = await UpdateCustomShoeDesignServices(request);
+
+            if (previewImages.Any())
+            {
+                await _designPreviewRepository.AddRangeAsync(previewImages);
+            }
+
+            if (textures.Any())
+            {
+                await _customShoeDesignTexturesRepository.AddRangeAsync(textures);
+            }
+
+            if (services.Any())
+            {
+                await _designServiceRepository.AddRangeAsync(services);
+            }
 
             return new BaseResponseModel<UpdateCustomShoeDesignResponse>
             {
@@ -406,7 +422,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             responses.Add(new GetSimpleCustomShoeDesignResponse
             {
                 Id = d.Id,
-                Name = d.CustomShoeDesignTemplate?.Name,
+                Name = d.Name,
+                Description = d.Description,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
@@ -435,7 +452,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Id = d.Id,
                 ManufacturerId = d.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
-                Name = d.CustomShoeDesignTemplate?.Name,
+                Name = d.Name,
+                Description = d.Description,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
@@ -464,7 +482,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             responses.Add(new GetSimpleCustomShoeDesignResponse
             {
                 Id = d.Id,
-                Name = d.CustomShoeDesignTemplate?.Name,
+                Name = d.Name,
+                Description = d.Description,
                 Gender = d.CustomShoeDesignTemplate?.Gender,
                 Rating = d.Ratings != null && d.Ratings.Any() ? (float)Math.Round(d.Ratings.Average(r => r.UserRating), 1) : 0,
                 Status = d.Status,
@@ -503,7 +522,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             Id = design.Id,
             ManufacturerId = design.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
-            Name = design.CustomShoeDesignTemplate?.Name,
+            TemplateId = design.CustomShoeDesignTemplateId,
+            Name = design.Name,
             Description = design.Description,
             Price = totalAmount,
             TemplateUrl = design.CustomShoeDesignTemplate?.ThreeDFileUrl,
@@ -518,6 +538,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Services = design.DesignServices.Select(s => new DTOs.CustomShoeDesign.Services
             {
                 Id = s.ServiceId,
+                Component = s.Service.Component,
+                Type = s.Service.Type,
                 Price = s.Service?.Price ?? 0
             }) ?? new List<DTOs.CustomShoeDesign.Services>()
         };
@@ -552,8 +574,10 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 Id = d.Id,
                 ManufacturerId = d.DesignServices?.FirstOrDefault()?.Service?.ManufacturerId ?? 0,
-                Name = d.CustomShoeDesignTemplate?.Name,
+                Name = d.Name,
+                Description = d.Description,
                 PreviewImageUrl = d.DesignPreviews?.OrderBy(p => p.CreatedAt).Skip(3).FirstOrDefault()?.PreviewImageUrl,
+                TemplateId = d.CustomShoeDesignTemplateId,
                 TemplatePrice = d.CustomShoeDesignTemplate?.Price ?? 0,
                 ServicePrice = d.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0,
                 Total = totalAmount,
@@ -588,7 +612,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             }
         }
 
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
         string fileName = $"designData_{formattedDateTime}.json";
         byte[] fileBytes;
@@ -610,8 +634,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             Status = Common.Enums.CustomShoeDesignStatus.Private,
             DesignerMarkup = request.DesignerMarkup ?? 0,
             IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+            UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
         };
         return design;
     }
@@ -639,7 +663,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         List<DesignPreview> previewImages = new List<DesignPreview>();
         foreach (var previewImage in request.CustomShoeDesignPreviewImages)
         {
-            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
             string fileName = $"previewImage_{Guid.NewGuid()}_{formattedDateTime}.jpeg";
             byte[] fileBytes;
@@ -654,8 +678,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 CustomShoeDesignId = designId,
                 PreviewImageUrl = previewImagePath,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             });
         }
 
@@ -672,8 +696,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             CustomShoeDesignId = designId,
             TextureId = textureId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+            UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
         });
     }
 
@@ -687,8 +711,8 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         {
             CustomShoeDesignId = designId,
             ServiceId = serviceId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+            UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
         });
     }
 
@@ -706,7 +730,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         design.Status = request.Status;
-        design.UpdatedAt = DateTime.UtcNow;
+        design.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         return design;
     }
 
@@ -737,7 +761,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             }
         }
 
-        DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+        DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
         string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
         string fileName = $"designData_{formattedDateTime}.json";
         byte[] fileBytes;
@@ -749,7 +773,6 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
         var designDataPath = await UploadDesignDataToAzureStorage(fileName, fileBytes);
 
-
         design.DesignData = designDataPath;
         design.Name = request.Name;
         design.Description = request.Description;
@@ -758,7 +781,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         return design;
     }
 
-    private async Task UpdateCustomShoeDesignPreviewImages(UpdateCustomShoeDesignRequest request)
+    private async Task<IEnumerable<DesignPreview>> UpdateCustomShoeDesignPreviewImages(UpdateCustomShoeDesignRequest request)
     {
         if (request.CustomShoeDesignPreviewImages == null || !request.CustomShoeDesignPreviewImages.Any())
         {
@@ -778,7 +801,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         List<DesignPreview> previewImages = new List<DesignPreview>();
         foreach (var previewImage in request.CustomShoeDesignPreviewImages)
         {
-            DateTime gmtPlus7Time = DateTime.UtcNow.AddHours(7);
+            DateTime gmtPlus7Time = DateTimeUtils.GetCurrentGmtPlus7();
             string formattedDateTime = gmtPlus7Time.ToString("dd-MM-yyyy_HH-mm-ss");
             string fileName = $"previewImage_{Guid.NewGuid()}_{formattedDateTime}.jpeg";
             byte[] fileBytes;
@@ -793,15 +816,14 @@ public class CustomShoeDesignService : ICustomShoeDesignService
             {
                 CustomShoeDesignId = request.Id,
                 PreviewImageUrl = previewImagePath,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             });
-
-            await _designPreviewRepository.AddRangeAsync(previewImages);
         }
+        return previewImages;
     }
     
-    private async Task UpdateCustomShoeDesignTextures(UpdateCustomShoeDesignRequest request)
+    private async Task<IEnumerable<CustomShoeDesignTextures>> UpdateCustomShoeDesignTextures(UpdateCustomShoeDesignRequest request)
     {
         var existingTextures = await _customShoeDesignTexturesRepository.GetByCustomShoeDesignIdAsync(request.Id);
         var existingTextureIds = existingTextures.Select(t => t.TextureId).ToList();
@@ -809,7 +831,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         if (request.TextureIds == null || !request.TextureIds.Any())
         {
             await _customShoeDesignTexturesRepository.RemoveRangeAsync(existingTextures.Select(t => t.Id));
-            return;
+            return new List<CustomShoeDesignTextures>();
         }
 
         var removeTextureIds = existingTextureIds.Except(request.TextureIds).ToList();
@@ -820,22 +842,24 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         var addTextureIds = request.TextureIds.Except(existingTextureIds).ToList();
-
+        List<CustomShoeDesignTextures> textures = new List<CustomShoeDesignTextures>();
         if (addTextureIds.Any())
-        {
-            var newTextures = addTextureIds.Select(textureId => new CustomShoeDesignTextures
+        {   
+            foreach (var textureId in addTextureIds)
             {
-                CustomShoeDesignId = request.Id,
-                TextureId = textureId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            });
-
-            await _customShoeDesignTexturesRepository.AddRangeAsync(newTextures);
+                textures.Add(new CustomShoeDesignTextures
+                {
+                    CustomShoeDesignId = request.Id,
+                    TextureId = textureId,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
+                });
+            }
         }
+        return textures;
     }
 
-    private async Task UpdateCustomShoeDesignServices(UpdateCustomShoeDesignRequest request)
+    private async Task<IEnumerable<DesignService>> UpdateCustomShoeDesignServices(UpdateCustomShoeDesignRequest request)
     {
         var existingServices = await _designServiceRepository.GetServicesByCustomShoeDesignIdAsync(request.Id);
         var existingServiceIds = existingServices.Select(s => s.ServiceId).ToList();
@@ -843,7 +867,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         if (request.ServiceIds == null || !request.ServiceIds.Any())
         {
             await _designServiceRepository.RemoveRangeAsync(existingServices.Select(s => s.Id));
-            return;
+            return new List<DesignService>();
         }
 
         var removeServiceIds = existingServiceIds.Except(request.ServiceIds).ToList();
@@ -854,19 +878,21 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         var addServiceIds = request.ServiceIds.Except(existingServiceIds).ToList();
-
+        List<DesignService> services = new List<DesignService>();
         if (addServiceIds.Any())
         {
-            var newServices = addServiceIds.Select(serviceId => new DesignService
+            foreach (var serviceId in addServiceIds)
             {
-                CustomShoeDesignId = request.Id,
-                ServiceId = serviceId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            });
-
-            await _designServiceRepository.AddRangeAsync(newServices);
+                services.Add(new DesignService
+                {
+                    CustomShoeDesignId = request.Id,
+                    ServiceId = serviceId,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
+                });
+            }
         }
+        return services;
     }
 
     private async Task<CustomShoeDesign> GetCustomShoeDesignFromDeleteDesignRequest(DeleteCustomShoeDesignRequest request)
@@ -879,7 +905,7 @@ public class CustomShoeDesignService : ICustomShoeDesignService
         }
 
         design.IsDeleted = true;
-        design.UpdatedAt = DateTime.UtcNow;
+        design.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         design.Status = Common.Enums.CustomShoeDesignStatus.Archived;
 
         return design;

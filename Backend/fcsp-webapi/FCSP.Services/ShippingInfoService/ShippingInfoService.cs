@@ -5,6 +5,7 @@ using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Linq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.ShippingInfoService
 {
@@ -160,7 +161,7 @@ namespace FCSP.Services.ShippingInfoService
                 shippingInfo.PhoneNumber = request.PhoneNumber;
                 shippingInfo.ContactNumber = request.ReceiverName;
                 shippingInfo.IsDefault = request.IsDefault;
-                shippingInfo.UpdatedAt = DateTime.UtcNow;
+                shippingInfo.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
                 await _shippingInfoRepository.UpdateAsync(shippingInfo);
 
@@ -232,7 +233,7 @@ namespace FCSP.Services.ShippingInfoService
                 {
                     await SetOtherAddressesToNonDefault(request.UserId);
                     shippingInfo.IsDefault = true;
-                    shippingInfo.UpdatedAt = DateTime.UtcNow;
+                    shippingInfo.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                     await _shippingInfoRepository.UpdateAsync(shippingInfo);
                 }
 
@@ -336,74 +337,26 @@ namespace FCSP.Services.ShippingInfoService
             {
                 throw new InvalidOperationException("Phone number is required");
             }
-            if (request.PhoneNumber.Length > 25 || request.PhoneNumber.Any(char.IsLetter) || request.PhoneNumber.Any(c => !char.IsDigit(c)))
-            {
-                throw new InvalidOperationException("Phone number is not correct");
-            }
-            if (request.PhoneNumber.Length > 25)
-            {
-                throw new InvalidOperationException("Phone number must not exceed 25 characters");
-            }
             if (string.IsNullOrWhiteSpace(request.Address))
             {
                 throw new InvalidOperationException("Address is required");
-            }
-            if(request.Address.Length < 5)
-            {
-                throw new InvalidOperationException("Address must be at least 5 characters");
-            }
-            if (request.Address.Length > 25)
-            {
-                throw new InvalidOperationException("Address must be less than 25 characters");
             }
             if (string.IsNullOrWhiteSpace(request.Ward))
             {
                 throw new InvalidOperationException("Ward is required");
             }
-            if (request.Ward.Length < 5)
-            {
-                throw new InvalidOperationException("Ward must be at least 5 characters");
-            }
-            if (request.Ward.Length > 25)
-            {
-                throw new InvalidOperationException("Ward must be less than 25 characters");
-            }
             if (string.IsNullOrWhiteSpace(request.District))
             {
                 throw new InvalidOperationException("District is required");
-            }
-            if (request.District.Length < 5)
-            {
-                throw new InvalidOperationException("District must be at least 5 characters");
-            }
-            if (request.District.Length > 25)
-            {
-                throw new InvalidOperationException("District must be less than 25 characters");
             }
             if (string.IsNullOrWhiteSpace(request.City))
             {
                 throw new InvalidOperationException("City is required");
             }
-            if (request.City.Length < 5)
-            {
-                throw new InvalidOperationException("City must be at least 5 characters");
-            }
-            if (request.City.Length > 25)
-            {
-                throw new InvalidOperationException("City must be less than 25 characters");
-            }
             if (string.IsNullOrWhiteSpace(request.Country))
             {
                 throw new InvalidOperationException("Country is required");
-            }
-            if (request.Country.Length < 5)
-            {
-                throw new InvalidOperationException("Country must be at least 5 characters");
-            }
-            if (request.Country.Length > 25)
-            {
-                throw new InvalidOperationException("Country must be less than 25 characters");
-            }   
+            } 
             
             var user = await _userRepository.GetByIdAsync(request.UserId);
             if(user == null)
@@ -420,8 +373,8 @@ namespace FCSP.Services.ShippingInfoService
                 Country = request.Country,
                 PhoneNumber = request.PhoneNumber,
                 ContactNumber = "N/A",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                 IsDefault = request.IsDefault
             };
         }

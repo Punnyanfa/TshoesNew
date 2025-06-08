@@ -6,6 +6,7 @@ using FCSP.Services.ShippingInfoService;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
+using FCSP.Common.Utils;
 
 namespace FCSP.Tests
 {
@@ -54,8 +55,8 @@ namespace FCSP.Tests
                 Id = 123,
                 UserId = 1,
                 IsDeleted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
             var request = new DeleteShippingInfoRequest { Id = 123 };
             _shippingInfoRepositoryMock.Setup(x => x.FindAsync(It.Is<object[]>(args => (long)args[0] == 123)))

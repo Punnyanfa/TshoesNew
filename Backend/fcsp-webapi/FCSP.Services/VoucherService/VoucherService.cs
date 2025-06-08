@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.VoucherService
 {
@@ -505,8 +506,8 @@ namespace FCSP.Services.VoucherService
                 ExpirationDate = request.ExpiryDate,
                 Status = (int)VoucherStatus.Active,
                 Description = request.Code,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
         }
 
@@ -549,7 +550,7 @@ namespace FCSP.Services.VoucherService
             voucher.VoucherName = request.Code;
             voucher.VoucherValue = request.DiscountAmount.ToString();
             voucher.ExpirationDate = request.ExpiryDate;
-            voucher.UpdatedAt = DateTime.UtcNow;
+            voucher.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
         }
 
         private GetVoucherByIdResponse MapToVoucherByIdResponse(Voucher voucher)
@@ -580,7 +581,7 @@ namespace FCSP.Services.VoucherService
 
         private void ValidateExpirationDate(DateTime expiryDate, DateTime? createdAt = null)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTimeUtils.GetCurrentGmtPlus7();
             createdAt ??= now;
 
             if (expiryDate < now)

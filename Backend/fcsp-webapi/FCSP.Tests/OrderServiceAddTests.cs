@@ -31,6 +31,7 @@ namespace FCSP.Tests
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<ISizeRepository> _sizeRepositoryMock;
         private readonly Mock<ICustomShoeDesignTemplateRepository> _customShoeDesignTemplateRepositoryMock;
+        private readonly Mock<IRatingRepository> _ratingRepositoryMock;
         private readonly OrderService _orderService;
 
         public OrderServiceAddTest()
@@ -45,6 +46,7 @@ namespace FCSP.Tests
             _userRepositoryMock = new Mock<IUserRepository>();
             _sizeRepositoryMock = new Mock<ISizeRepository>();
             _customShoeDesignTemplateRepositoryMock = new Mock<ICustomShoeDesignTemplateRepository>();
+            _ratingRepositoryMock = new Mock<IRatingRepository>();
 
             _orderService = new OrderService(
                 _orderRepositoryMock.Object,
@@ -56,7 +58,9 @@ namespace FCSP.Tests
                 _customShoeDesignRepositoryMock.Object,
                 _userRepositoryMock.Object,
                 _sizeRepositoryMock.Object,
-                _customShoeDesignTemplateRepositoryMock.Object);
+                _customShoeDesignTemplateRepositoryMock.Object,
+                _ratingRepositoryMock.Object
+            );
         }
 
         [Fact]

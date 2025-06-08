@@ -2,6 +2,7 @@ using FCSP.Models.Context;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Repositories.Implementations
 {
@@ -25,7 +26,7 @@ namespace FCSP.Repositories.Implementations
 
         public async Task UpdateAsync(T entity)
         {
-            entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
             _context.Update(entity);
             await _context.SaveChangesAsync();
         }
@@ -36,6 +37,7 @@ namespace FCSP.Repositories.Implementations
             if (entity != null)
             {
                 entity.IsDeleted = true;
+                entity.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
                 Entities.Update(entity);
                 await _context.SaveChangesAsync();
             }
@@ -45,11 +47,12 @@ namespace FCSP.Repositories.Implementations
         {
             return await Entities
                 .Where(x => !x.IsDeleted)
+                .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
         }
 
         public IQueryable<T> GetAll()
-            => Entities.Where(x => true).AsQueryable();
+            => Entities.Where(x => true).OrderByDescending(x => x.CreatedAt).AsQueryable();
 
         public T Find(params object[] keyValues)
         {

@@ -1,5 +1,6 @@
 using FCSP.DTOs;
 using FCSP.Common.Enums;
+using Net.payOS.Types;
 
 namespace FCSP.DTOs.Payment
 {
@@ -19,6 +20,9 @@ namespace FCSP.DTOs.Payment
         public long OrderId { get; set; }
         public int Amount { get; set; }
         public PaymentStatus Status { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
+        public string CreatedAt { get; set; } = string.Empty;
+        public string UpdatedAt { get; set; } = string.Empty;
     }
 
 
@@ -30,10 +34,38 @@ namespace FCSP.DTOs.Payment
     public class GetPaymentInfoResponse
     {
         public long PaymentId { get; set; }
-        public String Status { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public int Amount { get; set; }
         public int AmountPaid { get; set; }
         public int AmountRemaining { get; set; }
+        public IEnumerable<Net.payOS.Types.Transaction> Transactions = new List<Transaction>();
+    }
+
+    public class PayOSPaymentDTO
+    {
+        public long Id { get; set; }
+        public int Amount { get; set; }
+        public long OrderId { get; set; }
+        public string PaymentMessage { get; set; } = string.Empty;
+    }
+
+    public class WithdrawRequestDTO
+    {
+        public long UserId { get; set; }
+        public int Amount { get; set; }
+        public BankInformation BankInformation { get; set; }
+    }
+
+    public class BankInformation
+    {
+        public string BankName { get; set; } = string.Empty;
+        public string AccountName { get; set; } = string.Empty;
+        public string AccountNumber { get; set; } = string.Empty;
+    }
+
+    public class WithdrawBalanceResponse
+    {
+        public bool Success { get; set; }
     }
 
     public class AddPaymentRequest

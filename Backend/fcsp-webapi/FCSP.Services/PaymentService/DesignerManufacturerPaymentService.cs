@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.PaymentService
 {
@@ -25,7 +26,7 @@ namespace FCSP.Services.PaymentService
             _logger = logger;
             var intervalMinutes = configuration.GetValue<int>("PaymentProcessing:PaymentProcessingCheckIntervalMinutes", 1); // Default 1 minute
             _checkInterval = TimeSpan.FromMinutes(intervalMinutes);
-            _daysAfterOrderToPayOut = configuration.GetValue<int>("PaymentProcessing:DaysAfterOrderToPayOut", 30); // Default 30 days
+            _daysAfterOrderToPayOut = configuration.GetValue<int>("PaymentProcessing:DaysAfterOrderToPayOut", 0); // Default 30 days
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,7 +37,7 @@ namespace FCSP.Services.PaymentService
             {
                 try
                 {
-                    _logger.LogInformation("Processing payments for designers and manufacturers at {Time}", DateTime.UtcNow);
+                    _logger.LogInformation("Processing payments for designers and manufacturers at {Time}", DateTimeUtils.GetCurrentGmtPlus7());
                     
                     using var scope = _serviceProvider.CreateScope();
                     
@@ -51,11 +52,12 @@ namespace FCSP.Services.PaymentService
                     var designerRepository = scope.ServiceProvider.GetRequiredService<IDesignerRepository>();
 
                     // Find completed orders ready for payout (status completed and completed for 30 days)
-                    var cutoffDate = DateTime.UtcNow.AddDays(-_daysAfterOrderToPayOut);
+                    var cutoffDate = DateTimeUtils.GetCurrentGmtPlus7().AddDays(_daysAfterOrderToPayOut);
                     
                     var eligibleOrders = await orderRepository.GetAll()
                         .Where(o => o.Status == OrderStatus.Completed && 
-                               o.UpdatedAt <= cutoffDate)
+                               o.UpdatedAt <= cutoffDate &&
+                               o.Payments.Any(p => p.PaymentStatus == PaymentStatus.Received))
                         .Include(o => o.OrderDetails)
                             .ThenInclude(od => od.CustomShoeDesign)
                                 .ThenInclude(csd => csd.User) // Designer
@@ -69,7 +71,7 @@ namespace FCSP.Services.PaymentService
 
                     foreach (var order in eligibleOrders)
                     {
-                        // Only process if there's a successful payment for this order
+                        // Verify payment status
                         var payment = order.Payments.FirstOrDefault(p => p.PaymentStatus == PaymentStatus.Received);
                         if (payment == null)
                         {
@@ -77,18 +79,27 @@ namespace FCSP.Services.PaymentService
                             continue;
                         }
 
+                        // Additional payment validation
+                        if (payment.Amount <= 0)
+                        {
+                            _logger.LogWarning("Order {OrderId} has invalid payment amount {Amount}, skipping payout", order.Id, payment.Amount);
+                            continue;
+                        }
+
+                        // Check for existing transactions for all order details
+                        var orderDetailIds = order.OrderDetails.Select(od => od.Id).ToList();
+                        var existingTransactions = await transactionRepository.GetAll()
+                            .Where(t => orderDetailIds.Contains(t.OrderDetailId))
+                            .ToListAsync(stoppingToken);
+
+                        if (existingTransactions.Any())
+                        {
+                            _logger.LogInformation("Order {OrderId} already has transactions for some order details, skipping", order.Id);
+                            continue;
+                        }
+
                         foreach (var orderDetail in order.OrderDetails)
                         {
-                            // Check if transaction already exists for this order detail to avoid duplicate payouts
-                            var existingTransactions = await transactionRepository
-                                .GetByOrderDetailIdAsync(orderDetail.Id);
-                            
-                            if (existingTransactions.Any())
-                            {
-                                _logger.LogInformation("Order detail {OrderDetailId} already has transactions, skipping", orderDetail.Id);
-                                continue;
-                            }
-
                             try
                             {
                                 // Process designer payment
@@ -116,8 +127,8 @@ namespace FCSP.Services.PaymentService
                                         OrderDetailId = orderDetail.Id,
                                         PaymentId = payment.Id,
                                         Amount = designerAmount,
-                                        CreatedAt = DateTime.UtcNow,
-                                        UpdatedAt = DateTime.UtcNow
+                                        CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                                        UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                                     };
                                     await transactionRepository.AddAsync(designerTransaction);
                                     
@@ -158,8 +169,8 @@ namespace FCSP.Services.PaymentService
                                             OrderDetailId = orderDetail.Id,
                                             PaymentId = payment.Id,
                                             Amount = manufacturerAmount,
-                                            CreatedAt = DateTime.UtcNow,
-                                            UpdatedAt = DateTime.UtcNow
+                                            CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                                            UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
                                         };
                                         await transactionRepository.AddAsync(manufacturerTransaction);
                                         
@@ -196,7 +207,7 @@ namespace FCSP.Services.PaymentService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while processing payments at {Time}", DateTime.UtcNow);
+                    _logger.LogError(ex, "Error occurred while processing payments at {Time}", DateTimeUtils.GetCurrentGmtPlus7());
                 }
 
                 await Task.Delay(_checkInterval, stoppingToken);

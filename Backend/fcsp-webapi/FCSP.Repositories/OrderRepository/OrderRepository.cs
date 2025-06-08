@@ -25,6 +25,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Size)
                 .Include(o => o.Payments)
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
     
@@ -37,6 +38,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Size)
                 .Include(o => o.Payments)
+                .OrderByDescending(o => o.CreatedAt)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
@@ -44,6 +46,7 @@ namespace FCSP.Repositories.Implementations
         {
             return await _context.Orders
                 .Include(o => o.OrderDetails)
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
     }

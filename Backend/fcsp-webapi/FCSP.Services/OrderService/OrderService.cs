@@ -7,6 +7,7 @@ using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
 using FCSP.Services.PaymentService;
 using Microsoft.EntityFrameworkCore;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.OrderService
 {
@@ -285,7 +286,7 @@ namespace FCSP.Services.OrderService
                                                     .ThenInclude(od => od.Size)
                                                 .Include(o => o.OrderDetails)
                                                     .ThenInclude(od => od.CustomShoeDesign)
-                                                        .ThenInclude(cd => cd.DesignPreviews)
+                                                        .ThenInclude(od => od.DesignPreviews)
                                                 .Include(o => o.User)
                                                 .Include(o => o.Voucher)
                                                 .Include(o => o.Payments)
@@ -299,6 +300,8 @@ namespace FCSP.Services.OrderService
             }
 
             var rating = await _ratingRepository.GetAll()
+                                            .Include(r => r.CustomShoeDesign)
+                                                .ThenInclude(r => r.Ratings)
                                         .Where(r => r.UserId == request.UserId && r.IsDeleted == false)
                                         .ToListAsync();
 
@@ -311,7 +314,7 @@ namespace FCSP.Services.OrderService
                 Status = o.Status.ToString(),
                 ShippingStatus = o.ShippingStatus.ToString(),
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
-                TotalPrice = o.TotalPrice,
+                TotalPrice = o.AmountPaid,
                 RatingId = rating?.FirstOrDefault(r => r.CustomShoeDesignId == o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id)?.Id ?? 0,
                 UserRating = rating?.FirstOrDefault(r => r.CustomShoeDesignId == o.OrderDetails.FirstOrDefault(od => od.OrderId == o.Id)?.CustomShoeDesign?.Id)?.UserRating ?? 0,
                 CreatedAt = o.CreatedAt,
@@ -352,7 +355,7 @@ namespace FCSP.Services.OrderService
                 Status = order.Status.ToString(),
                 ShippingStatus = order.ShippingStatus.ToString(),
                 PaymentMethod = order.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
-                TotalPrice = order.TotalPrice,
+                TotalPrice = order.AmountPaid,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
@@ -400,7 +403,7 @@ namespace FCSP.Services.OrderService
                 Status = o.Status.ToString(),
                 ShippingStatus = o.ShippingStatus.ToString(),
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
-                TotalPrice = o.TotalPrice,
+                TotalPrice = o.AmountPaid,
                 CreatedAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
@@ -447,7 +450,7 @@ namespace FCSP.Services.OrderService
                 Status = o.Status.ToString(),
                 ShippingStatus = o.ShippingStatus.ToString(),
                 PaymentMethod = o.Payments?.FirstOrDefault()?.PaymentMethod.ToString() ?? string.Empty,
-                TotalPrice = o.TotalPrice,
+                TotalPrice = o.AmountPaid,
                 CreatedAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt,
                 OrderDetail = new OrderDetailResponseDto
@@ -517,9 +520,12 @@ namespace FCSP.Services.OrderService
                 .Include(d => d.CustomShoeDesignTemplate)
                 .Include(d => d.DesignServices)
                     .ThenInclude(ds => ds.Service)
-                .FirstOrDefaultAsync(d => d.Id == request.OrderDetail.CustomShoeDesignId);
+                .FirstOrDefaultAsync(d => d.Id == request.OrderDetail.CustomShoeDesignId && d.IsDeleted == false);
 
-            
+            if (customShoeDesign == null)
+            {
+                throw new InvalidOperationException($"CustomShoeDesign with ID {request.OrderDetail.CustomShoeDesignId} not found.");
+            }
 
             var templatePrice = customShoeDesign.CustomShoeDesignTemplate?.Price ?? 0;
             var servicesPrice = customShoeDesign.DesignServices?.Sum(ds => ds.Service?.Price ?? 0) ?? 0;
@@ -563,8 +569,8 @@ namespace FCSP.Services.OrderService
                 AmountPaid = amountPaid + 30000,
                 Status = OrderStatus.Pending,
                 ShippingStatus = OrderShippingStatus.Preparing,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
 
             return order;
@@ -573,6 +579,9 @@ namespace FCSP.Services.OrderService
         private async Task AddOrderDetailsAsync(Order order, OrderDetailRequestDto orderDetailToAdd)
         {
                 var customShoeDesign = await _customShoeDesignRepository.GetAll()
+                                                                        .Include(d => d.DesignServices)
+                                                                            .ThenInclude(d => d.Service)
+                                                                        .Include(d => d.CustomShoeDesignTemplate)
                                                                         .FirstOrDefaultAsync(csd => csd.Id == orderDetailToAdd.CustomShoeDesignId 
                                                                                         && csd.IsDeleted == false 
                                                                                         && (csd.Status == CustomShoeDesignStatus.Public 
@@ -583,20 +592,25 @@ namespace FCSP.Services.OrderService
                 }
                 
                 var totalAmount = await CalculateTotalAmount(customShoeDesign);
-
-                var orderDetail = new OrderDetail
+                int servicesPrice = 0;
+                if (customShoeDesign.DesignServices != null && customShoeDesign.DesignServices.Any())
+                {
+                    servicesPrice = customShoeDesign.DesignServices.Sum(ds => ds.Service?.Price ?? 0);
+                }
+            var orderDetail = new OrderDetail
                 {
                     OrderId = order.Id,
                     CustomShoeDesignId = orderDetailToAdd.CustomShoeDesignId,
                     SizeId = orderDetailToAdd.SizeId,
                     Quantity = orderDetailToAdd.Quantity,
                     TotalPrice = totalAmount,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    ServicePrice = servicesPrice,
+                    TemplatePrice = customShoeDesign.CustomShoeDesignTemplate.Price,
+                    CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                    UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
                     ManufacturerId = orderDetailToAdd.ManufacturerId
                 };
                 await _orderDetailRepository.AddAsync(orderDetail);
-            
         }
 
         private async Task<string> AddPaymentAsync(Order order, PaymentMethod paymentMethod)
@@ -663,7 +677,7 @@ namespace FCSP.Services.OrderService
                 return (false, "Voucher is not active.");
             }
 
-            if (voucher.ExpirationDate < DateTime.UtcNow)
+            if (voucher.ExpirationDate < DateTimeUtils.GetCurrentGmtPlus7())
             {
                 return (false, "Voucher has expired.");
             }

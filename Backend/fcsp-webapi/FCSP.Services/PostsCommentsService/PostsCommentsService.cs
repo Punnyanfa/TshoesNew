@@ -1,6 +1,7 @@
 using FCSP.DTOs.PostsComments;
 using FCSP.Models.Entities;
 using FCSP.Repositories.Interfaces;
+using FCSP.Common.Utils;
 using System;
 using System.Linq;
 
@@ -52,8 +53,8 @@ namespace FCSP.Services.PostsCommentsService
                 UserId = request.UserId,
                 PostsId = request.PostsId,
                 Comment = request.Comment,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeUtils.GetCurrentGmtPlus7(),
+                UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7()
             };
 
             var addedComment = await _postsCommentsRepository.AddAsync(comment);
@@ -69,7 +70,7 @@ namespace FCSP.Services.PostsCommentsService
             }
 
             comment.Comment = request.Comment;
-            comment.UpdatedAt = DateTime.UtcNow;
+            comment.UpdatedAt = DateTimeUtils.GetCurrentGmtPlus7();
 
             await _postsCommentsRepository.UpdateAsync(comment);
             return new UpdatePostsCommentResponse { PostsCommentId = comment.Id };

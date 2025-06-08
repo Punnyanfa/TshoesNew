@@ -34,7 +34,9 @@ namespace FCSP.DTOs.CustomShoeDesign
     {
         public long Id { get; set; }
         public long ManufacturerId { get; set; }
+        public long TemplateId { get; set; }
         public string? Name { get; set; }
+        public string? Description { get; set; }
         public string? PreviewImageUrl { get; set; }
         public int TemplatePrice { get; set; }
         public int ServicePrice { get; set; }
@@ -53,6 +55,7 @@ namespace FCSP.DTOs.CustomShoeDesign
         public long Id { get; set; }
         public long ManufacturerId { get; set; }
         public string? Name { get; set; }
+        public string? Description { get; set; }
         public string? PreviewImageUrl { get; set; }
         public float? Rating { get; set; }
         public int? RatingCount { get; set; }
@@ -68,6 +71,7 @@ namespace FCSP.DTOs.CustomShoeDesign
     {
         public long Id { get; set; }
         public long ManufacturerId { get; set; }
+        public long TemplateId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? TemplateUrl { get; set; }
@@ -83,6 +87,7 @@ namespace FCSP.DTOs.CustomShoeDesign
     {
         public long Id { get; set; }
         public string? Component { get; set; }
+        public string? Type { get; set; }
         public int? Price { get; set; }
     }
 

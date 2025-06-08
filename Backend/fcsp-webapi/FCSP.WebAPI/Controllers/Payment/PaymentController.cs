@@ -83,4 +83,18 @@ public class PaymentController : ControllerBase
         var result = await _paymentService.UpdatePaymentUsingWebhook(request);
         return StatusCode(result.Code, result);
     }
+
+    [HttpPost("recharge")]
+    public async Task<IActionResult> RechargeBalance([FromBody] RechargeRequestDTO request)
+    {
+        var result = await _paymentService.RechargeBalanceAsync(request);
+        return StatusCode(result.Code, result);
+    }
+
+    [HttpPost("withdraw")]
+    public async Task<IActionResult> WithdrawBalance([FromBody] WithdrawRequestDTO request)
+    {
+        var result = await _paymentService.WithdrawBalanceAsync(request);
+        return StatusCode(result.Code, result);
+    }
 } 

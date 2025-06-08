@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Linq;
+using FCSP.Common.Utils;
 
 namespace FCSP.Services.Auth.Token;
 
@@ -33,7 +34,7 @@ public class JwtService : ITokenService
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry = DateTime.Now.AddMinutes(_config.ExpiryMinutes);
+        var expiry = DateTimeUtils.GetCurrentGmtPlus7().AddMinutes(_config.ExpiryMinutes);
         
         var claims = new List<Claim>
         {

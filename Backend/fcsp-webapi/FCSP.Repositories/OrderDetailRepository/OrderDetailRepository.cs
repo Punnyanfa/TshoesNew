@@ -23,6 +23,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(od => od.CustomShoeDesign)
                     .ThenInclude(cd => cd.DesignServices)
                         .ThenInclude(ds => ds.Service)
+                .OrderByDescending(od => od.CreatedAt)
                 .FirstOrDefaultAsync(od => od.OrderId == orderId);
         }
 
@@ -36,6 +37,7 @@ namespace FCSP.Repositories.Implementations
                 .Include(od => od.CustomShoeDesign)
                     .ThenInclude(cd => cd.DesignServices)
                         .ThenInclude(ds => ds.Service)
+                .OrderByDescending(od => od.CreatedAt)
                 .ToListAsync();
         }
 
